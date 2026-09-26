@@ -8,7 +8,9 @@ Solo lo que depende de alguien fuera del equipo de agentes (el CTO, Meta, AWS Pa
 | P-02 | Oportunidad ACE de la submission | CTO | Abierto | §2 |
 | P-03 | Video de 3 minutos | CTO | Abierto | §3 |
 | P-04 | Decisión de marca pública | CTO | Abierto | §4 |
-| P-05 | Credenciales de jurado en las instrucciones privadas de Devpost | CTO con el operador | Abierto | §5 |
+| P-05 | Credenciales de las cuentas reservadas `guest-NN` en las instrucciones privadas de prueba de la submission | CTO con el operador | Abierto | §5 |
+| P-06 | Datos del responsable para la política de privacidad, casilla de privacidad, destinatario del aviso de lead e inscripción de la base en la AAIP | CTO | Abierto | §6 |
+| P-07 | Ola de superficies públicas: costos y límites a aceptar, secretos y bootstrap, supuesto de `CustomMessage`, alta de aceptación A-01 registrada como lead y apertura del alta pública (`waitlist` → `open`) | CTO; el operador ejecuta | Abierto | §7 |
 
 ## 1. Conectar WhatsApp (P-01)
 
@@ -54,12 +56,45 @@ Decisiones del CTO:
 
 Dueño: CTO. Bloquea el paso 1 de P-01.
 
-## 5. Credenciales de jurado (P-05)
+## 5. Credenciales de las cuentas reservadas (P-05)
 
-1. Esperar `SC-24` y `SC-25` en verde y WP-41 cerrado (`docs/build-plan.md`).
-2. Contar los jurados de la lista pública de la página de la hackathon en Devpost (NN; 15 si todavía no se publicó, nunca menos de 10).
-3. El operador crea `judge-01` a `judge-NN` con `npm run console:invite -- --stage poc --judge <nn>` (contraseña permanente generada, sin MFA; `docs/architecture.md` §10) y las pasa al CTO por un canal privado, nunca por el chat ni el repo. Si la lista crece después, se crean las cuentas que falten.
-4. El CTO las carga en el campo privado de instrucciones de prueba de la submission en Devpost, junto con el link `https://legajo.demo.craftech.io/login` y la **regla de asignación**, en inglés: "Find your name in the Judges list on the hackathon page. Use account judge-NN, where NN is your position in that list sorted alphabetically by last name (01, 02, …). If your position is greater than the number of accounts, use NN = ((position − 1) mod number of accounts) + 1. If the console warns that another session used your world, switch to another judge account instead of resetting." El README solo dice que las credenciales y la regla están en las instrucciones de prueba (`docs/design-brief.md` §7.1).
-5. Después de la evaluación, el operador deshabilita las cuentas (`cognito-idp admin-disable-user`).
+Las cuentas reservadas son del rol invitado (`GUEST`, ADR-0014); cualquiera puede además registrarse en `/signup`. Este es el único lugar del repo, junto con las notas de la submission del README, que cita el texto de las instrucciones del formulario, que sí nombra el concurso.
 
-Dueño: CTO. Verificación: `aws --profile craftech-demos cognito-idp list-users-in-group --user-pool-id <id> --group-name JUDGE` (NN cuentas habilitadas durante la evaluación).
+1. Esperar `SC-24`, `SC-25` y `SC-26` en verde, WP-41 cerrado y la aceptación A-01 hecha (`docs/test-plan.md` §5.1, P-07).
+2. Contar las personas de la lista pública de evaluadores del concurso (NN; 15 si todavía no se publicó, nunca menos de 10, máximo 30 por los cupos reservados de ADR-0015 §4).
+3. El operador crea `guest-01` a `guest-NN` con `npm run console:invite -- --stage poc --guest <nn>` (contraseña permanente generada, sin MFA; `docs/architecture.md` §10) y las pasa al CTO por un canal privado, nunca por el chat ni el repo. Si la lista crece después, se crean las cuentas que falten.
+4. El CTO las carga en el campo privado de instrucciones de prueba del formulario, junto con `https://legajo.demo.craftech.io/login`, la opción de registrarse en `https://legajo.demo.craftech.io/signup` y la **regla de asignación**, en inglés: "Find your name in the Judges list on the hackathon page. Use account guest-NN, where NN is your position in that list sorted alphabetically by last name (01, 02, …). If your position is greater than the number of accounts, use NN = ((position − 1) mod number of accounts) + 1. You can also create your own account at /signup."
+5. Después del período de evaluación, el operador deshabilita las cuentas reservadas (`cognito-idp admin-disable-user`); el alta pública sigue abierta.
+
+Dueño: CTO. Verificación: `aws --profile craftech-demos cognito-idp list-users-in-group --user-pool-id <id> --group-name GUEST` (NN cuentas reservadas habilitadas).
+
+## 6. Privacidad y leads (P-06)
+
+El alta pública convierte a Craftech en responsable de una base de datos personales (ADR-0015 §6-§8). Decisiones y trámites del CTO:
+
+1. Razón social, domicilio y CUIT de Craftech como responsable, para `/legal/privacy.html` (es/en).
+2. Casilla `@craftech.io` para pedidos de acceso, rectificación, baja y borrado (aparece en la política de privacidad).
+3. Casilla `@craftech.io` que recibe el aviso de cada lead: el operador la carga en el secreto `LeadNoticeTo` (hoy `janu@craftech.io`); nunca va al código.
+4. Inscripción de la base de leads en el Registro Nacional de Bases de Datos de la AAIP (Ley 25.326), o confirmación de que la base de Craftech ya inscripta la cubre.
+5. URL de contacto de "Hablemos" (`CRAFTECH_CONTACT_URL`, ADR-0016 §1): confirmar `https://craftech.io/contact/` (verificada el 2026-09-26, `docs/landing-spec.md` §9) o dar otra.
+6. Contenido del aviso de lead cuando la persona **no** aceptó el contacto: ADR-0015 §6 incluye el email siempre; `docs/landing-spec.md` §8.10 propone mostrarlo solo si aceptó ("sin consentimiento de contacto: no contactar"). Recomendación: la segunda, porque el aviso llega a una casilla comercial y la finalidad declarada del contacto depende del consentimiento. Hasta que el CTO decida rige ADR-0015 §6; si elige la segunda, `architect` ajusta el ADR y el cambio es solo del cuerpo que arma `LeadNotice` (FL-115).
+
+Dueño: CTO. Bloquea publicar el alta; no bloquea construirla. Verificación: la política publicada muestra los datos del punto 1 y 2, y un alta de prueba llega a la casilla del punto 3.
+
+## 7. Ola de superficies públicas (P-07)
+
+Lo que el CTO confirma o hace para desplegar el alta propia, la landing comercial y el rol invitado (ADR-0014 a ADR-0016). Nada de esto bloquea construir; los puntos 1 a 4 bloquean el primer deploy de la ola, los puntos 5 a 7 bloquean anunciar el alta o entregar credenciales y el punto 9 bloquea abrir el alta pública (hasta entonces corre en modo `waitlist`).
+
+1. **Costo de la protección contra bots**: aceptar AWS WAF en CloudFront, de US$ 9,4 a 11 por mes al volumen esperado (web ACL, 4 reglas, pedidos y desafíos; ADR-0015 §3.3), con el desafío silencioso **sin SDK** (el SDK de integración exige Bot Control dirigido o ACFP, descartados por costo). **1.1** El precio por cada 1.000 respuestas de desafío no quedó confirmado en la página pública de precios (fuentes secundarias: de US$ 0,15 a US$ 1): se presupuesta al tope y el operador lo confirma con la calculadora de precios de AWS o `aws pricing get-products --service-code awswaf` antes del primer deploy, y lo anota acá con fecha. OAC para las Function URL no tiene costo. Alternativas descartadas con precio en el mismo ADR.
+2. **Límites del alta y de los mundos**: aceptar o cambiar los números de ADR-0015 §3.2 y §4 (60 mundos públicos activos, TTL de 24 h sin actividad o 72 h de creado, cuotas por mundo, presupuesto global de 1.500 turnos y 1.500 emails por día entre todos los mundos públicos). El peor caso de costo diario sale de ese presupuesto y de la tarifa verificada de WP-41; el presupuesto mensual del proyecto sigue avisando al 50, 80 y 100 %. Un cambio de número es un cambio en `packages/shared/src/guest-limits.ts`, sin rediseño.
+3. **Operador, antes del primer deploy de la ola** (`docs/architecture.md` §15 pasos 2 y 3): volver a aplicar el bootstrap (permisos de WAF y de OAC del rol de CI; la CSP no cambia); cargar los secretos `OriginVerifyKey` (aleatorio) y `LeadNoticeTo` (`janu@craftech.io` o la casilla que decida P-06 punto 3); crear el secreto de GitHub `GUEST_TEST_PASSWORD` y borrar el de la cuenta de prueba anterior (nombre en ADR-0014 §8); si en el pool de `poc` quedaron cuentas reservadas con el prefijo anterior, borrarlas (`cognito-idp admin-delete-user`) y crear `guest-test` con `console:invite -- --guest-test`. Nadie pega valores en un chat.
+4. **Supuestos a verificar en el primer deploy**: (a) que un error del trigger `CustomMessage` hace que Cognito no envíe el email (ADR-0015 §3.2), lo verifica `SC-26/11`; (b) que el intersticial del desafío de WAF resuelve en `/signup` bajo la response headers policy de la consola (ADR-0015 §3.3), lo verifica `SC-26/1`: si no, `devops` agrega un comportamiento de caché para `/signup` con su propia policy y lo registra acá. Si (a) falla, el CTO aprueba el plan B: trigger `CustomEmailSender` con una clave KMS propia (≈ US$ 1 por mes), `kms:*` cercado por tag en el rol de CI y la dependencia `@aws-crypto/client-node`.
+5. **Avisos de lead de las pruebas automáticas**: `SC-26` crea y borra una cuenta real por corrida completa, y su aviso de lead llega a `LeadNoticeTo` (≈ 3 avisos por entrega, con buzones `qa-signup-…@sim.legajo.demo.craftech.io`). Confirmar que se aceptan, o pedir que las altas `qa-signup-*` no avisen (entonces el camino del aviso en `poc` queda probado solo por A-01).
+6. **Aceptación A-01** (`docs/test-plan.md` §5.1): el CTO se registra en `poc` desde el teléfono con su propia casilla `@craftech.io` y UTM `acceptance`, recibe el código y el aviso, entra a su mundo, y el operador le muestra que `leads:export` tiene esa fila. El lead queda como alta de referencia hasta que el CTO pida borrarlo.
+7. **Excepción del `QaDriver` sobre `Leads`**: aprobar que el `QaDriver` lea, y borre al final, solo los leads y cuentas de sus propios buzones `qa-signup-<runId>-*` (cerco en código, con revisión de `security`; `docs/test-plan.md` §4.1). Sin esto, `SC-26` no puede afirmar el lead ni limpiar lo que crea, y el alta en `poc` queda probada solo por A-01.
+8. **Disyuntor de reputación de SES** (ADR-0015 §3.2): aceptar el umbral (10 rebotes más quejas en 24 h, o más del 3 % con al menos 100 envíos) que corta las altas y los emails de cuenta de la demo hasta que el operador lo cierre con `npm run signup:breaker -- --close`. Protege la reputación de SES de toda la cuenta Demos, que comparten las otras demos.
+
+9. **Apertura del alta pública** (ADR-0015 §1.4): la ola 3 se despliega con `PublicSignupMode = waitlist`: la landing dice "Pedir acceso" y va con `noindex`, el formulario guarda el lead (`status WAITLIST`, email sin verificar) y avisa a `LeadNoticeTo`, sin crear cuenta ni mundo ni mandar nada al visitante; solo los buzones `qa-signup-*` del `QaDriver` y las casillas `<local>@craftech.io` crean cuentas (así se hacen `SC-26` y A-01). El CTO decide abrir cuando se cumple **todo**: `SC-24`, `SC-25` y `SC-26` en verde en `poc` en 3 corridas seguidas de la suite completa (exige WP-31, ola 4, y WP-37, ola 5), A-01 hecha (punto 6) y P-06 cerrado. Entonces el operador escribe abajo la fecha, abre el PR que cambia `publicSignupMode` a `"open"` en `infra/signup-mode.ts` (`infra/signup-mode.test.ts` lo rechaza sin fecha) y, después del deploy por CI, exporta la lista de espera (`npm run leads:export -- --waitlist --out <archivo fuera del repo>`) para que Craftech avise una vez, desde su casilla, a quienes pidieron acceso (`docs/architecture.md` §15 paso 8). Volver a `waitlist` es el mismo PR al revés y no pide fecha.
+   - Apertura del alta pública: `pendiente`
+
+Dueño: CTO; el operador ejecuta los puntos 3 y 9 y acompaña el 6. Verificación: puntos 1 (con el precio de 1.1), 2, 5, 7 y 8 respondidos en este documento con fecha; punto 9 con la línea "Apertura del alta pública" en `AAAA-MM-DD` (fecha en que se cumplió el criterio) antes del PR de apertura; `SC-26` en verde (puntos 3 y 4); evidencia de A-01 en el PR de la ola (punto 6).

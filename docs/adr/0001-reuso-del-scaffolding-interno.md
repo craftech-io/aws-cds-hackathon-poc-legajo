@@ -8,7 +8,7 @@ Craftech construyó, desde el 2026-09-14 y para esta misma hackathon, un reposit
 
 ## Considered options
 
-- **Escribir todo de cero**: cero riesgo de arrastrar algo ajeno, pero repite semanas de trabajo ya pagado (el primer deploy del scaffolding falló cerrado siete veces antes del verde) y deja menos tiempo para lo que evalúan los jueces: el agente y sus flujos.
+- **Escribir todo de cero**: cero riesgo de arrastrar algo ajeno, pero repite semanas de trabajo ya pagado (el primer deploy del scaffolding falló cerrado siete veces antes del verde) y deja menos tiempo para lo que importa del producto: el agente y sus flujos.
 - **Fork del repositorio interno**: más rápido todavía, pero arrastra el historial de commits, la marca y el dominio del producto anterior; el repo de la submission tiene que ser nuevo.
 - **Copiar y adaptar archivo por archivo con un mapa** (elegida): repo nuevo sin historial ajeno, solo lo que sirve, y cada lección del primer deploy ya resuelta en el código copiado.
 

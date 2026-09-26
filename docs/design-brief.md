@@ -1,6 +1,6 @@
 # Design brief · aws-cds-hackathon-poc-legajo
 
-**Legajo listo**: agente de coordinación para estudios de despachantes de aduana en Latinoamérica, construido por Craftech para la AWS CDS Agentic AI Partner Hackathon (cierre de submissions 2026-10-28 13:00 PT). Concepto aprobado por el CTO el 2026-09-25.
+**Legajo listo**: agente de coordinación para estudios de despachantes de aduana en Latinoamérica, construido por Craftech para la AWS CDS Agentic AI Partner Hackathon (cierre de submissions 2026-10-28 13:00 PT). Concepto aprobado por el CTO el 2026-09-25. Desde el 2026-09-26 la POC publicada es un **producto para un cliente futuro**: ninguna superficie visible nombra el concurso (R6).
 
 Fuente de verdad del diseño funcional. Vocabulario: `CONTEXT.md`. Decisiones: `docs/adr/`. Topología, datos, seguridad y deploy: `docs/architecture.md` y `docs/architecture-integrations.md`. Flujos: `docs/flows-catalog.md`. Tools: `docs/tool-catalog.md`. Datos: `docs/seed-spec.md`. Pruebas: `docs/test-plan.md`. Plan de construcción: `docs/build-plan.md`.
 
@@ -13,6 +13,7 @@ Fuente de verdad del diseño funcional. Vocabulario: `CONTEXT.md`. Decisiones: `
 | R3 | La lectura de documentos no es nuestra | Consumimos un **lector documental** por contrato OpenAPI; en la demo es un mock que reconoce nuestros PDFs sintéticos y devuelve su verdad de base; lo desconocido es `UNRECOGNIZED` y va al despachante (ADR-0003) |
 | R4 | Deploy solo por CI (GitHub Actions + OIDC) en `craftech-demos` (776805327629), `us-east-1`, dominio `legajo.demo.craftech.io` en la zona delegada `demo.craftech.io` (`Z043097217S4W7QWXU5O0`), repo `craftech-io/aws-cds-hackathon-poc-legajo`, app SST `aws-cds-hackathon-poc-legajo` | `docs/architecture.md` §15 (orden de deploy) y ADR-0009; un solo stage (`poc`), sin `sst dev` |
 | R5 | "100 % probada": todo flujo del catálogo probado antes de que lo vea el CTO | `docs/test-plan.md`: unitarios, e2e locales, ejecutor de escenarios en `poc`, smoke en CI y revisión de seguridad |
+| R6 | Superficies públicas según el estándar de Craftech (skill del workspace `poc-landing`, decisión del 2026-09-26): producto agnóstico al concurso, rol **invitado** (`GUEST`), landing comercial que muestra el producto real, alta y login propios que registran **leads** | ADR-0014 (textos neutrales, rol y guard `lint:neutral-surfaces`), ADR-0015 (alta, anti abuso, leads, privacidad), ADR-0016 (landing y capturas); diseño visual en `docs/landing-spec.md` |
 
 ---
 
@@ -40,7 +41,9 @@ Lo que **no** es: no clasifica mercadería, no valora, no liquida tributos, no a
 | Analista (`ANALYST`) | Equipo del estudio | es-AR | Consola | Seguir operaciones, tomar conversaciones, escribir al importador; no aprueba |
 | Importador (contacto registrado) | Empresa argentina cliente del estudio | es-AR (voseo) | WhatsApp (EUM Social; simulador en la demo); link de carga | Saber qué le falta, subir documentos fácil, no recibir problemas que no le tocan |
 | Proveedor (contacto registrado) | Exportador extranjero | en | Email (SES) desde/hacia la dirección de la operación | Saber exactamente qué documento falta, con qué tiene que coincidir y hasta cuándo en su zona horaria |
-| Jurado | Evalúa la submission | en/es | Landing, consola con su cuenta y su propio mundo, simulador de teléfono, buzón de demo, reloj de demo, recorrido guiado (§15) | Ver una historia de 7 días en minutos sin depender de nosotros ni de otro jurado |
+| Visitante | Prospecto (estudio, despachante, integrador), partner o evaluador que llega a la landing | es/en | Landing, alta, login | Entender en segundos qué problema resuelve y cómo, y probarlo solo |
+| Invitado (`GUEST`) | Visitante registrado (público) o persona con una cuenta reservada `guest-NN` | es/en | Consola con su propio estudio y mundo, simulador de teléfono, buzón de demo, reloj de demo, recorrido guiado (§15) | Ver una historia de 7 días en minutos sin depender de nosotros ni de otro invitado |
+| Craftech comercial | Equipo de Craftech que recibe los leads | es | Aviso de lead por email (`@craftech.io`), `leads:export` | Saber quién probó la demo y si aceptó que lo contacten |
 
 Personas de demo (sintéticas, detalle en `docs/seed-spec.md` §4): Diego Ferreyra (despachante, Estudio Delta), Martina Sosa (analista), Lucía Benítez (Norpampa Insumos SRL, importador de la operación 4471), el proveedor Qingdao Bluewave Textiles Co., Ltd. (Asia/Shanghai). Todas ficticias.
 
@@ -52,7 +55,7 @@ Personas de demo (sintéticas, detalle en `docs/seed-spec.md` §4): Diego Ferrey
 |---|---|---|---|---|---|
 | WhatsApp | AWS End User Messaging Social (`socialmessaging`) | **`simulated`** hasta que el CTO conecte la WABA (P-01) | Importador | Vivo: evento de EUM Social por SNS `aws-cds-hackathon-poc-legajo-wa-inbound` → `InboundWhatsApp`. Simulado: simulador de teléfono → BFF → `InboundWhatsApp` con el mismo sobre que SNS | Vivo: `SendWhatsAppMessage` (plantilla `UTILITY` o texto libre dentro de la ventana). Simulado: transporte simulado que persiste exactamente el cuerpo que se mandaría y emite eventos de estado sintéticos |
 | Email | Amazon SES v2 (envío) + receipt rules (recepción) | **`live`** de punta a punta | Proveedor; despachante (escalamiento) | MX → rule set `aws-cds-hackathon-poc-legajo-inbound` → S3 → `InboundEmail` (hilos de operación) o `SimMail` (buzones simulados) | `SendEmail` desde la dirección de la operación (`op-<número>-<etiqueta>@legajo.demo.craftech.io`), configuration set con eventos a EventBridge |
-| Consola | CloudFront + React + tRPC | — | Estudio, jurado | tRPC | Mensajes del despachante: el BFF los encola y el worker los envía por el mismo pipeline de salida |
+| Consola | CloudFront + React + tRPC | — | Estudio, invitado | tRPC | Mensajes del despachante: el BFF los encola y el worker los envía por el mismo pipeline de salida |
 
 `ChannelModes` (`infra/channel-modes.ts`): `{ email: "live", whatsapp: "simulated" }`. Pasar WhatsApp a `live` es cambiar ese valor y cargar `WabaId` y `WhatsAppPhoneNumberId` como secretos, después de los pasos del CTO de `docs/pending.md` P-01; ni tools, ni flujos, ni textos cambian (ADR-0002). Un check de CI falla si `whatsapp: "live"` aparece con P-01 abierto.
 
@@ -182,13 +185,13 @@ Detalle y schemas en `docs/tool-catalog.md`. El Gateway (MCP, `AWS_IAM`) tiene u
 | `followups` | `schedule_followup`, `estimate_delay_risk` |
 | `handoff` | `escalate_to_broker`, `request_approval` |
 
-15 tools por Gateway. Los handlers deterministas que no usa el modelo (`verify_sender`, `record_consent`, `revoke_consent`, `confirm_supplier_contact`, `intake_document`, `schedule_milestones`, `reschedule_on_eta_change`, `fire_milestone`, `notify_dispatch_status`, `apply_email_event`, `approve_dossier`, `reopen_dossier`, `waive_observation`, `take_conversation`, `release_conversation`, `broker_send`, `advance_clock`, …) se invocan directo con `caller` y no se registran en el Gateway. **No existe una tool que apruebe**: aprobar es un procedimiento de consola que exige rol `BROKER` (o `JUDGE` en su propio estudio) (ADR-0010).
+15 tools por Gateway. Los handlers deterministas que no usa el modelo (`verify_sender`, `record_consent`, `revoke_consent`, `confirm_supplier_contact`, `intake_document`, `schedule_milestones`, `reschedule_on_eta_change`, `fire_milestone`, `notify_dispatch_status`, `apply_email_event`, `approve_dossier`, `reopen_dossier`, `waive_observation`, `take_conversation`, `release_conversation`, `broker_send`, `advance_clock`, …) se invocan directo con `caller` y no se registran en el Gateway. **No existe una tool que apruebe**: aprobar es un procedimiento de consola que exige rol `BROKER` (o `GUEST` en su propio estudio) (ADR-0010).
 
 ### 5.4 Memoria
 
 | Qué | Dónde | Por qué |
 |---|---|---|
-| Historia de la operación (corto plazo) | AgentCore Memory, eventos del Harness con `actorId = imp-<importerId>-e<worldEpoch>` y `sessionId = runtimeSessionId` (que incluye la época del mundo y la de la sesión); `eventExpiryDuration` 30 días | Una operación dura de 2 a 4 semanas; sus turnos comparten sesión. Un "Reiniciar demo" o un mundo QA nuevo empiezan con actor y sesión nuevos: nada de un jurado anterior ni de una corrida anterior llega al siguiente |
+| Historia de la operación (corto plazo) | AgentCore Memory, eventos del Harness con `actorId = imp-<importerId>-e<worldEpoch>` y `sessionId = runtimeSessionId` (que incluye la época del mundo y la de la sesión); `eventExpiryDuration` 30 días | Una operación dura de 2 a 4 semanas; sus turnos comparten sesión. Un "Reiniciar demo" o un mundo QA nuevo empiezan con actor y sesión nuevos: nada de un invitado anterior ni de una corrida anterior llega al siguiente |
 | Preferencias del importador (largo plazo) | Estrategia propia `importerPreferences` (override de `userPreference` con instrucción de exclusión), namespace `/importers/{actorId}/preferences/` | Horario preferido, tono, quién de su empresa atiende |
 | Hechos del importador (largo plazo) | Estrategia semántica propia `importerFacts`, namespace `/importers/{actorId}/facts/` | "Suele subir por link", "sube los documentos el mismo día que se los piden" |
 | Resumen por operación | Estrategia propia `operationSummary` (override de `summary`), namespace `/importers/{actorId}/{sessionId}/summary/`, recuperado con `topK 3` | Retomar tras un traspaso o tras un bloqueo del guardrail |
@@ -287,14 +290,14 @@ Presentarse como asistente del estudio (nombre del estudio, nunca "Legajo listo"
 
 ## 6. Consola del estudio
 
-Web React 19 + Vite + Tailwind v4 detrás de login propio sobre Cognito (SRP, sin hosted UI, tokens de 15 min con refresh silencioso), BFF tRPC v11. Roles: `BROKER`, `ANALYST`, `JUDGE` (permisos de `BROKER` en su propio estudio de jurado). El `firmId` sale del token (grupo + atributo `custom:firmId`), nunca del input; cualquier id de otro estudio → 403 + bitácora.
+Web React 19 + Vite + Tailwind v4 detrás de login propio sobre Cognito (SRP, sin hosted UI, tokens de 15 min con refresh silencioso), BFF tRPC v11. Roles: `BROKER`, `ANALYST`, `GUEST` (permisos de `BROKER` en su propio estudio de invitado). El `firmId` sale del token (grupo + atributo `custom:firmId`), nunca del input; cualquier id de otro estudio → 403 + bitácora.
 
 Elementos fijos del shell (consola y simulador): **barra de hora simulada** siempre visible ("Hora simulada · mié 14/10 10:30 · reloj de demo en pausa") con los botones "Avanzar al próximo evento", "+1 h" y "+1 día". Mientras el mundo está ocupado (turno en curso, evento en cola, email en tránsito hasta que el simulador lo procesa, PDF esperando el escaneo; `docs/architecture.md` §7), esos botones, "Disparar ahora", "Mover ETA" y "Emitir estado de despacho" quedan deshabilitados y la barra dice qué espera y cuánto suele tardar ("Esperando: email en tránsito por SES (~30 s)", "El agente está escribiendo… (~1 min)"); el BFF devuelve `WORLD_BUSY` con los pendientes si igual llega el pedido. Si el mundo sigue ocupado más de 5 minutos, aparece "Avanzar igual" con la advertencia "la historia puede quedar desordenada"; panel **Recorrido guiado** (es/en, §15); actualización en vivo por tRPC cada 3 s mientras hay algo en curso (turno, email saliente esperando evento de SES, respuesta del proveedor pendiente) y cada 15 s en reposo.
 
 | Vista | Ruta | Contenido | Acciones |
 |---|---|---|---|
 | Operaciones | `/app/operations` | Tabla con número, importador, proveedor, ETA, días al arribo, estado del legajo, documentos (3 íconos de estado), control, próximo evento, escalamientos abiertos; la `4471` fijada arriba como **Historia principal**; filtros por estado y riesgo | Abrir detalle; "Nueva operación" (desde PlatformMock) |
-| Detalle del legajo | `/app/operations/:operationId` | Por documento: estado (faltante / recibido / con observación / válido), responsable, versiones con lectura y observaciones, intentos; línea de tiempo unificada (WhatsApp, email, notas del turno, eventos, hitos, decisiones con `ruleIds`); **pendientes con motivo** ("Diferido: horario del proveedor (CP-HOURS-SUPPLIER) hasta 16/10 09:00 Qingdao · [Avanzar hasta ahí]", "Esperando respuesta del proveedor por SES"); riesgo estimado con supuestos | Tomar conversación / devolver; escribir al importador; dispensar observación; clasificar documento `UNRECOGNIZED`; aprobar (solo `BROKER`/`JUDGE`; si el login pasó los 15 min, un modal pide la contraseña sin salir de la vista); reabrir |
+| Detalle del legajo | `/app/operations/:operationId` | Por documento: estado (faltante / recibido / con observación / válido), responsable, versiones con lectura y observaciones, intentos; línea de tiempo unificada (WhatsApp, email, notas del turno, eventos, hitos, decisiones con `ruleIds`); **pendientes con motivo** ("Diferido: horario del proveedor (CP-HOURS-SUPPLIER) hasta 16/10 09:00 Qingdao · [Avanzar hasta ahí]", "Esperando respuesta del proveedor por SES"); riesgo estimado con supuestos | Tomar conversación / devolver; escribir al importador; dispensar observación; clasificar documento `UNRECOGNIZED`; aprobar (solo `BROKER`/`GUEST`; si el login pasó los 15 min, un modal pide la contraseña sin salir de la vista); reabrir |
 | Escalamientos | `/app/escalations` | Bandeja de escalamientos abiertos por motivo | Tomar, resolver |
 | Registro | `/app/registry` | Importadores (contacto, teléfono enmascarado, opt-in con fecha/medio/texto, autorizaciones por proveedor) y proveedores (contactos con estado, zona horaria, idioma, perfil medido, comportamiento simulado) | Alta/edición, registrar/revocar opt-in, autorizar contacto con proveedor, confirmar contacto, cambiar comportamiento simulado |
 | Reloj de demo | `/app/clock` | Hora simulada y modo del mundo, próximos eventos de todo tipo (hitos, envíos diferidos, respuestas del simulador, reintentos) | Avanzar al próximo evento, +1 h, +1 día, mover la ETA de una operación (evento del transportista), disparar un hito ahora, emitir un estado de despacho, "Reloj en vivo" (30 min), reiniciar la demo **de este mundo** |
@@ -311,21 +314,23 @@ Componentes reusados del scaffolding (`Table`, `DataTable`, `SelectField`, `Filt
 
 | Superficie | Ruta | Contenido |
 |---|---|---|
-| Landing | `/` | Historia del problema, escenas de la demo, capturas de la consola y del simulador, galería con zoom (anterior/siguiente, teclado, swipe, Escape), arquitectura; conmutador es/en; "Legajo listo · Powered by Craftech"; aviso "datos 100 % sintéticos"; bloque **Qué es real y qué es simulado** (§7.2); botón **"Judges: sign in / Jurado: ingresar"** a `/login` |
-| Login | `/login` | Login propio (SRP); MFA TOTP opcional y cambio de contraseña inicial para cuentas del estudio; para `JUDGE`, sin cambio de contraseña ni MFA |
-| Legales | `/legal/privacy.html`, `/legal/terms.html` | Privacidad y términos de la demo (requisito de Meta para la WABA) |
+| Landing | `/` | Página comercial del producto (ADR-0016; diseño en `docs/landing-spec.md`): propuesta de valor, problema, recorrido animado con capturas reales o renders con componentes reales, qué hace por actor, garantías en código, impacto como metas rotuladas, cómo se integra, **Qué es real y qué es simulado** (§7.2), galería con zoom; conmutador es/en; "Legajo listo · Powered by Craftech"; aviso "datos 100 % sintéticos"; CTAs **"Probar la demo"** (→ `/signup`), **"Ingresar"** (→ `/login`) y **"Hablemos"** (contacto de Craftech). Ninguna palabra de ADR-0014 |
+| Alta | `/signup` | Email y contraseña; nombre, empresa y cargo opcionales; casillas separadas sin tildar de términos y privacidad (obligatoria) y "Acepto que Craftech me contacte por esta solución" (opcional); código por email; desafío silencioso de WAF, sin rompecabezas (ADR-0015). En modo `waitlist` (ADR-0015 §1.4, valor inicial) el mismo formulario es un **pedido de acceso**: guarda el lead, no crea cuenta ni manda código, y termina en `/signup/waitlisted` |
+| Login | `/login` | Login propio (SRP) con el email; "Olvidé mi contraseña" (código + contraseña nueva); MFA TOTP opcional y cambio de contraseña inicial para cuentas del estudio; para `GUEST`, sin cambio de contraseña ni MFA; aviso "La demo está completa en este momento" si no hay cupo |
+| Legales | `/legal/privacy.html`, `/legal/terms.html` | Privacidad (Ley 25.326: Craftech como responsable, datos, finalidad, retención, derechos, baja y borrado, leyenda de la AAIP; ADR-0015 §8) y términos de la demo (uso con datos sintéticos, cuotas y TTL del mundo); versión y fecha visibles; también requisito de Meta para la WABA |
 | Link de carga | `/u/<token>` | Lambda `PublicWeb` sin login: número de operación y documentos faltantes; por documento, un input de archivo PDF (≤ 10 MB) que sube con URL prefirmada; confirmación; link vencido o usado → página de error sin datos |
 
-El simulador de teléfono **no** es público: vive en la consola porque cada mensaje dispara un turno de Bedrock (costo y abuso); los jurados entran con sus cuentas.
+El simulador de teléfono **no** es público: vive en la consola porque cada mensaje dispara un turno de Bedrock (costo y abuso); se usa después del alta o con una cuenta reservada, siempre con las cuotas por mundo de ADR-0015 §4.
 
-### 7.1 Acceso de los jurados
+### 7.1 Acceso de invitados
 
-1. Cuentas `judge-01` a `judge-NN` creadas por el operador con `console:invite --judge`, con NN = cantidad de jurados de la lista pública de la página de la hackathon (15 si todavía no se publicó; nunca menos de 10) (`docs/architecture.md` §10 y §17): contraseña permanente (`AdminSetUserPassword Permanent=true`, sin cambio forzado que dejaría afuera al segundo jurado), grupo `JUDGE`, MFA apagado (`AdminSetUserMFAPreference`); la consola oculta TOTP y cambio de contraseña para `JUDGE` y el BFF los rechaza.
-2. **Una cuenta por jurado.** Las instrucciones de prueba de Devpost (P-05) dicen: "Find your name in the Judges list on the hackathon page. Use account judge-NN, where NN is your position in that list sorted alphabetically by last name (01, 02, …). If your position is greater than the number of accounts, use NN = ((position − 1) mod number of accounts) + 1." Si igual inician dos sesiones en la misma cuenta, el BFF lo detecta con la última sesión que actuó sobre el mundo (`origin_jti`, `docs/architecture.md` §10) y, cuando entra otra sesión dentro de las 2 h de actividad de la anterior, la consola muestra un aviso fijo arriba: "Otra sesión usó este mundo hace X min: usá otra cuenta de jurado" / "This world is in use by another session: please use another judge account". El aviso no ofrece reiniciar (reiniciar borraría la corrida del otro jurado) ni bloquea. Lo prueban `login.spec.ts` y `SC-25/3` (dos sesiones sobre `judge-test`).
-3. Cada cuenta tiene su propio estudio (`firm-judge-<nn>`) y su propio mundo, creado en el primer login desde la plantilla curada (la 4471 como historia principal más 4474, 4477, 4478, 4487 y 4488), con el reloj en pausa. Lo que hace un jurado (avanzar el reloj, aprobar, revocar un opt-in, reiniciar) no toca el mundo de otro. Un trabajo nocturno reinicia los mundos sin actividad en 24 h.
-4. Las credenciales van **solo** en el campo privado de instrucciones de prueba de Devpost, junto con la regla de asignación del punto 2; el README dice "credentials and the account assignment rule are in the submission's testing instructions".
-5. La landing lleva el botón "Judges: sign in / Jurado: ingresar" a `/login`; después del login, el panel Recorrido guiado (§15) está abierto.
-6. Antes de entregar credenciales: WP-41 cerrado (tarifas verificadas; sin eso la métrica de costo diría "sin tarifa verificada" durante la evaluación), `SC-24` y `SC-25` en verde.
+1. **Alta pública** (ADR-0015): el stage se despliega en modo `waitlist` (ADR-0015 §1.4: la landing dice "Pedir acceso", no se indexa y el formulario solo guarda el lead) y el operador lo pasa a `open` cuando `SC-24` a `SC-26` pasan 3 veces seguidas en `poc`, A-01 está hecha y P-06 cerrado (`docs/architecture.md` §15 paso 8). En `open`, cualquiera se registra en `/signup` con su email (verificado por un código de Cognito), queda en el grupo `GUEST` y es un **lead** de Craftech. En su primer ingreso se le crea un **mundo de invitado** propio (plantilla curada: la 4471 como historia principal más 4474, 4477, 4478, 4487 y 4488; reloj en pausa el 14/10 10:30) en uno de los 60 cupos públicos (una sola creación por cuenta; los tokens del dueño anterior de un cupo no alcanzan al siguiente); el mundo vence a las 24 h sin uso o a las 72 h de creado, y el ingreso siguiente crea otro. Sin cupo libre: "La demo está completa en este momento". Cuotas por mundo en reloj real (turnos, emails, mensajes del simulador, movimientos del reloj, cargas, operaciones nuevas, reinicios).
+2. **Cuentas reservadas** `guest-01` a `guest-NN` (NN por defecto 15, máximo 30), creadas por el operador con `console:invite --guest` (`docs/architecture.md` §10 y §17): contraseña permanente (sin cambio forzado que dejaría afuera a la segunda persona), grupo `GUEST`, MFA apagado; mundo fijo que no vence y se reinicia de noche si no se usó en 24 h. Exentas de los topes del alta y del cupo público; sujetas a las cuotas por mundo. Sirven a quien necesita credenciales listas (p. ej. las instrucciones privadas de prueba del formulario de la submission, P-05, con su regla de asignación de una cuenta por persona); cualquiera puede usar el alta pública igual.
+3. **Una cuenta por persona.** Si igual inician dos sesiones en la misma cuenta, el BFF lo detecta con la última sesión que actuó sobre el mundo (`origin_jti`, `docs/architecture.md` §10) y, cuando entra otra sesión dentro de las 2 h de actividad de la anterior, la consola muestra un aviso fijo arriba: "Otra sesión usó este mundo hace X min: si compartís la cuenta, usá otra cuenta de invitado" / "Another session used this world X min ago: if you share this account, please use another guest account". El aviso no ofrece reiniciar (borraría la corrida de la otra persona) ni bloquea. Lo prueban `login.spec.ts` y `SC-25/3` (dos sesiones sobre `guest-test`).
+4. Lo que hace un invitado (avanzar el reloj, aprobar, revocar un opt-in, reiniciar) no toca el mundo de otro. Un invitado nunca escribe a personas reales: WhatsApp siempre simulado, emails de producto solo a buzones simulados que ve en el buzón de demo, registro limitado a direcciones y teléfonos del mundo.
+5. Las credenciales de las cuentas reservadas van **solo** en instrucciones privadas; el README de producto dice cómo registrarse ("Try the demo") y, en sus notas finales de la submission, que las credenciales están en las instrucciones de prueba del formulario.
+6. Después del primer ingreso el panel Recorrido guiado (§15) está abierto.
+7. Antes de entregar credenciales o anunciar el alta: WP-41 cerrado (tarifas verificadas; sin eso la métrica de costo diría "sin tarifa verificada"), `SC-24` y `SC-25` en verde, alta real probada de punta a punta en `poc` (`docs/architecture.md` §15 paso 6).
 
 ### 7.2 Qué es real y qué es simulado
 
@@ -335,7 +340,7 @@ Bloque fijo en la landing (es/en), en el README y en un segmento de 5 segundos d
 |---|---|---|---|
 | Todo servicio de AWS: SES de punta a punta (envío y receipt rules), AgentCore Harness, Gateway, Policy y Memory, Bedrock Guardrails, EventBridge Scheduler y bus, SQS, DynamoDB, S3, Cognito, CloudFront | Adaptador de WhatsApp de End User Messaging Social: probado con fixtures, corre con el simulador de teléfono hasta que Meta conecte la WABA | Lector documental (contrato OpenAPI; producto externo en la realidad), plataforma de gestión aduanera, transportista, aduana, proveedores | 100 % sintéticos |
 
-Las capturas de la landing se toman en `poc` después de una corrida real, con la cuenta sintética `judge-test`; una captura tomada en local lleva el rótulo "entorno local, agente guionado". El marco del teléfono siempre dice "simulador".
+Las capturas de la landing se toman en `poc` después de una corrida real, con la cuenta sintética `guest-test`; una captura tomada en local lleva el rótulo "entorno local, agente guionado"; un render hecho con componentes reales para una vista que todavía no existe lleva "Animación con los componentes y textos del producto" y declara qué captura lo reemplaza (ADR-0016). El marco del teléfono siempre dice "simulador".
 
 ---
 
@@ -359,7 +364,7 @@ Pestañas:
 
 | Pestaña | Qué corre | Rótulo |
 |---|---|---|
-| Este mundo | Las operaciones del mundo del usuario (demo, jurado) | Medido |
+| Este mundo | Las operaciones del mundo del usuario (demo, invitado) | Medido |
 | Lote · agente real | 20 operaciones generadas como **entradas** (operación, comportamiento del proveedor, cambios de ETA, errores sembrados; nunca resultados) corridas en `poc` por el `QaDriver` en un mundo `firm-sim` con reloj en pausa, Harness real, tope de turnos y costo registrado en el reporte | Medido · agente real (N = 20) |
 | Lote · agente guionado | Las 200 operaciones de entrada corridas por el pipeline local (`LF`: política, matriz, hitos y verificación de salida reales; Harness guionado) | Agente guionado (N = 200) |
 
@@ -373,6 +378,7 @@ Pestañas:
 - Nombres de empresas, buques, transportistas e instituciones del seed: inventados, validados contra una lista de términos prohibidos que vive fuera del repo (la mantiene `security`) y contra una búsqueda web registrada con fecha (`Reference/NAMECHECK`), rotulados "ficticio" en la UI; las instituciones llevan un nombre claramente inventado ("Synthetic Chamber of Commerce (fictitious)").
 - El control de términos prohibidos falla cerrado en CI y cubre árbol, commits, PDFs, seed y el build de la web (`docs/architecture.md` §18).
 - El display name de WhatsApp es decisión del CTO (P-04).
+- **Superficies neutrales** (ADR-0014): ninguna superficie visible nombra el concurso, sus premios ni a quienes lo evalúan (lista cerrada en ADR-0014 §2); el rol de prueba es **invitado**. `npm run lint:neutral-surfaces` lo verifica en fuentes visibles y en el build, y `frame-check.ts` en cada captura.
 
 ## 10. Idiomas
 
@@ -381,7 +387,8 @@ Pestañas:
 | Consola, textos al importador, plantillas de WhatsApp | Español rioplatense (voseo), en `packages/bff/src/copy/es-AR.ts`; glosa fija en inglés de plantillas y textos fijos en `copy/en-gloss.ts` (visible con "EN" en el simulador y en el recorrido) |
 | Emails al proveedor | Inglés, en `packages/bff/src/copy/en.ts` |
 | Landing y recorrido guiado | es/en con conmutador (`packages/web/src/views/landing/copy.ts`, `packages/web/src/views/tour/steps.ts`) |
-| README, instrucciones para jurados, materiales de submission | Inglés |
+| README (producto, con las notas de la submission al final), instrucciones privadas de prueba, materiales de submission | Inglés |
+| Alta, login, emails de cuenta, páginas legales | es/en (según el conmutador de la landing o el atributo `locale`) |
 | `CLAUDE.md`, `CONTEXT.md`, `docs/`, ADRs, casos de QA | Español (Argentina) |
 | Código, identificadores, comentarios, commits | Inglés |
 
@@ -400,10 +407,14 @@ Clasificación arancelaria, valoración, liquidación de tributos, asesoramiento
 | Inyección de instrucciones por email, WhatsApp o PDF | Delimitadores aleatorios con escape; metadatos del PDF nunca llegan al modelo; pre-filtro G1 determinista; Cedar, `LAM-*` y la verificación de salida (`CP-NO-FOREIGN-LINKS`) impiden acciones y enlaces fuera de alcance aunque el modelo los intente |
 | Suplantación del proveedor o abuso del simulador | Confianza solo con `dmarcVerdict PASS` y contacto `ACTIVE` de la operación; DMARC `p=reject` publicado para cada dominio propio; `SimMail` solo actúa sobre correo nuestro verificado por `Message-ID` |
 | El modelo inventa cifras o plazos | G2 grounding + verificación determinista de cada número y fecha contra los resultados del turno |
-| Costo de Bedrock sin techo | Tope duro de turnos por estudio por hora y por día real (`TURN_CAP`), rate limit por remitente, tope del simulador en tiempo real, mundos en pausa que no avanzan solos, presupuesto de turnos por corrida del ejecutor, AWS Budgets del proyecto |
+| Costo de Bedrock sin techo | Tope duro de turnos por estudio por hora y por día real (`TURN_CAP`; 30 y 120 en cada mundo de invitado), presupuesto global diario de los mundos públicos (1.500 turnos), cupo de 60 mundos públicos, rate limit por remitente, tope del simulador en tiempo real, mundos en pausa que no avanzan solos, presupuesto de turnos por corrida del ejecutor, AWS Budgets del proyecto |
 | Cifras de demora tomadas como hechos | Siempre "supuesto", editables, con fuente declarada como secundaria no verificada |
-| Un jurado rompe la historia de otro | Un estudio y un mundo por jurado, regla de asignación de cuentas en las instrucciones de Devpost y aviso de otra sesión sobre el mismo mundo (§7.1), reloj en pausa, "Reiniciar demo" por mundo; el ejecutor de escenarios usa mundos propios |
-| Memoria que cruza jurados o corridas | Época del mundo en `actorId` y `runtimeSessionId`, que nunca vuelve atrás (tampoco al recargar el seed); borrado de Memory al reiniciar |
+| Un invitado rompe la historia de otro | Un estudio y un mundo por invitado, regla de asignación de las cuentas reservadas en las instrucciones privadas y aviso de otra sesión sobre el mismo mundo (§7.1), reloj en pausa, "Reiniciar demo" por mundo; el ejecutor de escenarios usa mundos propios |
+| Memoria que cruza invitados o corridas | Época del mundo en `actorId` y `runtimeSessionId`, que nunca vuelve atrás (tampoco al recargar el seed ni al pasar un cupo a otro invitado); borrado de Memory al reiniciar y al destruir |
+| Bots en el alta o bombardeo de códigos a terceros (reputación de SES compartida) | WAF con desafío silencioso sin SDK y rate limits por `CONTAINS 'signup.'`, OAC en las Function URL y `X-Origin-Verify` en toda ruta, lotes con `signup.*` rechazados, ticket de alta exigido por `PreSignUp`, honeypot y tiempo, rate limits por IP agregada (`/32`, `/64`), email, dominio y totales, dominios sin MX suprimidos, cuotas de emails de cuenta en `CustomMessage`, estado de rebote por destinatario y disyuntor de reputación (ADR-0015 §3) |
+| Enumeración de cuentas o captura de una cuenta existente por el formulario de alta | `signup.start` responde igual y en el mismo tiempo en toda rama (Cognito lo llama `SignupDispatch` después); solo una cuenta pública `GUEST` sigue el camino de "ya tenés una cuenta"; ningún lead, consentimiento ni grupo sin la verificación del código (ADR-0015 §1.1 a §1.3) |
+| Datos personales de los leads filtrados o mal usados | Tabla `Leads` separada de la demo, con lista cerrada de quién la toca, fuera de logs, bitácora y exports; consentimientos con fecha y versión; baja y borrado a pedido, con el mundo y todos sus objetos de S3; política de privacidad según la Ley 25.326 (ADR-0015 §4, §6-§8) |
+| Una superficie visible nombra el concurso | Guard `lint:neutral-surfaces` en CI y deploy sobre fuentes y build; `frame-check.ts` sobre cada captura (ADR-0014) |
 
 ## 13. Criterios de aceptación
 
@@ -418,7 +429,10 @@ Clasificación arancelaria, valoración, liquidación de tributos, asesoramiento
 | A7 | Cero violaciones de política en la bitácora | `PolicyAudit` en SC-20 |
 | A8 | Métricas con N, fuente y rótulo (medido / agente guionado / supuesto) | e2e de la vista y SC-20 |
 | A9 | Ningún nombre de cliente, ningún dato real, ningún secreto en el repo ni en logs | Revisión de `security` (`docs/test-plan.md` §7) |
-| A10 | El recorrido del jurado funciona en el stage desplegado tal como lo cuentan el README y el panel | `SC-24` en `poc` |
+| A10 | El recorrido guiado funciona en el stage desplegado tal como lo cuentan el README y el panel | `SC-24` en `poc` |
+| A11 | Ninguna superficie visible nombra el concurso | `lint:neutral-surfaces` (fuentes y `dist`) en verde; capturas revisadas |
+| A12 | Un visitante se registra, confirma el código, ingresa y tiene su mundo listo; el lead queda con consentimientos y el aviso llega a `@craftech.io`; un `SignUp` directo sin ticket no crea nada | `UI` locales, paso 6 de `docs/architecture.md` §15 y negativos del ejecutor en `poc` |
+| A13 | La landing se entiende y se ve bien de 360 a 1440+ px, con y sin `prefers-reduced-motion` | `landing.spec.ts` en 360, 390, 768, 1024 y 1440; `landing:check` |
 
 ## 14. Guion de demo (video de 3 minutos)
 
@@ -435,13 +449,13 @@ Todo sobre la operación 4471 salvo que se nombre otra; el reloj en pausa se mue
 | 130-160 | Aprobación humana (4471) | Legajo completo; detalle con observaciones y cómo se resolvieron; el despachante aprueba; plantilla al importador; canal naranja y liberación |
 | 160-180 | Métricas y arquitectura | Minutos humanos por acciones contra la base desglosada, decisiones `DENY`/`DEFER` por regla con 0 violaciones, costo por legajo del lote con agente real; diagrama de AWS |
 
-## 15. Recorrido del jurado
+## 15. Recorrido guiado
 
-Una sola fuente, `packages/web/src/views/tour/steps.ts`, genera la sección "Test instructions" del README (inglés), el panel **Recorrido guiado** de la consola (es/en) y los pasos de `SC-24` (`docs/test-plan.md`); `npm run tour:check` falla si el README o `SC-24` difieren de ella. Las horas de "Qué mirar" no están escritas a mano: en el panel se completan con los temporizadores pendientes de la 4471 que devuelve `clock.get` (p. ej. "el email sale a las {nextTimer(DEFERRED_SEND)}"), y en el README con los valores esperados de `steps.ts`, que `scripts/tour/timeline.test.ts` compara con el camino real sobre la plantilla `judge` (`docs/test-plan.md` §3). El recorrido sigue la misma línea de tiempo que la historia de §4 y el video de §14: pedido a las 15/10 10:00, email diferido a las 15/10 22:00 AR (16/10 09:00 en Qingdao), avisos al importador a las 16/10 09:00. La plantilla `judge` no tiene temporizadores de otras operaciones en esa ventana (`docs/seed-spec.md` §3, invariante 21), así que cada "Avanzar al próximo evento" cae en un evento de la 4471. Cada paso tiene un botón que llama los procedimientos existentes, dice qué mirar, da la glosa en inglés del mensaje en español y dice **cuánto esperar** antes del paso siguiente. El botón del paso siguiente queda deshabilitado mientras el mundo está ocupado (§6); el panel y el README repiten la espera esperada para que nadie avance antes de que termine la ida y vuelta real por SES.
+Una sola fuente, `packages/web/src/views/tour/steps.ts`, genera la sección "Test instructions" del README (inglés), el panel **Recorrido guiado** de la consola (es/en) y los pasos de `SC-24` (`docs/test-plan.md`); `npm run tour:check` falla si el README o `SC-24` difieren de ella. Las horas de "Qué mirar" no están escritas a mano: en el panel se completan con los temporizadores pendientes de la 4471 que devuelve `clock.get` (p. ej. "el email sale a las {nextTimer(DEFERRED_SEND)}"), y en el README con los valores esperados de `steps.ts`, que `scripts/tour/timeline.test.ts` compara con el camino real sobre la plantilla `guest` (`docs/test-plan.md` §3). El recorrido sigue la misma línea de tiempo que la historia de §4 y el video de §14: pedido a las 15/10 10:00, email diferido a las 15/10 22:00 AR (16/10 09:00 en Qingdao), avisos al importador a las 16/10 09:00. La plantilla `guest` no tiene temporizadores de otras operaciones en esa ventana (`docs/seed-spec.md` §3, invariante 21), así que cada "Avanzar al próximo evento" cae en un evento de la 4471. Cada paso tiene un botón que llama los procedimientos existentes, dice qué mirar, da la glosa en inglés del mensaje en español y dice **cuánto esperar** antes del paso siguiente. El botón del paso siguiente queda deshabilitado mientras el mundo está ocupado (§6); el panel y el README repiten la espera esperada para que nadie avance antes de que termine la ida y vuelta real por SES.
 
 | # | Paso | Botón / acción | Qué mirar | Espera esperada |
 |---|---|---|---|---|
-| 1 | Ingresar | Login con la cuenta de jurado | Mundo propio con el reloj en pausa el 14/10 10:30; la 4471 fijada como Historia principal | Primer login: ~10 s (se crea el mundo) |
+| 1 | Ingresar | Alta o login con la cuenta de invitado | Mundo propio con el reloj en pausa el 14/10 10:30; la 4471 fijada como Historia principal | Primer login: ~10 s (se crea el mundo) |
 | 2 | Primer pedido | "Ir al pedido de la 4471 (15/10 10:00)" (`clock.advanceTo`): el hito ETA−7 se dispara por su hora, como en la historia y el video | Simulador de teléfono: plantilla con 4 botones (glosa EN) | ~1 min (turno del agente) |
 | 3 | Delegar al proveedor | Tocar "Los manda el proveedor" y "Sí, escribile" en el simulador | Línea de tiempo: email diferido por el horario de Qingdao hasta las 15/10 22:00 AR (16/10 09:00 Qingdao) | ~1 min por botón (turno) |
 | 4 | Email en inglés | "Avanzar al próximo evento" (→ 15/10 22:00) | Buzón de demo: el email en inglés desde `op-4471@` | ~1-2 min (turno + email real por SES hasta el buzón simulado) |

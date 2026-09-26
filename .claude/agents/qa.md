@@ -19,7 +19,7 @@ Sos **QA** de Legajo listo. "100 % probada" tiene la definición de `docs/test-p
 - **Flujos locales** (`tests/flows/`) y **Playwright** (`packages/web/e2e/`) con Cognito mockeado y
   tokens firmados con una clave efímera.
 - **Verificación de WP**: corrés los criterios de aceptación del plan y adjuntás evidencia.
-- La suite completa, incluidos `SC-24` y `SC-25`, pasa tres corridas seguidas antes de declararla verde.
+- La suite completa, incluidos `SC-24` (`sc-24-guest.ts`), `SC-25` (`sc-25-guest-sessions.ts`) y los escenarios de superficies públicas, pasa tres corridas seguidas antes de declararla verde.
 
 ## Reglas
 
@@ -31,3 +31,16 @@ Sos **QA** de Legajo listo. "100 % probada" tiene la definición de `docs/test-p
 
 - Escribís `tests/cases/`, el ejecutor y los specs de tu WP; no corregís el código que verificás:
   reportás el fallo con su reproducción al dueño.
+
+## Superficies públicas
+
+Estándar de Craftech para superficies públicas: skill `poc-landing` del workspace (`../.claude/skills/poc-landing/SKILL.md`, fuera del repo; leela entera, no la copies: nombra otro producto) y la regla "POCs de demo" del `CLAUDE.md` del workspace. En el repo: `CLAUDE.md` (SUPERFICIES PÚBLICAS), ADR-0014, ADR-0015, ADR-0016 y `docs/landing-spec.md`.
+
+- Casos y pruebas de los flujos FL-101 en adelante (landing, alta, código, ingreso, recuperación, cierre de sesión, mundo de invitado, cupo, TTL, cuotas, leads, aviso, exportación y borrado) según la matriz de `docs/test-plan.md`.
+- Playwright en 360, 390, 768, 1024 y 1440 px, es y en, con y sin `prefers-reduced-motion`; axe sin violaciones `serious` ni `critical`; Lighthouse dentro del presupuesto de `docs/landing-spec.md` §5.3; capturas revisadas a ojo a 390 × 844 y 1440 × 900.
+- `npm run lint:neutral-surfaces` (fuentes y `--dist`) y `lint:forbidden` en verde antes de dar por hecho un WP con texto visible; un hallazgo es un fallo, no una excepción.
+- Los casos `tests/cases/FL-101.md` a `FL-132.md` se escriben antes de construir (WP-53, ola 3, etapa A1), junto con el renombre de los casos existentes.
+- `SC-26` usa buzones `qa-signup-<runId>-<key>@sim.legajo.demo.craftech.io` armados por el `QaDriver` a partir de una `key`; las acciones del alta (`docs/test-plan.md` §4.1) están cercadas en código a ese prefijo y son la única excepción de acceso a `Leads`; `lead.purge` corre al final y en `finally`. Nunca un email real en una prueba.
+- Los casos del alta prueban también lo que no se ve en una corrida feliz (ADR-0015 §1.1 a §1.3, §4): distribución de tiempos de `signup.start` y `signup.resend` por rama, lotes con `signup.*`, IP con puerto y `/64`, cuentas internas, reservadas y `FORCE_CHANGE_PASSWORD` en el camino de "ya tenés una cuenta", `SIGNUP#` sin `verifiedAt` en el barrido, `ensureWorld` concurrente, token viejo de un mundo destruido y cupo re-arrendado, objetos de S3 después de `destroy_world`, `LEAD_NOTICE` sin pendiente de correo y rebotes sin lead.
+- El modo de alta pública (ADR-0015 §1.4, FL-132) se prueba en los dos valores: `UI` con el servidor de UI en `waitlist` y en `open`, y la web en `open` contra el BFF en `waitlist`; en `poc` el stage corre en `waitlist` hasta el paso 8 de `docs/architecture.md` §15, así que `SC-26` y A-01 entran por la excepción cercada, y los 3 verdes seguidos de `SC-24` a `SC-26` son parte del criterio para abrir.
+- Evidencia sin emails de leads, contraseñas, tokens ni códigos de verificación.

@@ -1,16 +1,16 @@
-# Catálogo de flujos (FL-001 a FL-100)
+# Catálogo de flujos (FL-001 a FL-132)
 
-Cien flujos: caminos felices, alternativas, controles de seguridad y flujos solo de consola. Cada flujo es una unidad de prueba: su fila en la matriz de trazabilidad de `docs/test-plan.md` §2 lista las pruebas que lo prueban y `npm run flows:check` falla si un flujo no tiene fila o si una prueba citada no existe.
+Ciento treinta y un flujos: caminos felices, alternativas, controles de seguridad, flujos solo de consola y, desde la decisión del CTO del 2026-09-26, las superficies públicas (alta propia, cuenta de invitado, leads y landing comercial; ADR-0014 a ADR-0016). Cada flujo es una unidad de prueba: su fila en la matriz de trazabilidad de `docs/test-plan.md` §2 lista las pruebas que lo prueban y `npm run flows:check` falla si un flujo no tiene fila o si una prueba citada no existe.
 
 Convenciones:
 
 - **Formato**: id · título — Área · Actores · Canal · Disparador · Pasos · Estado esperado · Reglas · Prueba. La línea "Prueba" lleva solo ids por nivel y, al final, "Notas:" con las aclaraciones; de ahí sale la matriz de `docs/test-plan.md` §2.2. Todo test citado lleva `[FL-xxx]` en su nombre y todo paso `SR` declara el flujo (`npm run flows:check`).
 - **Pruebas**: `U` unitario (vitest, al lado del código) · `LF` flujo local en proceso (`tests/flows/*.flow.test.ts`: conector en memoria, transportes falsos, lector y plataforma mock en proceso, **Harness guionado** que ejecuta un plan fijo de llamadas a tools por el mismo wrapper del Gateway) · `UI` Playwright local contra Vite + el `appRouter` real con tokens firmados por una clave efímera que verifica el verificador real · `SR` paso del ejecutor de escenarios en `poc` (`scripts/scenarios/sc-XX-*.ts`, Harness, SES, Scheduler y lector reales) · `SMK` smoke de CI tras cada deploy. Detalle en `docs/test-plan.md`.
-- **Fixtures** (`docs/seed-spec.md`): estudios `firm-*`, importadores `imp-*`, proveedores `sup-*`, operaciones `op-<número>`; mundo de demo con reloj `GLOBAL#firm-delta` en pausa en el `2026-10-14T10:30:00-03:00` (miércoles); cada jurado tiene un mundo propio desde la misma plantilla. Los SR corren sobre **clones** de estas operaciones en mundos `qa-*` congelados (números 7000-7999). Los temporizadores (hitos, envíos diferidos, seguimientos, respuestas del simulador, reintentos) son items `TIMER#<kind>#<id>` (`docs/architecture.md` §8). La dirección de la operación lleva una etiqueta (`op-4471-<etiqueta>@`); se abrevia `op-4471@`.
+- **Fixtures** (`docs/seed-spec.md`): estudios `firm-*`, importadores `imp-*`, proveedores `sup-*`, operaciones `op-<número>`; mundo de demo con reloj `GLOBAL#firm-delta` en pausa en el `2026-10-14T10:30:00-03:00` (miércoles); cada invitado (`GUEST`, cuentas reservadas `guest-NN` y cuentas públicas del alta) tiene un mundo propio desde la plantilla `guest`. Los SR corren sobre **clones** de estas operaciones en mundos `qa-*` congelados (números 7000-7999). Los temporizadores (hitos, envíos diferidos, seguimientos, respuestas del simulador, reintentos) son items `TIMER#<kind>#<id>` (`docs/architecture.md` §8). La dirección de la operación lleva una etiqueta (`op-4471-<etiqueta>@`); se abrevia `op-4471@`.
 - Entre comillas: texto de ejemplo del importador (I), del proveedor (P), del agente (A) o del estudio (E). Las pruebas asiertan estado persistido, `kind`, `refs`, `ruleIds` y hechos fundados (números de operación y factura, plazos), nunca el texto exacto del modelo.
 - Reglas: `CP-*` política de contacto (`docs/design-brief.md` §5.7), `CED-*` Cedar y `LAM-*` Lambda (§5.6), `G1`/`G2` guardrails (§5.5), `RESP-MATRIX` matriz de responsabilidad.
 
-Áreas: A Alta y registro · B Pedido inicial y WhatsApp del importador · C Proveedor por email · D Observaciones · E Dudas y límites · F Política de contacto · G ETA y reloj · H Escalamiento y traspaso · I Aprobación y despacho · J Consola y superficies públicas · K Canal vivo y robustez.
+Áreas: A Alta y registro · B Pedido inicial y WhatsApp del importador · C Proveedor por email · D Observaciones · E Dudas y límites · F Política de contacto · G ETA y reloj · H Escalamiento y traspaso · I Aprobación y despacho · J Consola y superficies públicas · K Canal vivo y robustez · L Alta pública, cuenta de invitado y leads · M Landing comercial y superficies neutrales.
 
 ---
 
@@ -212,7 +212,7 @@ Convenciones:
 ### FL-028 · El proveedor no responde (o responde tarde)
 - Actores: proveedor (`NEVER` / `LATE`), agente · Canal: email, WhatsApp · Disparador: hitos `FOLLOWUP` y `FOLLOWUP_FINAL`.
 - Pasos: 1) `FOLLOWUP`: `send_email REMINDER` en el hilo + `send_whatsapp` al importador si el importador tiene algo pendiente. 2) `LATE`: la respuesta llega después y sigue FL-021/022 sin recordatorios duplicados.
-- Estado esperado: un `REMINDER` por contacto por día; `lastReminderAt`. En las plantillas `judge` y `demo-firm-delta`, `op-4478` ya trae el `REMINDER` del `FOLLOWUP` del 14/10 10:00 (15:00 en Roma, antes del inicio del mundo; `docs/seed-spec.md` §3), que el escalamiento cita entre los intentos.
+- Estado esperado: un `REMINDER` por contacto por día; `lastReminderAt`. En las plantillas `guest` y `demo-firm-delta`, `op-4478` ya trae el `REMINDER` del `FOLLOWUP` del 14/10 10:00 (15:00 en Roma, antes del inicio del mundo; `docs/seed-spec.md` §3), que el escalamiento cita entre los intentos.
 - Reglas: `CP-ONE-PER-DAY`, `CP-HOURS-SUPPLIER`.
 - Prueba: LF `supplier.flow.test.ts` · SR `SC-06/1..3`, `SC-06/9`. Notas: `SC-06/9`: clon de `op-4475` (`LATE`).
 
@@ -474,7 +474,7 @@ Convenciones:
 - Prueba: U `feeds/feed-events.test.ts`, `milestones/fire.test.ts` · SR `SC-10/7`. Notas: `schedule.fireStale`.
 
 ### FL-065 · Avanzar el reloj o disparar un hito
-- Actores: jurado, despachante · Canal: consola · Disparador: "Avanzar al próximo evento", "+1 h", "+1 día", "Disparar ahora" o "Reloj en vivo".
+- Actores: invitado, despachante · Canal: consola · Disparador: "Avanzar al próximo evento", "+1 h", "+1 día", "Disparar ahora" o "Reloj en vivo".
 - Pasos: `advance_clock` (`docs/architecture.md` §8) o `fire_milestone (MANUAL)`; "Avanzar al próximo evento" llega al próximo temporizador de cualquier tipo (hito, envío diferido, seguimiento, respuesta del simulador, reintento). La línea de tiempo muestra cada pendiente con su motivo y un "Avanzar hasta ahí". Con el mundo ocupado (turno, evento, email en tránsito hasta que el simulador lo procesa, escaneo) los controles están deshabilitados y el BFF devuelve `WORLD_BUSY` con lo que falta; "Avanzar igual" aparece a los 5 minutos. En `RUNNING`, cada movimiento resincroniza los schedules.
 - Estado esperado: hora simulada mayor, solo con el mundo quieto; temporizadores vencidos `FIRED (CLOCK)` en orden con `eventAtSim = dueAtSim`; en un mundo `PAUSED` no hay schedules reales y la hora no se mueve sola (10 minutos reales sin cambio); en uno `RUNNING`, schedules en el horizonte de 1 h y vuelta a `PAUSED` a los 30 minutos.
 - Reglas: Δ ≤ 14 días; el reloj no retrocede.
@@ -533,7 +533,7 @@ Convenciones:
 
 ### FL-073 · El despachante aprueba
 - Actores: despachante · Canal: consola → WhatsApp · Disparador: "Aprobar legajo" tras revisar documentos, lecturas y cómo se resolvió cada observación.
-- Pasos: `approve_dossier` (rol `BROKER` o `JUDGE`, login ≤ 15 min; si es más viejo, un modal pide la contraseña sin salir de la vista) → `APPROVED` → `OUTBOUND_SEND` con la plantilla `legajo_aprobado`.
+- Pasos: `approve_dossier` (rol `BROKER` o `GUEST` en su propio estudio, login ≤ 15 min; si es más viejo, un modal pide la contraseña sin salir de la vista) → `APPROVED` → `OUTBOUND_SEND` con la plantilla `legajo_aprobado`.
 - Estado esperado: `approvedAt`, `approvedBy`; `APPROVAL_NOTICE` enviado; hitos pendientes cancelados salvo `ARRIVAL`.
 - Reglas: `recentLoginProcedure`, `brokerProcedure`.
 - Prueba: U `routers/dossier.test.ts` · UI `dossier.spec.ts` · SR `SC-01/7`, `SC-13/4`, `SC-24/8`.
@@ -572,9 +572,9 @@ Convenciones:
 ## Área J · Consola y superficies públicas
 
 ### FL-079 · Login propio y tokens de 15 minutos
-- Actores: despachante, jurado · Canal: consola · Disparador: `/login` (o el botón "Judges: sign in / Jurado: ingresar" de la landing).
-- Pasos: SRP contra Cognito; cuentas del estudio: cambio de contraseña inicial y TOTP opcional; cuentas `JUDGE`: contraseña permanente, sin cambio forzado ni MFA (la consola oculta esas opciones y el BFF las rechaza) y creación del mundo propio en el primer login; si otra sesión (otro `origin_jti`) actuó sobre ese mundo en las últimas 2 h, aviso fijo "usá otra cuenta de jurado" sin opción de reiniciar; refresh silencioso al vencer el id token; cierre de sesión revoca.
-- Estado esperado: sesión válida; token de 15 min; sin tokens en `localStorage`; para `JUDGE`, `firm-judge-<nn>` con su mundo en pausa.
+- Actores: despachante, invitado · Canal: consola · Disparador: `/login` (o "Ingresar" / "Sign in" de la landing).
+- Pasos: SRP contra Cognito con el email o el usuario; cuentas del estudio: cambio de contraseña inicial y TOTP opcional; cuentas `GUEST` (reservadas `guest-NN` y públicas del alta): sin cambio forzado ni MFA (la consola oculta esas opciones, el BFF las rechaza y el access token no lleva el scope de administración de cuenta) y creación del mundo propio en el primer login (la cuenta reservada con su estudio fijo `firm-guest-<nn>`; la pública, FL-105); si otra sesión (otro `origin_jti`) actuó sobre ese mundo en las últimas 2 h, aviso fijo "Otra sesión usó este mundo hace X min: si compartís la cuenta, usá otra cuenta de invitado" sin opción de reiniciar; refresh silencioso al vencer el id token; cierre de sesión revoca (FL-108).
+- Estado esperado: sesión válida; token de 15 min; sin tokens en `localStorage`; para una cuenta reservada, `firm-guest-<nn>` con su mundo en pausa.
 - Prueba: U `auth/jwt.test.ts`, `routers/account.test.ts` · UI `login.spec.ts` · SR `SC-24/1`, `SC-25/1..3` · SMK `SMK/2`. Notas: Excepción parcial §2.1 (cambio de contraseña inicial y TOTP); `SC-25`: primer login crea el mundo y aviso de otra sesión.
 
 ### FL-080 · Lista de operaciones
@@ -596,14 +596,14 @@ Convenciones:
 - Prueba: U `routers/isolation.test.ts` · UI `isolation.spec.ts` · SR `SC-20/3`.
 
 ### FL-083 · Simulador de teléfono
-- Actores: jurado · Canal: consola (WhatsApp simulado) · Disparador: `/app/simulator`.
+- Actores: invitado, analista · Canal: consola (WhatsApp simulado) · Disparador: `/app/simulator`.
 - Pasos: el simulador abre el hilo de Norpampa (4471) o el del paso actual del recorrido y resalta los hilos con salientes sin leer; ver plantillas y botones como en WhatsApp (con glosa "EN"), tocar un botón, escribir, adjuntar un PDF sintético o propio; marcar leído; "El agente está escribiendo…" durante un turno.
 - Estado esperado: los eventos entran por `InboundWhatsApp` con el sobre SNS; los salientes se ven con estado ✓/✓✓/leído.
 - Reglas: solo importadores del estudio; rechazado si `whatsapp = live`.
 - Prueba: U `routers/simulator.test.ts`, `channels/whatsapp/simulated.test.ts` · UI `simulator.spec.ts` · SR `SC-01/3`, `SC-08/1`, `SC-24/3`. Notas: `wa.inbound` usa el camino del simulador.
 
 ### FL-084 · Buzón de demo
-- Actores: jurado · Canal: consola · Disparador: `/app/mailbox`.
+- Actores: invitado, analista · Canal: consola · Disparador: `/app/mailbox`.
 - Pasos: lista de emails recibidos por los buzones simulados del estudio y de sus proveedores, con asunto, hilo y operación; cuerpo en texto plano (nunca HTML, `dangerouslySetInnerHTML` ni `iframe`).
 - Estado esperado: solo mensajes cuyo `firmId` (el de la operación del saliente verificado) es el del usuario; ningún correo que `SimMail` haya descartado.
 - Prueba: U `sim-mail/mailbox.test.ts`, `routers/mailbox.test.ts` · UI `mailbox.spec.ts` · SR `SC-06/7`, `SC-24/4`.
@@ -620,22 +620,22 @@ Convenciones:
 - Prueba: U `routers/audit.test.ts` · UI `audit.spec.ts` · SR `SC-20/7`.
 
 ### FL-087 · Reiniciar la demo
-- Actores: despachante (`BROKER`) o jurado (`JUDGE`) · Canal: consola · Disparador: "Reiniciar demo" (o el trabajo nocturno sobre mundos de jurado inactivos).
+- Actores: despachante (`BROKER`) o invitado (`GUEST`) · Canal: consola · Disparador: "Reiniciar demo" (o `IDLE_GUEST_RESET`, el trabajo nocturno de las 04:00 sobre los mundos reservados sin actividad en 24 h).
 - Pasos: `reset_demo_world` sobre el mundo del usuario: incrementa `worldEpoch` (nunca vuelve atrás; una recarga del seed hace lo mismo), deja la tumba de la época anterior, borra sus items y schedules, borra y reescribe sus filas de `Platform`, recarga su plantilla del seed, reloj en pausa al inicio; borra los eventos y registros de Memory de los actores de la época anterior. Ningún otro mundo cambia.
-- Estado esperado: mundo igual a su plantilla, incluida la ETA de la plataforma; direcciones de operación con etiqueta nueva; el primer turno después del reinicio recupera 0 registros de Memory y no menciona mensajes anteriores; 1 reinicio cada 10 min por reloj (el principal QA está exento).
-- Prueba: U `clock/reset.test.ts`, `worlds/worlds.test.ts`, `scripts/seed/__tests__/load.test.ts` · UI `clock.spec.ts` · SR `SC-20/5`, `SC-20/9`, `SC-25/4..5`. Notas: `GLOBAL#firm-qa`; `SC-25`: reinicio por la consola del jurado con la ETA de `Platform` restaurada.
+- Estado esperado: mundo igual a su plantilla, incluida la ETA de la plataforma; direcciones de operación con etiqueta nueva; el primer turno después del reinicio recupera 0 registros de Memory y no menciona mensajes anteriores; 1 reinicio cada 10 min por reloj y, en mundos de invitado, 12 por día (`QUOTA_EXCEEDED`, FL-111; el principal QA está exento).
+- Prueba: U `clock/reset.test.ts`, `worlds/worlds.test.ts`, `scripts/seed/__tests__/load.test.ts` · UI `clock.spec.ts` · SR `SC-20/5`, `SC-20/9`, `SC-25/4..5`. Notas: `GLOBAL#firm-qa`; `SC-25`: reinicio por la consola del invitado con la ETA de `Platform` restaurada.
 
 ### FL-088 · Comportamiento del proveedor simulado
-- Actores: analista, jurado · Canal: consola · Disparador: Registro → proveedor → "Comportamiento simulado".
+- Actores: analista, invitado · Canal: consola · Disparador: Registro → proveedor → "Comportamiento simulado".
 - Pasos: elegir `PROMPT`, `SEEDED_ERROR`, `LATE`, etc. para una operación.
 - Estado esperado: `Operations/META.simBehaviour`; el simulador responde según eso, pero solo a correo nuestro verificado (`dmarcVerdict PASS`, `From` de la operación o `avisos@`, `Message-ID` de un saliente registrado para ese buzón); cualquier otro correo a un buzón simulado se descarta con `SIM_UNTRUSTED`, sin respuesta ni `MailboxMessage`.
 - Prueba: U `sim-mail/supplier-simulator.test.ts`, `sim-mail/guard.test.ts` · UI `registry.spec.ts` · SR `SC-02/1`, `SC-15/10`. Notas: `supplier.setBehaviour` en SC-02..SC-05; `SC-15/10`: correo que `SimMail` descarta.
 
-### FL-089 · Landing bilingüe y páginas legales
-- Actores: público · Canal: web · Disparador: `/`, `/legal/privacy.html`, `/legal/terms.html`.
-- Pasos: landing con escenas, galería con zoom (anterior/siguiente, teclado, swipe, Escape), conmutador es/en, "Powered by Craftech", aviso de datos sintéticos; páginas legales.
-- Estado esperado: 200; sin nombres de clientes ni términos prohibidos; cabeceras de seguridad.
-- Prueba: U `views/landing/landing.test.ts` · UI `landing.spec.ts` · SMK `SMK/1`.
+### FL-089 · Landing comercial bilingüe y páginas legales
+- Actores: visitante · Canal: web · Disparador: `/`, `/?lang=en`, `/legal/privacy.html`, `/legal/terms.html`.
+- Pasos: diez secciones en el orden de `docs/landing-spec.md` §1.2 (hero, problema, recorrido, capacidades por actor, garantías en código, impacto, integración, qué es simulado, galería, CTA final); conmutador es/en que cambia el `lang` del documento y todos los textos (paridad de claves); impacto solo con metas rotuladas ("Meta", "Garantía en código", "Supuesto"), nunca métricas de la demo presentadas como resultados; bloque "qué es real y qué es simulado" (WhatsApp como adaptador en modo simulado hasta P-01); pie "Legajo listo · Powered by Craftech" con el aviso de datos sintéticos y los legales; páginas legales es/en con la versión y la fecha de `LEGAL_VERSIONS`, y en la de privacidad el responsable, los datos, la finalidad, la retención, los derechos (Ley 25.326, arts. 14 a 16), cómo pedir la baja o el borrado y la mención de la AAIP (ADR-0015 §8).
+- Estado esperado: 200 con cabeceras de seguridad; ningún nombre de cliente, término prohibido ni palabra de ADR-0014 (FL-125); `robots.txt` y `<meta name="robots">` según el modo de alta pública (ADR-0015 §1.4): en `open`, `/` y `/legal/` indexables; en `waitlist` (valor inicial), `/` con `noindex` y solo `/legal/` permitido; siempre fuera `/app/`, `/signup`, `/login`, `/forgot` y `/welcome`.
+- Prueba: U `views/landing/landing.test.ts` · UI `landing.spec.ts` · SMK `SMK/1`. Notas: `landing.spec.ts` y `landing.test.ts` se reescriben con la landing nueva (ADR-0016); la versión de los legales igual a la del consentimiento la cubre FL-119.
 
 ## Área K · Canal vivo y robustez
 
@@ -701,3 +701,210 @@ Convenciones:
 - Actores: CI, sistema · Disparador: (a) PR con `whatsapp: "live"` y P-01 abierto; (b) sobre simulado con el modo en `live`; (c) sobre vivo con el modo en `simulated`.
 - Pasos: (a) `channels:check-modes` falla; (b) `InboundWhatsApp` rechaza; (c) se procesa (el topic existe siempre) solo si viene de SNS con la política del topic.
 - Prueba: U `scripts/channels/check-modes.test.ts`, `channels/whatsapp/registry.test.ts`. Notas: Excepción §2.1.
+
+## Área L · Alta pública, cuenta de invitado y leads
+
+Diseño en ADR-0015; números en `packages/shared/src/guest-limits.ts` (fuente única: los tests los importan, nunca los repiten); versiones de los textos legales en `packages/shared/src/legal-versions.ts`; pantallas y copy en `docs/landing-spec.md` §8. En `U`, `LF` y `UI` Cognito es un doble en proceso que invoca los triggers reales (`AuthPreSignUp`, `AuthCustomMessage`, `AuthPreToken`) y guarda los códigos que "manda"; en `SR` (`SC-26`) el alta corre contra `poc` con Playwright y buzones `qa-signup-<runId>-<key>@sim.legajo.demo.craftech.io`, cuyo código lee el `QaDriver` del MIME crudo (`docs/test-plan.md` §4.1). Ninguna prueba usa un email real fuera de la aceptación A-01 (`docs/test-plan.md` §5.1).
+
+### FL-101 · Alta pública con email nuevo
+- Actores: visitante · Canal: web (`/signup`, `/signup/verify`) · Disparador: "Probar la demo" / "Try the demo" o `/signup`.
+- Pasos: el CTA abre `/signup` con navegación completa y WAF desafía el documento (cookie `aws-waf-token`); `signup.form` devuelve el `formToken` firmado; el formulario (email y contraseña obligatorios; nombre, empresa y cargo opcionales; los dos consentimientos **sin tildar**; honeypot `website` vacío) se envía entre 3 s y 2 h después por un `httpLink` sin lotes; `signup.start` (después de OAC y `X-Origin-Verify`, ruta exacta sin lote) revisa rate limits por IP, cupo global y disyuntor, genera `usr-<ulid>`, guarda `Leads/SIGNUP#<signupId>` (TTL 24 h, contraseña cifrada con `signup-seal`), invoca asíncrona a `SignupDispatch` y responde `{signupId, status: "CODE_SENT", resendAfterSec: 60}` sin llamar a Cognito; `SignupDispatch` borra la contraseña cifrada, valida el dominio (MX), revisa honeypot, tiempo, cuotas por email y `MAILSTATUS#`, no encuentra usuario (rama `NEW`), arma el ticket (HMAC `signup-ticket`, 120 s) y llama a `SignUp` con `locale`; `AuthPreSignUp` verifica el ticket; `AuthCustomMessage` arma el email del código y cuenta el envío; `/signup/verify` muestra el email enmascarado; `signup.confirm` con el código → `ConfirmSignUp` → `SIGNUP#.verifiedAt` → `finalizeSignup` (lead condicional, `AdminAddUserToGroup GUEST` sobre un usuario sin grupos, `LeadNotice` asíncrono, borra `SIGNUP#`) → `/login?welcome=1` con el email precargado.
+- Estado esperado: usuario `CONFIRMED` en el grupo `GUEST` con `locale`; un item `Leads/EMAIL#<emailHash>/LEAD` con `sourcePoc: "legajo-listo"`, `language`, consentimientos `{accepted, at, version, lang}`, `signupAt` y `confirmedAt`; `SIGNUP#` borrado; la contraseña en ningún log y en ningún item después del primer paso de `SignupDispatch`; métricas `SignupStarted` y `SignupConfirmed`.
+- Reglas: ADR-0015 §1-§2.
+- Prueba: U `routers/signup.test.ts`, `signup/ticket.test.ts`, `signup/dispatch.test.ts`, `signup/finalize.test.ts`, `auth-triggers/pre-signup.test.ts` · LF `signup.flow.test.ts` · UI `auth.spec.ts` · SR `SC-26/1..3`, `SC-26/5`. Notas: SR sobre `poc` con el buzón `qa-signup-<runId>-a@sim…`; `UI` en 390 × 844 y 1440 × 900.
+
+### FL-102 · Código incorrecto, vencido o con demasiados intentos
+- Actores: visitante · Canal: web (`/signup/verify`) · Disparador: `signup.confirm` con un código errado o vencido.
+- Pasos: código errado → `CODE_INVALID {attemptsLeft}`; al quinto error el alta queda cerrada (`EXPIRED`: hay que empezar de nuevo desde `/signup`); código vencido (24 h) o `SIGNUP#` vencido → `EXPIRED`; más de 30 confirmaciones por hora desde una IP → `RATE_LIMITED {retryAfterSec}`; un alta en rama `SUPPRESSED`, `INELIGIBLE` o `FAILED` → `CODE_INVALID` sin llamar a Cognito. Toda respuesta que no es `CONFIRMED` sale a los 1.500 ms del inicio del pedido. La pantalla dice solo "El código no es válido o venció".
+- Estado esperado: ningún lead ni grupo; el usuario sigue `UNCONFIRMED` hasta que `GUEST_SWEEP` lo borra (FL-122); contador de intentos en `SIGNUP#`.
+- Prueba: U `routers/signup.test.ts`, `signup/rate-limits.test.ts`, `routers/signup-timing.test.ts` · LF `signup.flow.test.ts` · UI `auth.spec.ts` · SR `SC-26/4`.
+
+### FL-103 · Reenviar el código
+- Actores: visitante · Canal: web (`/signup/verify`) · Disparador: "Reenviar código".
+- Pasos: el botón queda deshabilitado 60 s con cuenta regresiva (anunciada al terminar); `signup.resend` actualiza `SIGNUP#` e invoca `SignupDispatch {kind: RESEND}` sin llamar a Cognito en el pedido, que según la rama llama a `ResendConfirmationCode` (`NEW`), a `ForgotPassword` con `intent signup-existing` (`EXISTING_GUEST`) o a nada (`SUPPRESSED`, `INELIGIBLE`); antes de los 60 s o después del tercer reenvío → `RATE_LIMITED`; `SIGNUP#` vencido → `EXPIRED`; `CustomMessage_ResendCode` aplica las cuotas de FL-114.
+- Estado esperado: a lo sumo 3 reenvíos por alta; el código anterior deja de valer; la respuesta y su duración son las mismas exista o no la cuenta.
+- Prueba: U `routers/signup.test.ts`, `signup/rate-limits.test.ts` · LF `signup.flow.test.ts` · UI `auth.spec.ts` · SR `SC-26/4`.
+
+### FL-104 · Alta con un email que ya tiene cuenta
+- Actores: visitante, o alguien que escribe un email ajeno · Canal: web · Disparador: `signup.start` con un email que ya tiene usuario.
+- Pasos: `signup.start` responde igual y en el mismo tiempo que FL-101 (no llama a Cognito); `SignupDispatch` lee estado y grupos del usuario (`ListUsers`, `AdminGetUser`, `AdminListGroupsForUser`). (a) invitado **público** `CONFIRMED` (grupos exactamente `GUEST`, sin `custom:firmId`): `ForgotPassword` con `ClientMetadata {intent: "signup-existing", lang}` y `CustomMessage` manda "Ya tenés una cuenta en Legajo listo…" con un código; `signup.confirm` usa `ConfirmForgotPassword` con la contraseña del formulario, escribe `verifiedAt` y recién ahí finaliza. (b) usuario `UNCONFIRMED` sin grupos: `AdminDeleteUser` (cercado en código a ese estado sin grupos) y alta nueva como FL-101 con la contraseña nueva. (c) cualquier otra cuenta (`BROKER`, `ANALYST`, reservada o `guest-test`, `FORCE_CHANGE_PASSWORD`, `RESET_REQUIRED`, varios grupos): rama `INELIGIBLE`, ninguna llamada de escritura a Cognito, ningún email, grupo ni lead; la pantalla del código dice "Si ya tenés una cuenta, ingresá". (d) nadie usa el código de (a): `GUEST_SWEEP` **no** finaliza ese `SIGNUP#` (no tiene `verifiedAt`) y vence a las 24 h.
+- Estado esperado: un solo usuario y un solo lead por email; en (a) el lead existente fusiona los datos opcionales y los consentimientos nuevos (con fecha y versión) solo después del código del buzón, y la contraseña cambia solo con ese código; en (c) y (d) el lead, sus consentimientos, los grupos y el estado de la cuenta quedan sin cambios y no sale aviso; sin el buzón nadie distingue (a), (b), (c) ni FL-101 por respuesta ni por tiempo.
+- Reglas: ADR-0015 §1.1 a §1.3.
+- Prueba: U `routers/signup.test.ts`, `routers/signup-timing.test.ts`, `signup/dispatch.test.ts`, `signup/finalize.test.ts`, `janitor/guest-sweep.test.ts`, `auth-triggers/custom-message.test.ts` · LF `signup.flow.test.ts` · UI `auth.spec.ts` · SR `SC-26/8`. Notas: `routers/signup-timing.test.ts` compara la forma y las distribuciones de duración (p50 y p95 de 200 pedidos por rama) de `signup.start` y `signup.resend` en las ramas `NEW`, `EXISTING_GUEST`, `INELIGIBLE` y `SUPPRESSED`; `signup/dispatch.test.ts` cubre `BROKER`, `ANALYST`, reservada y `FORCE_CHANGE_PASSWORD`; `finalize.test.ts` y `guest-sweep.test.ts`, el caso (d).
+
+### FL-105 · Primer ingreso de un invitado público: se crea su mundo
+- Actores: invitado público · Canal: consola · Disparador: login SRP con el email después de FL-101.
+- Pasos: el token del `GUEST` sin estudio todavía no lleva `firmId` (solo sirve para `guestBootstrapProcedure`); `account.session` → `world: "NONE"` (actualiza `Leads.lastLoginAt` con el `auth_time`); `/welcome` "Preparando tu mundo" llama `account.ensureWorld`: toma `Runtime/GUESTWORLD#<sub>` (condicional), arrienda un cupo `SLOT#GUEST#<nn>` (`31-90`, desde un `nn` al azar, libre o liberado hace ≥ 20 min) con el mismo `leaseId`, invoca asíncrona a `WorldJanitor {GUEST_CREATE}` y responde `CREATING`; la consola consulta `account.world` cada 2 s; `WorldJanitor` corre `create_world('guest', firm-guest-<nn>)` desde `Seed/worlds/guest.json`, escribe `Firms/BROKER#brk-guest-<nn>` ligada al `sub` con `leaseId`, nombre "Invitado" y sin email y deja `GUESTWORLD#<sub>` en `READY`; la consola refresca los tokens (`AuthPreToken` estampa `firmId` y `worldLease` desde esa fila) y abre `/app/operations` con el recorrido guiado.
+- Estado esperado: mundo `GUEST#firm-guest-<nn>` con la plantilla, reloj en pausa el 14/10 10:30, época tomada del contador (mayor que la de cualquier dueño anterior del cupo), `guestKind PUBLIC`; `ensureWorld` repetido o concurrente (30 llamados en paralelo con el mismo token, o el sondeo de la consola) arrienda **un solo** cupo y crea **un solo** mundo: los demás reciben `CREATING` o `READY`; más de 10 llamados por hora → `QUOTA_EXCEEDED`; con reduced motion, "Preparando…" sin animación.
+- Prueba: U `routers/guest-world.test.ts`, `worlds/guest-slots.test.ts`, `auth-triggers/pre-token.test.ts` · LF `guest-world.flow.test.ts` · UI `welcome.spec.ts` · SR `SC-26/6`.
+
+### FL-106 · Ingreso de un invitado: credenciales incorrectas y email sin verificar
+- Actores: invitado · Canal: web (`/login`) · Disparador: login con datos incorrectos o con una cuenta `UNCONFIRMED`.
+- Pasos: usuario inexistente o contraseña incorrecta → el mismo "El email, el usuario o la contraseña no son correctos" (`PreventUserExistenceErrors`); `UserNotConfirmedException` (Cognito solo lo da con la contraseña correcta) → `/signup/verify` con un reenvío (FL-103); demasiados intentos → "Hiciste muchos intentos"; una cuenta reservada `guest-NN` entra con su usuario y nunca ve cambio de contraseña ni TOTP.
+- Estado esperado: ningún mensaje revela si el email existe; ningún token emitido.
+- Prueba: U `routers/signup.test.ts` · UI `auth.spec.ts` · SR `SC-26/12`.
+
+### FL-107 · Recuperar la contraseña
+- Actores: invitado público · Canal: web (`/forgot`, `/forgot/reset`) · Disparador: "Olvidé mi contraseña".
+- Pasos: `ForgotPassword` desde el navegador (siempre "Si hay una cuenta con ese dato, te enviamos un código"); `CustomMessage_ForgotPassword` arma el email en el idioma del `locale` y aplica las cuotas (FL-114); `/forgot/reset` con el código y la contraseña nueva → `ConfirmForgotPassword` → `/login?reset=1`; reenvío con 60 s de espera. Un `GUEST` no tiene otra forma de cambiar la contraseña: `account.changePassword` lo rechaza y su access token no sirve para `ChangePassword`.
+- Estado esperado: contraseña nueva vigente; la vieja deja de servir; la pantalla es la misma para un email sin cuenta; las cuentas reservadas (sin email) no reciben nada.
+- Prueba: U `auth-triggers/custom-message.test.ts`, `routers/account-guest.test.ts` · UI `auth.spec.ts` · SR `SC-26/9`.
+
+### FL-108 · Cerrar sesión
+- Actores: invitado · Canal: consola · Disparador: menú de cuenta → "Cerrar sesión" / "Sign out".
+- Pasos: `RevokeToken` del refresh token; borra los tokens de `sessionStorage`; cancela los refrescos en curso; va a `/?signedOut=1` con el aviso "Cerraste sesión" descartable en la landing.
+- Estado esperado: el refresh token revocado no renueva; el mundo y el lead siguen intactos (se reusan en el próximo ingreso mientras no venza el TTL).
+- Prueba: U `views/auth/session.test.ts` · UI `auth.spec.ts` · SR `SC-26/7`.
+
+### FL-109 · El mundo público vence por TTL y se recrea al volver
+- Actores: `WorldJanitor` (`GUEST_SWEEP`), invitado público · Canal: tarea programada y consola · Disparador: `GUEST_SWEEP` horario con un mundo de 24 h reales sin actividad (`lastActiveAtReal`) o de 72 h reales de creado, lo que llegue primero; después, un ingreso nuevo del mismo invitado.
+- Pasos: `destroy_world` del mundo (primero la fila `BROKER#`; después schedules `tm-g-*` y `TIMER#`, objetos de S3 del mundo, items del `clockId`, filas `POP#firm-guest-<nn>#*`, purga de Memory en dos pasadas, `TOMB#` de la época, `GUESTWORLD#<sub>` a `DESTROYED`) y al final libera el cupo con `releasedAtReal`, sin borrar `COUNTER#EPOCH#GUEST#firm-guest-<nn>`; un id token todavía vigente del dueño anterior recibe 403 `GUEST_WORLD_GONE` en todo procedimiento con estudio (su fila no existe), también si otra cuenta arrienda después el mismo cupo; en el ingreso siguiente, `account.world` → `EXPIRED` y FL-105 crea un mundo nuevo desde cero (posiblemente en otro cupo).
+- Estado esperado: cuenta de Cognito y lead intactos (`lastLoginAt` actualizado); el mundo nuevo arranca de la plantilla con una época mayor; ningún hilo, dirección, registro de Memory ni objeto de S3 (PDFs de `Documents` y `Media`, cargas de `Uploads`, MIME crudos del bucket de correo) del mundo anterior sobrevive ni alcanza al nuevo; un cupo liberado no se arrienda antes de 20 min; las cuentas reservadas nunca se destruyen por TTL (FL-087).
+- Prueba: U `janitor/guest-sweep.test.ts`, `worlds/guest-slots.test.ts`, `worlds/guest-worlds.test.ts`, `auth/guest-principal.test.ts` · LF `guest-world.flow.test.ts` · UI `welcome.spec.ts`. Notas: Excepción §2.1 (el TTL es de horas reales); el `LF` usa un reloj real inyectado; `guest-principal.test.ts` cubre token viejo + mundo destruido + mismo cupo arrendado de nuevo → 403.
+
+### FL-110 · Cupo de mundos públicos lleno
+- Actores: invitado público · Canal: consola (`/welcome`) · Disparador: `account.ensureWorld` con los 60 cupos públicos arrendados.
+- Pasos: recorre los 60 cupos desde uno al azar sin encontrar libre (un cupo liberado hace menos de 20 min no cuenta como libre) → `{state: "CAPACITY"}` y `GUESTWORLD#<sub>` en `FAILED {reason: CAPACITY}`; la pantalla "Estamos a capacidad" ofrece "Probar de nuevo" y reintenta sola cada 60 s mientras la pestaña está visible; métrica `GuestWorldCapacity`.
+- Estado esperado: la cuenta y el lead existen; ningún cupo arrendado a medias; el primer ingreso después de que `GUEST_SWEEP` libere un cupo crea el mundo; las cuentas reservadas nunca ven `CAPACITY`.
+- Prueba: U `worlds/guest-slots.test.ts`, `routers/guest-world.test.ts` · LF `guest-world.flow.test.ts` · UI `welcome.spec.ts`. Notas: Excepción §2.1.
+
+### FL-111 · Cuotas de uso por mundo alcanzadas
+- Actores: invitado · Canal: consola · Disparador: una acción que supera su cuota en reloj real (turnos del agente, emails salientes, mensajes del simulador, movimientos del reloj, cargas de PDF, operaciones nuevas, reinicios, "Reloj en vivo") o el presupuesto global diario de los mundos públicos.
+- Pasos: el contador `Runtime/QUOTA#<clockId>#<tipo>#<ventana>` rechaza con condición de tope → `QUOTA_EXCEEDED {kind, resetsAtReal}`; los turnos los corta el worker con `Firms/SETTINGS.turnCaps` del estudio `GUEST`; los emails, la regla `CP-WORLD-QUOTA` del pipeline (`DENY` auditado); la consola muestra "Llegaste al límite de esta demo por hoy; se renueva a las HH:MM" y deshabilita las acciones afectadas con el motivo; `account.usage` alimenta el indicador; el presupuesto global agotado → `QUOTA_EXCEEDED {kind: "GLOBAL"}` hasta las 00:00 UTC y alarma `GuestBudgetHits`.
+- Estado esperado: ningún efecto de la acción rechazada; métrica `QuotaHits` por tipo; las cuotas valen también para las cuentas reservadas.
+- Reglas: `CP-WORLD-QUOTA`, ADR-0015 §4.
+- Prueba: U `worlds/guest-quotas.test.ts`, `routers/guest-world.test.ts`, `policy/world-quota.test.ts` · LF `guest-world.flow.test.ts` · UI `welcome.spec.ts`. Notas: Excepción §2.1.
+
+### FL-112 · Rate limits del alta
+- Actores: visitante o script · Canal: web · Disparador: pedidos del alta por encima de los topes de ADR-0015 §3.2.
+- Pasos: por IP (WAF: 20 pedidos a rutas que contienen `signup.` —decodificadas y en minúsculas, así que un lote o una codificación no la esquivan— y 1.500 a `/api/*` cada 5 min → 403 de WAF, por dirección individual; BFF: 5 `signup.start` por hora y 20 por día por `/32` en IPv4 o por `/64` en IPv6 → `RATE_LIMITED {retryAfterSec}`); por email (3 `signup.start` en 24 h) y por dominio (30 altas por hora) → el mismo `CODE_SENT` **sin enviar nada**; altas nuevas en total (100 por hora y 300 por día) → `CAPACITY` ("Las altas nuevas están en pausa por un rato"); IP y dominio siempre como hash con la subclave `rate`; la IP sale de `CloudFront-Viewer-Address` (válida solo con `X-Origin-Verify`) **sin el puerto**: otra conexión desde la misma IP o desde el mismo `/64` cae en el mismo contador; un encabezado ausente o inválido → 400 `INVALID`.
+- Estado esperado: contadores `Runtime/RL#…` con `expiresAt`; ningún usuario, `SIGNUP#` ni email por encima del tope; la respuesta nunca dice nada de un email; métrica `SignupRejected` por motivo.
+- Prueba: U `signup/rate-limits.test.ts`, `lib/viewer-ip.test.ts`, `routers/signup.test.ts`, `infra/edge-waf-spec.test.ts` · LF `signup.flow.test.ts` · UI `auth.spec.ts`. Notas: Excepción §2.1 (probar el bloqueo de WAF en `poc` dejaría a la IP del runner afuera 5 min); la configuración de WAF se verifica post-deploy (`docs/architecture.md` §15 paso 6).
+
+### FL-113 · Bot rechazado
+- Actores: script sin navegador, bot simple o llamada directa a Cognito o a la Function URL · Canal: web o API · Disparador: (a) `GET /signup` o `signup.*` sin token del desafío de WAF, o con el token vencido; (b) honeypot `website` con valor o formulario enviado antes de 3 s o después de 2 h; (c) cualquier procedimiento (no solo `signup.*`) directo a la Function URL de `Bff`, con o sin JWT, o de `PublicWeb`; (d) `SignUp` directo contra el cliente público de Cognito sin ticket, con un ticket vencido (más de 120 s) o con el ticket de otro email; (e) `PreSignUp_ExternalProvider`; (f) un `signup.*` escondido en un lote (`/api/trpc/account.usage,signup.start?batch=1`) o con la ruta codificada.
+- Pasos: (a) el `GET` del documento recibe el intersticial de WAF, que se resuelve solo y recarga la página; un `POST` sin token recibe `202` con `x-amzn-waf-action: challenge`: la vista guarda los campos no secretos y recarga `/signup?retry=1`, y si el desafío no se resuelve dice "No pudimos verificar tu navegador…", sin rompecabezas; (b) `SignupDispatch` suprime el alta y el visitante recibe el mismo `CODE_SENT`; (c) Lambda rechaza el pedido sin firma de CloudFront (OAC, 403) antes de invocar la función; si OAC faltara, el handler rechaza con 403 por `X-Origin-Verify` antes de verificar el JWT o rutear; (d) y (e) `AuthPreSignUp` rechaza antes de que exista el usuario y antes de cualquier email; (f) WAF aplica igual el desafío y el rate (la regla busca `signup.` en cualquier parte de la ruta decodificada) y el BFF rechaza con 400 todo lote que contenga un `signup.*`.
+- Estado esperado: ningún usuario, lead ni email (en (b) queda un `SIGNUP#` en `SUPPRESSED` que vence a las 24 h); ninguna invocación de `Bff` en (c); `SignupRejected` por motivo; el bot no aprende nada de la respuesta.
+- Prueba: U `signup/bot-checks.test.ts`, `auth-triggers/pre-signup.test.ts`, `routers/signup.test.ts`, `routers/signup-batch.test.ts`, `routers/origin-verify.test.ts`, `infra/edge-waf-spec.test.ts` · LF `signup.flow.test.ts` · UI `auth.spec.ts` · SR `SC-26/10`. Notas: (c) con OAC se verifica post-deploy (`docs/architecture.md` §15 paso 6: `curl` directo a las Function URL → 403).
+
+### FL-114 · Cuotas de emails de cuenta
+- Actores: cualquiera que dispare emails de cuenta (reenvíos, recuperación) directo contra Cognito · Canal: API de Cognito · Disparador: el sexto email de cuenta en 24 h a un mismo destinatario, más de 60 por hora a un dominio, más de 400 por día en total, un destinatario con `Runtime/MAILSTATUS#` `BOUNCED` o `COMPLAINED`, o el disyuntor de reputación abierto; o un alta a un dominio reservado, propio o sin MX.
+- Pasos: `AuthCustomMessage` cuenta cada email (`Runtime/RL#MAIL…`) y, en `_ResendCode`, `_ForgotPassword`, `_UpdateUserAttribute` y `_VerifyUserAttribute`, falla cuando se supera la cuota; Cognito no envía (supuesto a verificar en el primer deploy, `SC-26/11`; plan B `CustomEmailSender`, ADR-0015 §3.2); en `_SignUp` solo cuenta (`SignupDispatch` ya consultó las cuotas antes de `SignUp`) salvo `MAILSTATUS#` o disyuntor, y `_AdminCreateUser` nunca corta; métrica `AccountMailBlocked` y alarma si pasa de 50 por hora. `SignupDispatch` suprime antes de `SignUp` los dominios reservados, propios (salvo el buzón `qa-signup-*` cercado), sin MX o con MX nulo (1,5 s de consulta; un error del resolver deja pasar y suma `SignupMxUnknown`). `ChannelEvents` escribe `MAILSTATUS#<emailHash>` con cada rebote permanente o queja de un email de cuenta, haya o no lead, y abre el disyuntor (`Runtime/MAILBREAKER`) cuando en 24 h los rebotes más las quejas llegan a 10 o superan el 3 % con al menos 100 envíos: desde ahí `signup.start` y `signup.resend` responden `CAPACITY`, `CustomMessage` corta todo salvo `AdminCreateUser` y suena `AccountMailBreakerOpen` hasta que el operador lo cierra (`npm run signup:breaker -- --close`).
+- Estado esperado: ningún email por encima de la cuota ni a un destinatario que rebotó; ningún código a un dominio que no puede recibir; con el disyuntor abierto, ningún email de cuenta salvo invitaciones; `ChannelEvents` nunca toca `Leads`.
+- Prueba: U `auth-triggers/custom-message.test.ts`, `channels/email/mail-status.test.ts`, `signup/dispatch.test.ts` · LF `signup.flow.test.ts` · SR `SC-26/11`. Notas: riesgo residual declarado en ADR-0015 §3.2 (el error distinto de `ForgotPassword` directo con la cuota agotada).
+
+### FL-115 · Aviso de lead a Craftech
+- Actores: `LeadNotice`, `WorldJanitor` · Canal: email (SES) · Disparador: `finalizeSignup` de un alta nueva (asíncrono) o `GUEST_SWEEP` con un aviso `PENDING`.
+- Pasos: lee el lead; destinatarios del secreto `LeadNoticeTo` (hasta 3, separados por coma); cerco del perfil `LEAD_NOTICE`: cada destinatario tiene que ser `<local>@craftech.io` exacto (sin subdominios); `From` `avisos@legajo.demo.craftech.io`; cuerpo en texto plano (es): email, nombre, empresa y cargo si los dio, idioma, si aceptó contacto, UTM y host del referrer, hora del alta en ART; nada más. Valor `disabled` → `noticeStatus DISABLED` sin enviar; un destinatario fuera de `@craftech.io` → `RECIPIENT_NOT_ALLOWED`, `noticeStatus DISABLED` y `LeadNoticeFailed`; un error de SES → `PENDING` y reintento horario hasta 5 intentos, después `FAILED`.
+- Estado esperado: exactamente un aviso por evento del lead (`noticeStatus SENT`): uno al confirmar el alta y, en modo `waitlist`, uno al pedir acceso (asunto propio y la línea "Estado: lista de espera", FL-132); el envío es sin reloj: ningún `Runtime/PENDING#`, ningún `X-Legajo-Mail-Id` y ningún `Message` en `Conversations` (el rol de `LeadNotice` no tiene esas tablas); IAM `ses:Recipients` `*@craftech.io`; ningún destinatario en el código; el email del lead en ningún log.
+- Reglas: cerco de destinatarios por perfil (`docs/architecture-integrations.md` §1), ADR-0015 §6.
+- Prueba: U `leads/notice/notice.test.ts`, `outbound/recipient-fence.test.ts`, `channels/email/lead-notice-send.test.ts`, `infra/leads-spec.test.ts` · LF `leads.flow.test.ts` · SR `SC-26/5`. Notas: SR asierta `noticeStatus SENT`; la llegada a la casilla la confirma la aceptación A-01.
+
+### FL-116 · Exportar los leads
+- Actores: operador · Canal: CLI (`npm run leads:export`) · Disparador: `-- --out <archivo.csv> [--contactable] [--waitlist] [--since AAAA-MM-DD]` con el profile de la cuenta.
+- Pasos: descubre el stage como `console:invite`; rechaza una ruta de salida dentro del repo; lee `Leads` (solo items `LEAD`); escribe las columnas de ADR-0015 §6 con modo `0600`; neutraliza toda celda que empieza con `=`, `+`, `-` o `@`; la columna `emailStatus` sale de `Runtime/MAILSTATUS#<emailHash>` (`OK` si no existe); `--contactable` deja solo contacto aceptado con `emailStatus OK`; `--waitlist` deja solo leads `WAITLIST` con `emailStatus OK` (con o sin consentimiento de contacto, FL-132); `--since` filtra por `signupAt`; imprime solo la cantidad de filas.
+- Estado esperado: CSV fuera del repo con una fila por lead; ningún email ni dato del lead en la salida estándar, en los logs ni en un bucket; nunca `SIGNUP#` ni `DELETED#`.
+- Prueba: U `scripts/leads/export.test.ts` · LF `leads.flow.test.ts`. Notas: Excepción §2.1 (herramienta del operador, sin runtime propio en `poc`); la corre el operador en la aceptación A-01.
+
+### FL-117 · Retiro del consentimiento de contacto
+- Actores: lead (por email a la casilla de privacidad) y operador · Canal: CLI (`npm run leads:optout -- --email <dirección>`) · Disparador: pedido de no ser contactado.
+- Pasos: calcula el `emailHash`; pasa `consents.contact.accepted` a `false` y agrega `{accepted: false, at, version, lang}` a `consentHistory`; la cuenta sigue funcionando.
+- Estado esperado: `leads:export --contactable` ya no lo incluye; el historial conserva la aceptación anterior con su fecha; ningún email impreso.
+- Prueba: U `scripts/leads/optout.test.ts` · LF `leads.flow.test.ts`. Notas: Excepción §2.1.
+
+### FL-118 · Borrado a pedido de un lead y su cuenta
+- Actores: lead (por email a la casilla de privacidad) y operador · Canal: CLI (`npm run leads:delete -- --email <dirección> [--yes]`) · Disparador: pedido de supresión (Ley 25.326, art. 16).
+- Pasos: invoca `WorldJanitor` con `GUEST_DESTROY {firmId, reason: "REQUEST"}` (destruye el mundo si existe, **con todos sus objetos de S3**, y libera el cupo); `AdminDeleteUser`; borra `LEAD`, `SIGNUP#` pendientes, `GUESTWORLD#<sub>`, `MAILSTATUS#` y los contadores de ese hash; escribe `DELETED#<leadId>` con `deletedAt` y `reason REQUEST`, sin ningún dato personal; imprime solo el `leadId`.
+- Estado esperado: login imposible (el mismo error genérico de FL-106) y un id token todavía vigente recibe 403 (FL-109); ningún rastro del email en `Leads`, `Runtime`, Cognito ni el mundo, y ningún PDF que la persona haya cargado en `Documents`, `Media`, `Uploads` ni el bucket de correo; un alta nueva con ese email vuelve a empezar como FL-101; sin `--yes` pide confirmación.
+- Prueba: U `scripts/leads/delete.test.ts`, `janitor/guest-destroy.test.ts`, `worlds/guest-worlds.test.ts` · LF `leads.flow.test.ts` · SR `SC-26/13`. Notas: SR por `lead.purge`, que ejecuta el mismo módulo que el script, cercado a buzones `qa-signup-*`.
+
+### FL-119 · Variantes de consentimiento
+- Actores: visitante · Canal: web (`/signup`) · Disparador: el formulario con (a) términos sin tildar; (b) términos tildados y contacto sin tildar; (c) los dos tildados; (d) versiones de consentimiento distintas de `LEGAL_VERSIONS` (una pestaña vieja después de un cambio de texto).
+- Pasos: (a) el cliente muestra el error y no envía; si llega igual al BFF → `INVALID`; (b) y (c) `signup.start` guarda `{accepted, at (hora real ISO), version, lang}` de cada casilla, `terms` con `privacyVersion`; (d) `INVALID` y la vista pide recargar para leer los textos vigentes.
+- Estado esperado: lead de (b) con `contact.accepted = false` (no entra en `--contactable` y el aviso dice "no aceptó contacto"); lead de (c) con `true`; ninguna casilla viene tildada de fábrica; cambiar el texto de un consentimiento o de un legal sin subir su versión hace fallar un test; la versión visible en `/legal/*` es la misma que se guarda.
+- Reglas: ADR-0015 §2.
+- Prueba: U `routers/signup.test.ts`, `views/auth/consents.test.ts` · LF `signup.flow.test.ts` · UI `auth.spec.ts` · SR `SC-26/2`, `SC-26/5`. Notas: SR cubre la variante (c) con las versiones vigentes en `poc`; (a), (b) y (d) en `U`, `LF` y `UI`.
+
+### FL-120 · Alta y acceso en inglés
+- Actores: visitante que llega a `/?lang=en` o con `en` guardado · Canal: web y email · Disparador: "Try the demo".
+- Pasos: `/signup`, `/signup/verify`, `/login`, `/welcome`, `/forgot` y los estados globales en inglés; `signup.form {lang: "en"}`; `SignUp` con `locale en`; `CustomMessage` elige las plantillas `en` por `locale` (o `ClientMetadata.lang`); los consentimientos guardan `lang: "en"` con la misma versión que en es.
+- Estado esperado: lead con `language: "en"`; todos los emails de cuenta de esa persona en inglés, incluidos la recuperación y "You already have a Legajo listo account"; el aviso interno de lead sigue en español; ningún texto en español mezclado (paridad de claves).
+- Prueba: U `auth-triggers/messages/messages.test.ts`, `views/auth/copy.test.ts` · LF `signup.flow.test.ts` · UI `auth.spec.ts` · SR `SC-26/8`. Notas: `SC-26/8` corre en inglés a 1440 × 900.
+
+### FL-121 · Los datos del lead no salen de `Leads`
+- Actores: sistema · Canal: logs, `AuditLog`, métricas, exports de la demo · Disparador: cualquier alta, confirmación, ingreso, aviso o borrado.
+- Pasos: `log.ts` redacta las claves `email`, `password`, `passwordSealed`, `name`, `company` y `jobTitle` y enmascara emails en los handlers de `signup.*`, `account.*`, `SignupDispatch`, los triggers, `LeadNotice`, `ChannelEvents` y `WorldJanitor`; ningún procedimiento del alta escribe `AuditLog`; las métricas cuentan por motivo; el mundo del invitado conoce solo su fila `BROKER#` ("Invitado", sin email).
+- Estado esperado: ningún email, nombre, empresa ni cargo de un lead en CloudWatch, `AuditLog`, `LegajoMetrics`, `metrics.export`, la bitácora ni las capturas; `Leads` la tocan solo los de la lista cerrada de ADR-0015 §6 (`Bff`, `SignupDispatch`, `WorldJanitor`, `LeadNotice`, el `QaDriver` cercado a `qa-signup-*` con `lead.inspect` y `lead.purge`, y los scripts del operador): nunca el worker, las tools, `PolicyAudit`, `ChannelEvents` ni los triggers de Cognito (`iam-leads.test.ts` lo asierta sobre la tabla de capacidades).
+- Prueba: U `lib/log-pii.test.ts`, `infra/iam-leads.test.ts` · LF `leads.flow.test.ts` · SR `SC-26/14`. Notas: `SC-26/14` busca en los logs del app de la corrida el buzón `qa-signup-<runId>-*` y espera 0 coincidencias; la revisión de seguridad muestrea logs (`docs/test-plan.md` §7).
+
+### FL-122 · Limpieza horaria: altas sin confirmar, altas a medias y retención
+- Actores: `WorldJanitor` (`GUEST_SWEEP`) · Canal: tarea programada · Disparador: cada hora (retención, una vez por día).
+- Pasos: borra usuarios de Cognito `UNCONFIRMED` **sin grupos** de más de 24 h (`ListUsers` con filtro de estado + `AdminListGroupsForUser` + `AdminDeleteUser`); pasa a `FAILED` los `GUESTWORLD#` en `CREATING` de más de 5 min y libera su cupo; completa `finalizeSignup` **solo** de los `SIGNUP#` con prueba de verificación (ADR-0015 §1.3: `verifiedAt`, o rama `NEW` con el propio `usr-<ulid>` `CONFIRMED` y creado después de `startedAt`), nunca de un `EXISTING_GUEST` sin `verifiedAt` (lead, grupo `GUEST` solo si no tiene grupos, aviso); reintenta avisos `PENDING` (FL-115); una vez por día borra los leads sin ingreso en 24 meses (desde el alta si nunca ingresó), su usuario y su mundo, y deja `DELETED#<leadId>` con `reason RETENTION`; `SIGNUP#` vence solo por el TTL de 24 h de DynamoDB.
+- Estado esperado: ninguna alta verificada sin lead ni grupo después de una hora; ningún lead, consentimiento ni grupo escrito sin la prueba de verificación; ningún usuario `UNCONFIRMED` de más de 25 h; ningún lead más allá de la retención declarada en la política de privacidad.
+- Prueba: U `janitor/guest-sweep.test.ts`, `signup/finalize.test.ts` · LF `leads.flow.test.ts`. Notas: Excepción §2.1 (plazos de horas y meses reales).
+
+### FL-123 · Un invitado opera solo sobre datos sintéticos y su propio estudio
+- Actores: invitado · Canal: consola · Disparador: (a) pedir datos de otro estudio (demo, otro invitado o QA); (b) dar de alta un proveedor o un contacto con un email o teléfono real; (c) una acción que mandaría un email o un WhatsApp desde su mundo.
+- Pasos: (a) `firmProcedure` → 403 `GUEST_OUTSIDE_GUEST_FIRM`; (b) el registro de un mundo `GUEST#*` solo acepta contactos en `*@sim.legajo.demo.craftech.io` y teléfonos del bloque de su cupo → `RECIPIENT_NOT_ALLOWED`; (c) WhatsApp siempre por el transporte simulado (aunque `ChannelModes.whatsapp` sea `live`); el perfil `SYSTEM` solo escribe a buzones simulados y al simulador de SES, nunca a `SeedOverrides.demoRecipients`; los emails de producto llegan al buzón de demo.
+- Estado esperado: `AuditLog DENY` con el motivo; ningún mensaje a una persona real desde un mundo de invitado.
+- Reglas: ADR-0015 §4 "Solo datos sintéticos", cerco de destinatarios.
+- Prueba: U `routers/guest-isolation.test.ts`, `outbound/guest-world-fence.test.ts` · LF `guest-world.flow.test.ts` · UI `guest-isolation.spec.ts` · SR `SC-26/6`. Notas: `SC-26/6` intenta, por la consola del invitado, el alta de un contacto de proveedor fuera de `sim.legajo.demo.craftech.io` (un dominio reservado, que el cerco rechaza igual) y espera `RECIPIENT_NOT_ALLOWED`.
+
+### FL-124 · Emails de cuenta neutrales, es y en
+- Actores: `AuthCustomMessage` · Canal: email (Cognito con la identidad SES del app) · Disparador: código de alta, reenvío, recuperación, "ya tenés una cuenta" e invitación del personal interno (`AdminCreateUser`).
+- Pasos: plantillas de `packages/bff/src/auth-triggers/messages/` en el idioma del `locale`; HTML en línea con tablas y texto alternativo; todas con `{####}` (o el usuario y la contraseña temporal en la invitación), "Si no lo pediste, ignorá este mensaje" y el pie "Legajo listo · Powered by Craftech · datos 100 % sintéticos" con el link a la política de privacidad; remitente `Legajo listo <no-reply@legajo.demo.craftech.io>` con el configuration set `…-email-poc`.
+- Estado esperado: ninguna palabra de ADR-0014 ni término prohibido; ningún link fuera del dominio de la demo; ningún nombre de rol; el MIME entregado no lleva el nombre de la app SST en asunto ni cuerpo.
+- Prueba: U `auth-triggers/messages/messages.test.ts` · SR `SC-26/3`, `SC-26/8`. Notas: `SC-26` pasa cada MIME recibido por el mismo chequeo de palabras de `frame-check.ts`.
+
+## Área M · Landing comercial y superficies neutrales
+
+Diseño en ADR-0014 (palabras y guard), ADR-0016 (rutas, animación, capturas) y `docs/landing-spec.md` (narrativa, copy, identidad visual, movimiento, anchos). Las pruebas `UI` de esta área corren en los proyectos de Playwright de `docs/test-plan.md` §3 (390 × 844 y 1440 × 900, es y en, con y sin `prefers-reduced-motion`).
+
+### FL-125 · Guard de superficies neutrales
+- Actores: CI, autor de un PR · Canal: `npm run lint:neutral-surfaces` · Disparador: todo PR y todo deploy (`ci.yml` y `deploy.yml`): paso de fuentes inmediatamente después de `lint:forbidden` y paso `--dist` inmediatamente después del build de la web.
+- Pasos: normaliza (NFKD sin marcas, límites camelCase y de dígitos, minúsculas), parte en tokens por `[^a-z0-9]+` y busca cada palabra de `scripts/lint/neutral-words.ts` como token completo (la frase `aws cds` como dos tokens seguidos) en los globs de ADR-0014 §4 (fuentes) o en todo `packages/web/dist/**` (`--dist`); sin lista de excepciones.
+- Estado esperado: hallazgo → `ruta:línea: palabra` y código 1; sin hallazgos → cantidad de archivos y código 0; `--dist` sin carpeta o vacía → código 2; los archivos excluidos (tests, `docs/`, `README.md`, `.claude/`, `.github/`, `scripts/lint/`) nunca se leen; ningún secreto necesario.
+- Prueba: U `scripts/lint/neutral-surfaces.test.ts`, `scripts/ci/workflows-order.test.ts`. Notas: Excepción §2.1 (es un check de CI); cuatro variantes positivas por palabra con `it.each`, negativos fijos, árbol de globs y casos `--dist` (ADR-0014 §5).
+
+### FL-126 · Recorrido del producto y movimiento de la landing
+- Actores: visitante · Canal: web (`/`) · Disparador: scroll por la sección "Recorrido" y carga del hero.
+- Pasos: en ≥ 1024 px, columna de pasos con visor **sticky** cuya captura o render cambia con el paso visible (View Transitions donde existan, fundido CSS si no); entre 768 y 1023 px, pasos apilados con su imagen; debajo de 768 px, carrusel con scroll-snap y botones anterior/siguiente; los 8 pasos siguen la operación 4471 (`views/landing/tour-steps.ts`, la misma fuente para las tres formas); la conversación del hero se escribe sola una vez (tope 12 s) desde `copy/` real y ofrece "Ver de nuevo"; los contadores de metas cuentan hasta el valor con su rótulo; reveals por scroll con `IntersectionObserver` de respaldo; botón global "Pausar animaciones".
+- Estado esperado: con `prefers-reduced-motion: reduce` o con "Pausar animaciones", sin transiciones ni escritura progresiva: cada render en su estado final, contadores en el valor final, todo el contenido legible; solo se animan `transform` y `opacity`; sin librería de animación.
+- Prueba: U `views/landing/motion/motion.test.ts`, `views/landing/tour-steps.test.ts` · UI `landing-tour.spec.ts`. Notas: `landing-tour.spec.ts` corre en los cuatro proyectos y en los dos de movimiento reducido.
+
+### FL-127 · Landing en cualquier ancho, accesible y liviana
+- Actores: visitante · Canal: web · Disparador: `/`, `/signup`, `/login`, `/forgot` en 360, 390, 768, 1024 y 1440 px.
+- Pasos: layout de `docs/landing-spec.md` §5.1 por ancho; navegación por teclado con foco visible y orden lógico; contraste AA; `axe-core` sin violaciones `serious` ni `critical`; presupuesto medido con perfil móvil 4G y CPU 4× (LCP < 2,5 s con el `h1` como LCP, CLS < 0,05, JS de landing + acceso ≤ 90 KB gzip en un chunk separado de la consola, imagen del hero AVIF con `fetchpriority="high"`); metadatos `title`, `description`, Open Graph con una captura real y `hreflang` es/en, sin nombrar el concurso; `robots` según el modo de alta pública (FL-089, ADR-0015 §1.4).
+- Estado esperado: ningún scroll horizontal en ningún ancho; ningún texto cortado; la consola no se descarga en `/`; sin fuentes, scripts ni analítica de terceros (sin SDK de WAF: el desafío de `/signup` es el intersticial silencioso de ADR-0015 §3.3).
+- Prueba: U `scripts/landing/bundle-budget.test.ts` · UI `landing-layout.spec.ts`, `a11y.spec.ts`. Notas: Lighthouse sobre `poc` en la verificación post-deploy (`docs/architecture.md` §15 paso 6).
+
+### FL-128 · Galería con zoom y rótulo de origen
+- Actores: visitante · Canal: web · Disparador: tocar una imagen de la galería o del recorrido.
+- Pasos: `dialog` modal con foco atrapado y devuelto al cerrar; flechas, Escape, swipe y botones anterior/siguiente; `<picture>` con AVIF/WebP/PNG y `srcset`; zoom hasta el tamaño natural de la captura; leyenda con el rótulo del estado de la imagen, desde `copy` es y en (ADR-0016 §3, `docs/landing-spec.md` §2.10): `capture` de `poc` sin rótulo, `capture` de origen `local` "Entorno local, agente guionado" / "Local environment, scripted agent" (`gallery.localNote`), `render` "Animación con los componentes y textos del producto" / "Animation built with the product's components and texts" (`gallery.renderNote`), `placeholder` "Imagen provisoria"; "Ampliar" sobre un render abre su `png` estático o, con política `zoom` y la captura ya disponible, la captura de `replacedBy`.
+- Estado esperado: toda imagen con `alt` en es y en; ningún `placeholder` en el hero ni como `og-card`; la leyenda muestra exactamente el texto de la clave de `copy` de su estado; el scroll de la página queda bloqueado mientras el diálogo está abierto y vuelve a su posición.
+- Prueba: U `views/landing/gallery.test.ts` · UI `gallery.spec.ts`.
+
+### FL-129 · Capturas reales y manifiesto de renders
+- Actores: operador, CI · Canal: `scripts/landing/capture-console.ts`, `render-visuals.ts`, `encode.ts`, `manifest-file.ts`, `npm run landing:check`, `npm run landing:renders` · Disparador: un deploy con `SC-24` en verde (capturas de `poc`) o un cambio de una vista que la landing muestra.
+- Pasos: `capture-console --target poc` solo contra `https://legajo.demo.craftech.io` (cualquier otra `--base-url` se rechaza) con la cuenta sintética `guest-test`; viewports 1440 × 900 y 390 × 844 a 2×, movimiento reducido y zona horaria de Buenos Aires; toda petición fuera del objetivo (y de Cognito) aborta la corrida; `frame-check.ts` revisa el `innerText` de cada frame (términos prohibidos, palabras de ADR-0014, JWT, claves de AWS, links con token, emails fuera de `sim…` y del dominio del app) **antes** de escribirlo; `encode.ts` genera AVIF y WebP en los anchos de ADR-0016 §4 (desktop 480, 960, 1440 y 1920; mobile 390 y 780) y escribe `sources`; `manifest-file.ts` escribe las entradas v2; `landing:check` valida el manifiesto v2 con zod (cada `status` con sus campos y sin los ajenos), que cada `id` usado exista con sus archivos, que cada `render` figure en `scripts/landing/renders.json` con el mismo `component`, `textSources`, `replacedBy` y `replaceIn` (y viceversa) más `reason`, `policy` (`swap` \| `zoom`) y `until`, que ningún render `swap` tenga ya su `replacedBy` como `capture` de origen `poc` (un render `zoom` nunca falla por eso, y una captura `local` nunca dispara el reemplazo) y que no haya `placeholder` en el hero ni en `og-card`; `landing:renders` imprime id → `replacedBy` → estado de esa captura → `policy` → `until`.
+- Estado esperado: toda imagen de la landing es una captura del producto real o un render hecho con componentes y textos reales, nunca un mockup; `landing:check` en verde en CI, también en la etapa A2 con todas las capturas de origen `local` y los renders `zoom` `hero-conversation`, `tour-request` y `tour-delegate` apuntando a `console-simulator`.
+- Prueba: U `scripts/landing/check.test.ts`, `scripts/landing/capture-target.test.ts`, `scripts/landing/frame-words.test.ts`. Notas: Excepción §2.1 (la corrida contra `poc` la hace el operador y commitea el resultado, ADR-0016 §4).
+
+### FL-130 · Llamados a la acción y origen de la visita
+- Actores: visitante · Canal: web · Disparador: `/?utm_source=…&utm_campaign=…` desde otro sitio, y los CTAs.
+- Pasos: la landing lee `utm_source|medium|campaign|term|content` (cada uno ≤ 100 caracteres de `[A-Za-z0-9._~ -]`; el resto se descarta) y el `document.referrer` reducido a esquema + host (≤ 200; se descarta si es el propio origen) y los guarda en `sessionStorage` (lectura y escritura con `try/catch`); "Probar la demo" (o "Pedir acceso" en modo `waitlist`, FL-132) → `/signup` conservando los `utm_*`; "Ingresar" → `/login`; "Hablemos" → `CRAFTECH_CONTACT_URL` con `utm_source=legajo-listo` y la ubicación del botón, en pestaña nueva con `rel="noopener noreferrer"` y texto accesible "(se abre en una pestaña nueva)"; el formulario manda UTM y referrer en `signup.start`.
+- Estado esperado: el lead guarda `utm` y `referrer` saneados; sin cookies ni scripts de analítica; sin `sessionStorage` (ventana privada con almacenamiento bloqueado) el alta funciona igual sin UTM.
+- Prueba: U `views/landing/utm.test.ts`, `views/landing/links.test.ts`, `routers/signup.test.ts` · UI `landing-cta.spec.ts` · SR `SC-26/1`, `SC-26/5`.
+
+### FL-131 · Textos visibles de la consola y del recorrido guiado para un invitado
+- Actores: invitado · Canal: consola · Disparador: primer ingreso con el recorrido guiado abierto, simulador, buzón y aviso de otra sesión.
+- Pasos: el recorrido guiado, los estados de `/welcome`, los avisos de cuota y de otra sesión, el menú de cuenta y los textos alternativos salen de `copy/` en es y en; el rol se muestra como "Invitado" / "Guest"; ninguna vista muestra un id interno de cuenta (`usr-…`), el email del lead ni el nombre de la app SST.
+- Estado esperado: ninguna palabra de ADR-0014 en el DOM de la consola de un invitado (Playwright recorre las vistas y pasa el `innerText` por el mismo chequeo que `frame-check.ts`); paridad de claves es/en.
+- Prueba: U `views/tour/copy.test.ts` · UI `guest-copy.spec.ts`. Notas: complementa a FL-125, que mira las fuentes y el `dist` pero no el texto armado en tiempo de ejecución.
+
+### FL-132 · Alta pública en modo lista de espera y apertura
+- Actores: visitante, operador · Canal: web (`/`, `/signup`, `/signup/waitlisted`) y CLI · Disparador: (a) "Pedir acceso" con `PublicSignupMode = waitlist` (valor inicial); (b) una dirección de la excepción cercada en ese modo; (c) la web en `open` y el BFF en `waitlist`; (d) el operador pasa a `open`.
+- Pasos: (a) la landing muestra "Pedir acceso" y va con `noindex`; `/signup` usa el mismo formulario y los mismos consentimientos con el copy de lista de espera; `signup.start` pasa por las mismas capas que en FL-101 (WAF, OAC, `X-Origin-Verify`, ruta sin lote, `formToken`, rate limits por IP, cupo global, disyuntor), valida la contraseña y la descarta, escribe `SIGNUP#` con `mode: "WAITLIST"`, invoca `SignupDispatch {kind: WAITLIST}` y responde `{status: "WAITLISTED"}`; la web lleva a `/signup/waitlisted`; `SignupDispatch` revisa honeypot, tiempo, dominio, `MAILSTATUS#` y cuotas (`SUPPRESSED` si falla alguno), escribe el lead `WAITLIST` con `emailVerified: false` solo si no existe (si existe: `DUPLICATE`, sin cambios), invoca `LeadNotice` con el asunto de pedido de acceso y borra `SIGNUP#`. (b) `qa-signup-<runId>-<key>@sim…` o `<local>@craftech.io` exacto: el flujo completo de FL-101 (`CODE_SENT`, código, lead `ACTIVE`); `sub.craftech.io` o `craftech.io.<otro>` no entran en la excepción. (c) la respuesta `WAITLISTED` lleva a `/signup/waitlisted` aunque la web crea estar en `open`. (d) con el criterio de ADR-0015 §1.4 cumplido (`SC-24` a `SC-26` en verde 3 veces seguidas en `poc`, A-01 hecha, P-06 cerrado), el operador fecha `docs/pending.md` P-07 punto 9, cambia `publicSignupMode` por PR y CI despliega; exporta `leads:export -- --waitlist` y Craftech avisa una vez desde su casilla; quien se da de alta después sigue FL-101 y su lead pasa de `WAITLIST` a `ACTIVE`.
+- Estado esperado: en (a) ninguna llamada a Cognito, ningún email al visitante, ninguna contraseña guardada, un solo lead por email y un aviso a `LeadNoticeTo`; la respuesta y su duración son las mismas tenga el email lead, cuenta o nada; `/signup/verify` nunca se muestra; en (b) usuario `GUEST` y lead `ACTIVE`; en (d) `infra/signup-mode.test.ts` falla si el valor es `open` sin la fecha de P-07 punto 9; el lead fusionado conserva `waitlistedAt`, pasa a `emailVerified: true` y guarda los consentimientos anteriores en `consentHistory`.
+- Reglas: ADR-0015 §1.4, §3 y §6.
+- Prueba: U `routers/signup.test.ts`, `routers/signup-timing.test.ts`, `signup/dispatch.test.ts`, `signup/finalize.test.ts`, `infra/signup-mode.test.ts`, `scripts/leads/export.test.ts` · LF `signup.flow.test.ts` · UI `auth.spec.ts`, `landing-cta.spec.ts`. Notas: sin `SR` propio: en `poc` el modo se ve en `SMK/1` (landing con `noindex` mientras el valor sea `waitlist`) y la excepción cercada la recorre `SC-26`; el paso (d) lo ejecuta el operador (`docs/architecture.md` §15 paso 8).

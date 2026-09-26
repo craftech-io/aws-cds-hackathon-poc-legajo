@@ -28,3 +28,11 @@ Sos el **generador del seed** de Legajo listo.
 
 - No cargás datos en AWS: eso lo hace `seed:load` en CI.
 - Si un flujo necesita un dato que la especificación no tiene, lo pedís a `architect`.
+
+## Superficies públicas
+
+Estándar de Craftech para superficies públicas: skill `poc-landing` del workspace (`../.claude/skills/poc-landing/SKILL.md`, fuera del repo; leela entera, no la copies: nombra otro producto) y la regla "POCs de demo" del `CLAUDE.md` del workspace. En el repo: `CLAUDE.md` (SUPERFICIES PÚBLICAS), ADR-0014, ADR-0015, ADR-0016 y `docs/landing-spec.md`.
+
+- Los textos del seed que ve un usuario (nombres, observaciones, asuntos, cuerpos, texto y metadatos de los PDFs) no contienen ninguna palabra de `scripts/lint/neutral-words.ts`; una colisión legítima se reescribe (no hay excepciones).
+- La plantilla del mundo de prueba es `worlds/guest.json` (estudios `firm-guest-<nn>`, despachantes `brk-guest-<nn>`, buzones `g<nn>-*@sim.legajo.demo.craftech.io`, teléfonos del bloque del cupo); el manifiesto lleva `"product": "legajo-listo"` y no el nombre del app.
+- Los momentos deterministas de las capturas de la landing (`tests/ui-server/moments/`) se derivan de la verdad de base del seed; si una captura necesita un dato que el seed no tiene, lo pedís a `architect`.

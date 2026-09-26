@@ -18,6 +18,14 @@ _Avoid_: agente (es el software), gestor, aduanero
 Persona del estudio que sigue operaciones, toma conversaciones y escribe al importador; no aprueba.
 _Avoid_: operador, asistente
 
+**Invitado** (`GUEST`, rol `GUEST`):
+Persona que prueba la demo sin ser de un estudio: tiene los permisos de un despachante **solo dentro de su propio estudio de invitado** y de su **mundo de invitado**. Hay dos clases: **reservado** (cuentas `guest-01..NN` y la sintética `guest-test`, creadas por el operador, sin email) y **público** (se registra solo en `/signup` con su email). Nunca ve datos reales ni escribe a personas reales (ADR-0014, ADR-0015).
+_Avoid_: el nombre del rol anterior (ADR-0014 §8), evaluador, tester, usuario de prueba
+
+**Operador** (`operator`):
+Persona de Craftech que administra el stage: carga secretos, crea las cuentas internas y las reservadas, corre las capturas y los scripts de leads. No es un rol de la consola.
+_Avoid_: admin, dueño
+
 **Importador** (`Importer`):
 Empresa argentina que importa y es cliente del estudio. Se comunica por WhatsApp a través de su **contacto** registrado (una persona con teléfono en formato E.164). Habla español rioplatense.
 _Avoid_: cliente final, comprador (en UI), usuario
@@ -115,7 +123,7 @@ Todo lo que tiene que pasar en una hora simulada: hito, envío diferido por hora
 _Avoid_: job, cron, tarea programada
 
 **Reloj de demo** (`DemoClock`, `clockId`):
-Tiempo simulado de un mundo de datos. Por defecto está **en pausa** (`PAUSED`): la hora solo se mueve con los controles ("Avanzar al próximo evento", "+1 h", "+1 día"), que disparan en orden los temporizadores vencidos. **Reloj en vivo** (`RUNNING`) lo hace correr en tiempo real (`ahora simulado = ahora real + offset`) durante 30 minutos. Cada operación pertenece a un reloj (`GLOBAL` para la demo de un estudio, `JUDGE` para el mundo de un jurado, `qa-<runId>-<escenario>` para el ejecutor de escenarios, `sim-<batchId>` para el lote de métricas). Toda regla de negocio lee el reloj de la operación, nunca `Date.now()`.
+Tiempo simulado de un mundo de datos. Por defecto está **en pausa** (`PAUSED`): la hora solo se mueve con los controles ("Avanzar al próximo evento", "+1 h", "+1 día"), que disparan en orden los temporizadores vencidos. **Reloj en vivo** (`RUNNING`) lo hace correr en tiempo real (`ahora simulado = ahora real + offset`) durante 30 minutos. Cada operación pertenece a un reloj (`GLOBAL` para la demo de un estudio, `GUEST` para el mundo de un invitado, `qa-<runId>-<escenario>` para el ejecutor de escenarios, `sim-<batchId>` para el lote de métricas). Toda regla de negocio lee el reloj de la operación, nunca `Date.now()`.
 _Avoid_: tiempo falso, mock de fecha
 
 **Mundo ocupado** (`WORLD_BUSY`):
@@ -169,7 +177,7 @@ Reglas en código (ids `CP-*`) que decide si un mensaje sale, cuándo y por dón
 _Avoid_: reglas del bot, configuración
 
 **Cerco de destinatarios** (`RecipientFence`):
-Regla del stage, dentro del único cliente de SES y reforzada por IAM, que depende del **perfil de remitente** que declara el que llama (y que el cliente verifica contra el `From`, nunca contra el destinatario): el sistema (`SYSTEM`) solo escribe a buzones de nuestro dominio de simulación, al simulador de buzones de SES y a destinatarios de demo registrados; el simulador de proveedor (`SIMULATOR`) solo responde a la dirección de la operación verificada del correo que contesta y solo desde un contacto `ACTIVE` registrado del proveedor de esa operación (una regla de datos, no de prefijo: vale igual en mundos de demo, de jurado y QA); el ejecutor de escenarios (`QA`) escribe desde su buzón inyector `qainject-…` (que nunca es una parte) o, para probar suplantaciones, desde una parte de un mundo `qa-*` que no es contacto `ACTIVE` de la operación destinataria, y solo a sus propios buzones y a direcciones de operación de sus mundos `qa-*` (o inexistentes, para probar descartes). Nunca a un dominio reservado (`.test`, `.example`, `.invalid`, `.localhost`, `example.com|net|org`).
+Regla del stage, dentro del único cliente de SES y reforzada por IAM, que depende del **perfil de remitente** que declara el que llama (y que el cliente verifica contra el `From`, nunca contra el destinatario): el sistema (`SYSTEM`) solo escribe a buzones de nuestro dominio de simulación, al simulador de buzones de SES y a destinatarios de demo registrados (nunca desde un mundo de invitado, que solo escribe a buzones simulados); el simulador de proveedor (`SIMULATOR`) solo responde a la dirección de la operación verificada del correo que contesta y solo desde un contacto `ACTIVE` registrado del proveedor de esa operación (una regla de datos, no de prefijo: vale igual en mundos de demo, de invitado y QA); el ejecutor de escenarios (`QA`) escribe desde su buzón inyector `qainject-…` (que nunca es una parte) o, para probar suplantaciones, desde una parte de un mundo `qa-*` que no es contacto `ACTIVE` de la operación destinataria, y solo a sus propios buzones y a direcciones de operación de sus mundos `qa-*` (o inexistentes, para probar descartes). El **aviso de lead** (`LEAD_NOTICE`) solo escribe a direcciones exactas de `craftech.io`. Los emails de cuenta (código de alta, recuperación) los manda Cognito a la dirección del propio usuario, con las cuotas del trigger `CustomMessage` (ADR-0015). Nunca a un dominio reservado (`.test`, `.example`, `.invalid`, `.localhost`, `example.com|net|org`).
 _Avoid_: allowlist (suelta), whitelist
 
 **Violación de política** (`PolicyViolation`):
@@ -221,7 +229,7 @@ Lambda que recibe por SES los emails dirigidos a los buzones simulados de provee
 _Avoid_: bot del proveedor, fake supplier
 
 **Buzón de demo** (`DemoMailbox`):
-Buzones simulados del estudio (`estudio-<código>@sim.legajo.demo.craftech.io`) que reciben por SES los emails de escalamiento; la consola los muestra para que un jurado vea lo que recibió el despachante.
+Buzones simulados del estudio (`estudio-<código>@sim.legajo.demo.craftech.io`) que reciben por SES los emails de escalamiento; la consola los muestra para que un invitado vea lo que recibió el despachante. Todo email de producto de un mundo de invitado termina acá, nunca en una casilla real.
 _Avoid_: bandeja de prueba
 
 **Plataforma de gestión aduanera** (`PlatformMock`):
@@ -229,12 +237,78 @@ Sistema externo simulado que tiene las operaciones (buque, régimen, ETA) y emit
 _Avoid_: sistema del cliente, ERP
 
 **Mundo** (`World`):
-Conjunto de datos con su reloj: el mundo de demo de cada estudio (reloj `GLOBAL`), el **mundo del jurado** (uno por cuenta de jurado, creado en su primer login desde una plantilla curada, reloj `JUDGE`), los mundos efímeros del ejecutor de escenarios (reloj `qa-*`, se borran al terminar) y los del lote de métricas. Reiniciar uno no toca a otro.
+Conjunto de datos con su reloj: el mundo de demo de cada estudio (reloj `GLOBAL`), el **mundo de invitado** (uno por invitado, reloj `GUEST`), los mundos efímeros del ejecutor de escenarios (reloj `qa-*`, se borran al terminar) y los del lote de métricas. Reiniciar uno no toca a otro.
 _Avoid_: sandbox, tenant
 
 **Ejecutor de escenarios** (`ScenarioRunner`):
 Script que recorre los flujos del catálogo contra el stage desplegado, con IAM y sin credenciales humanas, a través de la Lambda `QaDriver`, y asierta sobre estado persistido y bitácora.
 _Avoid_: bot de pruebas, e2e (es otra cosa)
+
+### Alta, invitados y leads
+
+**Superficie visible**:
+Todo lo que lee una persona que usa el producto: landing, alta, login, consola, páginas legales, simuladores, buzón de demo, link de carga, emails, PDFs, plantillas de WhatsApp y textos del seed que se muestran. Ninguna nombra el concurso ni a sus evaluadores; lo verifica `npm run lint:neutral-surfaces` (ADR-0014). Los identificadores internos (nombre de la app, buckets, roles) no son superficie visible, pero nunca se usan en un texto.
+_Avoid_: front, pantallas (a secas)
+
+**Landing** (`Landing`, `/`):
+Página comercial del producto: problema, qué hace, para quién, recorrido animado con imágenes del producto real, cómo se integra, impacto como **metas** rotuladas y qué es simulado; CTAs "Probar la demo", "Ingresar" y "Hablemos" (ADR-0016).
+_Avoid_: home, portada, sitio
+
+**Captura** / **Render** (`capture` / `render`):
+Imagen de la landing. Una **captura** sale del producto real (consola o página servida) por el pipeline de capturas, con origen `poc` o `local` (esta última rotulada "Entorno local, agente guionado"); un **render** es una animación hecha con componentes y textos reales del producto para una vista que todavía no existe o que queda por diseño, rotulada "Animación con los componentes y textos del producto", y declara qué captura lo reemplaza y con qué **política**: `swap` (sale cuando su captura es de `poc`) o `zoom` (queda y "Ampliar" abre la captura) (`scripts/landing/renders.json`, ADR-0016 §3). Nunca un mockup.
+_Avoid_: mockup, maqueta, screenshot (en docs)
+
+**Alta** (`signup`, `/signup`):
+Registro de un invitado público: email y contraseña, nombre, empresa y cargo opcionales, dos **consentimientos** y un código que Cognito manda al email. El navegador nunca llama a Cognito para crear la cuenta: el BFF guarda el alta y responde siempre igual, y `SignupDispatch` hace después las llamadas que crean la cuenta o mandan el código; Cognito rechaza un alta sin **ticket de alta**. Solo una cuenta pública de invitado existente sigue el camino de "ya tenés una cuenta"; el lead se escribe recién con la **verificación** del código (ADR-0015). En **modo lista de espera** el mismo formulario es un **pedido de acceso**.
+_Avoid_: registro (en código), sign-up (en UI en español), onboarding
+
+**Ticket de alta** (`signup ticket`):
+Firma HMAC de corta vida (120 s) que `SignupDispatch` agrega a su llamada a `SignUp` y que el trigger `PreSignUp` exige; sin ella no se crea ningún usuario ni sale ningún email.
+_Avoid_: token (a secas), captcha
+
+**Modo de alta pública** (`PublicSignupMode`: `open` \| `waitlist`):
+Valor único del stage que decide qué hace el formulario de `/signup`. En `waitlist` (valor inicial, con el que se despliega la ola 3) el formulario es un **pedido de acceso**: guarda un lead en lista de espera y no crea cuenta, mundo ni manda nada al visitante, salvo la **excepción cercada** (buzones `qa-signup-*` del `QaDriver` y casillas `<local>@craftech.io`), que hace el alta completa; la landing dice "Pedir acceso" y no se indexa. En `open` el formulario es el alta. Lo cambia el operador por PR cuando se cumple el criterio de ADR-0015 §1.4; manda el valor del BFF.
+_Avoid_: beta, preregistro, modo cerrado
+
+**Pedido de acceso** (`WAITLISTED`, `/signup/waitlisted`):
+Envío del formulario en modo lista de espera: deja un lead con `status WAITLIST` y el email **sin verificar**, y un aviso a Craftech. Cuando el alta abre, Craftech avisa una vez a esas personas y, si se dan de alta, su lead pasa a `ACTIVE`.
+_Avoid_: reserva, inscripción, pre-registro
+
+**Lead** (`Lead`, tabla `Leads`):
+Registro comercial de una persona que confirmó su alta (`status ACTIVE`) o que pidió acceso en modo lista de espera (`status WAITLIST`, email sin verificar): email, datos opcionales, consentimientos, idioma, POC de origen, UTM y referrer, fecha de alta y último ingreso. Vive separado de los datos de la demo y sobrevive al TTL del mundo. La tabla la tocan solo el BFF (alta y último ingreso), `SignupDispatch` (altas pendientes y leads de la lista de espera), `WorldJanitor` (barrido y borrado), el aviso a Craftech, el `QaDriver` cercado a sus buzones de prueba y los scripts del operador (`leads:export`, `leads:optout`, `leads:delete`); nunca el agente, `ChannelEvents` ni los triggers de Cognito.
+_Avoid_: cliente, prospecto (en código), contacto (es otra cosa)
+
+**Consentimiento** (`consents.terms`, `consents.contact`):
+Aceptación explícita, separada y sin tildar por defecto, guardada con fecha y **versión del texto**: términos y privacidad (obligatorio para la cuenta) y "Acepto que Craftech me contacte por esta solución" (opcional, revocable sin perder la cuenta).
+_Avoid_: opt-in (es el de WhatsApp del importador), checkbox
+
+**Aviso de lead** (`LeadNotice`):
+Email interno por cada lead nuevo o pedido de acceso a la casilla `@craftech.io` que configura el operador (secreto `LeadNoticeTo`); el cerco solo deja salir a direcciones de `craftech.io`. No es correo de un mundo: no tiene reloj ni queda como pendiente de correo.
+_Avoid_: notificación, alerta
+
+**Mundo de invitado** (reloj `GUEST#firm-guest-<nn>`):
+Mundo aislado y sembrado desde la plantilla curada `guest`, con reloj en pausa, que se crea en el primer ingreso del invitado (una sola creación por cuenta aunque lleguen muchos pedidos juntos: la cuenta toma primero su **arrendamiento**, `GUESTWORLD#<sub>`). El de un invitado público ocupa un **cupo** y tiene **TTL**; al vencer se destruye con todo lo que se cargó en él, incluidos los PDFs, y el siguiente ingreso crea otro; los tokens del dueño anterior dejan de servir en el acto. El de un invitado reservado no vence: se reinicia de noche si no se usó en 24 h.
+_Avoid_: sandbox, mundo de prueba
+
+**Cupo de invitado** (`SLOT#GUEST#<nn>`):
+Lugar numerado (`nn` de dos dígitos) que ocupa un mundo de invitado: `01–30` reservados, `31–90` públicos (60 mundos públicos activos como máximo). El número fija el estudio `firm-guest-<nn>`, el bloque de teléfonos ficticios y el prefijo de los buzones simulados `g<nn>-`. Un cupo liberado no se vuelve a arrendar hasta 20 minutos después. Sin cupo libre, el invitado ve "La demo está completa en este momento".
+_Avoid_: slot (en UI), lugar
+
+**TTL del mundo**:
+Vida de un mundo de invitado público: se destruye a las 24 h reales sin actividad o a las 72 h reales de creado, lo que llegue primero. La cuenta y el lead no vencen con él.
+_Avoid_: expiración de la cuenta
+
+**Estado de rebote** (`MAILSTATUS#<emailHash>`):
+Marca por destinatario, exista o no un lead, de que un email de cuenta rebotó o fue marcado como no deseado; desde ahí ese destinatario no recibe más emails de cuenta. Si los rebotes y quejas de un día pasan el umbral, el **disyuntor de reputación** corta las altas y los emails de cuenta hasta que el operador lo cierre (ADR-0015 §3.2), para no dañar la reputación de SES que comparten todas las demos de la cuenta.
+_Avoid_: bounce list, lista negra
+
+**Cuota de uso** (`QUOTA#<clockId>#<tipo>`):
+Tope por mundo de invitado en **reloj real** (turnos del agente, emails salientes, mensajes del simulador, movimientos del reloj, cargas, operaciones nuevas, reinicios), más un presupuesto diario global de los mundos públicos. Al superarla, la acción se rechaza con `QUOTA_EXCEEDED` y la hora en que se renueva.
+_Avoid_: rate limit (es el del alta), límite de la cuenta
+
+**Rate limit del alta** (`RL#…`):
+Tope por IP, por email, por dominio y total sobre el alta, el reenvío del código y los emails de cuenta; su objetivo es que el alta no sirva para mandar códigos a terceros ni para agotar el cupo.
+_Avoid_: cuota (es la del mundo)
 
 ### Métricas
 
@@ -247,7 +321,7 @@ Todo número de la vista de métricas dice su N, el mundo del que sale y si es *
 _Avoid_: simulación (a secas)
 
 **Recorrido guiado** (`Tour`):
-Pasos del jurado sobre la historia principal (operación 4471), con un botón por paso y glosa en inglés; la misma fuente genera las instrucciones del README y el escenario `SC-24`. Sigue la misma línea de tiempo que la historia y el video (pedido el 15/10 10:00); las horas que muestra salen del reloj del mundo, y la plantilla del jurado no tiene eventos de otras operaciones en la ventana del recorrido.
+Pasos del invitado sobre la historia principal (operación 4471), con un botón por paso y glosa en inglés; la misma fuente genera las instrucciones del README y el escenario `SC-24`. Sigue la misma línea de tiempo que la historia y el video (pedido el 15/10 10:00); las horas que muestra salen del reloj del mundo, y la plantilla de invitado no tiene eventos de otras operaciones en la ventana del recorrido.
 _Avoid_: tutorial, onboarding
 
 **Intervenciones humanas** (`interventions`):
@@ -268,6 +342,8 @@ _Avoid_: precio, facturación
 - Un **Proveedor** tiene uno o más **Contactos de proveedor**, una zona horaria y un idioma.
 - Un **Turno** pertenece a una **Operación** y lo dispara un evento; los turnos de una operación son secuenciales.
 - Un **Escalamiento** pertenece a una **Operación**; **Tomar conversación** pone el control de la operación en el estudio.
+- Un **Invitado** tiene a lo sumo un **Mundo de invitado** vivo, que ocupa un **Cupo**; un invitado público tiene exactamente un **Lead** (uno por email) con dos **Consentimientos**; un **Pedido de acceso** deja un lead sin cuenta, que pasa a ser el de la cuenta si esa persona se da de alta.
+- Un **Lead** sobrevive al **TTL del mundo**; borrar un lead borra también su cuenta de Cognito y su mundo, si los tiene.
 
 ## Example dialogue
 
@@ -283,4 +359,7 @@ _Avoid_: precio, facturación
 - "Despacho" se usó para la operación y para el trámite aduanero: se resolvió que **operación** es la importación y **estado del despacho** son los eventos de aduana posteriores a la aprobación.
 - "Aprobar" se usó para documentos y para el legajo: se resolvió que el lector deja un documento **válido** y el despachante **aprueba** el legajo; un documento con observación se **dispensa**, no se aprueba.
 - "Recordatorio" se usó para el hito y para el mensaje: el **hito** es el momento programado; el **recordatorio** es un mensaje de tipo `REMINDER` que un hito puede o no producir. Por WhatsApp solo lo produce un turno de hito o de seguimiento: no sirve de acuse ni de respuesta cuando la ventana está cerrada.
-- "Cliente" puede ser el estudio (cliente de Craftech) o el importador (cliente del estudio): en documentos y UI se dice **estudio** e **importador**, nunca "cliente".
+- "Cliente" puede ser el estudio (cliente de Craftech) o el importador (cliente del estudio): en documentos y UI se dice **estudio** e **importador**, nunca "cliente". Quien deja su email en el alta es un **lead** de Craftech, no un cliente.
+- Quien prueba la demo se llamaba con el nombre del rol de los evaluadores del concurso: se resolvió **invitado** (`GUEST`) en código, datos, textos y documentos; los documentos internos que hablan del concurso dicen "evaluadores del concurso" (ADR-0014).
+- "Opt-in" es el consentimiento de WhatsApp del importador dentro de la demo; el **consentimiento** del alta es el de la persona real que se registra. Nunca se mezclan.
+- "Cuota" y "rate limit": la **cuota de uso** es del mundo (costo); el **rate limit del alta** es del registro (abuso y reputación de SES).

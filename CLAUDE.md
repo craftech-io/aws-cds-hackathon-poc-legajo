@@ -2,7 +2,7 @@
 
 Instrucciones estrictas para Claude Code en este repositorio. No es documentación para humanos.
 
-Este repositorio es la submission de Craftech a la **AWS CDS Agentic AI Partner Hackathon** (cierre 2026-10-28 13:00 PT). Lo van a leer jueces que no estuvieron en ninguna conversación. Escribí para ellos.
+Este repositorio es la submission de Craftech a la **AWS CDS Agentic AI Partner Hackathon** (cierre 2026-10-28 13:00 PT), pero **la POC publicada es un producto para un cliente futuro**: ninguna superficie visible nombra el concurso (ver SUPERFICIES PÚBLICAS). El repo lo leen personas que no estuvieron en ninguna conversación (prospectos, partners, evaluadores del concurso): escribí para ellas.
 
 ## Qué es
 
@@ -34,7 +34,7 @@ Vocabulario en `CONTEXT.md`; diseño en `docs/design-brief.md`; topología en `d
 ### Del producto
 
 - **La lectura de documentos no es nuestra.** Nunca OCR, clasificación ni extracción propia: todo PDF va al lector por su contrato; lo desconocido va al despachante (ADR-0003).
-- **La aprobación es siempre humana.** No existe una tool que apruebe; aprobar es de la consola, rol `BROKER` (o `JUDGE` en su propio estudio de jurado), login ≤ 15 min (ADR-0010).
+- **La aprobación es siempre humana.** No existe una tool que apruebe; aprobar es de la consola, rol `BROKER` (o `GUEST` en su propio estudio de invitado), login ≤ 15 min (ADR-0010).
 - **El agente habla solo por `send_whatsapp` y `send_email`**; el texto final del turno es una nota interna (ADR-0011). Todo envío pasa por el pipeline de `packages/bff/src/outbound/`.
 - **Política de contacto en código** (`packages/bff/src/policy/`, reglas `CP-*`), nunca en el prompt (ADR-0012).
 - **Identidad fuera del modelo**: importador por teléfono registrado (único por `ADDR#`); proveedor por dirección de la operación (con etiqueta) + contacto `ACTIVE` del proveedor de esa operación + `dmarcVerdict PASS` (nunca una rama por DKIM ni un `d=` leído de encabezados). `SimMail` solo actúa sobre correo nuestro verificado por `Message-ID`. Ninguna tool confía en un id que escriba el modelo: todo sale del `sessionToken`; zod `.strict()` en cada tool.
@@ -43,21 +43,33 @@ Vocabulario en `CONTEXT.md`; diseño en `docs/design-brief.md`; topología en `d
 - **Supuestos rotulados**: días libres en puerto, costo de demora y base manual son "supuesto" en todo texto y vista.
 - **WhatsApp `live` solo con P-01 cerrado** (`npm run channels:check-modes` lo impide).
 
-### De la hackathon y de la marca
+### Del concurso y de la marca
 
 - **Marca pública**: "Legajo listo · Powered by Craftech". **Ningún archivo, commit, texto, dato ni PDF nombra a un cliente de Craftech ni a una empresa real del mercado.** Todo nombre del seed es inventado, verificado con búsqueda registrada y rotulado "ficticio". `npm run lint:forbidden` corre la lista externa (`FORBIDDEN_TERMS`) sobre árbol, commits, PDFs, seed y build de la web, y **en CI falla cerrado** (sin la lista, el job falla). Nunca imprime el término encontrado.
-- **Scaffolding declarado**: lo copiado del scaffolding interno de Craftech (creado durante la hackathon) se declara en el README; nunca se nombra el producto del que salió (`docs/reuse-map.md`).
+- **Scaffolding declarado**: lo copiado del scaffolding interno de Craftech (SST, CI y AgentCore, anterior al período del concurso) se declara en la sección "Submission notes" del README; nunca se nombra el producto del que salió (`docs/reuse-map.md`).
 - **Qué es real y qué es simulado** se dice en la landing, el README y el video; WhatsApp se presenta como adaptador implementado en modo simulado hasta P-01, nunca como canal vivo.
-- **Credenciales de jurado** solo en las instrucciones privadas de Devpost (P-05); nunca en el repo, el README ni un chat.
+- **Credenciales de las cuentas reservadas `guest-NN`** solo en las instrucciones de prueba privadas del formulario de la submission (P-05); nunca en el repo, el README ni un chat. Cuando el alta pública esté en `open`, cualquiera puede además darse de alta en `/signup`; mientras esté en `waitlist`, `/signup` solo registra pedidos de acceso.
 - **Materiales de submission en inglés.** La propiedad intelectual es de Craftech. Sin créditos de AWS mencionados.
 
 ---
+
+## SUPERFICIES PÚBLICAS (POC de demo)
+
+Estándar de Craftech: skill `poc-landing` del workspace (`../.claude/skills/poc-landing/SKILL.md`, fuera de este repo; **no se copia** porque nombra otro producto) y la regla "POCs de demo" del `CLAUDE.md` del workspace. Decisiones del repo: ADR-0014 (textos neutrales, rol `GUEST`, guard), ADR-0015 (alta pública, leads, anti abuso), ADR-0016 (landing y capturas reales); diseño en `docs/landing-spec.md`; paquetes en `docs/build-plan.md` (ola 3, etapas A1 y A2).
+
+- **Agnóstica al concurso.** Ninguna superficie visible (landing, alta e ingreso, consola, legales, simulador, buzón, página de carga, emails de producto, de cuenta y de lead, PDFs, plantillas de WhatsApp, textos del seed, `alt` de imágenes) contiene las palabras de `scripts/lint/neutral-words.ts` (las del concurso, sus premios, quienes lo juzgan y la evaluación, en es y en, más "AWS CDS"). El concurso se nombra solo en `docs/`, `.claude/`, este archivo, el formulario y el video de la submission, y la sección "Submission notes" al final de `README.md`. `npm run lint:neutral-surfaces` (fuentes y `-- --dist`) corre en `ci.yml` y `deploy.yml` junto a `lint:forbidden`; una colisión se reescribe, nunca se exceptúa.
+- **Rol `GUEST`** ("Invitado"/"Guest"; cuentas `guest-NN`, `guest-test`; estudios `firm-guest-<nn>`): permisos de `BROKER` solo en su propio estudio, sin MFA ni cambio de contraseña salvo por recuperación. Los identificadores internos que llevan el nombre del app (app SST, buckets, roles, repo) no se renombran y nunca aparecen en un texto visible.
+- **Landing comercial**: problema, recorrido del producto, qué hace por actor, garantías en código, impacto **solo como metas rotuladas**, integración, qué es simulado; CTAs "Probar la demo" (`/signup`; "Pedir acceso" en modo `waitlist`), "Ingresar" (`/login`) y "Hablemos" (contacto de Craftech); de 360 a 1440+ px, `prefers-reduced-motion`, WCAG 2.2 AA, presupuesto de performance; sin librería de animación.
+- **Imágenes del producto real**: capturas de la consola con `scripts/landing/` o renders con componentes y textos reales, listados en el manifiesto con la captura que los reemplaza y su política (`swap`: sale cuando la captura es de `poc`; `zoom`: queda por diseño); nunca un mockup de una función que no existe.
+- **Alta propia**: el navegador nunca llama a `SignUp` (ticket firmado + `PreSignUp`, llamadas a Cognito en `SignupDispatch`, fuera del camino de respuesta); email verificado por código; una cuenta por email sin revelar cuáles existen, ni por respuesta ni por tiempo; solo una cuenta pública `GUEST` existente sigue el camino de "ya tenés una cuenta" y nada se finaliza sin `verifiedAt`; WAF con desafío silencioso sin SDK (documento `/signup` y `signup.*`), OAC en las Function URL y `X-Origin-Verify` en toda ruta, honeypot, rate limits por IP agregada (`/32`, `/64`), cuotas de emails de cuenta, estado de rebote y disyuntor de reputación; mundo de invitado aislado, una creación por cuenta, con cupo, TTL y cuotas por mundo en reloj real, que al destruirse se lleva sus objetos de S3 y los tokens de su dueño; solo datos sintéticos. Los roles internos siguen siendo por invitación.
+- **Modo de alta pública** (ADR-0015 §1.4): `PublicSignupMode` en `infra/signup-mode.ts`, **`waitlist` hasta que el operador lo pase a `open`** por PR con el criterio de ese ADR (`SC-24` a `SC-26` en verde 3 veces seguidas en `poc`, A-01, P-06; `docs/pending.md` P-07 punto 9). En `waitlist`: "Pedir acceso", landing con `noindex`, lead `WAITLIST` sin cuenta, sin mundo y sin ningún email al visitante, misma respuesta y mismo tiempo para todo email; solo la excepción cercada (`qa-signup-*@sim…`, `<local>@craftech.io` exacto) hace el alta completa. El BFF es la autoridad; ningún WP asume `open`.
+- **Leads**: tabla `Leads` separada de la demo, con lista cerrada de quién la toca (`Bff`, `SignupDispatch`, `WorldJanitor`, `LeadNotice`, `QaDriver` cercado, scripts del operador); dos consentimientos sin tildar y versionados (términos y privacidad, obligatorio; contacto de Craftech, opcional); aviso por SES solo a casillas `@craftech.io` del secreto `LeadNoticeTo` (nunca una dirección en el código); `leads:export` (con `--waitlist`), `leads:optout`, `leads:delete`; lead `status` `WAITLIST` (email sin verificar) o `ACTIVE`; los emails nunca van a logs, auditoría, métricas ni exports de la demo; Craftech es responsable (Ley 25.326).
 
 ## IDIOMAS
 
 | Qué | Idioma |
 |---|---|
-| Código, identificadores, comentarios, commits, README, instrucciones para jueces | Inglés |
+| Código, identificadores, comentarios, commits, README, materiales de la submission | Inglés |
 | `CLAUDE.md`, `CONTEXT.md`, `docs/`, ADRs, `tests/cases/`, agentes de `.claude/`, conversación con el operador | Español (Argentina) |
 | Consola, textos y plantillas al importador | Español rioplatense, en `packages/bff/src/copy/es-AR.ts` |
 | Emails al proveedor | Inglés, en `packages/bff/src/copy/en.ts` |
@@ -96,7 +108,7 @@ Vocabulario en `CONTEXT.md`; diseño en `docs/design-brief.md`; topología en `d
 
 ## PRIORIDADES DE CALIDAD
 
-1. Un juez lo levanta y lo entiende con el README, sin nosotros
+1. Un prospecto entiende el producto con la landing y lo prueba solo; cualquiera lo levanta con el README, sin nosotros
 2. Ninguna parte recibe un dato ajeno ni un mensaje fuera de política
 3. Todo flujo probado según `docs/test-plan.md`
 4. Consistencia antes que novedad; reusar antes que crear
@@ -115,7 +127,7 @@ Vocabulario en `CONTEXT.md`; diseño en `docs/design-brief.md`; topología en `d
 | `typescript-dev` | Tools, turnos, canales, pipeline, política, mocks, BFF, consola, loader |
 | `seed-generator` | Seed sintético, PDFs y verdad de base |
 | `qa` | Casos, `QaDriver`, ejecutor de escenarios, flujos locales, verificación "100 % probada" |
-| `security` | IAM, secretos, PII, identidad, contenido hostil, cerco, reglas de la hackathon y marca |
+| `security` | IAM, secretos, PII (incluidos los leads), identidad, contenido hostil, cerco, superficies públicas, reglas del concurso y marca |
 
 **Regla de flujo.** `architect` documenta antes de implementar; `security` revisa la rama antes de mergear lo que toque IAM, secretos, canales, datos o superficies públicas; `qa` verifica antes de dar algo por hecho. Se revisa la rama, no el PR. La sesión del operador orquesta: no implementa, no opera, no deploya.
 
