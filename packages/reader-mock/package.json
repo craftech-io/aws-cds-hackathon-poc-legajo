@@ -1,0 +1,27 @@
+{
+  "name": "@legajo/reader-mock",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mock of the external document reader: recognises the synthetic documents and returns their ground truth",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --root ../.. packages/reader-mock"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.1135.0",
+    "@aws-sdk/lib-dynamodb": "3.1135.0",
+    "@legajo/reader-contract": "*",
+    "@legajo/shared": "*",
+    "sst": "4.17.1",
+    "unpdf": "1.8.1",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.163"
+  }
+}

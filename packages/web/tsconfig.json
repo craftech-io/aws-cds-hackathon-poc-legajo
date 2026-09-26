@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@legajo/shared": ["../shared/src/index.ts"],
+      "@legajo/shared/*": ["../shared/src/*"],
+      "@legajo/bff": ["../bff/src/index.ts"],
+      "@legajo/bff/*": ["../bff/src/*"]
+    }
+  },
+  "include": ["src", "vite.config.ts", "sst-env.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}

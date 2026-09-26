@@ -1,0 +1,21 @@
+{
+  "name": "@legajo/reader-contract",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenAPI 3.1 contract of the external document reader and its zod schemas (ADR-0003)",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --root ../.. packages/reader-contract"
+  },
+  "dependencies": {
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "yaml": "2.9.1"
+  }
+}
