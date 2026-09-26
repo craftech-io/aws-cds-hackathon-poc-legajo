@@ -1,0 +1,66 @@
+// Texts of the phone simulator (`/app/simulator`, docs/design-brief.md §6, FL-083): the importer's
+// phone while WhatsApp runs in simulated mode. The messages themselves (templates, fixed texts and
+// their English gloss) come from the BFF's copy through `simulator.threads`; only the frame is here.
+export const simulatorCopy = {
+  frameLabel: "simulador · WhatsApp en modo simulado",
+  lead: "Hacés de importador: lo que escribís o tocás entra por el mismo camino que un evento real de WhatsApp, y lo que manda el estudio se ve como lo vería el importador.",
+  threads: {
+    title: "Hilos de los importadores",
+    empty: "El estudio no tiene importadores con WhatsApp en este mundo.",
+    operations: (numbers: readonly string[]) => (numbers.length === 1 ? `Operación ${numbers[0]}` : `Operaciones ${numbers.join(", ")}`),
+    unread: (count: number) => (count === 1 ? "1 mensaje sin leer" : `${count} mensajes sin leer`),
+    open: (name: string) => `Abrir el hilo de ${name}`,
+  },
+  phone: {
+    title: (name: string) => `Teléfono de ${name}`,
+    chatWith: "Chat con el estudio",
+    empty: "Todavía no hay mensajes en este hilo.",
+    typing: "El agente está escribiendo…",
+    template: "Plantilla",
+    gloss: "EN",
+    glossShow: "Mostrar la glosa en inglés",
+    glossLabel: "English gloss",
+    tapLabel: (title: string) => `Tocar el botón ${title}`,
+    openLink: (title: string) => `${title} (abre el link de carga)`,
+    attachment: "Documento PDF",
+    attachmentRejected: "Adjunto rechazado",
+    markRead: "Marcar leído",
+  },
+  status: {
+    SENT: "Enviado",
+    DELIVERED: "Entregado",
+    READ: "Leído",
+    FAILED: "No se entregó",
+  } as Readonly<Record<string, string>>,
+  composer: {
+    label: "Mensaje del importador",
+    placeholder: "Escribí como el importador…",
+    send: "Enviar",
+    attach: "Adjuntar PDF",
+    closeAttach: "Cerrar adjuntar",
+  },
+  attach: {
+    title: "Adjuntar un PDF",
+    synthetic: "PDF sintético de una operación",
+    operation: "Operación",
+    docType: "Documento",
+    sendSynthetic: "Adjuntar PDF sintético",
+    own: "O subí un PDF propio (hasta 10 MB)",
+    sendOwn: "Subir y adjuntar",
+    notPdf: "Solo se aceptan archivos PDF.",
+    tooLarge: "El PDF pasa los 10 MB.",
+    scanning: "El PDF se sube y pasa por el escaneo de malware antes de leerse (~1 min).",
+  },
+  docTypes: {
+    COMMERCIAL_INVOICE: "Factura comercial",
+    PACKING_LIST: "Packing list",
+    CERTIFICATE_OF_ORIGIN: "Certificado de origen",
+  },
+  done: {
+    sent: "Mensaje enviado.",
+    tapped: "Botón tocado.",
+    attached: "PDF adjuntado.",
+    read: "Hilo marcado como leído.",
+  },
+  liveMode: "WhatsApp corre en modo vivo: el simulador de teléfono está apagado.",
+} as const;

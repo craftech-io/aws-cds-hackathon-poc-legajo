@@ -1,0 +1,11 @@
+{
+  "generatedBy": "scripts/landing/supplier-replies.ts",
+  "reply": {
+    "subject": "Re: [Op 4471] Missing documents: packing list, certificate of origin (Invoice QBT-2026-0917)",
+    "body": "Hello,\n\nPlease find attached the packing list and certificate of origin for invoice QBT-2026-0917.\n\nBest regards,\nExport department\nQingdao Bluewave Textiles Co., Ltd."
+  },
+  "corrected": {
+    "subject": "Re: [Op 4471] Correction needed: packing list gross weight",
+    "body": "Hello,\n\nPlease find attached the corrected packing list for invoice QBT-2026-0917.\n\nBest regards,\nExport department\nQingdao Bluewave Textiles Co., Ltd."
+  }
+}

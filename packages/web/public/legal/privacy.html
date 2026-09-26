@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Política de privacidad · Legajo listo</title>
-<meta name="description" content="Política de privacidad de Legajo listo, prueba de concepto de Craftech con datos sintéticos.">
+<meta name="description" content="Política de privacidad de Legajo listo, prueba de concepto de Craftech con datos sintéticos. Privacy policy of Legajo listo, a Craftech proof of concept with synthetic data.">
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg">
 <style>
 :root{color-scheme:light;--navy:#0b1f3a;--cyan:#12b5d9;--cyan-deep:#0a7f99;--cyan-soft:#d8f4fa;--ink:#111a2b;--slate:#5a6a80;--mist:#e4e9f0;--paper:#f5f7fa}
 *{box-sizing:border-box}
@@ -13,28 +14,25 @@ header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;align-it
 .lockup{display:flex;align-items:center;gap:12px;text-decoration:none}
 .brand{font-weight:700;font-size:18px;color:#fff;white-space:nowrap}.brand span{color:var(--cyan)}
 .badge{font-size:12px;color:var(--cyan-soft)}
+.badge a{color:var(--cyan-soft)}
 main{max-width:760px;margin:24px auto;padding:0 16px}
-article{background:#fff;border:1px solid var(--mist);border-radius:12px;box-shadow:0 1px 2px rgb(11 31 58/.06),0 4px 12px rgb(11 31 58/.06);padding:28px}
+article,section.version{background:#fff;border:1px solid var(--mist);border-radius:12px;box-shadow:0 1px 2px rgb(11 31 58/.06),0 4px 12px rgb(11 31 58/.06);padding:28px;margin-bottom:24px}
 h1{font-size:26px;line-height:1.25;margin:0 0 4px;color:var(--navy)}
 h2{font-size:18px;margin:28px 0 8px;color:var(--navy)}
 p,li{margin:0 0 10px}ul{padding-left:22px}
 .muted{color:var(--slate);font-size:14px}
 .notice{background:var(--cyan-soft);border-radius:10px;padding:12px 14px;margin:16px 0}
-.table{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0 12px}
-th,td{border-bottom:1px solid var(--mist);padding:8px 10px;text-align:left;vertical-align:top}
-th{color:var(--slate);font-weight:600}
 a{color:var(--cyan-deep)}
 footer{max-width:760px;margin:0 auto 32px;padding:16px;font-size:13px;color:var(--slate)}
 .powered{display:inline-flex;align-items:center;gap:8px;margin-top:10px;color:var(--slate);text-decoration:none;font-size:12px}.powered img{display:block;height:20px;width:auto}
 </style>
 </head>
 <body>
-<header><a class="lockup" href="/legal/privacy.html"><span class="brand">Legajo <span>listo</span></span></a><div class="badge">Prueba de concepto · datos sintéticos</div></header>
+<header><a class="lockup" href="/"><span class="brand">Legajo <span>listo</span></span></a><div class="badge">Prueba de concepto · datos sintéticos · <a href="#en">English</a></div></header>
 <main>
 <article>
 <h1>Política de privacidad</h1>
-<p class="muted">Última actualización: 25 de septiembre de 2026</p>
+<p class="muted">Última actualización: 26 de septiembre de 2026</p>
 
 <div class="notice"><strong>Esto es una prueba de concepto.</strong> Legajo listo es una demo de Craftech que funciona con datos 100 % sintéticos: los estudios, importadores, proveedores, operaciones y documentos son inventados. Los mensajes solo llegan a buzones propios de la demo, al simulador de casillas de Amazon SES y a destinatarios de prueba registrados por el equipo.</div>
 
@@ -46,7 +44,7 @@ footer{max-width:760px;margin:0 auto 32px;padding:16px;font-size:13px;color:var(
 
 <h2>3. Qué datos tratamos y para qué</h2>
 <ul>
-<li><strong>Teléfono del importador y email de los contactos del proveedor</strong>, registrados por el estudio: para reconocer quién escribe y para responder por el mismo medio. En los registros internos guardamos un identificador cifrado de la dirección, no la dirección.</li>
+<li><strong>Teléfono del importador y email de los contactos del proveedor</strong>, registrados por el estudio: para reconocer quién escribe y para responder por el mismo medio. Los registros técnicos no guardan teléfonos ni emails: usan un identificador derivado de la dirección.</li>
 <li><strong>Consentimiento para WhatsApp</strong>, con el texto aceptado, el medio y la fecha: sin él, el agente no escribe por WhatsApp.</li>
 <li><strong>Mensajes y documentos</strong> de cada operación: para completar el legajo. Antes de guardarse se enmascaran CUIT, DNI, CBU, tarjetas e IBAN. Nunca pedimos documentos de identidad, datos bancarios ni claves fiscales por chat.</li>
 <li><strong>Bitácora de decisiones</strong>: qué hizo el agente, qué regla aplicó y quién intervino, para que el estudio pueda auditarlo.</li>
@@ -72,7 +70,48 @@ footer{max-width:760px;margin:0 auto 32px;padding:16px;font-size:13px;color:var(
 <p>Si esta política cambia, publicamos la nueva versión en esta misma dirección con su fecha de actualización.</p>
 <p class="muted">Ver también los <a href="/legal/terms.html">términos y condiciones</a>.</p>
 </article>
+
+<section id="en" lang="en" class="version">
+<h1>Privacy policy</h1>
+<p class="muted">Last updated: 26 September 2026</p>
+
+<div class="notice"><strong>This is a proof of concept.</strong> Legajo listo is a Craftech demo that runs on 100% synthetic data: the firms, importers, suppliers, operations and documents are made up. Messages only reach the demo's own mailboxes, the Amazon SES mailbox simulator and test recipients registered by the team.</div>
+
+<h2>1. What Legajo listo is</h2>
+<p>Legajo listo is a coordination agent for customs brokerage firms. It asks for the commercial invoice, the packing list and the certificate of origin of every import: the importer on WhatsApp (in this demo, with a phone simulator) and the foreign supplier by email. Every document goes through an external document reader; the agent decides who must correct each observation and leaves the file ready for the customs broker to approve. Approval always belongs to a person.</p>
+
+<h2>2. Who is responsible</h2>
+<p>The controller of the data of this demo is <strong>Craftech</strong> (<a href="https://craftech.io">craftech.io</a>), which operates it. In production use, each firm is the controller of its clients' and suppliers' data and Craftech acts as a processor, following its instructions.</p>
+
+<h2>3. What data we process and why</h2>
+<ul>
+<li><strong>The importer's phone and the email of the supplier's contacts</strong>, registered by the firm: to recognize who writes and to answer through the same channel. Technical logs keep no phone numbers or emails: they use an identifier derived from the address.</li>
+<li><strong>WhatsApp consent</strong>, with the accepted text, the medium and the date: without it, the agent does not write on WhatsApp.</li>
+<li><strong>Messages and documents</strong> of each operation: to complete the file. Tax ids, national ids, bank accounts, cards and IBANs are masked before they are stored. We never ask for identity documents, bank details or tax passwords in a chat.</li>
+<li><strong>Decision log</strong>: what the agent did, which rule applied and who intervened, so the firm can audit it.</li>
+</ul>
+<p>We do not sell data or use it for advertising. The public pages use no cookies and no third-party scripts.</p>
+
+<h2>4. Where it is processed</h2>
+<p>Data is processed on Amazon Web Services, region <code>us-east-1</code> (Northern Virginia, United States). In production use, the international transfer requires the data subject's consent or the safeguards required by Argentine Law 25,326 (section 12). This proof of concept processes synthetic data only.</p>
+
+<h2>5. How to stop receiving messages</h2>
+<ul>
+<li><strong>WhatsApp</strong>: tap <strong>No recibir avisos</strong> (stop notices) or reply <strong>BAJA</strong>. We confirm it and the agent does not write to you on that channel again.</li>
+<li>You can also ask the firm that registered you.</li>
+</ul>
+
+<h2>6. Your rights</h2>
+<p><strong>Argentina (Law 25,326):</strong> you may request access to your data and its rectification, update or deletion. The Agencia de Acceso a la Información Pública, the supervisory authority of Law 25,326, handles complaints about breaches of the personal data protection rules.</p>
+
+<h2>7. Artificial intelligence</h2>
+<p>The agent uses a language model on Amazon Bedrock with its own rules and controls: a contact policy written in code, content filters and a closed catalog of actions. It does not read documents on its own (the document reader does), it gives no customs, tax or legal advice and it never approves a file.</p>
+
+<h2>8. Changes</h2>
+<p>If this policy changes, we publish the new version at this same address with its update date.</p>
+<p class="muted">See also the <a href="/legal/terms.html">terms and conditions</a>.</p>
+</section>
 </main>
-<footer>Legajo listo · Demo de Craftech con datos 100 % sintéticos · <a href="/legal/privacy.html">Privacidad</a> · <a href="/legal/terms.html">Términos</a><br><a class="powered" href="https://craftech.io" rel="noopener">Powered by <img src="/brand/logo-craftech-color.svg" alt="Craftech" width="62" height="20"></a></footer>
+<footer>Legajo listo · Demo de Craftech con datos 100 % sintéticos / Craftech demo with 100% synthetic data · <a href="/legal/privacy.html">Privacidad</a> · <a href="/legal/terms.html">Términos</a><br><a class="powered" href="https://craftech.io" rel="noopener">Powered by <img src="/brand/logo-craftech-color.svg" alt="Craftech" width="62" height="20"></a></footer>
 </body>
 </html>

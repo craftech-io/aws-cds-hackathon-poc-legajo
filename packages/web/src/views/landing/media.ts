@@ -1,27 +1,11 @@
-// Media of the landing, described by public/landing/manifest.json so qa can swap a placeholder for
-// the real console capture, or add the demo video, without touching code. Read once per visit,
-// parsed with zod; if it cannot be read the landing simply shows no pictures.
+// The landing's pictures at run time: public/landing/manifest.json (shape in manifest.ts) read once per
+// visit and parsed with zod, so a picture changes without touching code. If the manifest cannot be
+// read the landing simply shows no pictures.
 import { useEffect, useState } from "react";
-import { z } from "zod";
 import { fetchWithRetry } from "../../lib/http";
+import { LandingManifest, type MediaId, type MediaItem, mediaIdsIn } from "./manifest";
 
 export const MANIFEST_URL = "/landing/manifest.json";
-
-const MediaItem = z.object({
-  file: z.string().startsWith("/landing/"),
-  width: z.number().int().positive(),
-  height: z.number().int().positive(),
-  alt: z.string().min(1),
-  status: z.enum(["render", "placeholder", "capture"]),
-});
-export type MediaItem = z.infer<typeof MediaItem>;
-
-export const LandingManifest = z.object({
-  version: z.literal(1),
-  video: z.object({ src: z.string().startsWith("/landing/"), poster: z.string().startsWith("/landing/").optional(), caption: z.string().optional() }).nullable(),
-  media: z.record(z.string(), MediaItem),
-});
-export type LandingManifest = z.infer<typeof LandingManifest>;
 
 export type MediaState = { readonly status: "loading" } | { readonly status: "ready"; readonly manifest: LandingManifest } | { readonly status: "unavailable" };
 
@@ -55,6 +39,11 @@ export function useLandingMedia(): MediaState {
   return state;
 }
 
-export function mediaOf(state: MediaState, id: string): MediaItem | undefined {
+export function mediaOf(state: MediaState, id: MediaId): MediaItem | undefined {
   return state.status === "ready" ? state.manifest.media[id] : undefined;
+}
+
+/** Ids of the pictures the manifest has, in gallery order; none until it is read. */
+export function mediaIdsOf(state: MediaState): MediaId[] {
+  return state.status === "ready" ? mediaIdsIn(state.manifest) : [];
 }

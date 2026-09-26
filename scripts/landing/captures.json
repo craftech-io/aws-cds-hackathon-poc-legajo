@@ -1,0 +1,34 @@
+{
+  "_readme": "Console captures of the landing (packages/web/public/landing/manifest.json), taken by scripts/landing/capture-console.ts at 1280x800: on the deployed stage (--target poc) signed in as the synthetic judge-test account after a real run of the guided tour (SC-24), or on the local UI server (--target local), which the landing labels 'entorno local, agente guionado'. Each entry names the console view, the operation row to open from it when the moment needs one, and the moment the frame shows. Alt texts and captions live in packages/web/src/views/landing/copy-*.ts. Kept out of public/ on purpose.",
+  "captures": {
+    "console-operations": {
+      "view": "/app/operations",
+      "moment": "Operations of the judge's world with 4471 pinned as the main story, its dossier ready for review and its next event"
+    },
+    "console-dossier": {
+      "view": "/app/operations",
+      "open": "4471",
+      "moment": "Detail of 4471 after the tour: three valid documents, the packing list observation resolved by version 2, and the timeline with the deferred email and its rule"
+    },
+    "console-simulator": {
+      "view": "/app/simulator",
+      "moment": "The importer's WhatsApp thread of 4471: the docs request template with its four buttons, the contact confirmation and the 'no tenés que hacer nada' notice, with the English gloss"
+    },
+    "console-mailbox": {
+      "view": "/app/mailbox",
+      "moment": "The demo mailbox with the thread of 4471: request, supplier reply with PDFs, correction request and corrected packing list, in plain text"
+    },
+    "console-clock": {
+      "view": "/app/clock",
+      "moment": "The paused world after the tour, with the next events of every kind"
+    },
+    "console-metrics": {
+      "view": "/app/metrics",
+      "moment": "The 'Este mundo' tab: every KPI with its N, source and label, and the policy decisions by rule next to zero violations"
+    },
+    "console-audit": {
+      "view": "/app/audit",
+      "moment": "The decision log of 4471: DEFER by CP-HOURS-SUPPLIER and CP-HOURS-AR, the approval by the broker, and the violation counter at 0"
+    }
+  }
+}

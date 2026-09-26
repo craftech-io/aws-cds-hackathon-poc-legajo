@@ -28,6 +28,8 @@ export function Lightbox({ items, index, onIndex, onClose }: LightboxProps) {
   const swipeFrom = useRef<number | undefined>(undefined);
   const item = index === undefined ? undefined : items[index];
   const open = item !== undefined;
+  // Alt texts live in copy, in the page's language (the manifest only describes the file).
+  const alt = item ? landingCopy.media.items[item.id].alt : landingCopy.zoom.open;
 
   useEffect(() => {
     const element = dialog.current;
@@ -66,7 +68,7 @@ export function Lightbox({ items, index, onIndex, onClose }: LightboxProps) {
   return (
     <dialog
       ref={dialog}
-      aria-label={item?.alt ?? landingCopy.zoom.open}
+      aria-label={alt}
       onClose={onClose}
       onClick={onClose}
       onKeyDown={onKeyDown}
@@ -76,7 +78,7 @@ export function Lightbox({ items, index, onIndex, onClose }: LightboxProps) {
         <div className="relative flex h-dvh w-dvw flex-col items-center justify-center gap-3 px-14 py-12 sm:px-20">
           <img
             src={item.file}
-            alt={item.alt}
+            alt={alt}
             width={item.width}
             height={item.height}
             onClick={stop}
@@ -89,7 +91,7 @@ export function Lightbox({ items, index, onIndex, onClose }: LightboxProps) {
             onClick={stop}
             className="max-w-3xl text-center text-sm text-white"
           >
-            {item.alt}{" "}
+            {alt}{" "}
             <span className="ml-2 text-mist">
               {landingCopy.zoom.counter((index ?? 0) + 1, items.length)}
             </span>

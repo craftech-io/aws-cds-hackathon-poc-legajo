@@ -1,5 +1,18 @@
 {
   "version": 1,
   "video": null,
-  "media": {}
+  "media": {
+    "upload-page": {
+      "file": "/landing/upload-page.png",
+      "width": 780,
+      "height": 1520,
+      "status": "render"
+    },
+    "upload-done": {
+      "file": "/landing/upload-done.png",
+      "width": 780,
+      "height": 880,
+      "status": "render"
+    }
+  }
 }

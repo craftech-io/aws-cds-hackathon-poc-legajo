@@ -1,0 +1,246 @@
+// The story of operation 4471 as the parties read it (docs/design-brief.md §4), built from the real
+// texts of packages/bff/src/copy: every WhatsApp template is rendered by `renderTemplate`, every fixed
+// text and button comes from the importer pack and its English gloss, the supplier subjects from the
+// English texts, and the simulated supplier's replies from supplier-replies.json, which
+// scripts/landing/supplier-replies.ts writes from copy/en-supplier-sim.ts (that module also carries the
+// hostile bodies of the injection behaviour, which never ship in the public page; landing.test.ts
+// fails if the file drifts). Only what the model writes in a real turn (a free reply to the importer,
+// the body of an email to the supplier) is an example written here, and the landing labels it so. All
+// names are the fictitious ones of docs/seed-spec.md.
+import { type DocType, type WaButtonAction, type WhatsAppTemplateName, maskEmail } from "@legajo/shared";
+import { BUTTON_LABELS } from "@legajo/bff/copy/buttons";
+import { DISPATCH_GLOSSARY } from "@legajo/bff/copy/dispatch-glossary";
+import { supplierEmailEn } from "@legajo/bff/copy/en";
+import { BUTTON_GLOSS, DISPATCH_GLOSS, glossTemplate, importerGloss } from "@legajo/bff/copy/en-gloss";
+import { docTypeOfEsAR, importerEsAR, missingDocumentsEsAR } from "@legajo/bff/copy/es-AR";
+import { OBSERVATION_LABELS } from "@legajo/bff/copy/observation-labels";
+import { TEMPLATES, renderTemplate } from "@legajo/bff/copy/templates";
+import { z } from "zod";
+import supplierReplies from "./supplier-replies.json";
+
+/** Facts of the main story (docs/seed-spec.md §7, `op-4471`), all fictitious. */
+export const STORY = {
+  firmName: "Estudio Delta",
+  operationNumber: "4471",
+  vessel: "Austral Aurora",
+  etaText: "22/10",
+  newEtaText: "20/10",
+  newDeadlineText: "17/10 10:00",
+  invoiceNumber: "QBT-2026-0917",
+  supplierName: "Qingdao Bluewave Textiles Co., Ltd.",
+  supplierAddress: "supplier-qingdao@sim.legajo.demo.craftech.io",
+  threadAddress: "op-4471-k7p2q9@legajo.demo.craftech.io",
+  missing: ["CERTIFICATE_OF_ORIGIN", "PACKING_LIST"] as const satisfies readonly DocType[],
+  grossWeightKg: { found: 12_480, expected: 12_840 },
+} as const;
+
+/** Stands in for the upload token of the template's URL button; the landing never shows the URL. */
+const EXAMPLE_UPLOAD_TOKEN = "ejemplo";
+
+/** Who wrote a message: a Meta-approved template, a fixed text of the code, an example of what the agent writes, or the importer. */
+export type WaSource = "template" | "fixed" | "agent" | "importer";
+
+export interface WaButtonView {
+  readonly text: string;
+  readonly gloss: string;
+  readonly url: boolean;
+}
+
+export interface WaMessageView {
+  readonly from: "firm" | "importer";
+  /** What the importer reads, in Rioplatense Spanish. */
+  readonly text: string;
+  /** Its fixed English gloss (packages/bff/src/copy/en-gloss.ts), or the example's own translation. */
+  readonly gloss: string;
+  /** Simulated time in Argentina. */
+  readonly time: string;
+  readonly source: WaSource;
+  readonly buttons: readonly WaButtonView[];
+}
+
+export const CONVERSATION_IDS = ["request", "delegate", "noAction", "question", "eta", "approval"] as const;
+export type ConversationId = (typeof CONVERSATION_IDS)[number];
+
+export interface ConversationView {
+  readonly id: ConversationId;
+  /** Simulated day of the thread, as WhatsApp heads it. */
+  readonly day: string;
+  readonly messages: readonly WaMessageView[];
+}
+
+function button(action: WaButtonAction, kind: "template" | "interactive", url = false): WaButtonView {
+  return { text: BUTTON_LABELS[action][kind], gloss: BUTTON_GLOSS[action], url };
+}
+
+export function templateMessage(name: WhatsAppTemplateName, params: readonly string[], time: string): WaMessageView {
+  const hasUrl = TEMPLATES[name].buttons.some((candidate) => candidate.type === "URL");
+  const rendered = renderTemplate(name, params, hasUrl ? EXAMPLE_UPLOAD_TOKEN : undefined);
+  return {
+    from: "firm",
+    text: rendered.body,
+    gloss: glossTemplate(name, params),
+    time,
+    source: "template",
+    buttons: rendered.buttons.map((item) => ({ ...button(item.action, "template", item.type === "URL"), text: item.text })),
+  };
+}
+
+function tap(action: WaButtonAction, kind: "template" | "interactive", time: string): WaMessageView {
+  const label = button(action, kind);
+  return { from: "importer", text: label.text, gloss: label.gloss, time, source: "importer", buttons: [] };
+}
+
+function importerText(text: string, gloss: string, time: string): WaMessageView {
+  return { from: "importer", text, gloss, time, source: "importer", buttons: [] };
+}
+
+function firmText(source: "fixed" | "agent", text: string, gloss: string, time: string, buttons: readonly WaButtonView[] = []): WaMessageView {
+  return { from: "firm", text, gloss, time, source, buttons };
+}
+
+/** "el peso bruto del packing list": what the supplier has to correct, as the template names it. */
+export const CORRECTION_TARGET = `${OBSERVATION_LABELS.GROSS_WEIGHT_MISMATCH.esField} ${docTypeOfEsAR.PACKING_LIST}`;
+
+const MASKED_SUPPLIER = maskEmail(STORY.supplierAddress);
+const NARANJA = DISPATCH_GLOSSARY["CANAL_ASIGNADO#NARANJA"];
+const LIBERADO = DISPATCH_GLOSSARY.LIBERADO;
+
+/** What the model writes in these turns, as an example; a real turn writes its own words. */
+const AGENT_EXAMPLES = {
+  deferred: {
+    es: "Listo. Le escribimos al proveedor a primera hora de Qingdao: el email sale hoy a las 22:00 de Argentina (16/10 09:00 allá).",
+    en: "Done. We will write to the supplier first thing in the morning in Qingdao: the email goes out today at 22:00 Argentina time (16/10 09:00 there).",
+  },
+  arrived: {
+    es: "Llegaron el certificado de origen y el packing list corregido. El legajo de la operación 4471 ya está completo para que lo revise el estudio.",
+    en: "The certificate of origin and the corrected packing list arrived. The file of operation 4471 is complete for the firm to review.",
+  },
+  checklist: {
+    es: "Sí. Según el checklist del estudio, el certificado de origen va firmado por la entidad que lo emite. El que mandó el proveedor ya está validado.",
+    en: "Yes. According to the firm's checklist, the certificate of origin is signed by the entity that issues it. The one the supplier sent is already validated.",
+  },
+} as const;
+
+const CONVERSATIONS: Readonly<Record<ConversationId, ConversationView>> = {
+  request: {
+    id: "request",
+    day: "15/10",
+    messages: [templateMessage("legajo_docs_pendientes", [STORY.firmName, STORY.operationNumber, STORY.vessel, STORY.etaText, missingDocumentsEsAR(STORY.missing)], "10:00")],
+  },
+  delegate: {
+    id: "delegate",
+    day: "15/10",
+    messages: [
+      tap("SUPPLIER_SENDS", "template", "10:00"),
+      firmText("fixed", importerEsAR.contactConfirmation({ maskedEmail: MASKED_SUPPLIER }), importerGloss.contactConfirmation({ maskedEmail: MASKED_SUPPLIER }), "10:00", [
+        button("CONFIRM_CONTACT", "interactive"),
+        button("REJECT_CONTACT", "interactive"),
+        button("OTHER_CONTACT", "interactive"),
+      ]),
+      tap("CONFIRM_CONTACT", "interactive", "10:00"),
+      firmText("agent", AGENT_EXAMPLES.deferred.es, AGENT_EXAMPLES.deferred.en, "10:00"),
+    ],
+  },
+  noAction: {
+    id: "noAction",
+    day: "16/10",
+    messages: [
+      templateMessage("legajo_observacion_proveedor", [STORY.operationNumber, CORRECTION_TARGET], "09:00"),
+      firmText("agent", AGENT_EXAMPLES.arrived.es, AGENT_EXAMPLES.arrived.en, "09:00"),
+    ],
+  },
+  question: {
+    id: "question",
+    day: "16/10",
+    messages: [
+      importerText("¿El certificado tiene que estar firmado?", "Does the certificate have to be signed?", "09:20"),
+      firmText("agent", AGENT_EXAMPLES.checklist.es, AGENT_EXAMPLES.checklist.en, "09:20"),
+      importerText("¿Qué posición arancelaria va?", "Which tariff classification applies?", "09:24"),
+      firmText("fixed", importerEsAR.guardrailRefusal, importerGloss.guardrailRefusal, "09:24"),
+    ],
+  },
+  eta: {
+    id: "eta",
+    day: "16/10",
+    messages: [templateMessage("legajo_nuevo_plazo", [STORY.operationNumber, STORY.newEtaText, STORY.newDeadlineText], "10:00")],
+  },
+  approval: {
+    id: "approval",
+    day: "16/10",
+    messages: [
+      templateMessage("legajo_aprobado", [STORY.operationNumber], "11:00"),
+      templateMessage("despacho_estado", [STORY.operationNumber, NARANJA.statusText, NARANJA.explanation], "11:10"),
+      templateMessage("despacho_estado", [STORY.operationNumber, LIBERADO.statusText, LIBERADO.explanation], "11:20"),
+    ],
+  },
+};
+
+export function conversation(id: ConversationId): ConversationView {
+  return CONVERSATIONS[id];
+}
+
+/** The English gloss of the two dispatch statuses of the story, for a test that compares them. */
+export const DISPATCH_STORY_GLOSS = { naranja: DISPATCH_GLOSS["CANAL_ASIGNADO#NARANJA"], liberado: DISPATCH_GLOSS.LIBERADO } as const;
+
+// ---- Email with the supplier ------------------------------------------------------------------
+
+export interface EmailView {
+  readonly id: "request" | "reply" | "correction" | "corrected";
+  readonly direction: "out" | "in";
+  readonly from: string;
+  readonly to: string;
+  readonly subject: string;
+  /** Simulated time in Argentina and in the supplier's zone (Asia/Shanghai). */
+  readonly at: { readonly ar: string; readonly supplier: string };
+  readonly body: string;
+  readonly attachments: readonly string[];
+  /** `agent`: an example of the body the model writes; `simulator`: the real text of the simulated supplier. */
+  readonly source: "agent" | "simulator";
+}
+
+const FIRM_SENDER = `${supplierEmailEn.displayName(STORY.firmName)} <${STORY.threadAddress}>`;
+const SUPPLIER_SENDER = `${STORY.supplierName} <${STORY.supplierAddress}>`;
+/** Documents of the request, and of the correction, in the order the subjects list them. */
+export const REQUESTED: readonly DocType[] = ["PACKING_LIST", "CERTIFICATE_OF_ORIGIN"];
+export const CORRECTED: readonly DocType[] = ["PACKING_LIST"];
+const subjectParams = { operationNumber: STORY.operationNumber, invoiceNumber: STORY.invoiceNumber } as const;
+export const REQUEST_SUBJECT = supplierEmailEn.subject("DOCS_REQUEST", { ...subjectParams, docTypes: REQUESTED });
+export const CORRECTION_SUBJECT = supplierEmailEn.subject("CORRECTION_REQUEST", {
+  ...subjectParams,
+  docTypes: CORRECTED,
+  observation: { code: "GROSS_WEIGHT_MISMATCH", docType: "PACKING_LIST" },
+});
+
+const EmailText = z.object({ subject: z.string().min(1), body: z.string().min(1) }).strict();
+/** Shape of supplier-replies.json. */
+export const SupplierReplies = z.object({ generatedBy: z.literal("scripts/landing/supplier-replies.ts"), reply: EmailText, corrected: EmailText }).strict();
+export type SupplierReplies = z.infer<typeof SupplierReplies>;
+const { reply, corrected } = SupplierReplies.parse(supplierReplies);
+
+/** The thread of scene 3, in the order it happens. */
+export const SUPPLIER_THREAD: readonly EmailView[] = [
+  {
+    id: "request",
+    direction: "out",
+    from: FIRM_SENDER,
+    to: STORY.supplierAddress,
+    subject: REQUEST_SUBJECT,
+    at: { ar: "15/10 22:00", supplier: "16/10 09:00" },
+    body: `Hello,\n\nFor invoice ${STORY.invoiceNumber} (FOB Qingdao), vessel ${STORY.vessel}, we still need the packing list and the certificate of origin. Both must match the commercial invoice. Please send them by 18/10 17:00 Qingdao time.\n\nThank you,\n${STORY.firmName}`,
+    attachments: [],
+    source: "agent",
+  },
+  { id: "reply", direction: "in", from: SUPPLIER_SENDER, to: STORY.threadAddress, subject: reply.subject, at: { ar: "15/10 22:10", supplier: "16/10 09:10" }, body: reply.body, attachments: ["packing-list.pdf", "certificate-of-origin.pdf"], source: "simulator" },
+  {
+    id: "correction",
+    direction: "out",
+    from: FIRM_SENDER,
+    to: STORY.supplierAddress,
+    subject: CORRECTION_SUBJECT,
+    at: { ar: "15/10 22:10", supplier: "16/10 09:10" },
+    body: `Hello,\n\nThe packing list shows a gross weight of 12,480 kg, while commercial invoice ${STORY.invoiceNumber} says 12,840 kg. Please send a corrected packing list by 18/10 17:00 Qingdao time.\n\nThank you,\n${STORY.firmName}`,
+    attachments: [],
+    source: "agent",
+  },
+  { id: "corrected", direction: "in", from: SUPPLIER_SENDER, to: STORY.threadAddress, subject: corrected.subject, at: { ar: "15/10 22:20", supplier: "16/10 09:20" }, body: corrected.body, attachments: ["packing-list-v2.pdf"], source: "simulator" },
+];

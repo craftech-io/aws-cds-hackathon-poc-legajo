@@ -80,7 +80,7 @@ async function handleS3(request: IncomingMessage, response: ServerResponse, obje
     return;
   }
   const body = await readBody(request);
-  const form = await new Request(url, { method: "POST", headers: { "content-type": request.headers["content-type"] ?? "" }, body }).formData();
+  const form = await new Request(url, { method: "POST", headers: { "content-type": request.headers["content-type"] ?? "" }, body: new Uint8Array(body) }).formData();
   const verdict = await verifyPost(form, bucket, now);
   if (!verdict.ok) {
     response.writeHead(verdict.status, { "content-type": "application/xml" }).end(`<Error><Code>${verdict.code}</Code></Error>`);

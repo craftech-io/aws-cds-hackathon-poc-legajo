@@ -9,25 +9,25 @@ import {
   type ReactNode,
 } from "react";
 import { Lightbox } from "./Lightbox";
-import type { MediaItem, MediaState } from "./media";
+import type { MediaId, MediaItem } from "./manifest";
+import { type MediaState, mediaIdsOf } from "./media";
 
 export interface GalleryItem extends MediaItem {
-  readonly id: string;
+  readonly id: MediaId;
 }
 
 interface Gallery {
-  readonly open: (id: string) => void;
+  readonly open: (id: MediaId) => void;
 }
 
 const GalleryContext = createContext<Gallery | undefined>(undefined);
 
 export function galleryItems(media: MediaState): GalleryItem[] {
-  return media.status === "ready"
-    ? Object.entries(media.manifest.media).map(([id, item]) => ({
-        id,
-        ...item,
-      }))
-    : [];
+  if (media.status !== "ready") return [];
+  return mediaIdsOf(media).flatMap((id) => {
+    const item = media.manifest.media[id];
+    return item ? [{ id, ...item }] : [];
+  });
 }
 
 export function GalleryProvider({
@@ -40,7 +40,7 @@ export function GalleryProvider({
   const items = useMemo(() => galleryItems(media), [media]);
   const [index, setIndex] = useState<number | undefined>(undefined);
   const open = useCallback(
-    (id: string) => {
+    (id: MediaId) => {
       const found = items.findIndex((item) => item.id === id);
       if (found >= 0) setIndex(found);
     },

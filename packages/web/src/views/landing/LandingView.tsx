@@ -1,28 +1,18 @@
 // `/`: the public welcome page of the demo, "Legajo listo · Powered by Craftech", in Spanish or
-// English. No login: it tells the story, says what is real and what is simulated, and sends judges
-// to the console. A signed-in visitor still lands here, with the call to action pointing to the
-// console. WP-36 adds the problem, the scenes of the demo and the gallery of real captures.
+// English (docs/design-brief.md §7). No login: it tells the problem and the story of operation 4471
+// with the real texts of the product, says what is real and what is simulated, shows the console and
+// the architecture, and sends judges to the login. A signed-in visitor still lands here, with the call
+// to action pointing to the console.
 import { BrandLine, LegajoWordmark, PoweredByCraftech } from "../../components/brand/Brand";
-import { useSession } from "../../context/SessionContext";
-import { Link, useRouter } from "../../lib/router";
-import { CONSOLE_HOME, LOGIN_PATH } from "../../routes";
+import { useRouter } from "../../lib/router";
+import { ArchitectureSection } from "./Architecture";
+import { STORY, conversation } from "./conversations";
+import { DemoScenes } from "./DemoScenes";
 import { GalleryProvider } from "./gallery";
 import { LandingLangProvider, langFromSearch, useLandingCopy, useLandingLang } from "./lang";
-import { useLandingMedia } from "./media";
-
-function CtaButton() {
-  const copy = useLandingCopy();
-  const { state } = useSession();
-  const authenticated = state.status === "authenticated";
-  return (
-    <Link
-      to={authenticated ? CONSOLE_HOME : LOGIN_PATH}
-      className="inline-flex items-center justify-center rounded-md bg-cyan px-5 py-3 text-sm font-semibold text-navy-deep transition-colors hover:bg-white"
-    >
-      {authenticated ? copy.cta.goToConsole : copy.cta.signIn} →
-    </Link>
-  );
-}
+import { type MediaState, useLandingMedia } from "./media";
+import { ConsoleSection, HowSection, JudgesButton, JudgesSection, LandingSection, ProblemSection, RealSection, VideoSlot } from "./Sections";
+import { WhatsAppPhone } from "./WhatsAppPhone";
 
 function LangSwitch() {
   const value = useLandingLang();
@@ -31,7 +21,8 @@ function LangSwitch() {
   return (
     <button
       type="button"
-      aria-label={value.copy.lang.label}
+      lang={next === "en" ? "en" : "es-AR"}
+      aria-label={value.copy.lang.switchLabel}
       onClick={() => value.setLang(next)}
       className="rounded-md border border-mist px-3 py-1.5 text-xs font-semibold text-navy hover:bg-paper"
     >
@@ -41,10 +32,26 @@ function LangSwitch() {
 }
 
 function Header() {
+  const { nav } = useLandingCopy();
+  const links = [
+    { href: "#story", label: nav.story },
+    { href: "#real", label: nav.real },
+    { href: "#how", label: nav.how },
+    { href: "#console", label: nav.console },
+    { href: "#architecture", label: nav.architecture },
+    { href: "#judges", label: nav.judges },
+  ];
   return (
     <header className="sticky top-0 z-30 border-b border-mist bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-8">
         <BrandLine tone="light" size="sm" />
+        <nav aria-label={nav.label} className="hidden items-center gap-5 text-sm font-medium text-slate xl:flex">
+          {links.map((link) => (
+            <a key={link.href} href={link.href} className="hover:text-navy">
+              {link.label}
+            </a>
+          ))}
+        </nav>
         <LangSwitch />
       </div>
     </header>
@@ -52,55 +59,57 @@ function Header() {
 }
 
 function Hero() {
-  const copy = useLandingCopy();
+  const { hero } = useLandingCopy();
   return (
-    <section className="bg-navy text-white">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-8 lg:py-24">
-        <p className="text-sm font-semibold uppercase tracking-widest text-cyan">{copy.hero.eyebrow}</p>
-        <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-tight sm:text-5xl">{copy.hero.title}</h1>
-        <p className="mt-6 max-w-3xl text-base text-mist sm:text-lg">{copy.hero.lead}</p>
-        <div className="mt-8">
-          <CtaButton />
+    <section className="relative overflow-hidden bg-navy px-4 py-16 text-white sm:px-8 sm:py-24">
+      <div aria-hidden="true" className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-navy-soft/70" />
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-40 left-1/3 h-96 w-96 rounded-full bg-cyan/10" />
+      <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-cyan">{hero.eyebrow}</p>
+          <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">{hero.title}</h1>
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-mist">{hero.lead}</p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <JudgesButton onDark />
+            <a href="#story" className="inline-flex items-center justify-center rounded-md border border-navy-soft px-5 py-3 text-sm font-semibold text-white hover:bg-navy-soft">
+              {hero.story}
+            </a>
+          </div>
+          <p className="mt-8 max-w-xl text-xs text-cyan-soft">{hero.note}</p>
         </div>
-        <p className="mt-6 max-w-3xl text-xs text-cyan-soft">{copy.hero.note}</p>
+        <WhatsAppPhone conversation={conversation("request")} firmName={STORY.firmName} limit={1} className="text-left" onDark />
       </div>
     </section>
   );
 }
 
-function RealAndSimulated() {
-  const copy = useLandingCopy();
-  const columns = Object.entries(copy.real.columns);
+function StorySection({ media }: { readonly media: MediaState }) {
+  const { story } = useLandingCopy();
   return (
-    <section id="real" className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
-      <h2 className="text-2xl font-semibold text-navy">{copy.real.title}</h2>
-      <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {columns.map(([key, column]) => (
-          <div key={key} className="rounded-card border border-mist bg-white p-5 shadow-card">
-            <h3 className="text-sm font-semibold text-navy">{column.title}</h3>
-            <p className="mt-2 text-sm text-slate">{column.text}</p>
-          </div>
-        ))}
-      </div>
-    </section>
+    <LandingSection id="story" eyebrow={story.eyebrow} title={story.title} lead={story.lead}>
+      <DemoScenes media={media} />
+    </LandingSection>
   );
 }
 
 function Footer() {
-  const copy = useLandingCopy();
+  const { footer } = useLandingCopy();
   return (
-    <footer className="border-t border-mist bg-white">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-8 text-xs text-slate sm:px-8">
+    <footer className="border-t border-mist bg-white px-4 py-8 sm:px-8">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 text-sm text-slate md:flex-row md:items-center md:justify-between">
         <LegajoWordmark tone="light" size="md" />
-        <p>{copy.footer.made}</p>
-        <PoweredByCraftech tone="light" />
-        <nav className="flex gap-4">
-          <a className="hover:text-navy hover:underline" href="/legal/privacy.html">
-            {copy.footer.privacy}
+        <div className="max-w-md space-y-1 text-xs">
+          <p>{footer.made}</p>
+          <p>{footer.synthetic}</p>
+        </div>
+        <nav aria-label={footer.legal} className="flex flex-wrap items-center gap-4 text-xs">
+          <a href="/legal/privacy.html" className="hover:text-navy hover:underline">
+            {footer.privacy}
           </a>
-          <a className="hover:text-navy hover:underline" href="/legal/terms.html">
-            {copy.footer.terms}
+          <a href="/legal/terms.html" className="hover:text-navy hover:underline">
+            {footer.terms}
           </a>
+          <PoweredByCraftech tone="light" />
         </nav>
       </div>
     </footer>
@@ -113,11 +122,18 @@ export function LandingView() {
   return (
     <LandingLangProvider initial={langFromSearch(search)}>
       <GalleryProvider media={media}>
-        <div className="min-h-screen bg-paper">
+        <div className="min-h-screen bg-paper text-ink">
           <Header />
           <main>
             <Hero />
-            <RealAndSimulated />
+            <ProblemSection />
+            <StorySection media={media} />
+            <RealSection />
+            <HowSection />
+            <ConsoleSection media={media} />
+            <ArchitectureSection />
+            <VideoSlot media={media} />
+            <JudgesSection />
           </main>
           <Footer />
         </div>
