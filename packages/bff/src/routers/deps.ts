@@ -7,15 +7,19 @@
 //                 URI derives from the pool id (no option, header or variable can change it)
 //   Firms …       the connector's tables (broker directory, firm fence, feature routers)
 //   PlatformMock  `url` of the mock's Function URL, probed by `GET /api/health`
+//   Documents     bucket of the PDFs, for the 5-minute download links of `operations.documentUrl`
+//   ChannelModes  WhatsApp mode: the phone simulator only answers in `simulated`, and costs say so
 import { z } from "zod";
+import type { ChannelMode } from "@legajo/shared";
 import { authConfig } from "../auth/config";
 import { type IdTokenVerifier, createCognitoIdTokenVerifier } from "../auth/jwt";
 import { type BrokerDirectory, brokerLookupOf, createBrokerDirectory } from "../auth/staff";
 import { type TotpStatusReader, createCognitoTotpReader } from "../auth/totp";
 import { type Connector, connector } from "../connector/index";
 import { type Logger, createLogger } from "../lib/log";
-import { readLinked } from "../lib/resource";
+import { bucketName, channelMode, readLinked } from "../lib/resource";
 import { sigV4Signer } from "../reader/signer";
+import { type DocumentUrlSigner, s3DocumentUrlSigner } from "./document-url";
 import { type HealthCheck, cachedHealthCheck, functionUrlHealthCheck } from "./health";
 
 export interface ContextDeps {
@@ -25,6 +29,10 @@ export interface ContextDeps {
   /** The data ports: the firm fence resolves the owner of every id through them. */
   readonly connector: Connector;
   readonly totp: TotpStatusReader;
+  /** Download links of document versions (`operations.documentUrl`). */
+  readonly documents: DocumentUrlSigner;
+  /** `ChannelModes.whatsapp`, read when a procedure needs it. */
+  readonly whatsappMode: () => ChannelMode;
   /** Dependencies `GET /api/health` probes. */
   readonly health: readonly HealthCheck[];
   /** Real time: `auth_time` comes from Cognito's clock, never from a world clock. */
@@ -50,6 +58,8 @@ export function defaultDeps(): ContextDeps {
     brokers: createBrokerDirectory(brokerLookupOf(data.firms), wallClock),
     connector: data,
     totp: createCognitoTotpReader(config),
+    documents: s3DocumentUrlSigner({ bucket: () => bucketName("Documents") }),
+    whatsappMode: () => channelMode("whatsapp"),
     health: [
       cachedHealthCheck(functionUrlHealthCheck({ name: "platform", endpoint: () => readLinked("PlatformMock", FunctionUrlLink).url, sign: sigV4Signer() }), {
         ttlMs: HEALTH_CACHE_MS,

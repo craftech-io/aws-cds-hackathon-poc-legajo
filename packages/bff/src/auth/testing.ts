@@ -3,13 +3,14 @@
 // `ContextDeps` of a request over them. Nothing here ships in a Lambda bundle (only *.test.ts and
 // local test servers import it).
 import { type KeyObject, generateKeyPairSync, sign } from "node:crypto";
-import type { ConsoleRole } from "@legajo/shared";
+import type { ChannelMode, ConsoleRole } from "@legajo/shared";
 import type { Fetcher } from "aws-jwt-verify/https";
 import type { Jwk, Jwks } from "aws-jwt-verify/jwk";
 import type { MemoryStores } from "../connector/index";
 import { createLogger } from "../lib/log";
 import type { HealthCheck } from "../routers/health";
 import type { ContextDeps } from "../routers/deps";
+import type { DocumentUrlSigner } from "../routers/document-url";
 import { type IdTokenVerifier, createCognitoIdTokenVerifier, jwksBuffer } from "./jwt";
 import { brokerLookupOf, createBrokerDirectory } from "./staff";
 
@@ -127,7 +128,13 @@ export interface TestContextDepsOptions {
   /** Every log line, as JSON, for assertions. */
   readonly lines?: string[];
   readonly health?: readonly HealthCheck[];
+  readonly whatsappMode?: ChannelMode;
 }
+
+/** Signs nothing: the link names the key, so a test can assert which object it points at. */
+export const testDocumentUrls: DocumentUrlSigner = {
+  sign: (key, filename) => Promise.resolve(`https://documents.s3.us-east-1.amazonaws.com/${key}?download=${encodeURIComponent(filename)}`),
+};
 
 /** `ContextDeps` over the in-memory connector: nothing leaves the process. */
 export function testContextDeps(options: TestContextDepsOptions): ContextDeps {
@@ -138,6 +145,8 @@ export function testContextDeps(options: TestContextDepsOptions): ContextDeps {
     brokers: createBrokerDirectory(brokerLookupOf(connector.firms), now),
     connector,
     totp: { isTotpEnabled: () => Promise.resolve(false) },
+    documents: testDocumentUrls,
+    whatsappMode: () => options.whatsappMode ?? "simulated",
     health: options.health ?? [],
     wallClock: now,
     loggerFor: (correlationId) => createLogger({ correlationId, level: "debug", now, sink: (line) => void options.lines?.push(line) }),

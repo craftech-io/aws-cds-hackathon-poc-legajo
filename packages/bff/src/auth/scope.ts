@@ -87,6 +87,13 @@ export function operationOfChildId(id: string): string | undefined {
 // Worlds that are not a firm's own clock belong to the QA and batch firms (docs/architecture.md §8).
 const FIRM_OF_CLOCK_SCOPE = { QA: "firm-qa", SIM: "firm-sim" } as const;
 
+/** The firm a world belongs to: the one a GLOBAL or JUDGE clock names, `firm-qa` for `qa-*`, `firm-sim` for `sim-*`. */
+export function firmOfClockId(clockId: string): string | undefined {
+  const parsed = parseClockId(clockId);
+  if (parsed === undefined) return undefined;
+  return parsed.firmId ?? (parsed.scope === "QA" || parsed.scope === "SIM" ? FIRM_OF_CLOCK_SCOPE[parsed.scope] : undefined);
+}
+
 export interface FirmOwnership {
   /** Firm that owns the id; `undefined` when the id does not exist. */
   firmOf(target: FencedId): Promise<string | undefined>;
@@ -101,11 +108,8 @@ export function createFirmOwnership(connector: Pick<Connector, "operations" | "p
       switch (kind) {
         case "firm":
           return id;
-        case "clock": {
-          const parsed = parseClockId(id);
-          if (parsed === undefined) return undefined;
-          return parsed.firmId ?? (parsed.scope === "QA" || parsed.scope === "SIM" ? FIRM_OF_CLOCK_SCOPE[parsed.scope] : undefined);
-        }
+        case "clock":
+          return firmOfClockId(id);
         case "operation":
           return firmOfOperation(id);
         case "importer":

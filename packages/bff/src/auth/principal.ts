@@ -24,6 +24,8 @@ export interface Principal {
   readonly authTime: number;
   /** Broker behind the user, once the broker directory has matched the `sub`. */
   readonly brokerId?: string;
+  /** `origin_jti` of the sign-in: the same across refreshes, another one for another session. */
+  readonly originJti?: string;
 }
 
 // `ConsoleRole` is declared in precedence order, BROKER first.
@@ -106,7 +108,8 @@ export function principalFromClaims(claims: IdTokenClaims): Principal {
     groups: claims["cognito:groups"],
     isJudgeClaim: claims["custom:isJudge"],
   });
-  return { sub: claims.sub, username: claims["cognito:username"], authTime: claims.auth_time, ...access };
+  const originJti = claims.origin_jti;
+  return { sub: claims.sub, username: claims["cognito:username"], authTime: claims.auth_time, ...access, ...(originJti === undefined ? {} : { originJti }) };
 }
 
 /**
