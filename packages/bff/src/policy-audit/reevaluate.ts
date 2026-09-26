@@ -1,18 +1,20 @@
 // Check (b) of `PolicyAudit` (docs/architecture.md §12): the contact policy re-evaluated with the
 // data of the moment a message went out, rebuilt from the dated histories the connector keeps
-// (consent, supplier authorization, contact status, control and dossier status; §5). Only the rules
-// whose facts live in those histories are re-evaluated here: a revocation, a bounce or a takeover
-// that happened after the send never makes a past send a violation, and one that was in force when
-// it went out always does.
-import type { ContactPolicyRuleId, MessageKind } from "@legajo/shared";
-import type { Message } from "../domain/conversations";
+// (consent, supplier authorization, contact status, control and dossier status; §5), the kind →
+// channel matrix and the time rules of time-rules.ts. A revocation, a bounce or a takeover that
+// happened after the send never makes a past send a violation, and one that was in force when it
+// went out always does. `CP-RECIPIENT-FENCE`, `CP-NO-SENSITIVE-ASK` and `CP-NO-FOREIGN-LINKS` check
+// addresses and text at send time (outbound/) and are not re-evaluated from stored messages.
+import type { Channel, ContactPolicyRuleId, MessageKind } from "@legajo/shared";
+import type { Counterpart, Message } from "../domain/conversations";
 import { controlAt, dossierStatusAt, type Operation } from "../domain/operations";
 import { type Consent, type SupplierAuthorization, type SupplierContact, authorizationActiveAt, contactStatusAt } from "../domain/parties";
 import { entryAt } from "../domain/common";
+import { TIME_RULES, type TimeFacts, timeBreaches } from "./time-rules";
 
 /** What the send looked like when it went out: the message and the rows whose histories decide it. */
-export interface SendFacts {
-  readonly message: Pick<Message, "channel" | "counterpart" | "kind" | "author" | "sentAtSim">;
+export interface SendFacts extends Omit<TimeFacts, "message"> {
+  readonly message: Pick<Message, "channel" | "counterpart" | "kind" | "author" | "sentAtSim"> & Partial<TimeFacts["message"]>;
   readonly operation: Pick<Operation, "controlHistory" | "dossierHistory">;
   /** WhatsApp opt-in of the operation's importer. */
   readonly consent?: Pick<Consent, "history">;
@@ -28,7 +30,40 @@ export interface RuleBreach {
 }
 
 /** Re-evaluated rules, in the engine's order (docs/design-brief.md §5.7). */
-export const REEVALUATED_RULES = ["CP-CONTROL-BROKER", "CP-OPTIN", "CP-OPTOUT", "CP-SUPPLIER-AUTH", "CP-BOUNCED-CONTACT", "CP-APPROVED-SCOPE"] as const satisfies readonly ContactPolicyRuleId[];
+export const REEVALUATED_RULES = [
+  "CP-CONTROL-BROKER",
+  "CP-KIND-CHANNEL",
+  "CP-OPTIN",
+  "CP-OPTOUT",
+  "CP-SUPPLIER-AUTH",
+  "CP-BOUNCED-CONTACT",
+  "CP-APPROVED-SCOPE",
+  ...TIME_RULES,
+] as const satisfies readonly ContactPolicyRuleId[];
+
+type Route = `${Counterpart}:${Channel}`;
+const TO_IMPORTER: Route = "IMPORTER:WHATSAPP";
+const TO_SUPPLIER: Route = "SUPPLIER:EMAIL";
+
+/** Kind → recipient and channel (docs/design-brief.md §3; `send_email` also answers a supplier with `REPLY`). */
+const KIND_ROUTES: Readonly<Record<MessageKind, readonly Route[]>> = {
+  DOCS_REQUEST: [TO_IMPORTER, TO_SUPPLIER],
+  REMINDER: [TO_IMPORTER, TO_SUPPLIER],
+  CORRECTION_REQUEST: [TO_IMPORTER, TO_SUPPLIER],
+  NO_ACTION_NEEDED: [TO_IMPORTER],
+  CONTACT_REQUEST: [TO_IMPORTER],
+  CONTACT_CONFIRMATION: [TO_IMPORTER],
+  UPLOAD_LINK: [TO_IMPORTER],
+  ETA_CHANGE: [TO_IMPORTER, TO_SUPPLIER],
+  ESCALATION_NOTICE: [TO_IMPORTER],
+  ESCALATION: ["FIRM:EMAIL"],
+  APPROVAL_NOTICE: [TO_IMPORTER],
+  DISPATCH_STATUS: [TO_IMPORTER],
+  REPLY: [TO_IMPORTER, TO_SUPPLIER],
+  BROKER_MESSAGE: [TO_IMPORTER],
+  OPT_OUT_CONFIRMATION: [TO_IMPORTER],
+  OPERATION_CHOICE: [TO_IMPORTER],
+};
 
 /** The fixed opt-out confirmation is exempt from the opt-in rules and from the approved scope. */
 const OPT_OUT_CONFIRMATION: MessageKind = "OPT_OUT_CONFIRMATION";
@@ -39,6 +74,13 @@ const APPROVED_IMPORTER_KINDS: readonly MessageKind[] = ["APPROVAL_NOTICE", "DIS
 function controlBreach(facts: SendFacts, atSim: string): RuleBreach | undefined {
   if (facts.message.author !== "AGENT") return undefined;
   return controlAt(facts.operation, atSim) === "BROKER" ? { ruleId: "CP-CONTROL-BROKER", detail: "the agent wrote while the firm had the conversation" } : undefined;
+}
+
+function kindChannelBreach(facts: SendFacts): RuleBreach | undefined {
+  const { message } = facts;
+  if (message.kind === undefined) return undefined;
+  const route: Route = `${message.counterpart}:${message.channel}`;
+  return KIND_ROUTES[message.kind].includes(route) ? undefined : { ruleId: "CP-KIND-CHANNEL", detail: `${message.kind} does not go to ${route}` };
 }
 
 function optInBreach(facts: SendFacts, atSim: string): RuleBreach | undefined {
@@ -68,11 +110,23 @@ function approvedScopeBreach(facts: SendFacts, atSim: string): RuleBreach | unde
   return undefined;
 }
 
+/** The time rules need the message's id, instants and form; without them they are not re-evaluated. */
+function timeFactsOf(facts: SendFacts): TimeFacts | undefined {
+  const { message } = facts;
+  if (message.messageId === undefined || message.direction === undefined || message.status === undefined || message.sentAtReal === undefined) return undefined;
+  return {
+    ...facts,
+    message: { ...message, messageId: message.messageId, direction: message.direction, status: message.status, sentAtReal: message.sentAtReal, simulated: message.simulated ?? false },
+  };
+}
+
 /** Every re-evaluated rule the send breaks at `sentAtSim`; empty when the policy would allow it again. */
 export function reevaluateSend(facts: SendFacts): RuleBreach[] {
   const atSim = facts.message.sentAtSim;
-  return [controlBreach, optInBreach, supplierBreach, approvedScopeBreach].flatMap((rule) => {
+  const breaches = [controlBreach, kindChannelBreach, optInBreach, supplierBreach, approvedScopeBreach].flatMap((rule) => {
     const breach = rule(facts, atSim);
     return breach === undefined ? [] : [breach];
   });
+  const time = timeFactsOf(facts);
+  return time === undefined ? breaches : [...breaches, ...timeBreaches(time)];
 }

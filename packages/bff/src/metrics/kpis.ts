@@ -30,6 +30,8 @@ export const KpiKey = z.enum([
   "correctResponsiblePct",
   "policyViolations",
   "costPerDossierUsd",
+  "latencyP50Ms",
+  "latencyP95Ms",
 ]);
 export type KpiKey = z.infer<typeof KpiKey>;
 
@@ -211,6 +213,26 @@ export function costKpi(input: SummaryInput, source: MetricSource, label: KpiLab
   return { key: "costPerDossierUsd", value, n: input.rows.length, source, label, ...(value === null ? { gap: "NO_DATA" as const } : {}), detail: { whatsappPricedAsLive } };
 }
 
+/** Nearest-rank percentile of sorted samples. */
+function percentile(sorted: readonly number[], p: number): number {
+  const rank = Math.max(1, Math.ceil((p / 100) * sorted.length));
+  return sorted[Math.min(rank, sorted.length) - 1] ?? 0;
+}
+
+/** Incoming event → first outbound, p50 and p95 over every sample of the tab (N = samples); "sin datos" without any. */
+export function latencyKpis(rows: readonly DossierKpi[], source: MetricSource, label: KpiLabel): Kpi[] {
+  const samples = rows.flatMap((row) => row.firstResponseMs).sort((a, b) => a - b);
+  const detail = { dossiers: rows.filter((row) => row.firstResponseMs.length > 0).length, unit: "ms" };
+  return (
+    [
+      ["latencyP50Ms", 50],
+      ["latencyP95Ms", 95],
+    ] as const
+  ).map(([key, p]) =>
+    samples.length === 0 ? { key, value: null, n: 0, source, label, gap: "NO_DATA" as const } : { key, value: percentile(samples, p), n: samples.length, source, label, detail },
+  );
+}
+
 /** Every KPI of one tab. */
 export function summarize(input: SummaryInput): KpiSummary {
   const label = tabLabel(input.tab);
@@ -225,6 +247,7 @@ export function summarize(input: SummaryInput): KpiSummary {
     correctResponsibleKpi(input.tab, rows, source, label),
     violationsKpi(input, source, label),
     costKpi(input, source, label),
+    ...latencyKpis(rows, source, label),
   ];
   // Console time is observed only in a world someone looks at; a batch has no console.
   if (input.tab === "WORLD") kpis.splice(2, 0, perDossier("consoleMinutesObserved", rows, (row) => row.consoleSeconds / 60, source, label));

@@ -3,21 +3,18 @@
 // real hours (asked once per sign-in by the shell, packages/web/src/lib/console-api.ts). The
 // judge world keeps the last session that acted on it (`CLOCK#JUDGE#<firmId>.lastSession`); a
 // different `origin_jti` inside the window gets the fixed notice of docs/design-brief.md §7.1, which
-// neither blocks nor offers a reset. Every call records this session as the last one.
+// neither blocks nor offers a reset. The sign-in records this session as the last one, and every
+// later call of the session keeps it fresh (judge-activity.ts, from `firmProcedure`).
 import { judgeClockId } from "@legajo/shared";
 import type { Principal } from "../auth/principal";
 import { isSignInFresh } from "../auth/principal";
 import type { Connector } from "../connector/index";
 import type { Clock } from "../domain/world-state";
+import { markJudgeActivity, sessionIdOf } from "./judge-activity";
 import { firmProcedure, router } from "./trpc";
 
 /** Another session within this many real milliseconds of its last action gets the notice. */
 export const OTHER_SESSION_WINDOW_MS = 2 * 60 * 60_000;
-
-/** `origin_jti` when the token carries it; otherwise the sign-in instant of the same user. */
-export function sessionIdOf(principal: Pick<Principal, "originJti" | "sub" | "authTime">): string {
-  return principal.originJti ?? `${principal.sub}#${principal.authTime}`;
-}
 
 export interface OtherSession {
   /** Last real instant the other session acted on the world. */
@@ -39,9 +36,8 @@ export async function touchJudgeSession(data: Connector, principal: Principal, r
   const clockId = judgeClockId(principal.firmId);
   const clock = await data.world.findClock(clockId);
   if (clock === undefined) return { worldReady: false, otherSession: null };
-  const sessionId = sessionIdOf(principal);
-  const otherSession = otherSessionOf(clock, sessionId, realNow);
-  await data.world.updateClock(clockId, { lastSession: { originJti: sessionId, authTime: principal.authTime, lastActiveAtReal: realNow.toISOString() } });
+  const otherSession = otherSessionOf(clock, sessionIdOf(principal), realNow);
+  await markJudgeActivity(data, clock, principal, realNow, 0);
   return { worldReady: true, otherSession };
 }
 

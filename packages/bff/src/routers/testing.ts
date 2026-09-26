@@ -98,11 +98,20 @@ export async function seedConsoleWorld(stores: MemoryStores, options: { readonly
   ]);
 }
 
+export interface ConsoleWorldOptions {
+  /** Fixed real time of every call. */
+  readonly now?: Date;
+  /** Real time read on every call (a test that lets hours pass between calls); wins over `now`. */
+  readonly wallClock?: () => Date;
+  readonly judgeWorld?: boolean;
+}
+
 /** The console world over the in-memory connector, with a caller per principal. */
-export async function consoleWorld(options: { readonly now?: Date } = {}): Promise<ConsoleWorld> {
-  const now = options.now ?? new Date(REAL_NOW);
+export async function consoleWorld(options: ConsoleWorldOptions = {}): Promise<ConsoleWorld> {
+  const fixed = options.now ?? new Date(REAL_NOW);
+  const wallClock = options.wallClock ?? (() => fixed);
   const stores = memoryStores();
-  await seedConsoleWorld(stores);
-  const deps = testContextDeps({ verifier: createTestIssuer().verifier(), stores, now: () => now });
+  await seedConsoleWorld(stores, { judgeWorld: options.judgeWorld ?? false });
+  const deps = testContextDeps({ verifier: createTestIssuer().verifier(), stores, now: wallClock });
   return { stores, caller: (principal) => createConsoleCaller(serverContext({ principal, deps })) };
 }

@@ -5,7 +5,8 @@
 //   firmProcedure         verified id token with firm and role; an inactive broker is refused; every
 //                         id of the input is fenced to the principal's firm (403 + AuditLog DENY
 //                         CROSS_FIRM, auth/scope.ts); an input the fence cannot check whole is
-//                         refused (403 + AuditLog DENY INPUT_TOO_LARGE)
+//                         refused (403 + AuditLog DENY INPUT_TOO_LARGE); a judge's call keeps the
+//                         world's `lastSession` fresh (judge-activity.ts)
 //   brokerProcedure       firm + role BROKER or JUDGE (a judge acts as broker in its own judge firm);
 //                         any other role: 403 + AuditLog DENY ROLE_NOT_ALLOWED
 //   recentLoginProcedure  broker + interactive sign-in at most 15 minutes old, 60 s of skew, real
@@ -27,6 +28,7 @@ import { type FencedId, type FirmOwnership, createFirmOwnership, crossFirmTarget
 import { type Logger, correlationIdFrom } from "../lib/log";
 import { type ContextDeps, defaultDeps } from "./deps";
 import { reasonOf, toTrpcError } from "./errors";
+import { refreshJudgeActivity } from "./judge-activity";
 
 export interface Context {
   readonly correlationId: string;
@@ -169,6 +171,9 @@ async function refuseAudited(ctx: AuditedContext, path: string, refusal: Audited
 }
 
 const CROSS_FIRM_MESSAGE = "this belongs to another firm";
+
+/** `account.session`: the one call that must read the judge world's last session before refreshing it. */
+const SIGN_IN_CHECK_PATH = "account.session";
 const INPUT_TOO_LARGE_MESSAGE = "this request names too much at once";
 
 function firmScopeOf(ctx: AuditedContext, path: string, ownership: FirmOwnership): FirmScope {
@@ -213,6 +218,9 @@ export const firmProcedure = baseProcedure.use(async ({ ctx, next, path, getRawI
   if (!fenced.ok) return refuseAudited(audited, path, "INPUT_TOO_LARGE", `${INPUT_TOO_LARGE_MESSAGE} (${fenced.limit})`);
   const target = await crossFirmTarget(principal.firmId, fenced.ids, ownership);
   if (target) await refuseAudited(audited, path, "CROSS_FIRM", CROSS_FIRM_MESSAGE, target);
+
+  // The sign-in check compares with the last session before it records this one (account.ts).
+  if (path !== SIGN_IN_CHECK_PATH) await refreshJudgeActivity(ctx.deps.connector, principal, ctx.deps.wallClock(), log);
 
   const firmContext: FirmContext = { ...ctx, principal, authFailure: null, log, firmScope: firmScopeOf(audited, path, ownership) };
   return next({ ctx: firmContext });

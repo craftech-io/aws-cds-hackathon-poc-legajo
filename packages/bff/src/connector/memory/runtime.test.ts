@@ -97,6 +97,15 @@ describe("memory connector: conversations and audit", () => {
     expect(await audit.findAllowForMessage("op-4471", "msg-01JZZZZ")).toBeUndefined();
     await expect(audit.record({ firmId: FIRM, decision: "ACTION", action: "not upper", actor: "SYSTEM", atReal: REAL_NOW })).rejects.toMatchObject({ code: "VALIDATION" });
   });
+
+  it("records a decision once per key, whatever the real instant of the repeat", async () => {
+    const { audit } = stores.connector;
+    const violation = { firmId: FIRM, decision: "VIOLATION" as const, action: "SEND_WITHOUT_ALLOW", actor: "SYSTEM" as const, messageId: "msg-01JAAAA", atSim: "2026-10-15T10:00:00-03:00", atReal: REAL_NOW };
+    expect(await audit.recordOnce("msg-01JAAAA#NO_ALLOW", violation)).toEqual({ recorded: true });
+    expect(await audit.recordOnce("msg-01JAAAA#NO_ALLOW", { ...violation, atReal: "2026-09-27T15:00:00.000Z" })).toEqual({ recorded: false });
+    expect(await audit.recordOnce("msg-01JAAAA#REEVALUATION", violation)).toEqual({ recorded: true });
+    expect(await audit.listByDecision(FIRM, "VIOLATION")).toHaveLength(2);
+  });
 });
 
 describe("memory connector: runtime, world state and metrics", () => {
@@ -225,6 +234,14 @@ describe("memory connector: runtime, world state and metrics", () => {
     expect(await metrics.listKpis(FIRM, { source: "WORLD", clockId: CLOCK })).toHaveLength(1);
     expect(await metrics.listKpis(FIRM, { source: "BATCH" })).toEqual([]);
     await expect(metrics.incrementKpi(ref, { turns: -1 }, { agentMode: "REAL" })).rejects.toMatchObject({ code: "VALIDATION" });
+  });
+
+  it("appends latency samples to the KPI row, creating it on first use", async () => {
+    const { metrics } = stores.connector;
+    const ref = { firmId: FIRM, source: "WORLD" as const, clockId: CLOCK, operationId: "op-4472" };
+    expect((await metrics.recordFirstResponse(ref, 12_400, { agentMode: "REAL" })).firstResponseMs).toEqual([12_400]);
+    expect(await metrics.recordFirstResponse(ref, 8_100, { agentMode: "REAL" })).toMatchObject({ firstResponseMs: [12_400, 8_100], turns: 0 });
+    await expect(metrics.recordFirstResponse(ref, -1, { agentMode: "REAL" })).rejects.toMatchObject({ code: "VALIDATION" });
   });
 });
 

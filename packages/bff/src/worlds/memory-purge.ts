@@ -50,9 +50,13 @@ export const PurgeTarget = z
   .strict();
 export type PurgeTarget = z.infer<typeof PurgeTarget>;
 
-/** Event of the asynchronous invocation of `WorldJanitor`. */
-export const MemoryPurgeEvent = PurgeTarget.extend({ kind: z.literal("MEMORY_PURGE") }).strict();
-export type MemoryPurgeEvent = z.infer<typeof MemoryPurgeEvent>;
+/**
+ * Event of the asynchronous invocation of `WorldJanitor` (docs/architecture.md §9.3). Every session
+ * travels with its actor, because Memory lists a session's events by actor and session; without
+ * `startedAtReal` the cap counts from the moment `WorldJanitor` receives it.
+ */
+export const MemoryPurgeEvent = PurgeTarget.extend({ kind: z.literal("MEMORY_PURGE"), startedAtReal: PurgeTarget.shape.startedAtReal.optional() }).strict();
+export type MemoryPurgeEvent = z.input<typeof MemoryPurgeEvent>;
 
 export const PURGE_TIMING = {
   secondPassAfterMs: 60_000,

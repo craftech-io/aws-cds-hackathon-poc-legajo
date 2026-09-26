@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DIEGO, PABLO, consoleWorld } from "./testing";
 
 describe("registry router", () => {
-  it("lists the world's importers with the opt-in and authorizations in force, phones masked", async () => {
+  it("[FL-001] [FL-003] lists the world's importers with the opt-in and authorizations in force (the state both flows leave), phones masked", async () => {
     const world = await consoleWorld();
     const { parties } = world.stores.connector;
     await parties.grantConsent({ importerId: "imp-norpampa", atSim: "2026-09-30T12:00:00-03:00", by: "SEED", medium: "SIGNED_FORM", textVersion: "v1" });
@@ -21,7 +21,7 @@ describe("registry router", () => {
     expect(JSON.stringify(importers)).not.toContain("5550");
   });
 
-  it("lists the world's suppliers with masked contacts, and nothing to another firm", async () => {
+  it("[FL-004] lists the world's suppliers with their ACTIVE contacts masked (the state the flow leaves), and nothing to another firm", async () => {
     const world = await consoleWorld();
     const { suppliers } = await world.caller(DIEGO).registry.suppliers.list({});
     expect(suppliers).toEqual([expect.objectContaining({ supplierId: "sup-qingdao", behaviour: "SEEDED_ERROR", contacts: [expect.objectContaining({ contactId: "ctc-qingdao-1", emailMasked: "s***@sim.legajo.demo.craftech.io" })] })]);

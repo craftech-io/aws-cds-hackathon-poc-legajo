@@ -113,6 +113,19 @@ describe("[FL-085] metrics with labels", () => {
     expect(kpi(summary.kpis, "completeBeforeArrivalPct")).toMatchObject({ value: null, gap: "NO_DATA" });
   });
 
+  it("[FL-085] reports the latency from incoming event to first outbound as p50 and p95 over its samples", () => {
+    const samples = [
+      row({ operationId: "op-4471", firstResponseMs: [4_000, 9_000, 12_000, 30_000] }),
+      row({ operationId: "op-4472", firstResponseMs: [6_000] }),
+    ];
+    const summary = summarize(input({ tab: "WORLD", rows: samples }));
+    expect(kpi(summary.kpis, "latencyP50Ms")).toMatchObject({ value: 9_000, n: 5, source: "WORLD", label: "MEASURED", detail: { dossiers: 2, unit: "ms" } });
+    expect(kpi(summary.kpis, "latencyP95Ms")).toMatchObject({ value: 30_000, n: 5 });
+    const empty = summarize(input({ tab: "BATCH_SCRIPTED", rows: [row({ operationId: "op-7002", source: "BATCH", agentMode: "SCRIPTED" })] }));
+    expect(kpi(empty.kpis, "latencyP50Ms")).toMatchObject({ value: null, n: 0, label: "SCRIPTED_AGENT", gap: "NO_DATA" });
+    expect(kpi(empty.kpis, "latencyP95Ms")).toMatchObject({ value: null, gap: "NO_DATA" });
+  });
+
   it("[FL-085] exports the rows of a tab as CSV without names or contacts", () => {
     const csv = kpiRowsCsv(world);
     const [header, first] = csv.split("\n");

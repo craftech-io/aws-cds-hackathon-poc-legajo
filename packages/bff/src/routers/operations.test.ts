@@ -9,7 +9,7 @@ describe("operations router", () => {
     world = await consoleWorld();
   });
 
-  it("[FL-080] lists the operations of the firm's world with documents, escalations and the process-error flag", async () => {
+  it("[FL-080] [FL-005] lists the operations of the firm's world with documents, escalations and the process-error flag (a new operation shows OPEN with its 3 documents MISSING)", async () => {
     const { operations, world: state } = world.stores.connector;
     await operations.openEscalation({ operationId: "op-4471", firmId: FIRM, clockId: CLOCK, reason: "OTHER", summary: "Revisar", openedAtSim: START_SIM, openedBy: "AGENT" });
     await state.recordProcessError({ operationId: "op-4471", clockId: CLOCK, eventId: "evt-1", type: "AGENT_TURN", atReal: REAL_NOW });

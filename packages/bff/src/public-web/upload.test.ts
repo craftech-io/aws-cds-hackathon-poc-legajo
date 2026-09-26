@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PresignBody } from "./actions";
 import { UPLOAD_MARK, markId, scanKeyOf } from "./links";
 import {
   BUCKET,
@@ -73,6 +74,17 @@ describe("[FL-009] upload link: a PDF through /u/<token>", () => {
     expect((await runtime.getUploadLink(TOKEN))?.presignCount).toBe(1);
     expect(await runtime.getIdempotency(UPLOAD_MARK.presign, markId.presign(answer.key))).toMatchObject({ result: { docType: PDF } });
     expect((await audit.listByOperation(OPERATION_ID)).map((decision) => decision.action)).toEqual(["UPLOAD_PRESIGNED"]);
+  });
+
+  it("[FL-009] accepts the documented body {docType} alone, as the QaDriver's upload.presign sends it", async () => {
+    const world = await publicWebWorld();
+    await putLink(world);
+    const response = await world.handler(publicEvent("POST", `/u/${TOKEN}/presign`, { body: { docType: PDF } }));
+    expect(response.statusCode).toBe(200);
+    const answer = jsonBody(response) as unknown as PresignAnswer;
+    expect(policyOf(answer.fields).conditions).toContainEqual(["content-length-range", 1, MAX_BYTES]);
+    expect(PresignBody.safeParse({ docType: PDF }).success).toBe(true);
+    expect(PresignBody.safeParse({ docType: PDF, extra: 1 }).success).toBe(false);
   });
 
   it("[FL-009] 'Listo' opens the scan pending, confirms the document and keeps the link for what is missing", async () => {

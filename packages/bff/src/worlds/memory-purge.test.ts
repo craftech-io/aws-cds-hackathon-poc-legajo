@@ -5,7 +5,7 @@ import { memoryStores } from "../connector/testing";
 import { createWorldJanitorHandler } from "../handlers/world-janitor";
 import { createLogger } from "../lib/log";
 import { agentCoreMemoryAdmin } from "./memory-admin";
-import { MEMORY_PURGE_INCOMPLETE_METRIC, type MemoryAdmin, type PurgeDeps, actorNamespace, purgeFirstPass, purgeRemainingPasses } from "./memory-purge";
+import { MEMORY_PURGE_INCOMPLETE_METRIC, type MemoryAdmin, MemoryPurgeEvent, type PurgeDeps, actorNamespace, purgeFirstPass, purgeRemainingPasses } from "./memory-purge";
 
 const ACTOR = "imp-norpampa-e1";
 const SESSION = "c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00";
@@ -113,6 +113,15 @@ describe("memory purge in repeated passes", () => {
     await expect(handler({ kind: "MEMORY_PURGE", ...target, startedAtReal: START, extra: 1 })).rejects.toThrow();
     await expect(handler({ kind: "MEMORY_PURGE", ...target, actorIds: ["../../other"], startedAtReal: START })).rejects.toThrow();
     expect(await handler({ kind: "MEMORY_PURGE", ...target, startedAtReal: START })).toMatchObject({ complete: true, deleted: 4 });
+  });
+
+  it("accepts the documented event without startedAtReal and counts the cap from its arrival", async () => {
+    const event = { kind: "MEMORY_PURGE", clockId: target.clockId, epoch: target.epoch, actorIds: target.actorIds, sessions: target.sessions };
+    expect(MemoryPurgeEvent.safeParse(event).success).toBe(true);
+    expect(MemoryPurgeEvent.safeParse({ ...event, sessions: undefined, sessionIds: [SESSION] }).success).toBe(false);
+    const arrivedAt = nowMs;
+    expect(await createWorldJanitorHandler(deps())(event)).toMatchObject({ complete: true, deleted: 4 });
+    expect(nowMs - arrivedAt).toBeLessThanOrEqual(10 * 60_000);
   });
 });
 

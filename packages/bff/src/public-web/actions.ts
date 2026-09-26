@@ -1,8 +1,8 @@
 // The two POSTs of the page on an open link (docs/architecture.md §11):
 //
-//   presign  {docType, size, contentType} → one pre-signed POST of 5 minutes for
-//            `uploads/<token>/<docType>/<uuid>.pdf`, at most 20 per link. The declared type and size
-//            only let the page say why before S3 would refuse; S3 enforces the same limits.
+//   presign  {docType} → one pre-signed POST of 5 minutes for `uploads/<token>/<docType>/<uuid>.pdf`,
+//            at most 20 per link. The page may also declare the file's `size` and `contentType`:
+//            they only let it say why before S3 would refuse; S3 enforces the same limits either way.
 //   done     {keys} ("Listo") → checks every key was issued for this link, opens the `ScanPending` of
 //            each object still waiting for its malware scan (docs/architecture.md §7), confirms the
 //            documents of the session and completes the link once every requested document arrived.
@@ -25,15 +25,19 @@ export interface ActionContext extends AuditContext {
   readonly newUuid: () => string;
 }
 
-const PresignBody = z
+/** Body of `POST /u/<token>/presign` (docs/architecture.md §11); the `QaDriver`'s `upload.presign` sends the same. */
+export const PresignBody = z
   .object({
     docType: z.string().max(64),
-    size: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
-    contentType: z.string().max(128),
+    size: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
+    contentType: z.string().max(128).optional(),
   })
   .strict();
+export type PresignBody = z.input<typeof PresignBody>;
 
-const DoneBody = z.object({ keys: z.array(z.string().min(1).max(1024)).min(1).max(MAX_PRESIGNS_PER_LINK) }).strict();
+/** Body of `POST /u/<token>/done` ("Listo"): the object keys the page uploaded. */
+export const DoneBody = z.object({ keys: z.array(z.string().min(1).max(1024)).min(1).max(MAX_PRESIGNS_PER_LINK) }).strict();
+export type DoneBody = z.input<typeof DoneBody>;
 
 function isConnectorError(error: unknown, code: ConnectorError["code"]): boolean {
   return error instanceof ConnectorError && error.code === code;
@@ -49,12 +53,12 @@ export async function presign(ctx: ActionContext, open: OpenLink): Promise<Respo
     await recordDenial(ctx, open, { denial: "UPLOAD_DOCTYPE_NOT_REQUESTED", reason: "document the link does not ask for", ruleIds: ["LAM-ATTACHMENT"] });
     return jsonError(403, "FORBIDDEN", "DOCTYPE_NOT_REQUESTED");
   }
-  if (contentType.trim().toLowerCase() !== PDF_CONTENT_TYPE) {
+  if (contentType !== undefined && contentType.trim().toLowerCase() !== PDF_CONTENT_TYPE) {
     await recordDenial(ctx, open, { denial: "UPLOAD_NOT_PDF", reason: "declared file is not a PDF", detail: { docType } });
     return jsonError(415, "INVALID", "NOT_PDF");
   }
-  if (size < 1) return jsonError(400, "INVALID", "EMPTY");
-  if (size > MAX_DOCUMENT_BYTES) {
+  if (size !== undefined && size < 1) return jsonError(400, "INVALID", "EMPTY");
+  if (size !== undefined && size > MAX_DOCUMENT_BYTES) {
     await recordDenial(ctx, open, { denial: "UPLOAD_TOO_LARGE", reason: "declared file is over 10 MB", detail: { docType } });
     return jsonError(413, "INVALID", "TOO_LARGE");
   }

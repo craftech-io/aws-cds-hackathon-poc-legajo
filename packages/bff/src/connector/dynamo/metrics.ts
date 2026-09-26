@@ -1,18 +1,29 @@
 // `LegajoMetrics`: one KPI row per dossier and world or batch (`FIRM#<firmId>` /
 // `<source>#<clockId>#<operationId>`). Producers add to counters atomically; the row is created on
-// first use with its identity, so a turn and a console heartbeat never overwrite each other.
+// first use with its identity, so a turn and a console heartbeat never overwrite each other. The
+// worker appends one latency sample per answered event (`firstResponseMs`, the latency KPI).
 import { ConnectorError } from "@legajo/shared";
-import { DossierKpi, KPI_COUNTERS } from "../../domain/metrics";
+import { DossierKpi, KPI_COUNTERS, LatencyMs } from "../../domain/metrics";
 import type { TableName } from "../../lib/resource";
 import { firmPartition, kpiKey } from "../keys";
-import type { MetricsPort } from "../ports-runtime";
+import type { KpiRef, MetricsPort } from "../ports-runtime";
+import type { UpdateSpec } from "../table-client";
 import { checkPatch, creationDefaults, defined, nowIso, optionalEntity, parseEntities, parseEntity, updateRow, type RepoContext } from "./repo";
 
 const TABLE: TableName = "LegajoMetrics";
 const ADDABLE: ReadonlySet<string> = new Set([...KPI_COUNTERS, "humanMinutes"]);
 
+type KpiIdentity = Parameters<MetricsPort["incrementKpi"]>[2];
+
 export function metricsRepo(ctx: RepoContext): MetricsPort {
   const { client } = ctx;
+
+  // Every producer's write creates the row on first use with its identity.
+  async function upsertKpi(ref: KpiRef, spec: Omit<UpdateSpec, "setIfAbsent">, identity: KpiIdentity) {
+    const fields = defined({ firmId: ref.firmId, source: ref.source, clockId: ref.clockId, operationId: ref.operationId, agentMode: identity.agentMode, runId: identity.runId });
+    const row = await client.update(TABLE, kpiKey(ref.firmId, ref.source, ref.clockId, ref.operationId), { ...spec, setIfAbsent: creationDefaults(ctx, "DossierKpi", fields) }, nowIso(ctx), { upsert: true });
+    return parseEntity(DossierKpi, "DossierKpi", row, TABLE);
+  }
 
   return {
     async getKpi(ref) {
@@ -33,9 +44,12 @@ export function metricsRepo(ctx: RepoContext): MetricsPort {
         if (!ADDABLE.has(name) || !Number.isFinite(delta) || delta < 0) throw new ConnectorError("VALIDATION", `invalid KPI delta ${name}`, TABLE);
         add[name] = delta;
       }
-      const fields = defined({ firmId: ref.firmId, source: ref.source, clockId: ref.clockId, operationId: ref.operationId, agentMode: identity.agentMode, runId: identity.runId });
-      const row = await client.update(TABLE, kpiKey(ref.firmId, ref.source, ref.clockId, ref.operationId), { add, setIfAbsent: creationDefaults(ctx, "DossierKpi", fields) }, nowIso(ctx), { upsert: true });
-      return parseEntity(DossierKpi, "DossierKpi", row, TABLE);
+      return upsertKpi(ref, { add }, identity);
+    },
+
+    async recordFirstResponse(ref, latencyMs, identity) {
+      if (!LatencyMs.safeParse(latencyMs).success) throw new ConnectorError("VALIDATION", "invalid latency sample", TABLE);
+      return upsertKpi(ref, { append: { firstResponseMs: [latencyMs] } }, identity);
     },
 
     async updateKpi(ref, patch) {

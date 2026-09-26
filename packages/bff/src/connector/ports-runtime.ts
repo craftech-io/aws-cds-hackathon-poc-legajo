@@ -46,6 +46,12 @@ export type DecisionInput = Omit<NewEntity<typeof Decision>, "decisionId" | "ts"
 
 export interface AuditPort {
   record(decision: DecisionInput): Promise<Decision>;
+  /**
+   * Records a decision at most once per `onceKey` (`PolicyAudit`: one VIOLATION per message and
+   * check): the id derives from the key and `ts` from `atSim`, so a repeat hits the same row's
+   * `attribute_not_exists` and returns `recorded: false` without writing anything.
+   */
+  recordOnce(onceKey: string, decision: DecisionInput & { readonly atSim: string }): Promise<{ readonly recorded: boolean }>;
   /** GSI1: the trail of an operation, in `ts` order. */
   listByOperation(operationId: string, options?: { readonly from?: string; readonly to?: string; readonly limit?: number; readonly descending?: boolean }): Promise<Decision[]>;
   /** GSI2: decisions of a firm of one kind (`VIOLATION`, `DENY`…). */
@@ -166,6 +172,8 @@ export interface MetricsPort {
   /** Atomic `ADD` of counters; creates the row on first use with `agentMode` (and `runId`). */
   incrementKpi(ref: KpiRef, deltas: Partial<Record<KpiCounter | "humanMinutes", number>>, identity: Pick<DossierKpi, "agentMode"> & Partial<Pick<DossierKpi, "runId">>): Promise<DossierKpi>;
   updateKpi(ref: KpiRef, patch: Partial<Pick<DossierKpi, "dossierStatus" | "openedAtSim" | "completedAtSim">>): Promise<DossierKpi>;
+  /** Appends one latency sample (incoming event → first outbound, real ms) atomically; creates the row like `incrementKpi`. */
+  recordFirstResponse(ref: KpiRef, latencyMs: number, identity: Pick<DossierKpi, "agentMode"> & Partial<Pick<DossierKpi, "runId">>): Promise<DossierKpi>;
 }
 
 /** One row of a seed file or a world template: key, discriminator and the entity as generated. */

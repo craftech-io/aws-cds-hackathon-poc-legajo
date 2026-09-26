@@ -7,6 +7,9 @@ import { ZonedInstant, defineEntity } from "./common";
 
 const Count = z.number().int().nonnegative().default(0);
 
+/** Real milliseconds from an incoming event to the first message that went out for it (a day at most). */
+export const LatencyMs = z.number().int().nonnegative().max(24 * 3_600_000);
+
 /** Numeric fields of a KPI row that only ever grow (atomic `ADD`). */
 export const KPI_COUNTERS = [
   "turns",
@@ -51,6 +54,8 @@ export const DossierKpi = defineEntity({
   assignmentsCorrect: Count,
   /** Observed console time from 30-second heartbeats (secondary metric). */
   consoleSeconds: Count,
+  /** One sample per incoming event that got an answer: real ms to its first outbound message (the worker appends it). */
+  firstResponseMs: z.array(LatencyMs).default([]),
   dossierStatus: DossierStatus.optional(),
   openedAtSim: ZonedInstant.optional(),
   completedAtSim: ZonedInstant.optional(),

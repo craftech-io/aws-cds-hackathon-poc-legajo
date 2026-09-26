@@ -24,6 +24,31 @@ describe("account router", () => {
     expect(clock.lastSession).toMatchObject({ originJti: "jti-b" });
   });
 
+  it("[FL-079] keeps warning while the other session is still working hours after its sign-in", async () => {
+    let now = new Date("2026-09-26T13:00:00.000Z");
+    const world = await consoleWorld({ wallClock: () => now, judgeWorld: true });
+    expect((await world.caller(judge("jti-a")).account.session()).otherSession).toBeNull();
+    now = new Date("2026-09-26T15:20:00.000Z");
+    await world.caller(judge("jti-a")).clock.get({});
+    const refreshed = await world.stores.connector.world.getClock(JUDGE_CLOCK);
+    expect(refreshed.lastSession).toMatchObject({ originJti: "jti-a", lastActiveAtReal: "2026-09-26T15:20:00.000Z" });
+    // Within a minute the same session does not write again.
+    now = new Date("2026-09-26T15:20:30.000Z");
+    await world.caller(judge("jti-a")).clock.get({});
+    expect((await world.stores.connector.world.getClock(JUDGE_CLOCK)).version).toBe(refreshed.version);
+    now = new Date("2026-09-26T15:30:00.000Z");
+    expect((await world.caller(judge("jti-b")).account.session()).otherSession).toEqual({ lastActiveAtReal: "2026-09-26T15:20:00.000Z", minutesAgo: 10 });
+  });
+
+  it("[FL-079] never moves the last session back in time", async () => {
+    let now = new Date("2026-09-26T15:00:00.000Z");
+    const world = await consoleWorld({ wallClock: () => now, judgeWorld: true });
+    await world.caller(judge("jti-b")).account.session();
+    now = new Date("2026-09-26T14:59:00.000Z");
+    await world.caller(judge("jti-a")).clock.get({});
+    expect((await world.stores.connector.world.getClock(JUDGE_CLOCK)).lastSession).toMatchObject({ originJti: "jti-b", lastActiveAtReal: "2026-09-26T15:00:00.000Z" });
+  });
+
   it("[FL-079] says so when the judge world does not exist yet", async () => {
     const world = await consoleWorld();
     expect(await world.caller(judge("jti-a")).account.session()).toMatchObject({ firm: null, worldReady: false, otherSession: null });

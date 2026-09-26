@@ -9,8 +9,8 @@ import { MemoryPurgeEvent, type PurgeDeps, type PurgeOutcome, purgeRemainingPass
 
 export function createWorldJanitorHandler(deps: PurgeDeps) {
   return async (raw: unknown): Promise<PurgeOutcome> => {
-    const { kind: _kind, ...target } = MemoryPurgeEvent.parse(raw);
-    return purgeRemainingPasses(deps, target);
+    const { kind: _kind, startedAtReal, ...target } = MemoryPurgeEvent.parse(raw);
+    return purgeRemainingPasses(deps, { ...target, startedAtReal: startedAtReal ?? deps.now().toISOString() });
   };
 }
 

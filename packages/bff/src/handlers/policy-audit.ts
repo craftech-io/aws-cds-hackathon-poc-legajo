@@ -20,6 +20,8 @@ export type PolicyAuditEvent = z.input<typeof PolicyAuditEvent>;
 
 export interface PolicyAuditResult {
   readonly reports: readonly PolicyAuditReport[];
+  /** Firms of a daily run whose audit could not start (logged with `policy_audit.firm_failed`). */
+  readonly failedFirms: readonly string[];
   readonly violations: number;
 }
 
@@ -27,13 +29,22 @@ export function createPolicyAuditHandler(deps: PolicyAuditDeps) {
   return async (raw: unknown): Promise<PolicyAuditResult> => {
     const event = PolicyAuditEvent.parse(raw);
     const reports: PolicyAuditReport[] = [];
+    const failedFirms: string[] = [];
     if (event.kind === "WORLD") {
       reports.push(await runPolicyAudit(deps, { firmId: event.firmId, clockId: event.clockId }));
     } else {
       const sinceReal = new Date(deps.now().getTime() - event.lookbackHours * 3_600_000).toISOString();
-      for (const firmId of event.firmIds) reports.push(await runPolicyAudit(deps, { firmId, sinceReal }));
+      for (const firmId of event.firmIds) {
+        try {
+          reports.push(await runPolicyAudit(deps, { firmId, sinceReal }));
+        } catch (error) {
+          // One firm that cannot be read never leaves the others unaudited.
+          failedFirms.push(firmId);
+          deps.log.error("policy_audit.firm_failed", { firmId, error: error instanceof Error ? error.name : "unknown" });
+        }
+      }
     }
-    return { reports, violations: reports.reduce((sum, report) => sum + report.violations.length, 0) };
+    return { reports, failedFirms, violations: reports.reduce((sum, report) => sum + report.violations.length, 0) };
   };
 }
 
