@@ -9,6 +9,8 @@ export const AUTH_REASON = {
   BROKER_INACTIVE: "BROKER_INACTIVE",
   ROLE_NOT_ALLOWED: "ROLE_NOT_ALLOWED",
   CROSS_FIRM: "CROSS_FIRM",
+  /** The input is too deep, too large or names too many ids for the firm fence to check it whole. */
+  INPUT_TOO_LARGE: "INPUT_TOO_LARGE",
   /** The last interactive sign-in is older than 15 minutes: approving needs a fresh password. */
   LOGIN_NOT_RECENT: "LOGIN_NOT_RECENT",
   /** Cognito (JWKS or AdminGetUser) could not be reached; the request fails closed. */
@@ -27,6 +29,7 @@ export const AUTH_REFUSAL: Readonly<Record<AuthReason, AuthRefusal>> = {
   BROKER_INACTIVE: "FORBIDDEN",
   ROLE_NOT_ALLOWED: "FORBIDDEN",
   CROSS_FIRM: "FORBIDDEN",
+  INPUT_TOO_LARGE: "FORBIDDEN",
   LOGIN_NOT_RECENT: "FORBIDDEN",
   AUTH_UNAVAILABLE: "UNAVAILABLE",
 };

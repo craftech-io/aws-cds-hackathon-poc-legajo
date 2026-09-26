@@ -4,7 +4,8 @@
 //   publicProcedure       no principal required (only the health probe)
 //   firmProcedure         verified id token with firm and role; an inactive broker is refused; every
 //                         id of the input is fenced to the principal's firm (403 + AuditLog DENY
-//                         CROSS_FIRM, auth/scope.ts)
+//                         CROSS_FIRM, auth/scope.ts); an input the fence cannot check whole is
+//                         refused (403 + AuditLog DENY INPUT_TOO_LARGE)
 //   brokerProcedure       firm + role BROKER or JUDGE (a judge acts as broker in its own judge firm);
 //                         any other role: 403 + AuditLog DENY ROLE_NOT_ALLOWED
 //   recentLoginProcedure  broker + interactive sign-in at most 15 minutes old, 60 s of skew, real
@@ -168,6 +169,7 @@ async function refuseAudited(ctx: AuditedContext, path: string, refusal: Audited
 }
 
 const CROSS_FIRM_MESSAGE = "this belongs to another firm";
+const INPUT_TOO_LARGE_MESSAGE = "this request names too much at once";
 
 function firmScopeOf(ctx: AuditedContext, path: string, ownership: FirmOwnership): FirmScope {
   const assertFirm = async (firmId: string, target?: FencedId): Promise<void> => {
@@ -205,8 +207,11 @@ export const firmProcedure = baseProcedure.use(async ({ ctx, next, path, getRawI
 
   const audited: AuditedContext = { principal, deps: ctx.deps, log, correlationId: ctx.correlationId };
   const ownership = createFirmOwnership(ctx.deps.connector);
-  // Every id the input names is checked before the procedure reads anything (FL-082).
-  const target = await crossFirmTarget(principal.firmId, fencedIdsOf(await getRawInput()), ownership);
+  // Every id the input names is checked before the procedure reads anything (FL-082); an input past
+  // the fence's bounds is refused whole instead of checked in part.
+  const fenced = fencedIdsOf(await getRawInput());
+  if (!fenced.ok) return refuseAudited(audited, path, "INPUT_TOO_LARGE", `${INPUT_TOO_LARGE_MESSAGE} (${fenced.limit})`);
+  const target = await crossFirmTarget(principal.firmId, fenced.ids, ownership);
   if (target) await refuseAudited(audited, path, "CROSS_FIRM", CROSS_FIRM_MESSAGE, target);
 
   const firmContext: FirmContext = { ...ctx, principal, authFailure: null, log, firmScope: firmScopeOf(audited, path, ownership) };

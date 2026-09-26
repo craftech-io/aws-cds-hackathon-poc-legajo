@@ -1,8 +1,9 @@
 // A signed-in broker or analyst changes its own password: Cognito `ChangePassword` with the
 // session's access token, after the same policy checks the sign-in forms apply. Never for a judge:
 // judge accounts keep the permanent password the operator set, so the next judge of the same
-// account is not locked out (docs/design-brief.md §7.1); the console hides the option and this
-// refuses it as well.
+// account is not locked out (docs/design-brief.md §7.1); the console hides the option, this refuses
+// it as well, and Cognito refuses it for good: a judge's access token carries no
+// `aws.cognito.signin.user.admin` scope (packages/bff/src/auth-triggers/pre-token.ts).
 import type { CognitoApi } from "./cognito";
 import { hasOuterSpaces, missingPasswordRules } from "./credentials";
 import { type AuthFlowErrorCode, errorCodeOf } from "./errors";

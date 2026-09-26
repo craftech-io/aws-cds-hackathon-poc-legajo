@@ -1,9 +1,11 @@
 // The firm fence of the console (docs/architecture.md §10, FL-082): every id a request carries is
 // checked against the firm of the principal before the procedure runs. `firmProcedure`
-// (routers/trpc.ts) walks the raw input for id-valued fields, resolves which firm owns each id and
-// refuses the whole request with 403 + `AuditLog DENY CROSS_FIRM` when one belongs to another firm.
-// An id that does not exist is not this fence's business: the procedure answers NOT_FOUND or
-// creates it.
+// (routers/trpc.ts) walks the raw input, classifies every string (values and keys, whatever the
+// field is called), resolves which firm owns each id and refuses the whole request with 403 +
+// `AuditLog DENY CROSS_FIRM` when one belongs to another firm. The walk fails closed: an input too
+// deep, too large or naming too many ids is refused whole (`AuditLog DENY INPUT_TOO_LARGE`), never
+// checked in part. An id that does not exist is not this fence's business: the procedure answers
+// NOT_FOUND or creates it.
 //
 //   firm          the id itself                     clock      GLOBAL#/JUDGE# name their firm;
 //   operation     Operations META `firmId`                     qa-* → firm-qa, sim-* → firm-sim
@@ -24,12 +26,14 @@ export interface FencedId {
 
 const FENCED_ID_KINDS: ReadonlySet<IdKind> = new Set<IdKind>(["firm", "operation", "importer", "supplier", "docVersion", "observation"]);
 
-// `operationId`, `targetOperationId`, `importerIds`, `clockId`, `id`…
-const ID_FIELD = /(?:^ids?$|Ids?$)/;
-
 // The walk is bounded: console inputs are small, and a hostile one must not buy unbounded lookups.
-const MAX_DEPTH = 6;
-const MAX_IDS = 50;
+// Past any bound the request is refused, so no id ever escapes the check.
+export const FENCE_LIMITS = { depth: 6, ids: 50, nodes: 5_000 } as const;
+
+export type FenceLimit = keyof typeof FENCE_LIMITS;
+
+/** Every fenced id of the input, or the bound it broke. */
+export type FenceWalk = { readonly ok: true; readonly ids: FencedId[] } | { readonly ok: false; readonly limit: FenceLimit };
 
 /** Classifies one value; `undefined` when it is not an id this fence can resolve. */
 export function fencedIdOf(value: string): FencedId | undefined {
@@ -38,26 +42,37 @@ export function fencedIdOf(value: string): FencedId | undefined {
   return kind !== undefined && FENCED_ID_KINDS.has(kind) ? { kind: kind as FencedKind, id: value } : undefined;
 }
 
-/** Every distinct fenced id under an id-named field of the input, depth-first, capped. */
-export function fencedIdsOf(input: unknown): FencedId[] {
+/** Every distinct fenced id among the strings of the input (values and keys), depth-first, bounded. */
+export function fencedIdsOf(input: unknown): FenceWalk {
   const found = new Map<string, FencedId>();
-  const collect = (value: unknown): void => {
-    if (typeof value !== "string" || found.size >= MAX_IDS) return;
+  let nodes = 0;
+  let broken: FenceLimit | undefined;
+  const collect = (value: string): void => {
     const fenced = fencedIdOf(value);
-    if (fenced) found.set(`${fenced.kind}:${fenced.id}`, fenced);
+    if (fenced === undefined) return;
+    found.set(`${fenced.kind}:${fenced.id}`, fenced);
+    if (found.size > FENCE_LIMITS.ids) broken = "ids";
   };
   const walk = (value: unknown, depth: number): void => {
-    if (depth > MAX_DEPTH || value === null || typeof value !== "object") return;
+    if (broken !== undefined) return;
+    nodes += 1;
+    if (nodes > FENCE_LIMITS.nodes) {
+      broken = "nodes";
+      return;
+    }
+    if (typeof value === "string") return collect(value);
+    if (value === null || typeof value !== "object") return;
+    if (depth > FENCE_LIMITS.depth) {
+      broken = "depth";
+      return;
+    }
     for (const [key, child] of Object.entries(value)) {
-      if (ID_FIELD.test(key)) {
-        if (Array.isArray(child)) child.forEach(collect);
-        else collect(child);
-      }
+      if (!Array.isArray(value)) collect(key);
       walk(child, depth + 1);
     }
   };
   walk(input, 0);
-  return [...found.values()];
+  return broken === undefined ? { ok: true, ids: [...found.values()] } : { ok: false, limit: broken };
 }
 
 // `dv-4471-PL-1`, `obs-4471-j03-PL-GROSS_WEIGHT_MISMATCH` → `op-4471`, `op-4471-j03`.

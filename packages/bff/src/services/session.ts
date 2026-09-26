@@ -20,6 +20,8 @@ import {
   TurnTrigger,
   splitSessionToken,
 } from "@legajo/shared";
+import { ZonedInstant } from "../domain/common";
+import type { Turn } from "../domain/runtime";
 import { type SecretKey, hmacSha256Base64Url, safeEqual, ulid } from "../lib/crypto";
 
 /** Session and turn ids: 1 to 64 characters of `[A-Za-z0-9_-]` (ULIDs in practice). */
@@ -106,15 +108,18 @@ export function verifySessionToken(sessionKey: SecretKey, token: unknown, nowMs:
   return parts;
 }
 
-/** `Runtime/TURN#<turnId>` META as far as a session cares: a turn with `closedAt` is over. */
-export const TurnState = z.object({ closedAt: IsoInstant.optional() });
+/**
+ * `Runtime/TURN#<turnId>` META as far as a session cares: a turn with `closedAtReal` is over. The
+ * field is the one `RuntimePort.closeTurn` writes (domain/runtime.ts `Turn`).
+ */
+export const TurnState = z.object({ closedAtReal: ZonedInstant.optional() });
 export type TurnState = z.infer<typeof TurnState>;
 
 export interface SessionStore {
   /** `Runtime/SESSION#<sessionId>`, or `undefined` when it does not exist (or its TTL removed it). */
   getSession(sessionId: string): Promise<unknown>;
   /** `Runtime/TURN#<turnId>` META; `undefined` while the worker has not written it (the turn is open). */
-  getTurn(turnId: string): Promise<unknown>;
+  getTurn(turnId: string): Promise<Turn | undefined>;
 }
 
 export interface ResolvedSession extends SessionRecord {
@@ -135,7 +140,7 @@ export async function resolveSession(sessionKey: SecretKey, token: unknown, stor
   if (turn !== undefined) {
     const state = TurnState.safeParse(turn);
     if (!state.success) throw invalid("turn state is unreadable");
-    if (state.data.closedAt !== undefined) throw expired("the turn of this session is closed");
+    if (state.data.closedAtReal !== undefined) throw expired("the turn of this session is closed");
   }
   return { ...stored.data, exp: parts.exp };
 }

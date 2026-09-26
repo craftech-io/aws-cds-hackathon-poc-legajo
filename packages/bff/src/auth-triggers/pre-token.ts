@@ -8,6 +8,12 @@
 //                   and its broker row exist)
 //   custom:isJudge  "true" for a JUDGE, who acts as a broker only inside its own judge firm
 //
+// A judge's access token also loses the `aws.cognito.signin.user.admin` scope: judge accounts are
+// shared through the private Devpost instructions, so Cognito itself must refuse ChangePassword,
+// AssociateSoftwareToken, SetUserMFAPreference, UpdateUserAttributes and DeleteUser with it (hiding
+// them in the console is not enough; docs/design-brief.md §7.1). SRP sign-in, refresh and
+// RevokeToken do not need that scope.
+//
 // The groups are copied back unchanged: a V2_0 response that leaves `groupOverrideDetails` empty
 // suppresses them. An account that cannot be resolved (no valid firm, no console role, an inactive
 // broker, a judge outside a judge firm) gets a token without tenant, role or groups, which the BFF
@@ -47,11 +53,17 @@ export type PreTokenEvent = z.infer<typeof PreTokenEvent>;
 
 export type ClaimValue = string;
 
+/** The scope that lets an access token call Cognito's self-service account API. */
+export const ACCOUNT_ADMIN_SCOPE = "aws.cognito.signin.user.admin";
+
 /** `response.claimsAndScopeOverrideDetails` of a V2_0 event. */
 export interface ClaimsAndScopeOverrideDetails {
   readonly idTokenGeneration: {
     readonly claimsToAddOrOverride?: Readonly<Record<string, ClaimValue>>;
     readonly claimsToSuppress?: readonly string[];
+  };
+  readonly accessTokenGeneration?: {
+    readonly scopesToSuppress?: readonly string[];
   };
   readonly groupOverrideDetails: z.infer<typeof GroupConfiguration>;
 }
@@ -108,6 +120,7 @@ export async function decidePreToken(event: PreTokenEvent, deps: PreTokenDeps): 
       idTokenGeneration: {
         claimsToAddOrOverride: { [STAMPED_CLAIMS.firmId]: firmId, [STAMPED_CLAIMS.role]: role, [STAMPED_CLAIMS.isJudge]: isJudge ? "true" : "false" },
       },
+      ...(isJudge ? { accessTokenGeneration: { scopesToSuppress: [ACCOUNT_ADMIN_SCOPE] } } : {}),
       groupOverrideDetails: groupConfiguration,
     },
   };

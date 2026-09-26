@@ -6,7 +6,7 @@ import { brokerLookupOf } from "../auth/staff";
 import { seedBrokers } from "../auth/testing";
 import { memoryStores } from "../connector/testing";
 import { createLogger } from "../lib/log";
-import { type ClaimsAndScopeOverrideDetails, createPreTokenHandler, type PreTokenDeps } from "./pre-token";
+import { ACCOUNT_ADMIN_SCOPE, type ClaimsAndScopeOverrideDetails, createPreTokenHandler, type PreTokenDeps } from "./pre-token";
 
 const DIEGO = "0b7f0e2e-0000-4000-8000-000000000001";
 const MARTINA = "0b7f0e2e-0000-4000-8000-000000000002";
@@ -93,6 +93,17 @@ describe("Cognito pre token generation (V2_0)", () => {
       "custom:role": "JUDGE",
       "custom:isJudge": "true",
     });
+  });
+
+  it("takes the account self-service scope out of every judge access token, and only a judge's", async () => {
+    for (const triggerSource of ["TokenGeneration_Authentication", "TokenGeneration_RefreshTokens"]) {
+      const judge = (await run(cognitoEvent({ sub: JUDGE, firmId: "firm-judge-01", groups: ["JUDGE"], triggerSource }))).response.claimsAndScopeOverrideDetails;
+      expect(judge.accessTokenGeneration).toEqual({ scopesToSuppress: [ACCOUNT_ADMIN_SCOPE] });
+    }
+    expect(ACCOUNT_ADMIN_SCOPE).toBe("aws.cognito.signin.user.admin");
+    for (const sub of [DIEGO, MARTINA]) {
+      expect((await run(cognitoEvent({ sub }))).response.claimsAndScopeOverrideDetails).not.toHaveProperty("accessTokenGeneration");
+    }
   });
 
   it("never takes the role from a broker row of another firm", async () => {

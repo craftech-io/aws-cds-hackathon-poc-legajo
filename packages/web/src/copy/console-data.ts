@@ -28,6 +28,7 @@ export const dataCopy = {
     LOGIN_NOT_RECENT: "Pasaron más de 15 minutos desde que ingresaste. Confirmá tu contraseña para seguir.",
     ROLE_NOT_ALLOWED: "Tu rol no puede hacer esta acción.",
     CROSS_FIRM: "Ese dato no pertenece a tu estudio.",
+    INPUT_TOO_LARGE: "La solicitud abarca demasiados datos a la vez. Achicá la selección y volvé a intentar.",
     BROKER_INACTIVE: "Tu usuario ya no está activo en el estudio.",
     PRINCIPAL_INCOMPLETE: "Tu usuario todavía no tiene un estudio o un rol asignado.",
     AUTH_UNAVAILABLE: "El servicio de ingreso no respondió. Probá de nuevo en unos segundos.",

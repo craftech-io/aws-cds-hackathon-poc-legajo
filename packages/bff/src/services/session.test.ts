@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SESSION_TOKEN_PATTERN, ToolError, isSessionTokenExpired, splitSessionToken } from "@legajo/shared";
+import { memoryStores } from "../connector/testing";
+import type { Turn } from "../domain/runtime";
 import { deriveSubkey } from "../lib/crypto";
 import { type SessionRecord, type SessionStore, issueSessionToken, newSessionId, resolveSession, verifySessionToken } from "./session";
 
@@ -21,10 +23,20 @@ const RECORD: SessionRecord = {
   eventAtSim: "2026-10-16T01:10:00-03:00",
 };
 
-function store(overrides: { session?: unknown; turn?: unknown } = {}): SessionStore {
+function store(overrides: { session?: unknown; turn?: Turn } = {}): SessionStore {
   return {
     getSession: async (sessionId) => ("session" in overrides ? overrides.session : sessionId === SESSION_ID ? { ...RECORD, pk: `SESSION#${sessionId}`, sk: "META", expiresAt: 1 } : undefined),
     getTurn: async () => overrides.turn,
+  };
+}
+
+/** A store whose turns are the in-memory connector's: the turn is opened and closed by `RuntimePort`. */
+async function connectorStore(): Promise<{ readonly store: SessionStore; readonly closeTurn: () => Promise<unknown> }> {
+  const { runtime } = memoryStores().connector;
+  await runtime.openTurn({ turnId: TURN_ID, sessionId: SESSION_ID, operationId: RECORD.operationId, clockId: RECORD.clockId, trigger: RECORD.trigger, openedAtReal: new Date(NOW).toISOString() });
+  return {
+    store: { getSession: store().getSession, getTurn: (turnId) => runtime.getTurn(turnId) },
+    closeTurn: () => runtime.closeTurn(TURN_ID, new Date(NOW + 120_000).toISOString()),
   };
 }
 
@@ -93,10 +105,16 @@ describe("resolveSession", () => {
     expect(session).not.toHaveProperty("pk");
   });
 
-  it("accepts an open turn and refuses a closed one before the token expires", async () => {
-    await expect(resolveSession(KEY, token, store({ turn: { startedAt: "2026-11-02T15:00:00Z" } }), NOW)).resolves.toMatchObject({ operationId: "op-4471" });
-    expect(await reason(resolveSession(KEY, token, store({ turn: { closedAt: "2026-11-02T15:02:00Z" } }), NOW + 180_000))).toBe("SESSION_EXPIRED");
-    expect(await reason(resolveSession(KEY, token, store({ turn: { closedAt: "yesterday" } }), NOW))).toBe("SESSION_INVALID");
+  it("accepts an open turn and refuses one closed through the connector before the token expires", async () => {
+    const { store: live, closeTurn } = await connectorStore();
+    await expect(resolveSession(KEY, token, live, NOW)).resolves.toMatchObject({ operationId: "op-4471" });
+    await closeTurn();
+    expect(await reason(resolveSession(KEY, token, live, NOW + 180_000))).toBe("SESSION_EXPIRED");
+  });
+
+  it("refuses a turn whose close instant is unreadable", async () => {
+    const unreadable = { closedAtReal: "yesterday" } as unknown as Turn;
+    expect(await reason(resolveSession(KEY, token, store({ turn: unreadable }), NOW))).toBe("SESSION_INVALID");
   });
 
   it("refuses a missing, malformed or foreign session record", async () => {

@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { z } from "zod";
 import { AUTH_REASON, AuthError } from "../auth/errors";
 import { type Principal, qaPrincipal } from "../auth/principal";
-import { fencedIdsOf, operationOfChildId } from "../auth/scope";
+import { FENCE_LIMITS, fencedIdsOf, operationOfChildId } from "../auth/scope";
 import { createTestIssuer, seedBrokers, testContextDeps } from "../auth/testing";
 import type { MemoryStores } from "../connector/index";
 import { hashOf, importerFixture, memoryStores, operationFixture, seedDemoSlice, supplierFixture } from "../connector/testing";
@@ -147,18 +147,31 @@ describe("[FL-082] firm isolation of the console", () => {
     ["the firm itself", { firmId: "firm-delta" }],
     ["a listed id", { operationIds: ["op-5501", "op-4471"] }],
     ["a nested id", { filter: { rows: [{ targetOperationId: "op-4471" }] } }],
+    ["an id under a field not named like one", { target: "imp-norpampa" }],
+    ["an id under an oddly cased field", { operationID: "op-4471" }],
+    ["an id used as a key", { byOperation: { "op-4471": true } }],
   ])("[FL-082] refuses %s of another firm before the procedure runs", async (_label, input) => {
     expect(await refusalOf(as(pablo).anything(input))).toEqual({ code: "FORBIDDEN", reason: AUTH_REASON.CROSS_FIRM });
     expect(ran).toEqual([]);
     expect(await denials("firm-norte")).toHaveLength(1);
   });
 
-  it("[FL-082] passes the firm's own ids, ids that do not exist and values outside id fields", async () => {
+  it("[FL-082] passes the firm's own ids, ids that do not exist and text that only mentions an id", async () => {
     const own = { importerId: "imp-altiplano", supplierId: "sup-n-qingdao", clockId: "GLOBAL#firm-norte", firmId: "firm-norte", docVersionId: "dv-5501-CI-1" };
     expect(await as(pablo).anything(own)).toBe("ran");
-    expect(await as(pablo).anything({ operationId: "op-4499", note: "op-4471" })).toBe("ran");
+    expect(await as(pablo).anything({ operationId: "op-4499", note: "about op-4471" })).toBe("ran");
     expect(await refusalOf(as(pablo).operations.get({ operationId: "op-4499" }))).toMatchObject({ code: "NOT_FOUND" });
     expect(await denials("firm-norte")).toEqual([]);
+  });
+
+  it.each([
+    ["51 ids, the last one of another firm", { operationIds: [...Array.from({ length: 50 }, (_, index) => `op-${9000 + index}`), "op-4471"] }],
+    ["an id nested past the depth bound", { a: { b: { c: { d: { e: { f: { g: { operationId: "op-4471" } } } } } } } }],
+    ["an input with too many values", { notes: Array.from({ length: FENCE_LIMITS.nodes }, () => "x") }],
+  ])("[FL-082] refuses %s whole instead of fencing it in part", async (_label, input) => {
+    expect(await refusalOf(as(pablo).anything(input))).toEqual({ code: "FORBIDDEN", reason: AUTH_REASON.INPUT_TOO_LARGE });
+    expect(ran).toEqual([]);
+    expect(await denials("firm-norte")).toMatchObject([{ decision: "DENY", action: "INPUT_TOO_LARGE", actor: "BROKER:brk-norte-pablo" }]);
   });
 
   it("[FL-082] fences ids a procedure reaches by other means through ctx.firmScope", async () => {
@@ -206,23 +219,34 @@ describe("[FL-082] firm isolation of the console", () => {
 });
 
 describe("firm fence: which values are ids", () => {
-  it("collects fenced ids under id-named fields only, once each, and derives a child's operation", () => {
-    const ids = fencedIdsOf({ operationId: "op-4471", text: "firm-norte", nested: { ids: ["imp-norpampa", "op-4471"], brokerId: "brk-delta-diego" }, clockId: "qa-812-1-sc20" });
-    expect(ids).toEqual([
-      { kind: "operation", id: "op-4471" },
-      { kind: "importer", id: "imp-norpampa" },
-      { kind: "clock", id: "qa-812-1-sc20" },
-    ]);
+  it("collects every fenced id whatever its field, once each, and derives a child's operation", () => {
+    const walk = fencedIdsOf({ operationId: "op-4471", text: "firm-norte", nested: { ids: ["imp-norpampa", "op-4471"], brokerId: "brk-delta-diego", "sup-qingdao": 1 }, clockId: "qa-812-1-sc20", note: "see op-5501" });
+    expect(walk).toEqual({
+      ok: true,
+      ids: [
+        { kind: "operation", id: "op-4471" },
+        { kind: "firm", id: "firm-norte" },
+        { kind: "importer", id: "imp-norpampa" },
+        { kind: "supplier", id: "sup-qingdao" },
+        { kind: "clock", id: "qa-812-1-sc20" },
+      ],
+    });
     expect(operationOfChildId("dv-4471-j03-PL-2")).toBe("op-4471-j03");
     expect(operationOfChildId("obs-5501-CO-SIGNATURE_MISSING")).toBe("op-5501");
     expect(operationOfChildId("op-4471")).toBeUndefined();
   });
 
-  it("bounds the walk of a hostile input", () => {
-    const many = { operationIds: Array.from({ length: 500 }, (_, index) => `op-${String(4000 + index).padStart(4, "0")}`) };
-    expect(fencedIdsOf(many)).toHaveLength(50);
-    let deep: Record<string, unknown> = { operationId: "op-4471" };
-    for (let level = 0; level < 20; level += 1) deep = { child: deep };
-    expect(fencedIdsOf(deep)).toEqual([]);
+  it("fails closed past its bounds instead of returning the ids it collected so far", () => {
+    const ids = (count: number) => ({ operationIds: Array.from({ length: count }, (_, index) => `op-${4000 + index}`) });
+    expect(fencedIdsOf(ids(FENCE_LIMITS.ids))).toMatchObject({ ok: true, ids: { length: FENCE_LIMITS.ids } });
+    expect(fencedIdsOf(ids(FENCE_LIMITS.ids + 1))).toEqual({ ok: false, limit: "ids" });
+    const nest = (levels: number) => {
+      let deep: Record<string, unknown> = { operationId: "op-4471" };
+      for (let level = 0; level < levels; level += 1) deep = { child: deep };
+      return deep;
+    };
+    expect(fencedIdsOf(nest(FENCE_LIMITS.depth))).toMatchObject({ ok: true, ids: [{ id: "op-4471" }] });
+    expect(fencedIdsOf(nest(FENCE_LIMITS.depth + 1))).toEqual({ ok: false, limit: "depth" });
+    expect(fencedIdsOf({ values: Array.from({ length: FENCE_LIMITS.nodes }, () => 1) })).toEqual({ ok: false, limit: "nodes" });
   });
 });

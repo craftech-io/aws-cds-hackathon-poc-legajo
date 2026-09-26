@@ -1,6 +1,6 @@
 // The console refusals that leave a trace in the firm's audit log (docs/architecture.md §10,
-// FL-075, FL-082): an id of another firm (`DENY CROSS_FIRM`) and a role that may not run the
-// procedure (`DENY ROLE_NOT_ALLOWED`). The decision is written in the partition of the principal's
+// FL-075, FL-082): an id of another firm (`DENY CROSS_FIRM`), an input the firm fence cannot check
+// whole (`DENY INPUT_TOO_LARGE`) and a role that may not run the procedure (`DENY ROLE_NOT_ALLOWED`). The decision is written in the partition of the principal's
 // own firm and never on the other firm's operation index: the attempted id travels only in
 // `detail`, so the other firm's timeline shows nothing of who asked.
 import type { DecisionInput } from "../connector/ports-runtime";
@@ -8,7 +8,7 @@ import { brokerActor } from "../domain/common";
 import type { Principal } from "./principal";
 import type { FencedId } from "./scope";
 
-export type AuditedRefusal = "CROSS_FIRM" | "ROLE_NOT_ALLOWED";
+export type AuditedRefusal = "CROSS_FIRM" | "INPUT_TOO_LARGE" | "ROLE_NOT_ALLOWED";
 
 export interface DenialInput {
   readonly principal: Principal;
