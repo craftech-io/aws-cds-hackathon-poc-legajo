@@ -30,7 +30,7 @@ export async function hmacSha256Hex(key: string | Uint8Array, message: string | 
   return toHex(await subtle().sign("HMAC", cryptoKey, toBytes(message)));
 }
 
-// E.164 with a leading "+" and digits only ("+54 9 11 5550-1234" → "+5491155501234").
+// E.164 with a leading "+" and digits only ("+54 9 11 5550-0103" → "+5491155500103").
 export function normalizePhone(raw: string): string {
   const digits = raw.replace(/[^\d]/g, "");
   if (digits.length < 8 || digits.length > 15) throw new RangeError("phone must have 8 to 15 digits");
@@ -58,7 +58,7 @@ export function isHexHash(value: string): boolean {
   return /^[0-9a-f]{64}$/.test(value);
 }
 
-// Public masks for logs and tool results: "+54*******1234", "m***@example.test".
+// Public masks for logs and tool results: "+54*******0103", "m***@example.test".
 export function maskPhone(raw: string): string {
   const phone = normalizePhone(raw);
   return `${phone.slice(0, 3)}${"*".repeat(Math.max(phone.length - 7, 0))}${phone.slice(-4)}`;

@@ -41,3 +41,9 @@ The repository skeleton (SST and CI setup, CI bootstrap template, lint scripts, 
 shared components, own Cognito login, tRPC base, logging, retry and crypto helpers, landing gallery,
 agent definitions in `.claude/`) was reused from internal Craftech scaffolding created during the
 hackathon period. Everything specific to this product is new.
+
+Third-party pre-existing code: the process skills in `.claude/skills/` (`grill-with-docs`,
+`grilling`, `domain-modeling`) come from [mattpocock/skills](https://github.com/mattpocock/skills)
+(`skills/engineering/` and `skills/productivity/`); `grill-with-docs` is an expanded version that
+works standalone. They are development tooling for the agents that build the repository, not product
+code (see `.claude/skills/README.md`).

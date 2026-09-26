@@ -1,9 +1,8 @@
-// The real list lives outside the repository, so these tests use made-up terms. The two-word
-// brand-like term is assembled at runtime so its spelling never sits in a file of the tree.
+// The real list lives outside the repository, so these tests use made-up terms.
 import { describe, expect, it } from "vitest";
 import { findTerms, listFromEnv, parseTerms, stripAccents } from "./forbidden-terms";
 
-const TWO_WORD_BRAND = ["Al", "Día"].join(" ");
+const TWO_WORD_BRAND = "Norte Grande";
 
 describe("parseTerms", () => {
   it("skips blanks and comments and numbers the terms in list order", () => {
@@ -26,7 +25,8 @@ describe("parseTerms", () => {
   it("matches names of several words with their capitals and accents, so ordinary Spanish passes", () => {
     const terms = parseTerms(TWO_WORD_BRAND);
     expect(findTerms("f", "Lo reviso al día siguiente.", terms)).toEqual([]);
-    expect(findTerms("f", "Lo reviso al dia siguiente.", terms)).toEqual([]);
+    expect(findTerms("f", "Viajamos al norte grande del país.", terms)).toEqual([]);
+    expect(findTerms("f", "Viajamos al Norte grande del país.", terms)).toEqual([]);
     expect(findTerms("f", `Bienvenido a ${TWO_WORD_BRAND}`, terms)).toHaveLength(1);
     expect(findTerms("f", `Bienvenido a ${TWO_WORD_BRAND.replace(" ", "\t ")}`, terms)).toHaveLength(1);
   });
@@ -45,7 +45,7 @@ describe("parseTerms", () => {
   });
 
   it("strips accents with Unicode normalization", () => {
-    expect(stripAccents("Bolíva ñandú")).toBe("Boliva nandu");
+    expect(stripAccents("Árbol pingüino canción")).toBe("Arbol pinguino cancion");
   });
 });
 

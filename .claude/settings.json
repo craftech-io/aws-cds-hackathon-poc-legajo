@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)",
+      "Bash(npm run build*)",
+      "Bash(npm run typecheck*)",
+      "Bash(npm run test*)",
+      "Bash(npm run lint*)",
+      "Bash(npm run flows:check*)",
+      "Bash(npm run tour:check*)",
+      "Bash(npm run reader:contract*)",
+      "Bash(npm run tools:build-schemas*)",
+      "Bash(npm run channels:check-modes*)",
+      "Bash(npm run seed:generate*)",
+      "Bash(npm run seed:validate*)",
       "Bash(npx vitest*)",
       "Bash(aws --profile craftech-demos sts get-caller-identity*)",
       "Bash(aws --profile craftech-demos dynamodb describe-*)",
@@ -63,6 +73,14 @@
       "Bash(aws --profile craftech-demos cloudformation describe-*)"
     ],
     "ask": [
+      "Bash(npm run seed:load*)",
+      "Bash(npm run console:invite*)",
+      "Bash(npm run channels:whatsapp-templates*)",
+      "Bash(npm run channels:waba-event-destination*)",
+      "Bash(npm run scenarios*)",
+      "Bash(npm run smoke:interim*)",
+      "Bash(npx sst shell*)",
+      "Bash(sst shell*)",
       "Bash(npx sst remove*)",
       "Bash(sst remove*)"
     ],

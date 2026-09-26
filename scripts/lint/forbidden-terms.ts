@@ -11,8 +11,8 @@
 //   i  ignore case              c  match case
 //   a  ignore accents           e  match accents exactly
 // A single word defaults to `ia` (any case, any accents); a name of several words defaults to `ce`,
-// so "al día siguiente" never matches a two-word brand written with capitals. Matching is by whole
-// word, Unicode-aware.
+// so ordinary prose such as "el norte grande" never matches a brand "Norte Grande" written with
+// capitals. Matching is by whole word, Unicode-aware.
 //
 // Fails closed: with CI=true an absent or empty list fails the job. The output never prints a term,
 // only where it was found and the term's position in the list.

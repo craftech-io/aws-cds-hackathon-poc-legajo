@@ -88,7 +88,7 @@ Vocabulario en `CONTEXT.md`; diseño en `docs/design-brief.md`; topología en `d
 
 ## REUTILIZACIÓN
 
-- Antes de escribir UI se revisa `packages/web/src/components/` (`Table`, `DataTable`, `SelectField`, `FilterPills`, `ScopeBar`, `Drawer`, `Button`, `EmptyState`, `ApiErrorNotice`, `RemoteBlock`, `PageHeader`, `Section`, `StatTile`, `Badge`, `Callout`). Segunda aparición de un patrón = extracción a `components/`.
+- Antes de escribir UI se revisa `packages/web/src/components/` (`Table`, `DataTable`, `SelectField`, `FilterPills`, `Drawer`, `Button`, `EmptyState`, `ApiErrorNotice`, `RemoteBlock`, `PageHeader`, `Section`, `StatTile`, `Badge`, `Callout`; `ScopeBar`, `ClockBanner` y `RuleChip(s)` llegan con WP-12, `docs/reuse-map.md`). Segunda aparición de un patrón = extracción a `components/`.
 - Un cliente por servicio externo (Harness, SES, EUM Social, lector, plataforma, Scheduler) con timeouts, reintentos y mapeo de errores en un solo módulo.
 - Toda tool pasa por `createToolHandler`; todo procedimiento tRPC por `firmProcedure` (y `brokerProcedure` / `recentLoginProcedure` donde corresponde).
 - Un texto tiene una sola fuente en `copy/`; el seed y los tests importan de ahí.

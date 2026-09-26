@@ -13,7 +13,7 @@ import {
 
 describe("normalization", () => {
   it("phones become +digits", () => {
-    expect(normalizePhone("+54 9 11 5550-1234")).toBe("+5491155501234");
+    expect(normalizePhone("+54 9 11 5550-0103")).toBe("+5491155500103");
     expect(normalizePhone("(300) 555 1234 ")).toBe("+3005551234");
     expect(() => normalizePhone("123")).toThrow(RangeError);
   });
@@ -38,9 +38,9 @@ describe("hashing", () => {
 
   it("addressHash is stable across formatting and keyed by the secret", async () => {
     const key = "test-key";
-    const a = await addressHash("WHATSAPP", "+54 9 11 5550-1234", key);
-    const b = await addressHash("WHATSAPP", "+5491155501234", key);
-    const c = await addressHash("WHATSAPP", "+5491155501234", "other-key");
+    const a = await addressHash("WHATSAPP", "+54 9 11 5550-0103", key);
+    const b = await addressHash("WHATSAPP", "+5491155500103", key);
+    const c = await addressHash("WHATSAPP", "+5491155500103", "other-key");
     const email = await addressHash("EMAIL", " Ana@Example.test", key);
     expect(a).toBe(b);
     expect(a).not.toBe(c);
@@ -52,7 +52,7 @@ describe("hashing", () => {
 
 describe("masks", () => {
   it("never reveal the middle of an address", () => {
-    expect(maskPhone("+5491155501234")).toBe("+54*******1234");
+    expect(maskPhone("+5491155500103")).toBe("+54*******0103");
     expect(maskEmail("ana.gomez@example.test")).toBe("a***@example.test");
     expect(maskDocument("20-12345678-9")).toBe("*******6789");
   });
