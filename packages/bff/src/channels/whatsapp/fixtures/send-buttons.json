@@ -1,0 +1,17 @@
+{
+  "messaging_product": "whatsapp",
+  "recipient_type": "individual",
+  "to": "5491155500101",
+  "type": "interactive",
+  "interactive": {
+    "type": "button",
+    "body": { "text": "¿Le escribimos a tu proveedor a s•••@sim.legajo.demo.craftech.io? Confirmá con un botón o pasanos otro contacto." },
+    "action": {
+      "buttons": [
+        { "type": "reply", "reply": { "id": "nonceConfirm0000000000000000001", "title": "Sí, escribile" } },
+        { "type": "reply", "reply": { "id": "nonceReject00000000000000000002", "title": "No" } },
+        { "type": "reply", "reply": { "id": "nonceOther000000000000000000003", "title": "Otro contacto" } }
+      ]
+    }
+  }
+}

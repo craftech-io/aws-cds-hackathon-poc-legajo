@@ -1,0 +1,2334 @@
+{
+  "altContacts": [],
+  "derived": {
+    "fields": {
+      "Importer": [
+        "phoneHash"
+      ],
+      "Operation": [
+        "worldEpoch",
+        "threadTag",
+        "threadAddress"
+      ],
+      "SupplierContact": [
+        "emailHash"
+      ]
+    },
+    "keys": "packages/bff/src/connector/item-shape.ts",
+    "threadAddressPlaceholder": "{threadAddress}",
+    "worldEpoch": "COUNTER#EPOCH#<clockId>"
+  },
+  "generatorVersion": "1.0.0",
+  "items": {
+    "AuditLog": [
+      {
+        "action": "READY_FOR_REVIEW",
+        "actor": "SYSTEM",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-09T11:05:00-03:00",
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ACTION",
+        "decisionId": "01M4GFPGQ0J5D8V3R760TA4X0A",
+        "entity": "Decision",
+        "evaluated": [],
+        "firmId": "firm-norte",
+        "month": "2026-10",
+        "operationId": "op-5505",
+        "refs": {
+          "operationId": "op-5505"
+        },
+        "ruleIds": [],
+        "synthetic": true,
+        "ts": "2026-10-09T14:05:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      }
+    ],
+    "Conversations": [],
+    "Firms": [
+      {
+        "active": true,
+        "businessHours": {
+          "from": "09:00",
+          "timezone": "America/Argentina/Buenos_Aires",
+          "to": "18:00",
+          "weekdays": [
+            "MON",
+            "TUE",
+            "WED",
+            "THU",
+            "FRI"
+          ]
+        },
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Firm",
+        "firmId": "firm-norte",
+        "kind": "DEMO",
+        "mailboxAddress": "estudio-norte@sim.legajo.demo.craftech.io",
+        "name": "Estudio Norte",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "assumptions": {
+          "demurrageUsdPerDay": {
+            "max": 180,
+            "min": 160
+          },
+          "freeDaysAtPort": 5,
+          "label": "supuesto",
+          "source": "Fuentes secundarias no verificadas"
+        },
+        "costBudgetUsdPerDossier": 2,
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "FirmSettings",
+        "firmId": "firm-norte",
+        "humanActionMinutes": {
+          "items": [
+            {
+              "action": "TAKE",
+              "label": "supuesto",
+              "minutes": 2
+            },
+            {
+              "action": "SEND",
+              "label": "supuesto",
+              "minutes": 3
+            },
+            {
+              "action": "WAIVE",
+              "label": "supuesto",
+              "minutes": 4
+            },
+            {
+              "action": "CLASSIFY",
+              "label": "supuesto",
+              "minutes": 4
+            },
+            {
+              "action": "APPROVE",
+              "label": "supuesto",
+              "minutes": 10
+            },
+            {
+              "action": "REOPEN",
+              "label": "supuesto",
+              "minutes": 5
+            }
+          ],
+          "label": "supuesto",
+          "source": "Estimación propia del equipo (editable), no una medición"
+        },
+        "manualBaseline": {
+          "items": [
+            {
+              "action": "Contactos por legajo",
+              "count": 8,
+              "label": "supuesto",
+              "minutes": 8
+            },
+            {
+              "action": "Revisión de documentos",
+              "count": 3,
+              "label": "supuesto",
+              "minutes": 7
+            },
+            {
+              "action": "Armado del legajo",
+              "count": 1,
+              "label": "supuesto",
+              "minutes": 10
+            }
+          ],
+          "label": "supuesto",
+          "source": "Estimación propia del equipo (editable), no una medición"
+        },
+        "synthetic": true,
+        "turnCaps": {
+          "perDay": 1000,
+          "perHour": 200
+        },
+        "untrustedSenderEmailsPerDay": 3,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "active": true,
+        "brokerId": "brk-norte-pablo",
+        "cognitoSub": "",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Broker",
+        "firmId": "firm-norte",
+        "name": "Pablo Giménez",
+        "role": "BROKER",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "checklistVersion": 1,
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Checklist",
+        "firmId": "firm-norte",
+        "items": [
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-01",
+            "required": true,
+            "text": "Número y fecha de emisión"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-02",
+            "required": true,
+            "text": "Razón social, domicilio y país del vendedor"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-03",
+            "required": true,
+            "text": "Razón social, CUIT y domicilio del comprador iguales a los del registro del importador en el estudio"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-04",
+            "required": true,
+            "text": "Incoterm y lugar convenido"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-05",
+            "required": true,
+            "text": "Moneda, cantidad, precio unitario y total de cada ítem, y total de la factura"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-06",
+            "required": true,
+            "text": "Descripción de la mercadería suficiente para identificarla"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-07",
+            "required": true,
+            "text": "País de origen de la mercadería"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-08",
+            "required": true,
+            "text": "Firma del vendedor (manuscrita o digital)"
+          }
+        ],
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "checklistVersion": 1,
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "PACKING_LIST",
+        "entity": "Checklist",
+        "firmId": "firm-norte",
+        "items": [
+          {
+            "docType": "PACKING_LIST",
+            "itemId": "PL-01",
+            "required": true,
+            "text": "Número de la factura comercial a la que corresponde"
+          },
+          {
+            "docType": "PACKING_LIST",
+            "itemId": "PL-02",
+            "required": true,
+            "text": "Cantidad y tipo de bultos, con marcas y números"
+          },
+          {
+            "docType": "PACKING_LIST",
+            "itemId": "PL-03",
+            "required": true,
+            "text": "Peso neto y bruto por bulto y totales, en kilogramos"
+          },
+          {
+            "docType": "PACKING_LIST",
+            "itemId": "PL-04",
+            "required": true,
+            "text": "Peso bruto total y cantidad de bultos iguales a los de la factura"
+          },
+          {
+            "docType": "PACKING_LIST",
+            "itemId": "PL-05",
+            "required": true,
+            "text": "Contenido de cada bulto"
+          }
+        ],
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "checklistVersion": 1,
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Checklist",
+        "firmId": "firm-norte",
+        "items": [
+          {
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "itemId": "CO-01",
+            "required": true,
+            "text": "Emitido por la entidad habilitada del país exportador"
+          },
+          {
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "itemId": "CO-02",
+            "required": true,
+            "text": "Firmado y sellado por la entidad emisora"
+          },
+          {
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "itemId": "CO-03",
+            "required": true,
+            "text": "Número y fecha de la factura comercial a la que se refiere"
+          },
+          {
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "itemId": "CO-04",
+            "required": true,
+            "text": "Descripción y cantidades iguales a las de la factura"
+          },
+          {
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "itemId": "CO-05",
+            "required": true,
+            "text": "País de origen declarado"
+          },
+          {
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "itemId": "CO-06",
+            "required": false,
+            "text": "El estudio confirma en cada operación si el certificado aplica y su vigencia"
+          }
+        ],
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "ResponsibilityMatrix",
+        "fallback": "BROKER",
+        "firmId": "firm-norte",
+        "matrixVersion": 1,
+        "rules": [
+          {
+            "code": "LOW_CONFIDENCE",
+            "docType": "ANY",
+            "responsible": "SENDER"
+          },
+          {
+            "code": "BUYER_DATA_MISMATCH",
+            "docType": "COMMERCIAL_INVOICE",
+            "responsible": "IMPORTER",
+            "then": "SUPPLIER"
+          },
+          {
+            "code": "INCOTERM_MISMATCH",
+            "docType": "COMMERCIAL_INVOICE",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "INVOICE_NUMBER_MISMATCH",
+            "docType": "COMMERCIAL_INVOICE",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "MISSING_SIGNATURE",
+            "docType": "COMMERCIAL_INVOICE",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "GROSS_WEIGHT_MISMATCH",
+            "docType": "PACKING_LIST",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "NET_WEIGHT_MISMATCH",
+            "docType": "PACKING_LIST",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "PACKAGES_MISMATCH",
+            "docType": "PACKING_LIST",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "INVOICE_NUMBER_MISMATCH",
+            "docType": "PACKING_LIST",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "MISSING_SIGNATURE",
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "MISSING_STAMP",
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "ORIGIN_MISMATCH",
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "INVOICE_NUMBER_MISMATCH",
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "responsible": "SUPPLIER"
+          }
+        ],
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      }
+    ],
+    "LegajoMetrics": [],
+    "Operations": [
+      {
+        "carrier": "Pacifica Container Lines",
+        "clockId": "GLOBAL#firm-norte",
+        "control": "AGENT",
+        "controlHistory": [
+          {
+            "atSim": "2026-09-23T11:00:00-03:00",
+            "by": "SEED",
+            "control": "AGENT"
+          }
+        ],
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dispatch": {
+          "history": [],
+          "status": "NONE"
+        },
+        "dossierHistory": [
+          {
+            "atSim": "2026-09-23T11:00:00-03:00",
+            "by": "SEED",
+            "status": "OPEN"
+          }
+        ],
+        "dossierStatus": "OPEN",
+        "entity": "Operation",
+        "eta": "2026-10-23T07:00:00-03:00",
+        "etaHistory": [
+          {
+            "atSim": "2026-09-23T11:00:00-03:00",
+            "eta": "2026-10-23T07:00:00-03:00",
+            "eventId": "evt_75AYH80MDN5N945KM7WTS06GKH",
+            "source": "SEED"
+          }
+        ],
+        "firmId": "firm-norte",
+        "importerId": "imp-altiplano",
+        "incoterm": "CIF",
+        "incotermPlace": "Buenos Aires",
+        "invoiceNumber": "EHT-56001",
+        "openedAtSim": "2026-09-23T11:00:00-03:00",
+        "operationId": "op-5501",
+        "operationNumber": "5501",
+        "portOfDischarge": "Buenos Aires",
+        "portOfLoading": "Hamburg",
+        "regime": "Importación para consumo",
+        "sessionEpoch": 0,
+        "simState": {
+          "injectionStep": 0,
+          "repliesSent": 0,
+          "versionsSent": {}
+        },
+        "supplierId": "sup-n-elbhafen",
+        "synthetic": true,
+        "templateOperation": "op-5501",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Pacifica Horizon"
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-5501-CI-1",
+        "currentVersion": 1,
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Document",
+        "operationId": "op-5501",
+        "receivedAtSim": "2026-09-23T14:00:00-03:00",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "PACKING_LIST",
+        "entity": "Document",
+        "operationId": "op-5501",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Document",
+        "operationId": "op-5501",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "COMMERCIAL_INVOICE",
+        "docVersionId": "dv-5501-CI-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-5501",
+        "readAtSim": "2026-09-23T14:01:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.99,
+          "docType": "COMMERCIAL_INVOICE",
+          "fields": {
+            "buyerName": "Altiplano Maquinarias SRL",
+            "buyerTaxId": "30-76410748-8",
+            "currency": "USD",
+            "documentNumber": "EHT-56001",
+            "grossWeightKg": 2750,
+            "incoterm": "CIF",
+            "invoiceNumber": "EHT-56001",
+            "issueDate": "2026-09-12",
+            "issuerName": "Elbhafen Tools GmbH",
+            "netWeightKg": 2640,
+            "originCountry": "Germany",
+            "packages": 110,
+            "signed": true,
+            "totalAmount": 20358.52
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-835bb4c08456f9805e21f33ca9c87607ad151c395996fed2af3f431c7e0ac2ae-dv-5501-CI-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-09-23T14:00:00-03:00",
+        "s3Key": "ops/op-5501/COMMERCIAL_INVOICE/v001-835bb4c0.pdf",
+        "sha256": "835bb4c08456f9805e21f33ca9c87607ad151c395996fed2af3f431c7e0ac2ae",
+        "sizeBytes": 2475,
+        "source": {
+          "channel": "CONSOLE",
+          "party": "BROKER"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-16T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5501",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "DOCS_REQUEST",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-18T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5501",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-20T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5501",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP_FINAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-21T10:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5501",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ESCALATION",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-23T10:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5501",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ARRIVAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "carrier": "Río Sur Shipping",
+        "clockId": "GLOBAL#firm-norte",
+        "control": "AGENT",
+        "controlHistory": [
+          {
+            "atSim": "2026-09-25T11:00:00-03:00",
+            "by": "SEED",
+            "control": "AGENT"
+          }
+        ],
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dispatch": {
+          "history": [],
+          "status": "NONE"
+        },
+        "dossierHistory": [
+          {
+            "atSim": "2026-09-25T11:00:00-03:00",
+            "by": "SEED",
+            "status": "OPEN"
+          }
+        ],
+        "dossierStatus": "OPEN",
+        "entity": "Operation",
+        "eta": "2026-10-25T10:00:00-03:00",
+        "etaHistory": [
+          {
+            "atSim": "2026-09-25T11:00:00-03:00",
+            "eta": "2026-10-25T10:00:00-03:00",
+            "eventId": "evt_VNV5Q090ECQRNV4QC7ANMZGAZQ",
+            "source": "SEED"
+          }
+        ],
+        "firmId": "firm-norte",
+        "importerId": "imp-quebrada",
+        "incoterm": "FOB",
+        "incotermPlace": "Shenzhen",
+        "invoiceNumber": "SZB-21210",
+        "openedAtSim": "2026-09-25T11:00:00-03:00",
+        "operationId": "op-5502",
+        "operationNumber": "5502",
+        "portOfDischarge": "Buenos Aires",
+        "portOfLoading": "Shenzhen",
+        "regime": "Importación para consumo",
+        "sessionEpoch": 0,
+        "simState": {
+          "injectionStep": 0,
+          "repliesSent": 0,
+          "versionsSent": {}
+        },
+        "supplierId": "sup-n-shenzhen",
+        "synthetic": true,
+        "templateOperation": "op-5502",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Río Sur Tern"
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Document",
+        "operationId": "op-5502",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "PACKING_LIST",
+        "entity": "Document",
+        "operationId": "op-5502",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Document",
+        "operationId": "op-5502",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-18T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5502",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "DOCS_REQUEST",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-20T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5502",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-22T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5502",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP_FINAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-23T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5502",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ESCALATION",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-25T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5502",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ARRIVAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "carrier": "Pacifica Container Lines",
+        "clockId": "GLOBAL#firm-norte",
+        "control": "AGENT",
+        "controlHistory": [
+          {
+            "atSim": "2026-09-29T11:00:00-03:00",
+            "by": "SEED",
+            "control": "AGENT"
+          }
+        ],
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dispatch": {
+          "history": [],
+          "status": "NONE"
+        },
+        "dossierHistory": [
+          {
+            "atSim": "2026-09-29T11:00:00-03:00",
+            "by": "SEED",
+            "status": "OPEN"
+          }
+        ],
+        "dossierStatus": "OPEN",
+        "entity": "Operation",
+        "eta": "2026-10-29T07:00:00-03:00",
+        "etaHistory": [
+          {
+            "atSim": "2026-09-29T11:00:00-03:00",
+            "eta": "2026-10-29T07:00:00-03:00",
+            "eventId": "evt_D5XMS5M04D8WJ6WC54JHQW29KJ",
+            "source": "SEED"
+          }
+        ],
+        "firmId": "firm-norte",
+        "importerId": "imp-altiplano",
+        "incoterm": "FOB",
+        "incotermPlace": "Ho Chi Minh City",
+        "invoiceNumber": "SRF-0501",
+        "openedAtSim": "2026-09-29T11:00:00-03:00",
+        "operationId": "op-5503",
+        "operationNumber": "5503",
+        "portOfDischarge": "Buenos Aires",
+        "portOfLoading": "Ho Chi Minh City",
+        "regime": "Importación para consumo",
+        "sessionEpoch": 0,
+        "simState": {
+          "injectionStep": 0,
+          "repliesSent": 0,
+          "versionsSent": {}
+        },
+        "supplierId": "sup-n-saigon",
+        "synthetic": true,
+        "templateOperation": "op-5503",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Pacifica Dawn"
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-5503-CI-1",
+        "currentVersion": 1,
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Document",
+        "operationId": "op-5503",
+        "receivedAtSim": "2026-09-29T14:00:00-03:00",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-5503-PL-1",
+        "currentVersion": 1,
+        "docType": "PACKING_LIST",
+        "entity": "Document",
+        "operationId": "op-5503",
+        "receivedAtSim": "2026-09-29T14:01:00-03:00",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Document",
+        "operationId": "op-5503",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "COMMERCIAL_INVOICE",
+        "docVersionId": "dv-5503-CI-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-5503",
+        "readAtSim": "2026-09-29T14:01:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.96,
+          "docType": "COMMERCIAL_INVOICE",
+          "fields": {
+            "buyerName": "Altiplano Maquinarias SRL",
+            "buyerTaxId": "30-76410748-8",
+            "currency": "USD",
+            "documentNumber": "SRF-0501",
+            "grossWeightKg": 7200,
+            "incoterm": "FOB",
+            "invoiceNumber": "SRF-0501",
+            "issueDate": "2026-10-02",
+            "issuerName": "Saigon Riverline Furniture JSC",
+            "netWeightKg": 6480,
+            "originCountry": "Vietnam",
+            "packages": 120,
+            "signed": true,
+            "totalAmount": 15014.4
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-b405b93f7b14114d6294eb5e78dcf6b7b6c454397e23ddcd91bbd7f9e2cb6647-dv-5503-CI-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-09-29T14:00:00-03:00",
+        "s3Key": "ops/op-5503/COMMERCIAL_INVOICE/v001-b405b93f.pdf",
+        "sha256": "b405b93f7b14114d6294eb5e78dcf6b7b6c454397e23ddcd91bbd7f9e2cb6647",
+        "sizeBytes": 2405,
+        "source": {
+          "channel": "CONSOLE",
+          "party": "BROKER"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "PACKING_LIST",
+        "docVersionId": "dv-5503-PL-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-5503",
+        "readAtSim": "2026-09-29T14:02:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.96,
+          "docType": "PACKING_LIST",
+          "fields": {
+            "buyerName": "Altiplano Maquinarias SRL",
+            "documentNumber": "PL-SRF-0501",
+            "grossWeightKg": 7200,
+            "invoiceNumber": "SRF-0501",
+            "issueDate": "2026-10-02",
+            "issuerName": "Saigon Riverline Furniture JSC",
+            "netWeightKg": 6480,
+            "packages": 120
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-4427e30a734788d642903a5a526b804e1c6f12100ed7a3ddce77060189d08deb-dv-5503-PL-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-09-29T14:01:00-03:00",
+        "s3Key": "ops/op-5503/PACKING_LIST/v001-4427e30a.pdf",
+        "sha256": "4427e30a734788d642903a5a526b804e1c6f12100ed7a3ddce77060189d08deb",
+        "sizeBytes": 1922,
+        "source": {
+          "channel": "EMAIL",
+          "contactId": "ctc-n-saigon-1",
+          "party": "SUPPLIER"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-22T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5503",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "DOCS_REQUEST",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-24T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5503",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-26T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5503",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP_FINAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-27T10:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5503",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ESCALATION",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-29T10:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5503",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ARRIVAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "carrier": "Austral Line",
+        "clockId": "GLOBAL#firm-norte",
+        "control": "AGENT",
+        "controlHistory": [
+          {
+            "atSim": "2026-10-05T11:00:00-03:00",
+            "by": "SEED",
+            "control": "AGENT"
+          }
+        ],
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dispatch": {
+          "history": [],
+          "status": "NONE"
+        },
+        "dossierHistory": [
+          {
+            "atSim": "2026-10-05T11:00:00-03:00",
+            "by": "SEED",
+            "status": "OPEN"
+          }
+        ],
+        "dossierStatus": "OPEN",
+        "entity": "Operation",
+        "eta": "2026-11-04T06:00:00-03:00",
+        "etaHistory": [
+          {
+            "atSim": "2026-10-05T11:00:00-03:00",
+            "eta": "2026-11-04T06:00:00-03:00",
+            "eventId": "evt_NHQ6XKJBWQT7Z0WS4NAZ5KMZKC",
+            "source": "SEED"
+          }
+        ],
+        "firmId": "firm-norte",
+        "importerId": "imp-quebrada",
+        "incoterm": "FOB",
+        "incotermPlace": "Qingdao",
+        "invoiceNumber": "QBT-2026-1100",
+        "openedAtSim": "2026-10-05T11:00:00-03:00",
+        "operationId": "op-5504",
+        "operationNumber": "5504",
+        "portOfDischarge": "Buenos Aires",
+        "portOfLoading": "Qingdao",
+        "regime": "Importación para consumo",
+        "sessionEpoch": 0,
+        "simState": {
+          "injectionStep": 0,
+          "repliesSent": 0,
+          "versionsSent": {}
+        },
+        "supplierId": "sup-n-qingdao",
+        "synthetic": true,
+        "templateOperation": "op-5504",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Austral Meridian"
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Document",
+        "operationId": "op-5504",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "PACKING_LIST",
+        "entity": "Document",
+        "operationId": "op-5504",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Document",
+        "operationId": "op-5504",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-28T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5504",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "DOCS_REQUEST",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-30T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5504",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-11-01T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5504",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP_FINAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-11-02T09:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5504",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ESCALATION",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-11-04T09:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5504",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ARRIVAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "carrier": "Austral Line",
+        "clockId": "GLOBAL#firm-norte",
+        "control": "AGENT",
+        "controlHistory": [
+          {
+            "atSim": "2026-09-21T11:00:00-03:00",
+            "by": "SEED",
+            "control": "AGENT"
+          }
+        ],
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dispatch": {
+          "history": [],
+          "status": "NONE"
+        },
+        "dossierHistory": [
+          {
+            "atSim": "2026-09-21T11:00:00-03:00",
+            "by": "SEED",
+            "status": "OPEN"
+          },
+          {
+            "atSim": "2026-10-09T11:05:00-03:00",
+            "by": "SYSTEM",
+            "status": "READY_FOR_REVIEW"
+          }
+        ],
+        "dossierStatus": "READY_FOR_REVIEW",
+        "entity": "Operation",
+        "eta": "2026-10-18T08:00:00-03:00",
+        "etaHistory": [
+          {
+            "atSim": "2026-09-21T11:00:00-03:00",
+            "eta": "2026-10-18T08:00:00-03:00",
+            "eventId": "evt_E951XFKTX5WTEK9TGX9576M4R2",
+            "source": "SEED"
+          }
+        ],
+        "firmId": "firm-norte",
+        "importerId": "imp-altiplano",
+        "incoterm": "CIF",
+        "incotermPlace": "Buenos Aires",
+        "invoiceNumber": "EHT-55950",
+        "openedAtSim": "2026-09-21T11:00:00-03:00",
+        "operationId": "op-5505",
+        "operationNumber": "5505",
+        "portOfDischarge": "Buenos Aires",
+        "portOfLoading": "Hamburg",
+        "regime": "Importación para consumo",
+        "sessionEpoch": 0,
+        "simState": {
+          "injectionStep": 0,
+          "repliesSent": 0,
+          "versionsSent": {}
+        },
+        "supplierId": "sup-n-elbhafen",
+        "synthetic": true,
+        "templateOperation": "op-5505",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Austral Aurora"
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-5505-CI-1",
+        "currentVersion": 1,
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Document",
+        "operationId": "op-5505",
+        "receivedAtSim": "2026-10-09T11:00:00-03:00",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-5505-PL-1",
+        "currentVersion": 1,
+        "docType": "PACKING_LIST",
+        "entity": "Document",
+        "operationId": "op-5505",
+        "receivedAtSim": "2026-10-09T11:01:00-03:00",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-5505-CO-1",
+        "currentVersion": 1,
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Document",
+        "operationId": "op-5505",
+        "receivedAtSim": "2026-10-09T11:02:00-03:00",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "COMMERCIAL_INVOICE",
+        "docVersionId": "dv-5505-CI-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-5505",
+        "readAtSim": "2026-10-09T11:01:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.99,
+          "docType": "COMMERCIAL_INVOICE",
+          "fields": {
+            "buyerName": "Altiplano Maquinarias SRL",
+            "buyerTaxId": "30-76410748-8",
+            "currency": "USD",
+            "documentNumber": "EHT-55950",
+            "grossWeightKg": 1820,
+            "incoterm": "CIF",
+            "invoiceNumber": "EHT-55950",
+            "issueDate": "2026-09-08",
+            "issuerName": "Elbhafen Tools GmbH",
+            "netWeightKg": 1680,
+            "originCountry": "Germany",
+            "packages": 140,
+            "signed": true,
+            "totalAmount": 43223
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-9b7ea2caed42dc6ff0b04f7ae09181496c4c7e23375afaf47cc2eaab2dd74982-dv-5505-CI-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-10-09T11:00:00-03:00",
+        "s3Key": "ops/op-5505/COMMERCIAL_INVOICE/v001-9b7ea2ca.pdf",
+        "sha256": "9b7ea2caed42dc6ff0b04f7ae09181496c4c7e23375afaf47cc2eaab2dd74982",
+        "sizeBytes": 2491,
+        "source": {
+          "channel": "CONSOLE",
+          "party": "BROKER"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "PACKING_LIST",
+        "docVersionId": "dv-5505-PL-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-5505",
+        "readAtSim": "2026-10-09T11:02:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.93,
+          "docType": "PACKING_LIST",
+          "fields": {
+            "buyerName": "Altiplano Maquinarias SRL",
+            "documentNumber": "PL-EHT-55950",
+            "grossWeightKg": 1820,
+            "invoiceNumber": "EHT-55950",
+            "issueDate": "2026-09-08",
+            "issuerName": "Elbhafen Tools GmbH",
+            "netWeightKg": 1680,
+            "packages": 140
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-9c0e917b1fee6235a63cb9eb9a2e4bce739b5f3effa2a28d80e31a16252e2a39-dv-5505-PL-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-10-09T11:01:00-03:00",
+        "s3Key": "ops/op-5505/PACKING_LIST/v001-9c0e917b.pdf",
+        "sha256": "9c0e917b1fee6235a63cb9eb9a2e4bce739b5f3effa2a28d80e31a16252e2a39",
+        "sizeBytes": 2056,
+        "source": {
+          "channel": "CONSOLE",
+          "party": "BROKER"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "docVersionId": "dv-5505-CO-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-5505",
+        "readAtSim": "2026-10-09T11:03:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.95,
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "fields": {
+            "buyerName": "Altiplano Maquinarias SRL",
+            "documentNumber": "SCC-2026-63953",
+            "invoiceNumber": "EHT-55950",
+            "issueDate": "2026-09-10",
+            "issuerName": "Elbhafen Tools GmbH",
+            "issuingBody": "Synthetic Chamber of Commerce (fictitious)",
+            "originCountry": "Germany",
+            "signed": true,
+            "stamped": true
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-e7f1ffa2414e2600ea182b8adb2c13d77ea0bc421817b440ee915e8ac8e86aa7-dv-5505-CO-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-10-09T11:02:00-03:00",
+        "s3Key": "ops/op-5505/CERTIFICATE_OF_ORIGIN/v001-e7f1ffa2.pdf",
+        "sha256": "e7f1ffa2414e2600ea182b8adb2c13d77ea0bc421817b440ee915e8ac8e86aa7",
+        "sizeBytes": 2144,
+        "source": {
+          "channel": "CONSOLE",
+          "party": "BROKER"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-11T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5505",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "DOCS_REQUEST",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-13T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5505",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-15T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5505",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP_FINAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-16T11:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5505",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "ESCALATION",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-18T11:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5505",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "ARRIVAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "carrier": "Pacifica Container Lines",
+        "clockId": "GLOBAL#firm-norte",
+        "control": "AGENT",
+        "controlHistory": [
+          {
+            "atSim": "2026-10-13T11:00:00-03:00",
+            "by": "SEED",
+            "control": "AGENT"
+          }
+        ],
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dispatch": {
+          "history": [],
+          "status": "NONE"
+        },
+        "dossierHistory": [
+          {
+            "atSim": "2026-10-13T11:00:00-03:00",
+            "by": "SEED",
+            "status": "OPEN"
+          }
+        ],
+        "dossierStatus": "OPEN",
+        "entity": "Operation",
+        "eta": "2026-11-12T07:00:00-03:00",
+        "etaHistory": [
+          {
+            "atSim": "2026-10-13T11:00:00-03:00",
+            "eta": "2026-11-12T07:00:00-03:00",
+            "eventId": "evt_GE6JGEQSZPMYNN8Q048KQ2AT7F",
+            "source": "SEED"
+          }
+        ],
+        "firmId": "firm-norte",
+        "importerId": "imp-quebrada",
+        "incoterm": "FOB",
+        "incotermPlace": "Shenzhen",
+        "invoiceNumber": "SZB-21300",
+        "openedAtSim": "2026-10-13T11:00:00-03:00",
+        "operationId": "op-5506",
+        "operationNumber": "5506",
+        "portOfDischarge": "Buenos Aires",
+        "portOfLoading": "Shenzhen",
+        "regime": "Importación para consumo",
+        "sessionEpoch": 0,
+        "simState": {
+          "injectionStep": 0,
+          "repliesSent": 0,
+          "versionsSent": {}
+        },
+        "supplierId": "sup-n-shenzhen",
+        "synthetic": true,
+        "templateOperation": "op-5506",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Pacifica Horizon"
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Document",
+        "operationId": "op-5506",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "PACKING_LIST",
+        "entity": "Document",
+        "operationId": "op-5506",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Document",
+        "operationId": "op-5506",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-11-05T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5506",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "DOCS_REQUEST",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-11-07T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5506",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-11-09T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5506",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP_FINAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-11-10T10:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5506",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ESCALATION",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-11-12T10:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-5506",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ARRIVAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      }
+    ],
+    "Parties": [
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "contactFirstName": "Rocío",
+        "contactName": "Rocío Vera",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Importer",
+        "firmId": "firm-norte",
+        "importerId": "imp-altiplano",
+        "language": "es",
+        "name": "Altiplano Maquinarias SRL",
+        "phoneE164": "+54911555000201",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "channel": "WHATSAPP",
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Consent",
+        "firmId": "firm-norte",
+        "grantedAt": "2026-10-02T11:00:00-03:00",
+        "history": [
+          {
+            "action": "GRANTED",
+            "atSim": "2026-10-02T11:00:00-03:00",
+            "by": "SEED",
+            "medium": "SIGNED_FORM",
+            "textVersion": "v1"
+          }
+        ],
+        "importerId": "imp-altiplano",
+        "medium": "SIGNED_FORM",
+        "synthetic": true,
+        "textVersion": "v1",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "contactFirstName": "Julián",
+        "contactName": "Julián Ortiz",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Importer",
+        "firmId": "firm-norte",
+        "importerId": "imp-quebrada",
+        "language": "es",
+        "name": "Quebrada Alimentos SA",
+        "phoneE164": "+54911555000202",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "channel": "WHATSAPP",
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Consent",
+        "firmId": "firm-norte",
+        "grantedAt": "2026-10-02T15:00:00-03:00",
+        "history": [
+          {
+            "action": "GRANTED",
+            "atSim": "2026-10-02T15:00:00-03:00",
+            "by": "SEED",
+            "medium": "EMAIL",
+            "textVersion": "v1"
+          }
+        ],
+        "importerId": "imp-quebrada",
+        "medium": "EMAIL",
+        "synthetic": true,
+        "textVersion": "v1",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "authorized": true,
+        "authorizedAt": "2026-10-02T11:00:00-03:00",
+        "brokerId": "brk-norte-pablo",
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierAuthorization",
+        "firmId": "firm-norte",
+        "history": [
+          {
+            "action": "AUTHORIZED",
+            "atSim": "2026-10-02T11:00:00-03:00",
+            "by": "BROKER:brk-norte-pablo"
+          }
+        ],
+        "importerId": "imp-altiplano",
+        "supplierId": "sup-n-elbhafen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "authorized": true,
+        "authorizedAt": "2026-10-02T11:00:00-03:00",
+        "brokerId": "brk-norte-pablo",
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierAuthorization",
+        "firmId": "firm-norte",
+        "history": [
+          {
+            "action": "AUTHORIZED",
+            "atSim": "2026-10-02T11:00:00-03:00",
+            "by": "BROKER:brk-norte-pablo"
+          }
+        ],
+        "importerId": "imp-altiplano",
+        "supplierId": "sup-n-saigon",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "authorized": true,
+        "authorizedAt": "2026-10-02T15:00:00-03:00",
+        "brokerId": "brk-norte-pablo",
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierAuthorization",
+        "firmId": "firm-norte",
+        "history": [
+          {
+            "action": "AUTHORIZED",
+            "atSim": "2026-10-02T15:00:00-03:00",
+            "by": "BROKER:brk-norte-pablo"
+          }
+        ],
+        "importerId": "imp-quebrada",
+        "supplierId": "sup-n-shenzhen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "authorized": true,
+        "authorizedAt": "2026-10-02T15:00:00-03:00",
+        "brokerId": "brk-norte-pablo",
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierAuthorization",
+        "firmId": "firm-norte",
+        "history": [
+          {
+            "action": "AUTHORIZED",
+            "atSim": "2026-10-02T15:00:00-03:00",
+            "by": "BROKER:brk-norte-pablo"
+          }
+        ],
+        "importerId": "imp-quebrada",
+        "supplierId": "sup-n-qingdao",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "behaviour": "PROMPT",
+        "behaviourParams": {},
+        "clockId": "GLOBAL#firm-norte",
+        "country": "DE",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Supplier",
+        "firmId": "firm-norte",
+        "language": "en",
+        "name": "Elbhafen Tools GmbH",
+        "supplierId": "sup-n-elbhafen",
+        "synthetic": true,
+        "timezone": "Europe/Berlin",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "confirmedAt": "2026-09-22T11:00:00-03:00",
+        "confirmedBy": "SEED",
+        "contactId": "ctc-n-elbhafen-1",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "email": "supplier-n-elbhafen@sim.legajo.demo.craftech.io",
+        "entity": "SupplierContact",
+        "firmId": "firm-norte",
+        "status": "ACTIVE",
+        "statusHistory": [
+          {
+            "atSim": "2026-09-22T11:00:00-03:00",
+            "by": "SEED",
+            "reason": "registered by the firm",
+            "status": "ACTIVE"
+          }
+        ],
+        "supplierId": "sup-n-elbhafen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "bounces": 0,
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierProfile",
+        "firmId": "firm-norte",
+        "lateDocTypes": [],
+        "medianReplyHours": 0.9,
+        "repliesMeasured": 6,
+        "supplierId": "sup-n-elbhafen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "workingContactId": "ctc-n-elbhafen-1"
+      },
+      {
+        "behaviour": "PROMPT",
+        "behaviourParams": {},
+        "clockId": "GLOBAL#firm-norte",
+        "country": "CN",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Supplier",
+        "firmId": "firm-norte",
+        "language": "en",
+        "name": "Shenzhen Brightpath Electronics Co.",
+        "supplierId": "sup-n-shenzhen",
+        "synthetic": true,
+        "timezone": "Asia/Shanghai",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "confirmedAt": "2026-09-22T11:00:00-03:00",
+        "confirmedBy": "SEED",
+        "contactId": "ctc-n-shenzhen-1",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "email": "supplier-n-shenzhen@sim.legajo.demo.craftech.io",
+        "entity": "SupplierContact",
+        "firmId": "firm-norte",
+        "status": "ACTIVE",
+        "statusHistory": [
+          {
+            "atSim": "2026-09-22T11:00:00-03:00",
+            "by": "SEED",
+            "reason": "registered by the firm",
+            "status": "ACTIVE"
+          }
+        ],
+        "supplierId": "sup-n-shenzhen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "bounces": 0,
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierProfile",
+        "firmId": "firm-norte",
+        "lateDocTypes": [],
+        "medianReplyHours": 1.6,
+        "repliesMeasured": 6,
+        "supplierId": "sup-n-shenzhen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "workingContactId": "ctc-n-shenzhen-1"
+      },
+      {
+        "behaviour": "LATE",
+        "behaviourParams": {
+          "delayHours": 30
+        },
+        "clockId": "GLOBAL#firm-norte",
+        "country": "VN",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Supplier",
+        "firmId": "firm-norte",
+        "language": "en",
+        "name": "Saigon Riverline Furniture JSC",
+        "supplierId": "sup-n-saigon",
+        "synthetic": true,
+        "timezone": "Asia/Ho_Chi_Minh",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "confirmedAt": "2026-09-22T11:00:00-03:00",
+        "confirmedBy": "SEED",
+        "contactId": "ctc-n-saigon-1",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "email": "supplier-n-saigon@sim.legajo.demo.craftech.io",
+        "entity": "SupplierContact",
+        "firmId": "firm-norte",
+        "status": "ACTIVE",
+        "statusHistory": [
+          {
+            "atSim": "2026-09-22T11:00:00-03:00",
+            "by": "SEED",
+            "reason": "registered by the firm",
+            "status": "ACTIVE"
+          }
+        ],
+        "supplierId": "sup-n-saigon",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "bounces": 0,
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierProfile",
+        "firmId": "firm-norte",
+        "lateDocTypes": [
+          "PACKING_LIST"
+        ],
+        "medianReplyHours": 32.4,
+        "repliesMeasured": 6,
+        "supplierId": "sup-n-saigon",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "workingContactId": "ctc-n-saigon-1"
+      },
+      {
+        "behaviour": "SEEDED_ERROR",
+        "behaviourParams": {},
+        "clockId": "GLOBAL#firm-norte",
+        "country": "CN",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Supplier",
+        "firmId": "firm-norte",
+        "language": "en",
+        "name": "Qingdao Bluewave Textiles Co., Ltd.",
+        "supplierId": "sup-n-qingdao",
+        "synthetic": true,
+        "timezone": "Asia/Shanghai",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "clockId": "GLOBAL#firm-norte",
+        "confirmedAt": "2026-09-22T11:00:00-03:00",
+        "confirmedBy": "SEED",
+        "contactId": "ctc-n-qingdao-1",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "email": "supplier-n-qingdao@sim.legajo.demo.craftech.io",
+        "entity": "SupplierContact",
+        "firmId": "firm-norte",
+        "status": "ACTIVE",
+        "statusHistory": [
+          {
+            "atSim": "2026-09-22T11:00:00-03:00",
+            "by": "SEED",
+            "reason": "registered by the firm",
+            "status": "ACTIVE"
+          }
+        ],
+        "supplierId": "sup-n-qingdao",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1
+      },
+      {
+        "bounces": 0,
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierProfile",
+        "firmId": "firm-norte",
+        "lateDocTypes": [],
+        "medianReplyHours": 1.5,
+        "repliesMeasured": 6,
+        "supplierId": "sup-n-qingdao",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "workingContactId": "ctc-n-qingdao-1"
+      }
+    ],
+    "Platform": [
+      {
+        "PK": "POP#firm-norte#5501",
+        "SK": "META",
+        "carrier": "Pacifica Container Lines",
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "customs": {
+          "status": "NONE"
+        },
+        "documents": {
+          "CERTIFICATE_OF_ORIGIN": "MISSING",
+          "COMMERCIAL_INVOICE": "VALID",
+          "PACKING_LIST": "MISSING"
+        },
+        "entity": "PlatformOperation",
+        "eta": "2026-10-23T07:00:00-03:00",
+        "firmId": "firm-norte",
+        "importerId": "imp-altiplano",
+        "incoterm": "CIF",
+        "incotermPlace": "Buenos Aires",
+        "invoiceNumber": "EHT-56001",
+        "operationNumber": "5501",
+        "port": "Buenos Aires",
+        "regime": "Importación para consumo",
+        "supplierId": "sup-n-elbhafen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Pacifica Horizon"
+      },
+      {
+        "PK": "POP#firm-norte#5502",
+        "SK": "META",
+        "carrier": "Río Sur Shipping",
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "customs": {
+          "status": "NONE"
+        },
+        "documents": {
+          "CERTIFICATE_OF_ORIGIN": "MISSING",
+          "COMMERCIAL_INVOICE": "MISSING",
+          "PACKING_LIST": "MISSING"
+        },
+        "entity": "PlatformOperation",
+        "eta": "2026-10-25T10:00:00-03:00",
+        "firmId": "firm-norte",
+        "importerId": "imp-quebrada",
+        "incoterm": "FOB",
+        "incotermPlace": "Shenzhen",
+        "invoiceNumber": "SZB-21210",
+        "operationNumber": "5502",
+        "port": "Buenos Aires",
+        "regime": "Importación para consumo",
+        "supplierId": "sup-n-shenzhen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Río Sur Tern"
+      },
+      {
+        "PK": "POP#firm-norte#5503",
+        "SK": "META",
+        "carrier": "Pacifica Container Lines",
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "customs": {
+          "status": "NONE"
+        },
+        "documents": {
+          "CERTIFICATE_OF_ORIGIN": "MISSING",
+          "COMMERCIAL_INVOICE": "VALID",
+          "PACKING_LIST": "VALID"
+        },
+        "entity": "PlatformOperation",
+        "eta": "2026-10-29T07:00:00-03:00",
+        "firmId": "firm-norte",
+        "importerId": "imp-altiplano",
+        "incoterm": "FOB",
+        "incotermPlace": "Ho Chi Minh City",
+        "invoiceNumber": "SRF-0501",
+        "operationNumber": "5503",
+        "port": "Buenos Aires",
+        "regime": "Importación para consumo",
+        "supplierId": "sup-n-saigon",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Pacifica Dawn"
+      },
+      {
+        "PK": "POP#firm-norte#5504",
+        "SK": "META",
+        "carrier": "Austral Line",
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "customs": {
+          "status": "NONE"
+        },
+        "documents": {
+          "CERTIFICATE_OF_ORIGIN": "MISSING",
+          "COMMERCIAL_INVOICE": "MISSING",
+          "PACKING_LIST": "MISSING"
+        },
+        "entity": "PlatformOperation",
+        "eta": "2026-11-04T06:00:00-03:00",
+        "firmId": "firm-norte",
+        "importerId": "imp-quebrada",
+        "incoterm": "FOB",
+        "incotermPlace": "Qingdao",
+        "invoiceNumber": "QBT-2026-1100",
+        "operationNumber": "5504",
+        "port": "Buenos Aires",
+        "regime": "Importación para consumo",
+        "supplierId": "sup-n-qingdao",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Austral Meridian"
+      },
+      {
+        "PK": "POP#firm-norte#5505",
+        "SK": "META",
+        "carrier": "Austral Line",
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "customs": {
+          "status": "NONE"
+        },
+        "documents": {
+          "CERTIFICATE_OF_ORIGIN": "VALID",
+          "COMMERCIAL_INVOICE": "VALID",
+          "PACKING_LIST": "VALID"
+        },
+        "entity": "PlatformOperation",
+        "eta": "2026-10-18T08:00:00-03:00",
+        "firmId": "firm-norte",
+        "importerId": "imp-altiplano",
+        "incoterm": "CIF",
+        "incotermPlace": "Buenos Aires",
+        "invoiceNumber": "EHT-55950",
+        "operationNumber": "5505",
+        "port": "Buenos Aires",
+        "regime": "Importación para consumo",
+        "supplierId": "sup-n-elbhafen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Austral Aurora"
+      },
+      {
+        "PK": "POP#firm-norte#5506",
+        "SK": "META",
+        "carrier": "Pacifica Container Lines",
+        "clockId": "GLOBAL#firm-norte",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "customs": {
+          "status": "NONE"
+        },
+        "documents": {
+          "CERTIFICATE_OF_ORIGIN": "MISSING",
+          "COMMERCIAL_INVOICE": "MISSING",
+          "PACKING_LIST": "MISSING"
+        },
+        "entity": "PlatformOperation",
+        "eta": "2026-11-12T07:00:00-03:00",
+        "firmId": "firm-norte",
+        "importerId": "imp-quebrada",
+        "incoterm": "FOB",
+        "incotermPlace": "Shenzhen",
+        "invoiceNumber": "SZB-21300",
+        "operationNumber": "5506",
+        "port": "Buenos Aires",
+        "regime": "Importación para consumo",
+        "supplierId": "sup-n-shenzhen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Pacifica Horizon"
+      }
+    ]
+  },
+  "operations": [
+    {
+      "clockId": "GLOBAL#firm-norte",
+      "dossierStatus": "OPEN",
+      "firmId": "firm-norte",
+      "importerId": "imp-altiplano",
+      "model": "op-5501",
+      "operationId": "op-5501",
+      "operationNumber": "5501",
+      "supplierId": "sup-n-elbhafen"
+    },
+    {
+      "clockId": "GLOBAL#firm-norte",
+      "dossierStatus": "OPEN",
+      "firmId": "firm-norte",
+      "importerId": "imp-quebrada",
+      "model": "op-5502",
+      "operationId": "op-5502",
+      "operationNumber": "5502",
+      "supplierId": "sup-n-shenzhen"
+    },
+    {
+      "clockId": "GLOBAL#firm-norte",
+      "dossierStatus": "OPEN",
+      "firmId": "firm-norte",
+      "importerId": "imp-altiplano",
+      "model": "op-5503",
+      "operationId": "op-5503",
+      "operationNumber": "5503",
+      "supplierId": "sup-n-saigon"
+    },
+    {
+      "clockId": "GLOBAL#firm-norte",
+      "dossierStatus": "OPEN",
+      "firmId": "firm-norte",
+      "importerId": "imp-quebrada",
+      "model": "op-5504",
+      "operationId": "op-5504",
+      "operationNumber": "5504",
+      "supplierId": "sup-n-qingdao"
+    },
+    {
+      "clockId": "GLOBAL#firm-norte",
+      "dossierStatus": "READY_FOR_REVIEW",
+      "firmId": "firm-norte",
+      "importerId": "imp-altiplano",
+      "model": "op-5505",
+      "operationId": "op-5505",
+      "operationNumber": "5505",
+      "supplierId": "sup-n-elbhafen"
+    },
+    {
+      "clockId": "GLOBAL#firm-norte",
+      "dossierStatus": "OPEN",
+      "firmId": "firm-norte",
+      "importerId": "imp-quebrada",
+      "model": "op-5506",
+      "operationId": "op-5506",
+      "operationNumber": "5506",
+      "supplierId": "sup-n-shenzhen"
+    }
+  ],
+  "seed": 20260925,
+  "source": {
+    "clockId": "GLOBAL#firm-norte",
+    "firmId": "firm-norte",
+    "firmKind": "DEMO"
+  },
+  "startAtSim": "2026-10-14T10:30:00-03:00",
+  "template": "demo-firm-norte"
+}

@@ -75,7 +75,7 @@ export const TEMPLATES: Readonly<Record<WhatsAppTemplateName, TemplateDefinition
     "legajo_contacto_proveedor",
     "CONTACT_REQUEST",
     "Operación {{1}}: no pudimos entregar el correo a tu proveedor ({{2}}). ¿Nos pasás otro contacto?",
-    [operationNumber, { name: "supplierName", example: "Konkan Chemicals Pvt Ltd" }],
+    [operationNumber, { name: "supplierName", example: "Konkanshore Specialty Chemicals Pvt Ltd" }],
     [otherContactButton, talkToFirmButton],
   ),
   legajo_nuevo_plazo: template(

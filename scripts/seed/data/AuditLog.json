@@ -1,0 +1,3545 @@
+{
+  "count": 46,
+  "generatedAt": "2026-09-25T12:00:00.000Z",
+  "items": [
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-12T13:00:00.000Z#01M4R35N401VQDEPF7ZMEHEHCX",
+      "action": "SEND_WHATSAPP",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-12T10:00:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "DEFER",
+      "decisionId": "01M4R35N401VQDEPF7ZMEHEHCX",
+      "decisionKey": "FIRM#firm-delta#DEFER",
+      "detail": {
+        "kind": "DOCS_REQUEST",
+        "nextAllowedAt": "2026-10-13T09:00:00-03:00"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DOCS_REQUEST goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "outside Buenos Aires business hours: deferred to 2026-10-13T09:00:00-03:00",
+          "result": "DEFER",
+          "ruleId": "CP-HOURS-AR"
+        }
+      ],
+      "firmId": "firm-delta",
+      "month": "2026-10",
+      "opKey": "OP#op-4478",
+      "operationId": "op-4478",
+      "refs": {
+        "operationId": "op-4478",
+        "timerKey": "TIMER#DEFERRED_SEND#deferred-4478-1"
+      },
+      "ruleIds": [
+        "CP-HOURS-AR"
+      ],
+      "synthetic": true,
+      "trigger": "MILESTONE",
+      "ts": "2026-10-12T13:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T12:00:00.000Z#01M4TJ4GG053D0QAA343AR06E6",
+      "action": "SEND_WHATSAPP",
+      "actor": "SYSTEM",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T09:00:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4TJ4GG053D0QAA343AR06E6",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "kind": "DOCS_REQUEST"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DOCS_REQUEST goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "first request or reminder of the day for this contact",
+          "result": "PASS",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M4TJ4GG0D26M27YTXJJHMWCR",
+      "month": "2026-10",
+      "opKey": "OP#op-4478",
+      "operationId": "op-4478",
+      "refs": {
+        "messageId": "msg-01M4TJ4GG0D26M27YTXJJHMWCR",
+        "operationId": "op-4478"
+      },
+      "ruleIds": [
+        "CP-CONTROL-BROKER",
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-ONE-PER-DAY",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "MILESTONE",
+      "ts": "2026-10-13T12:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T12:06:00.000Z#01M4TJFG204J5HE2KC14FJW970",
+      "action": "SEND_WHATSAPP",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T09:06:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4TJFG204J5HE2KC14FJW970",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "answers": "msg-01M4TJDNF0JZTTP5DH6HCKSVHE",
+        "kind": "CONTACT_CONFIRMATION"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "CONTACT_CONFIRMATION goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "a reply to the importer is exempt",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no link or contact outside the turn's",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M4TJFG203E70VZ083VVMPX5Y",
+      "month": "2026-10",
+      "opKey": "OP#op-4478",
+      "operationId": "op-4478",
+      "refs": {
+        "messageId": "msg-01M4TJFG203E70VZ083VVMPX5Y",
+        "operationId": "op-4478"
+      },
+      "ruleIds": [
+        "CP-CONTROL-BROKER",
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "IMPORTER_MESSAGE",
+      "ts": "2026-10-13T12:06:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T12:15:00.000Z#01M4TJZZD0DV3YCERFG3J4TEKC",
+      "action": "CONTACT_CONFIRMED",
+      "actor": "IMPORTER",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T09:15:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4TJZZD0DV3YCERFG3J4TEKC",
+      "decisionKey": "FIRM#firm-delta#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-delta",
+      "month": "2026-10",
+      "opKey": "OP#op-4478",
+      "operationId": "op-4478",
+      "refs": {
+        "contactId": "ctc-ligurmare-1",
+        "operationId": "op-4478"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-13T12:15:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T12:20:00.000Z#01M4TK94C0R742MFF2Q1YYRSHY",
+      "action": "SEND_EMAIL",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T09:20:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4TK94C0R742MFF2Q1YYRSHY",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "kind": "DOCS_REQUEST"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DOCS_REQUEST goes to the supplier by email",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "a registered contact inside the SYSTEM fence",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "only WhatsApp to the importer",
+          "result": "SKIP",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "only WhatsApp to the importer",
+          "result": "SKIP",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "authorized, confirmed and active contact, inside the supplier's hours",
+          "result": "PASS",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "authorized, confirmed and active contact, inside the supplier's hours",
+          "result": "PASS",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "only WhatsApp to the importer",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "authorized, confirmed and active contact, inside the supplier's hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "first request or reminder of the day for this contact",
+          "result": "PASS",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "only WhatsApp to the importer",
+          "result": "SKIP",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no link or contact outside the turn's",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M4TK94C049V57GN7NF06AR34",
+      "month": "2026-10",
+      "opKey": "OP#op-4478",
+      "operationId": "op-4478",
+      "refs": {
+        "contactId": "ctc-ligurmare-1",
+        "messageId": "msg-01M4TK94C049V57GN7NF06AR34",
+        "operationId": "op-4478"
+      },
+      "ruleIds": [
+        "CP-CONTROL-BROKER",
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-SUPPLIER-AUTH",
+        "CP-BOUNCED-CONTACT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-SUPPLIER",
+        "CP-ONE-PER-DAY",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "CONTACT_CONFIRMED",
+      "ts": "2026-10-13T12:20:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T12:21:00.000Z#01M4TKAYZ08YGKCEATK0JKDGWY",
+      "action": "SEND_WHATSAPP",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T09:21:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4TKAYZ08YGKCEATK0JKDGWY",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "answers": "msg-01M4TJZZD0R6KSPZAVG30PQXFJ",
+        "kind": "REPLY"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "REPLY goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "a reply to the importer is exempt",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no link or contact outside the turn's",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M4TKAYZ0V3E8ZW6FTT7Q2BRF",
+      "month": "2026-10",
+      "opKey": "OP#op-4478",
+      "operationId": "op-4478",
+      "refs": {
+        "messageId": "msg-01M4TKAYZ0V3E8ZW6FTT7Q2BRF",
+        "operationId": "op-4478"
+      },
+      "ruleIds": [
+        "CP-CONTROL-BROKER",
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "CONTACT_CONFIRMED",
+      "ts": "2026-10-13T12:21:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-14T13:00:00.000Z#01M4X7Z340RNWT34Y9X6VVAD0P",
+      "action": "SEND_EMAIL",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-14T10:00:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4X7Z340RNWT34Y9X6VVAD0P",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "kind": "REMINDER"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "REMINDER goes to the supplier by email",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "a registered contact inside the SYSTEM fence",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "only WhatsApp to the importer",
+          "result": "SKIP",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "only WhatsApp to the importer",
+          "result": "SKIP",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "authorized, confirmed and active contact, inside the supplier's hours",
+          "result": "PASS",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "authorized, confirmed and active contact, inside the supplier's hours",
+          "result": "PASS",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "only WhatsApp to the importer",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "authorized, confirmed and active contact, inside the supplier's hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "first request or reminder of the day for this contact",
+          "result": "PASS",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "only WhatsApp to the importer",
+          "result": "SKIP",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no link or contact outside the turn's",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M4X7Z340BNAVHKVB200H9R8J",
+      "month": "2026-10",
+      "opKey": "OP#op-4478",
+      "operationId": "op-4478",
+      "refs": {
+        "contactId": "ctc-ligurmare-1",
+        "messageId": "msg-01M4X7Z340BNAVHKVB200H9R8J",
+        "operationId": "op-4478"
+      },
+      "ruleIds": [
+        "CP-CONTROL-BROKER",
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-SUPPLIER-AUTH",
+        "CP-BOUNCED-CONTACT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-SUPPLIER",
+        "CP-ONE-PER-DAY",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "MILESTONE",
+      "ts": "2026-10-14T13:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-09T13:00:00.000Z#01M4GBZG400Q263A14AKAF19A9",
+      "action": "SEND_WHATSAPP",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-09T10:00:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4GBZG400Q263A14AKAF19A9",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "kind": "DOCS_REQUEST"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DOCS_REQUEST goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "first request or reminder of the day for this contact",
+          "result": "PASS",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M4GBZG40BKWX699BA6W8PG6D",
+      "month": "2026-10",
+      "opKey": "OP#op-4487",
+      "operationId": "op-4487",
+      "refs": {
+        "messageId": "msg-01M4GBZG40BKWX699BA6W8PG6D",
+        "operationId": "op-4487"
+      },
+      "ruleIds": [
+        "CP-CONTROL-BROKER",
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-ONE-PER-DAY",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "MILESTONE",
+      "ts": "2026-10-09T13:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-09T18:45:00.000Z#01M4GZQ6Z0NHCP5SMC5BGN89ZX",
+      "action": "READY_FOR_REVIEW",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-09T15:45:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4GZQ6Z0NHCP5SMC5BGN89ZX",
+      "decisionKey": "FIRM#firm-delta#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-delta",
+      "month": "2026-10",
+      "opKey": "OP#op-4487",
+      "operationId": "op-4487",
+      "refs": {
+        "operationId": "op-4487"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-09T18:45:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T14:00:00.000Z#01M4TS07R01XB9MS276HMZ5GXN",
+      "action": "DOSSIER_APPROVED",
+      "actor": "BROKER:brk-delta-diego",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T11:00:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4TS07R01XB9MS276HMZ5GXN",
+      "decisionKey": "FIRM#firm-delta#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-delta",
+      "month": "2026-10",
+      "opKey": "OP#op-4487",
+      "operationId": "op-4487",
+      "refs": {
+        "brokerId": "brk-delta-diego",
+        "operationId": "op-4487"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-13T14:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T14:00:00.000Z#01M4TS07R0BZ6JMDS6Q0G3EG5H",
+      "action": "SEND_WHATSAPP",
+      "actor": "BROKER:brk-delta-diego",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T11:00:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4TS07R0BZ6JMDS6Q0G3EG5H",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "kind": "APPROVAL_NOTICE"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "not written by the agent",
+          "result": "SKIP",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "APPROVAL_NOTICE goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M4TS07R0EA2Z2V2GFR528D2C",
+      "month": "2026-10",
+      "opKey": "OP#op-4487",
+      "operationId": "op-4487",
+      "refs": {
+        "messageId": "msg-01M4TS07R0EA2Z2V2GFR528D2C",
+        "operationId": "op-4487"
+      },
+      "ruleIds": [
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "APPROVAL",
+      "ts": "2026-10-13T14:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T14:04:00.000Z#01M4TS7J4010W4WE7AB7P7T9ZY",
+      "action": "RESPONSIBLE_ASSIGNED",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T11:04:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4TS7J4010W4WE7AB7P7T9ZY",
+      "decisionKey": "FIRM#firm-delta#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-delta",
+      "month": "2026-10",
+      "opKey": "OP#op-4488",
+      "operationId": "op-4488",
+      "refs": {
+        "observationId": "obs-4488-PL-PACKAGES_MISMATCH",
+        "operationId": "op-4488"
+      },
+      "ruleIds": [
+        "RESP-MATRIX"
+      ],
+      "synthetic": true,
+      "ts": "2026-10-13T14:04:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T14:04:00.000Z#01M4TS7J40F33ATEBXD7VFJ2PT",
+      "action": "SEND_EMAIL",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T11:04:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "DENY",
+      "decisionId": "01M4TS7J40F33ATEBXD7VFJ2PT",
+      "decisionKey": "FIRM#firm-delta#DENY",
+      "detail": {
+        "kind": "CORRECTION_REQUEST"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "CORRECTION_REQUEST goes to the supplier by email",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "a registered contact inside the SYSTEM fence",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "only WhatsApp to the importer",
+          "result": "SKIP",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "only WhatsApp to the importer",
+          "result": "SKIP",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "the importer has not authorized the agent to write to this supplier",
+          "result": "DENY",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        }
+      ],
+      "firmId": "firm-delta",
+      "month": "2026-10",
+      "opKey": "OP#op-4488",
+      "operationId": "op-4488",
+      "refs": {
+        "operationId": "op-4488"
+      },
+      "ruleIds": [
+        "CP-SUPPLIER-AUTH"
+      ],
+      "synthetic": true,
+      "trigger": "IMPORTER_MESSAGE",
+      "ts": "2026-10-13T14:04:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T14:04:00.000Z#01M4TS7J40HYYSNRQ85EAZHSAY",
+      "action": "ESCALATED",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T11:04:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4TS7J40HYYSNRQ85EAZHSAY",
+      "decisionKey": "FIRM#firm-delta#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-delta",
+      "month": "2026-10",
+      "opKey": "OP#op-4488",
+      "operationId": "op-4488",
+      "reason": "OTHER",
+      "refs": {
+        "escalationId": "esc-other-1",
+        "operationId": "op-4488"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-13T14:04:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T14:05:00.000Z#01M4TS9CQ0W5DYCSSYDP2TR01D",
+      "action": "SEND_WHATSAPP",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T11:05:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4TS9CQ0W5DYCSSYDP2TR01D",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "answers": "msg-01M4TS3WY06W98JR9S0JNBBH2A",
+        "kind": "REPLY"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "REPLY goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "a reply to the importer is exempt",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no link or contact outside the turn's",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M4TS9CQ0XBWY78M39HVVF0M7",
+      "month": "2026-10",
+      "opKey": "OP#op-4488",
+      "operationId": "op-4488",
+      "refs": {
+        "messageId": "msg-01M4TS9CQ0XBWY78M39HVVF0M7",
+        "operationId": "op-4488"
+      },
+      "ruleIds": [
+        "CP-CONTROL-BROKER",
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "IMPORTER_MESSAGE",
+      "ts": "2026-10-13T14:05:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T15:30:00.000Z#01M4TY51607PCJQXKKCJAFP305",
+      "action": "ESCALATION_RESOLVED",
+      "actor": "BROKER:brk-delta-martina",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T12:30:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4TY51607PCJQXKKCJAFP305",
+      "decisionKey": "FIRM#firm-delta#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-delta",
+      "month": "2026-10",
+      "opKey": "OP#op-4488",
+      "operationId": "op-4488",
+      "refs": {
+        "brokerId": "brk-delta-martina",
+        "escalationId": "esc-other-1",
+        "operationId": "op-4488"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-13T15:30:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T19:32:00.000Z#01M4VC04W0BY1Q48B16ZZ7GAQV",
+      "action": "READY_FOR_REVIEW",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T16:32:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4VC04W0BY1Q48B16ZZ7GAQV",
+      "decisionKey": "FIRM#firm-delta#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-delta",
+      "month": "2026-10",
+      "opKey": "OP#op-4488",
+      "operationId": "op-4488",
+      "refs": {
+        "operationId": "op-4488"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-13T19:32:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T19:33:00.000Z#01M4VC1ZF0TYVDMYRYSW75QJ6Z",
+      "action": "SEND_WHATSAPP",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T16:33:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4VC1ZF0TYVDMYRYSW75QJ6Z",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "answers": "msg-01M4VBWFP00P7XB9SSNXSD2JVX",
+        "kind": "REPLY"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "REPLY goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "a reply to the importer is exempt",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no link or contact outside the turn's",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M4VC1ZF0BS7QN16YWRZEN821",
+      "month": "2026-10",
+      "opKey": "OP#op-4488",
+      "operationId": "op-4488",
+      "refs": {
+        "messageId": "msg-01M4VC1ZF0BS7QN16YWRZEN821",
+        "operationId": "op-4488"
+      },
+      "ruleIds": [
+        "CP-CONTROL-BROKER",
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "IMPORTER_MESSAGE",
+      "ts": "2026-10-13T19:33:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-03T13:00:00.000Z#01M40XK64090Q036E65Z6CJB1Q",
+      "action": "SEND_WHATSAPP",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-03T10:00:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "DEFER",
+      "decisionId": "01M40XK64090Q036E65Z6CJB1Q",
+      "decisionKey": "FIRM#firm-delta#DEFER",
+      "detail": {
+        "kind": "DOCS_REQUEST",
+        "nextAllowedAt": "2026-10-05T09:00:00-03:00"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DOCS_REQUEST goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "outside Buenos Aires business hours: deferred to 2026-10-05T09:00:00-03:00",
+          "result": "DEFER",
+          "ruleId": "CP-HOURS-AR"
+        }
+      ],
+      "firmId": "firm-delta",
+      "month": "2026-10",
+      "opKey": "OP#op-4489",
+      "operationId": "op-4489",
+      "refs": {
+        "operationId": "op-4489",
+        "timerKey": "TIMER#DEFERRED_SEND#deferred-4489-1"
+      },
+      "ruleIds": [
+        "CP-HOURS-AR"
+      ],
+      "synthetic": true,
+      "trigger": "MILESTONE",
+      "ts": "2026-10-03T13:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-05T12:00:00.000Z#01M45YYRG0QNBEN22ZA0RDK584",
+      "action": "SEND_WHATSAPP",
+      "actor": "SYSTEM",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-05T09:00:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M45YYRG0QNBEN22ZA0RDK584",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "kind": "DOCS_REQUEST"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DOCS_REQUEST goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "first request or reminder of the day for this contact",
+          "result": "PASS",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M45YYRG07ZDXDVHSF56EBDPG",
+      "month": "2026-10",
+      "opKey": "OP#op-4489",
+      "operationId": "op-4489",
+      "refs": {
+        "messageId": "msg-01M45YYRG07ZDXDVHSF56EBDPG",
+        "operationId": "op-4489"
+      },
+      "ruleIds": [
+        "CP-CONTROL-BROKER",
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-ONE-PER-DAY",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "MILESTONE",
+      "ts": "2026-10-05T12:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-05T12:45:00.000Z#01M461H57097ZXKZ60D2Z5V5XE",
+      "action": "READY_FOR_REVIEW",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-05T09:45:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M461H57097ZXKZ60D2Z5V5XE",
+      "decisionKey": "FIRM#firm-delta#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-delta",
+      "month": "2026-10",
+      "opKey": "OP#op-4489",
+      "operationId": "op-4489",
+      "refs": {
+        "operationId": "op-4489"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-05T12:45:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-05T12:55:00.000Z#01M4623F50R6Q8VN66B5Z99R0E",
+      "action": "DOSSIER_APPROVED",
+      "actor": "BROKER:brk-delta-diego",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-05T09:55:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4623F50R6Q8VN66B5Z99R0E",
+      "decisionKey": "FIRM#firm-delta#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-delta",
+      "month": "2026-10",
+      "opKey": "OP#op-4489",
+      "operationId": "op-4489",
+      "refs": {
+        "brokerId": "brk-delta-diego",
+        "operationId": "op-4489"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-05T12:55:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-05T12:55:00.000Z#01M4623F50TDCTYHZYZK1DCYKM",
+      "action": "SEND_WHATSAPP",
+      "actor": "BROKER:brk-delta-diego",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-05T09:55:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4623F50TDCTYHZYZK1DCYKM",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "kind": "APPROVAL_NOTICE"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "not written by the agent",
+          "result": "SKIP",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "APPROVAL_NOTICE goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M4623F50K5M8DB0YYNKQASRP",
+      "month": "2026-10",
+      "opKey": "OP#op-4489",
+      "operationId": "op-4489",
+      "refs": {
+        "messageId": "msg-01M4623F50K5M8DB0YYNKQASRP",
+        "operationId": "op-4489"
+      },
+      "ruleIds": [
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "APPROVAL",
+      "ts": "2026-10-05T12:55:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-09T13:00:00.000Z#01M4GBZG405QE8GT5J17KEP68A",
+      "action": "SEND_WHATSAPP",
+      "actor": "SYSTEM",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-09T10:00:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4GBZG405QE8GT5J17KEP68A",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "kind": "DISPATCH_STATUS"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "not written by the agent",
+          "result": "SKIP",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DISPATCH_STATUS goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M4GBZG40BT8MK8MN8J1JTH0V",
+      "month": "2026-10",
+      "opKey": "OP#op-4489",
+      "operationId": "op-4489",
+      "refs": {
+        "messageId": "msg-01M4GBZG40BT8MK8MN8J1JTH0V",
+        "operationId": "op-4489"
+      },
+      "ruleIds": [
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "DISPATCH_STATUS",
+      "ts": "2026-10-09T13:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T13:00:00.000Z#01M4TNJC40P50YNZG0KR1KVW5A",
+      "action": "SEND_WHATSAPP",
+      "actor": "SYSTEM",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T10:00:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4TNJC40P50YNZG0KR1KVW5A",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "kind": "DISPATCH_STATUS"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "not written by the agent",
+          "result": "SKIP",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DISPATCH_STATUS goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M4TNJC40EBM013FQGEXJRMM0",
+      "month": "2026-10",
+      "opKey": "OP#op-4489",
+      "operationId": "op-4489",
+      "refs": {
+        "messageId": "msg-01M4TNJC40EBM013FQGEXJRMM0",
+        "operationId": "op-4489"
+      },
+      "ruleIds": [
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "DISPATCH_STATUS",
+      "ts": "2026-10-13T13:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta#2026-10",
+      "SK": "2026-10-13T18:00:00.000Z#01M4V6QP80N0SJ4FD311AJMEBX",
+      "action": "SEND_WHATSAPP",
+      "actor": "SYSTEM",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T15:00:00-03:00",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4V6QP80N0SJ4FD311AJMEBX",
+      "decisionKey": "FIRM#firm-delta#ALLOW",
+      "detail": {
+        "kind": "DISPATCH_STATUS"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "not written by the agent",
+          "result": "SKIP",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DISPATCH_STATUS goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-delta",
+      "messageId": "msg-01M4V6QP80QVWFKNRN318JMFJT",
+      "month": "2026-10",
+      "opKey": "OP#op-4489",
+      "operationId": "op-4489",
+      "refs": {
+        "messageId": "msg-01M4V6QP80QVWFKNRN318JMFJT",
+        "operationId": "op-4489"
+      },
+      "ruleIds": [
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "DISPATCH_STATUS",
+      "ts": "2026-10-13T18:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-norte#2026-10",
+      "SK": "2026-10-09T14:05:00.000Z#01M4GFPGQ0J5D8V3R760TA4X0A",
+      "action": "READY_FOR_REVIEW",
+      "actor": "SYSTEM",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-09T11:05:00-03:00",
+      "clockId": "GLOBAL#firm-norte",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4GFPGQ0J5D8V3R760TA4X0A",
+      "decisionKey": "FIRM#firm-norte#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-norte",
+      "month": "2026-10",
+      "opKey": "OP#op-5505",
+      "operationId": "op-5505",
+      "refs": {
+        "operationId": "op-5505"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-09T14:05:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-09T13:00:00.000Z#01M4GBZG40ZNW1PJ5ZJZRDGS88",
+      "action": "SEND_WHATSAPP",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-09T10:00:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4GBZG40ZNW1PJ5ZJZRDGS88",
+      "decisionKey": "FIRM#firm-qa#ALLOW",
+      "detail": {
+        "kind": "DOCS_REQUEST"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DOCS_REQUEST goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "first request or reminder of the day for this contact",
+          "result": "PASS",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-qa",
+      "messageId": "msg-01M4GBZG40S0QE7M80MHCX904W",
+      "month": "2026-10",
+      "opKey": "OP#op-7992",
+      "operationId": "op-7992",
+      "refs": {
+        "messageId": "msg-01M4GBZG40S0QE7M80MHCX904W",
+        "operationId": "op-7992"
+      },
+      "ruleIds": [
+        "CP-CONTROL-BROKER",
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-ONE-PER-DAY",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "MILESTONE",
+      "ts": "2026-10-09T13:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-09T18:45:00.000Z#01M4GZQ6Z0EZYCDH5E3FC0NC5B",
+      "action": "READY_FOR_REVIEW",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-09T15:45:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4GZQ6Z0EZYCDH5E3FC0NC5B",
+      "decisionKey": "FIRM#firm-qa#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-qa",
+      "month": "2026-10",
+      "opKey": "OP#op-7992",
+      "operationId": "op-7992",
+      "refs": {
+        "operationId": "op-7992"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-09T18:45:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-13T14:00:00.000Z#01M4TS07R0YZ0DMYSF0KSBJRPN",
+      "action": "DOSSIER_APPROVED",
+      "actor": "BROKER:brk-qa-runner",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T11:00:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4TS07R0YZ0DMYSF0KSBJRPN",
+      "decisionKey": "FIRM#firm-qa#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-qa",
+      "month": "2026-10",
+      "opKey": "OP#op-7992",
+      "operationId": "op-7992",
+      "refs": {
+        "brokerId": "brk-qa-runner",
+        "operationId": "op-7992"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-13T14:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-13T14:00:00.000Z#01M4TS07R0T18A0PNXZXMHDR7C",
+      "action": "SEND_WHATSAPP",
+      "actor": "BROKER:brk-qa-runner",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T11:00:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4TS07R0T18A0PNXZXMHDR7C",
+      "decisionKey": "FIRM#firm-qa#ALLOW",
+      "detail": {
+        "kind": "APPROVAL_NOTICE"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "not written by the agent",
+          "result": "SKIP",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "APPROVAL_NOTICE goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-qa",
+      "messageId": "msg-01M4TS07R09652H3Y5BED1G0XB",
+      "month": "2026-10",
+      "opKey": "OP#op-7992",
+      "operationId": "op-7992",
+      "refs": {
+        "messageId": "msg-01M4TS07R09652H3Y5BED1G0XB",
+        "operationId": "op-7992"
+      },
+      "ruleIds": [
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "APPROVAL",
+      "ts": "2026-10-13T14:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-13T14:04:00.000Z#01M4TS7J401AKWM7HE0GK1NQ8A",
+      "action": "RESPONSIBLE_ASSIGNED",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T11:04:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4TS7J401AKWM7HE0GK1NQ8A",
+      "decisionKey": "FIRM#firm-qa#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-qa",
+      "month": "2026-10",
+      "opKey": "OP#op-7993",
+      "operationId": "op-7993",
+      "refs": {
+        "observationId": "obs-7993-PL-PACKAGES_MISMATCH",
+        "operationId": "op-7993"
+      },
+      "ruleIds": [
+        "RESP-MATRIX"
+      ],
+      "synthetic": true,
+      "ts": "2026-10-13T14:04:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-13T14:04:00.000Z#01M4TS7J40WKQW5Q4NZXNDP13R",
+      "action": "SEND_EMAIL",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T11:04:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "DENY",
+      "decisionId": "01M4TS7J40WKQW5Q4NZXNDP13R",
+      "decisionKey": "FIRM#firm-qa#DENY",
+      "detail": {
+        "kind": "CORRECTION_REQUEST"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "CORRECTION_REQUEST goes to the supplier by email",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "a registered contact inside the SYSTEM fence",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "only WhatsApp to the importer",
+          "result": "SKIP",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "only WhatsApp to the importer",
+          "result": "SKIP",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "the importer has not authorized the agent to write to this supplier",
+          "result": "DENY",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        }
+      ],
+      "firmId": "firm-qa",
+      "month": "2026-10",
+      "opKey": "OP#op-7993",
+      "operationId": "op-7993",
+      "refs": {
+        "operationId": "op-7993"
+      },
+      "ruleIds": [
+        "CP-SUPPLIER-AUTH"
+      ],
+      "synthetic": true,
+      "trigger": "IMPORTER_MESSAGE",
+      "ts": "2026-10-13T14:04:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-13T14:04:00.000Z#01M4TS7J40GFNSQG6YMDH1MTPP",
+      "action": "ESCALATED",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T11:04:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4TS7J40GFNSQG6YMDH1MTPP",
+      "decisionKey": "FIRM#firm-qa#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-qa",
+      "month": "2026-10",
+      "opKey": "OP#op-7993",
+      "operationId": "op-7993",
+      "reason": "OTHER",
+      "refs": {
+        "escalationId": "esc-other-1",
+        "operationId": "op-7993"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-13T14:04:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-13T14:05:00.000Z#01M4TS9CQ0CJQ1HFTT8H88FXVX",
+      "action": "SEND_WHATSAPP",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T11:05:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4TS9CQ0CJQ1HFTT8H88FXVX",
+      "decisionKey": "FIRM#firm-qa#ALLOW",
+      "detail": {
+        "answers": "msg-01M4TS3WY0YHDA8H8JYGEJ97VM",
+        "kind": "REPLY"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "REPLY goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "a reply to the importer is exempt",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no link or contact outside the turn's",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-qa",
+      "messageId": "msg-01M4TS9CQ08NFV0Y1XS0F0RJ8G",
+      "month": "2026-10",
+      "opKey": "OP#op-7993",
+      "operationId": "op-7993",
+      "refs": {
+        "messageId": "msg-01M4TS9CQ08NFV0Y1XS0F0RJ8G",
+        "operationId": "op-7993"
+      },
+      "ruleIds": [
+        "CP-CONTROL-BROKER",
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "IMPORTER_MESSAGE",
+      "ts": "2026-10-13T14:05:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-13T15:30:00.000Z#01M4TY5160ZZSJKZNS80WFAB49",
+      "action": "ESCALATION_RESOLVED",
+      "actor": "BROKER:brk-qa-analyst",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T12:30:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4TY5160ZZSJKZNS80WFAB49",
+      "decisionKey": "FIRM#firm-qa#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-qa",
+      "month": "2026-10",
+      "opKey": "OP#op-7993",
+      "operationId": "op-7993",
+      "refs": {
+        "brokerId": "brk-qa-analyst",
+        "escalationId": "esc-other-1",
+        "operationId": "op-7993"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-13T15:30:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-13T19:32:00.000Z#01M4VC04W09CFVTA73A3JA479X",
+      "action": "READY_FOR_REVIEW",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T16:32:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4VC04W09CFVTA73A3JA479X",
+      "decisionKey": "FIRM#firm-qa#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-qa",
+      "month": "2026-10",
+      "opKey": "OP#op-7993",
+      "operationId": "op-7993",
+      "refs": {
+        "operationId": "op-7993"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-13T19:32:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-13T19:33:00.000Z#01M4VC1ZF0BZ1WCBEY7GT3Y32X",
+      "action": "SEND_WHATSAPP",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T16:33:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4VC1ZF0BZ1WCBEY7GT3Y32X",
+      "decisionKey": "FIRM#firm-qa#ALLOW",
+      "detail": {
+        "answers": "msg-01M4VBWFP0JHV89KMFNT8YK4ST",
+        "kind": "REPLY"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "REPLY goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "a reply to the importer is exempt",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; inside the 24-hour window",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no link or contact outside the turn's",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-qa",
+      "messageId": "msg-01M4VC1ZF09YAAM14MR50PV61Z",
+      "month": "2026-10",
+      "opKey": "OP#op-7993",
+      "operationId": "op-7993",
+      "refs": {
+        "messageId": "msg-01M4VC1ZF09YAAM14MR50PV61Z",
+        "operationId": "op-7993"
+      },
+      "ruleIds": [
+        "CP-CONTROL-BROKER",
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "IMPORTER_MESSAGE",
+      "ts": "2026-10-13T19:33:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-03T13:00:00.000Z#01M40XK640F4RTC0MVJ45TTVAS",
+      "action": "SEND_WHATSAPP",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-03T10:00:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "DEFER",
+      "decisionId": "01M40XK640F4RTC0MVJ45TTVAS",
+      "decisionKey": "FIRM#firm-qa#DEFER",
+      "detail": {
+        "kind": "DOCS_REQUEST",
+        "nextAllowedAt": "2026-10-05T09:00:00-03:00"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DOCS_REQUEST goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "outside Buenos Aires business hours: deferred to 2026-10-05T09:00:00-03:00",
+          "result": "DEFER",
+          "ruleId": "CP-HOURS-AR"
+        }
+      ],
+      "firmId": "firm-qa",
+      "month": "2026-10",
+      "opKey": "OP#op-7994",
+      "operationId": "op-7994",
+      "refs": {
+        "operationId": "op-7994",
+        "timerKey": "TIMER#DEFERRED_SEND#deferred-7994-1"
+      },
+      "ruleIds": [
+        "CP-HOURS-AR"
+      ],
+      "synthetic": true,
+      "trigger": "MILESTONE",
+      "ts": "2026-10-03T13:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-05T12:00:00.000Z#01M45YYRG0N7S1VHK9KCDVBC85",
+      "action": "SEND_WHATSAPP",
+      "actor": "SYSTEM",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-05T09:00:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M45YYRG0N7S1VHK9KCDVBC85",
+      "decisionKey": "FIRM#firm-qa#ALLOW",
+      "detail": {
+        "kind": "DOCS_REQUEST"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "the agent has the conversation",
+          "result": "PASS",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DOCS_REQUEST goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "first request or reminder of the day for this contact",
+          "result": "PASS",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-qa",
+      "messageId": "msg-01M45YYRG0V0SAEEDQB1MJBA3E",
+      "month": "2026-10",
+      "opKey": "OP#op-7994",
+      "operationId": "op-7994",
+      "refs": {
+        "messageId": "msg-01M45YYRG0V0SAEEDQB1MJBA3E",
+        "operationId": "op-7994"
+      },
+      "ruleIds": [
+        "CP-CONTROL-BROKER",
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-ONE-PER-DAY",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "MILESTONE",
+      "ts": "2026-10-05T12:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-05T12:45:00.000Z#01M461H570B308A2HBNBVH24RB",
+      "action": "READY_FOR_REVIEW",
+      "actor": "AGENT",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-05T09:45:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M461H570B308A2HBNBVH24RB",
+      "decisionKey": "FIRM#firm-qa#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-qa",
+      "month": "2026-10",
+      "opKey": "OP#op-7994",
+      "operationId": "op-7994",
+      "refs": {
+        "operationId": "op-7994"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-05T12:45:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-05T12:55:00.000Z#01M4623F50A3HPM5ZJJNDMEKWS",
+      "action": "DOSSIER_APPROVED",
+      "actor": "BROKER:brk-qa-runner",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-05T09:55:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ACTION",
+      "decisionId": "01M4623F50A3HPM5ZJJNDMEKWS",
+      "decisionKey": "FIRM#firm-qa#ACTION",
+      "entity": "Decision",
+      "evaluated": [],
+      "firmId": "firm-qa",
+      "month": "2026-10",
+      "opKey": "OP#op-7994",
+      "operationId": "op-7994",
+      "refs": {
+        "brokerId": "brk-qa-runner",
+        "operationId": "op-7994"
+      },
+      "ruleIds": [],
+      "synthetic": true,
+      "ts": "2026-10-05T12:55:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-05T12:55:00.000Z#01M4623F506RDMQ7WJ50RKA7BF",
+      "action": "SEND_WHATSAPP",
+      "actor": "BROKER:brk-qa-runner",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-05T09:55:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4623F506RDMQ7WJ50RKA7BF",
+      "decisionKey": "FIRM#firm-qa#ALLOW",
+      "detail": {
+        "kind": "APPROVAL_NOTICE"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "not written by the agent",
+          "result": "SKIP",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "APPROVAL_NOTICE goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-qa",
+      "messageId": "msg-01M4623F50QKC611980D21KWXE",
+      "month": "2026-10",
+      "opKey": "OP#op-7994",
+      "operationId": "op-7994",
+      "refs": {
+        "messageId": "msg-01M4623F50QKC611980D21KWXE",
+        "operationId": "op-7994"
+      },
+      "ruleIds": [
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "APPROVAL",
+      "ts": "2026-10-05T12:55:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-09T13:00:00.000Z#01M4GBZG40W0MWX9HS32Z1MV5A",
+      "action": "SEND_WHATSAPP",
+      "actor": "SYSTEM",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-09T10:00:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4GBZG40W0MWX9HS32Z1MV5A",
+      "decisionKey": "FIRM#firm-qa#ALLOW",
+      "detail": {
+        "kind": "DISPATCH_STATUS"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "not written by the agent",
+          "result": "SKIP",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DISPATCH_STATUS goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-qa",
+      "messageId": "msg-01M4GBZG40ZDS0YQ6DJ4GX02TJ",
+      "month": "2026-10",
+      "opKey": "OP#op-7994",
+      "operationId": "op-7994",
+      "refs": {
+        "messageId": "msg-01M4GBZG40ZDS0YQ6DJ4GX02TJ",
+        "operationId": "op-7994"
+      },
+      "ruleIds": [
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "DISPATCH_STATUS",
+      "ts": "2026-10-09T13:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-13T13:00:00.000Z#01M4TNJC40PXBRRDD82T99DFVK",
+      "action": "SEND_WHATSAPP",
+      "actor": "SYSTEM",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T10:00:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4TNJC40PXBRRDD82T99DFVK",
+      "decisionKey": "FIRM#firm-qa#ALLOW",
+      "detail": {
+        "kind": "DISPATCH_STATUS"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "not written by the agent",
+          "result": "SKIP",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DISPATCH_STATUS goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-qa",
+      "messageId": "msg-01M4TNJC40Q5X49MPPR3PM2GQK",
+      "month": "2026-10",
+      "opKey": "OP#op-7994",
+      "operationId": "op-7994",
+      "refs": {
+        "messageId": "msg-01M4TNJC40Q5X49MPPR3PM2GQK",
+        "operationId": "op-7994"
+      },
+      "ruleIds": [
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "DISPATCH_STATUS",
+      "ts": "2026-10-13T13:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "FIRM#firm-qa#2026-10",
+      "SK": "2026-10-13T18:00:00.000Z#01M4V6QP8067HN6P91RZ2PNQ40",
+      "action": "SEND_WHATSAPP",
+      "actor": "SYSTEM",
+      "atReal": "2026-09-25T12:00:00.000Z",
+      "atSim": "2026-10-13T15:00:00-03:00",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "decision": "ALLOW",
+      "decisionId": "01M4V6QP8067HN6P91RZ2PNQ40",
+      "decisionKey": "FIRM#firm-qa#ALLOW",
+      "detail": {
+        "kind": "DISPATCH_STATUS"
+      },
+      "entity": "Decision",
+      "evaluated": [
+        {
+          "detail": "not written by the agent",
+          "result": "SKIP",
+          "ruleId": "CP-CONTROL-BROKER"
+        },
+        {
+          "detail": "DISPATCH_STATUS goes to the importer by WhatsApp",
+          "result": "PASS",
+          "ruleId": "CP-KIND-CHANNEL"
+        },
+        {
+          "detail": "the importer's registered phone",
+          "result": "PASS",
+          "ruleId": "CP-RECIPIENT-FENCE"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTIN"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-OPTOUT"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-SUPPLIER-AUTH"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-BOUNCED-CONTACT"
+        },
+        {
+          "detail": "allowed for the dossier's status",
+          "result": "PASS",
+          "ruleId": "CP-APPROVED-SCOPE"
+        },
+        {
+          "detail": "inside Buenos Aires business hours",
+          "result": "PASS",
+          "ruleId": "CP-HOURS-AR"
+        },
+        {
+          "detail": "only email to the supplier",
+          "result": "SKIP",
+          "ruleId": "CP-HOURS-SUPPLIER"
+        },
+        {
+          "detail": "only DOCS_REQUEST and REMINDER count",
+          "result": "SKIP",
+          "ruleId": "CP-ONE-PER-DAY"
+        },
+        {
+          "detail": "opt-in in force; approved template",
+          "result": "PASS",
+          "ruleId": "CP-WA-24H"
+        },
+        {
+          "detail": "asks for no identity, bank or card data",
+          "result": "PASS",
+          "ruleId": "CP-NO-SENSITIVE-ASK"
+        },
+        {
+          "detail": "no free text: approved template",
+          "result": "PASS",
+          "ruleId": "CP-NO-FOREIGN-LINKS"
+        }
+      ],
+      "firmId": "firm-qa",
+      "messageId": "msg-01M4V6QP806PK1HDN8N2HRM28C",
+      "month": "2026-10",
+      "opKey": "OP#op-7994",
+      "operationId": "op-7994",
+      "refs": {
+        "messageId": "msg-01M4V6QP806PK1HDN8N2HRM28C",
+        "operationId": "op-7994"
+      },
+      "ruleIds": [
+        "CP-KIND-CHANNEL",
+        "CP-RECIPIENT-FENCE",
+        "CP-OPTIN",
+        "CP-OPTOUT",
+        "CP-APPROVED-SCOPE",
+        "CP-HOURS-AR",
+        "CP-WA-24H",
+        "CP-NO-SENSITIVE-ASK",
+        "CP-NO-FOREIGN-LINKS"
+      ],
+      "synthetic": true,
+      "trigger": "DISPATCH_STATUS",
+      "ts": "2026-10-13T18:00:00.000Z",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    }
+  ],
+  "seed": 20260925,
+  "table": "AuditLog"
+}

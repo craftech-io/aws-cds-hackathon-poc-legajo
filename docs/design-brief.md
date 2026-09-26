@@ -124,7 +124,7 @@ Reloj 14/10 10:30 (mundo en pausa)
 
 | Operación | Historia |
 |---|---|
-| `4474` (Patagonia Frío, Konkan Chemicals) | Rebote: el email al proveedor rebota en el simulador de SES → contacto `BOUNCED` → plantilla `legajo_contacto_proveedor` → el importador escribe otro email → `propose_supplier_contact` → botón de confirmación → contacto `ACTIVE` → nuevo pedido |
+| `4474` (Patagonia Frío, Konkanshore Specialty Chemicals) | Rebote: el email al proveedor rebota en el simulador de SES → contacto `BOUNCED` → plantilla `legajo_contacto_proveedor` → el importador escribe otro email → `propose_supplier_contact` → botón de confirmación → contacto `ACTIVE` → nuevo pedido |
 | `4478` (Norpampa, Ligurmare Valve Works) | Silencio: el proveedor no responde; recordatorios `FOLLOWUP` y `FOLLOWUP_FINAL`; en ETA − 48 h, escalamiento determinista en la consola + email al buzón del estudio (estado, intentos, quién debe qué, riesgo rotulado "supuesto") |
 | `4477` (Riberas Ferretería, Busan Coastal) | Documento desconocido: el lector devuelve `UNRECOGNIZED` y el estudio lo clasifica o descarta |
 | `4488` y `4487` | Un legajo listo para revisión y uno aprobado para mostrar los estados del despacho |

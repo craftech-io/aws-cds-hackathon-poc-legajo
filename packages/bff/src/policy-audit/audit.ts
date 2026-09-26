@@ -3,8 +3,8 @@
 //
 //   (a) NO_ALLOW       there is an `ALLOW` decision with the same `messageId` in `AuditLog` (a send
 //                      that skipped the outbound pipeline has none)
-//   (b) REEVALUATION   the policy re-evaluated with the facts of that moment, rebuilt from the dated
-//                      histories, still allows it (reevaluate.ts)
+//   (b) REEVALUATION   the policy engine (packages/bff/src/policy/) re-evaluated with the facts of that
+//                      moment, rebuilt from the dated histories, still allows it (reevaluate.ts)
 //
 // A failed check first logs the line the `PolicyViolations` metric filter counts and then writes one
 // `AuditLog VIOLATION`, once per message and check whatever how often the audit runs (a conditional
@@ -16,10 +16,10 @@ import type { Connector } from "../connector/index";
 import type { Message } from "../domain/conversations";
 import type { Operation } from "../domain/operations";
 import type { Logger } from "../lib/log";
-import type { BusinessHours } from "../services/business-hours";
-import { importerHoursReader, sendFactsOf } from "./facts";
+import { wentOut } from "../policy/kinds";
+import type { HolidayCalendar } from "../services/holidays";
+import { holidaysReader, sendFactsOf } from "./facts";
 import { REEVALUATED_RULES, type RuleBreach, reevaluateSend } from "./reevaluate";
-import { wentOut } from "./time-rules";
 
 /** Metric of docs/architecture.md §12 and the log event its filter matches. */
 export const POLICY_VIOLATIONS_METRIC = "PolicyViolations";
@@ -92,11 +92,11 @@ async function recordViolation(deps: PolicyAuditDeps, operation: Operation, mess
 }
 
 /** Both checks for one message; the violations it produced (none for a clean send). */
-export async function auditMessage(deps: PolicyAuditDeps, operation: Operation, message: Message, importerHours: () => Promise<BusinessHours> = importerHoursReader(deps.data)): Promise<Violation[]> {
+export async function auditMessage(deps: PolicyAuditDeps, operation: Operation, message: Message, holidays: () => Promise<HolidayCalendar> = holidaysReader(deps.data)): Promise<Violation[]> {
   const violations: Violation[] = [];
   const allow = await deps.data.audit.findAllowForMessage(operation.operationId, message.messageId);
   if (allow === undefined || allow.evaluated.length + allow.ruleIds.length === 0) violations.push(await recordViolation(deps, operation, message, "NO_ALLOW", []));
-  const breaches = reevaluateSend(await sendFactsOf({ data: deps.data, operation, message, allow, importerHours }));
+  const breaches = reevaluateSend(await sendFactsOf({ data: deps.data, operation, message, allow, holidays }));
   if (breaches.length > 0) violations.push(await recordViolation(deps, operation, message, "REEVALUATION", breaches));
   return violations;
 }
@@ -105,7 +105,7 @@ export async function auditMessage(deps: PolicyAuditDeps, operation: Operation, 
 export async function runPolicyAudit(deps: PolicyAuditDeps, scope: PolicyAuditScope): Promise<PolicyAuditReport> {
   const operations = await deps.data.operations.listOperations(scope.firmId, scope.clockId === undefined ? {} : { clockId: scope.clockId });
   const since = scope.sinceReal === undefined ? undefined : Date.parse(scope.sinceReal);
-  const importerHours = importerHoursReader(deps.data);
+  const holidays = holidaysReader(deps.data);
   let messagesChecked = 0;
   let failed = 0;
   const violations: Violation[] = [];
@@ -115,7 +115,7 @@ export async function runPolicyAudit(deps: PolicyAuditDeps, scope: PolicyAuditSc
       if (!wentOut(message) || (since !== undefined && Date.parse(message.sentAtReal) < since)) continue;
       messagesChecked += 1;
       try {
-        violations.push(...(await auditMessage(deps, operation, message, importerHours)));
+        violations.push(...(await auditMessage(deps, operation, message, holidays)));
       } catch (error) {
         failed += 1;
         deps.log.error(POLICY_AUDIT_FAILED_LOG, { operationId: operation.operationId, messageId: message.messageId, error: error instanceof Error ? error.name : "unknown" });

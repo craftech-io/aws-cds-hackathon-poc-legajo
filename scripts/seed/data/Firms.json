@@ -1,0 +1,1473 @@
+{
+  "count": 29,
+  "generatedAt": "2026-09-25T12:00:00.000Z",
+  "items": [
+    {
+      "PK": "FIRM#firm-delta",
+      "SK": "META",
+      "active": true,
+      "businessHours": {
+        "from": "09:00",
+        "timezone": "America/Argentina/Buenos_Aires",
+        "to": "18:00",
+        "weekdays": [
+          "MON",
+          "TUE",
+          "WED",
+          "THU",
+          "FRI"
+        ]
+      },
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "Firm",
+      "firmId": "firm-delta",
+      "kind": "DEMO",
+      "mailboxAddress": "estudio-delta@sim.legajo.demo.craftech.io",
+      "name": "Estudio Delta",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta",
+      "SK": "SETTINGS",
+      "assumptions": {
+        "demurrageUsdPerDay": {
+          "max": 180,
+          "min": 160
+        },
+        "freeDaysAtPort": 5,
+        "label": "supuesto",
+        "source": "Fuentes secundarias no verificadas"
+      },
+      "costBudgetUsdPerDossier": 2,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "FirmSettings",
+      "firmId": "firm-delta",
+      "humanActionMinutes": {
+        "items": [
+          {
+            "action": "TAKE",
+            "label": "supuesto",
+            "minutes": 2
+          },
+          {
+            "action": "SEND",
+            "label": "supuesto",
+            "minutes": 3
+          },
+          {
+            "action": "WAIVE",
+            "label": "supuesto",
+            "minutes": 4
+          },
+          {
+            "action": "CLASSIFY",
+            "label": "supuesto",
+            "minutes": 4
+          },
+          {
+            "action": "APPROVE",
+            "label": "supuesto",
+            "minutes": 10
+          },
+          {
+            "action": "REOPEN",
+            "label": "supuesto",
+            "minutes": 5
+          }
+        ],
+        "label": "supuesto",
+        "source": "Estimación propia del equipo (editable), no una medición"
+      },
+      "manualBaseline": {
+        "items": [
+          {
+            "action": "Contactos por legajo",
+            "count": 8,
+            "label": "supuesto",
+            "minutes": 8
+          },
+          {
+            "action": "Revisión de documentos",
+            "count": 3,
+            "label": "supuesto",
+            "minutes": 7
+          },
+          {
+            "action": "Armado del legajo",
+            "count": 1,
+            "label": "supuesto",
+            "minutes": 10
+          }
+        ],
+        "label": "supuesto",
+        "source": "Estimación propia del equipo (editable), no una medición"
+      },
+      "synthetic": true,
+      "turnCaps": {
+        "perDay": 1000,
+        "perHour": 200
+      },
+      "untrustedSenderEmailsPerDay": 3,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta",
+      "SK": "BROKER#brk-delta-diego",
+      "active": true,
+      "brokerId": "brk-delta-diego",
+      "cognitoSub": "",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "Broker",
+      "firmId": "firm-delta",
+      "name": "Diego Ferreyra",
+      "role": "BROKER",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta",
+      "SK": "BROKER#brk-delta-martina",
+      "active": true,
+      "brokerId": "brk-delta-martina",
+      "cognitoSub": "",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "Broker",
+      "firmId": "firm-delta",
+      "name": "Martina Sosa",
+      "role": "ANALYST",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta",
+      "SK": "CHECKLIST#COMMERCIAL_INVOICE#v001",
+      "checklistVersion": 1,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "docType": "COMMERCIAL_INVOICE",
+      "entity": "Checklist",
+      "firmId": "firm-delta",
+      "items": [
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-01",
+          "required": true,
+          "text": "Número y fecha de emisión"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-02",
+          "required": true,
+          "text": "Razón social, domicilio y país del vendedor"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-03",
+          "required": true,
+          "text": "Razón social, CUIT y domicilio del comprador iguales a los del registro del importador en el estudio"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-04",
+          "required": true,
+          "text": "Incoterm y lugar convenido"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-05",
+          "required": true,
+          "text": "Moneda, cantidad, precio unitario y total de cada ítem, y total de la factura"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-06",
+          "required": true,
+          "text": "Descripción de la mercadería suficiente para identificarla"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-07",
+          "required": true,
+          "text": "País de origen de la mercadería"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-08",
+          "required": true,
+          "text": "Firma del vendedor (manuscrita o digital)"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta",
+      "SK": "CHECKLIST#PACKING_LIST#v001",
+      "checklistVersion": 1,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "docType": "PACKING_LIST",
+      "entity": "Checklist",
+      "firmId": "firm-delta",
+      "items": [
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-01",
+          "required": true,
+          "text": "Número de la factura comercial a la que corresponde"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-02",
+          "required": true,
+          "text": "Cantidad y tipo de bultos, con marcas y números"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-03",
+          "required": true,
+          "text": "Peso neto y bruto por bulto y totales, en kilogramos"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-04",
+          "required": true,
+          "text": "Peso bruto total y cantidad de bultos iguales a los de la factura"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-05",
+          "required": true,
+          "text": "Contenido de cada bulto"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta",
+      "SK": "CHECKLIST#CERTIFICATE_OF_ORIGIN#v001",
+      "checklistVersion": 1,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "docType": "CERTIFICATE_OF_ORIGIN",
+      "entity": "Checklist",
+      "firmId": "firm-delta",
+      "items": [
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-01",
+          "required": true,
+          "text": "Emitido por la entidad habilitada del país exportador"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-02",
+          "required": true,
+          "text": "Firmado y sellado por la entidad emisora"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-03",
+          "required": true,
+          "text": "Número y fecha de la factura comercial a la que se refiere"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-04",
+          "required": true,
+          "text": "Descripción y cantidades iguales a las de la factura"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-05",
+          "required": true,
+          "text": "País de origen declarado"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-06",
+          "required": false,
+          "text": "El estudio confirma en cada operación si el certificado aplica y su vigencia"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-delta",
+      "SK": "RESP_MATRIX#v001",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "ResponsibilityMatrix",
+      "fallback": "BROKER",
+      "firmId": "firm-delta",
+      "matrixVersion": 1,
+      "rules": [
+        {
+          "code": "LOW_CONFIDENCE",
+          "docType": "ANY",
+          "responsible": "SENDER"
+        },
+        {
+          "code": "BUYER_DATA_MISMATCH",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "IMPORTER",
+          "then": "SUPPLIER"
+        },
+        {
+          "code": "INCOTERM_MISMATCH",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "INVOICE_NUMBER_MISMATCH",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "MISSING_SIGNATURE",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "GROSS_WEIGHT_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "NET_WEIGHT_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "PACKAGES_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "INVOICE_NUMBER_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "MISSING_SIGNATURE",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "MISSING_STAMP",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "ORIGIN_MISMATCH",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "INVOICE_NUMBER_MISMATCH",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-norte",
+      "SK": "META",
+      "active": true,
+      "businessHours": {
+        "from": "09:00",
+        "timezone": "America/Argentina/Buenos_Aires",
+        "to": "18:00",
+        "weekdays": [
+          "MON",
+          "TUE",
+          "WED",
+          "THU",
+          "FRI"
+        ]
+      },
+      "clockId": "GLOBAL#firm-norte",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "Firm",
+      "firmId": "firm-norte",
+      "kind": "DEMO",
+      "mailboxAddress": "estudio-norte@sim.legajo.demo.craftech.io",
+      "name": "Estudio Norte",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-norte",
+      "SK": "SETTINGS",
+      "assumptions": {
+        "demurrageUsdPerDay": {
+          "max": 180,
+          "min": 160
+        },
+        "freeDaysAtPort": 5,
+        "label": "supuesto",
+        "source": "Fuentes secundarias no verificadas"
+      },
+      "costBudgetUsdPerDossier": 2,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "FirmSettings",
+      "firmId": "firm-norte",
+      "humanActionMinutes": {
+        "items": [
+          {
+            "action": "TAKE",
+            "label": "supuesto",
+            "minutes": 2
+          },
+          {
+            "action": "SEND",
+            "label": "supuesto",
+            "minutes": 3
+          },
+          {
+            "action": "WAIVE",
+            "label": "supuesto",
+            "minutes": 4
+          },
+          {
+            "action": "CLASSIFY",
+            "label": "supuesto",
+            "minutes": 4
+          },
+          {
+            "action": "APPROVE",
+            "label": "supuesto",
+            "minutes": 10
+          },
+          {
+            "action": "REOPEN",
+            "label": "supuesto",
+            "minutes": 5
+          }
+        ],
+        "label": "supuesto",
+        "source": "Estimación propia del equipo (editable), no una medición"
+      },
+      "manualBaseline": {
+        "items": [
+          {
+            "action": "Contactos por legajo",
+            "count": 8,
+            "label": "supuesto",
+            "minutes": 8
+          },
+          {
+            "action": "Revisión de documentos",
+            "count": 3,
+            "label": "supuesto",
+            "minutes": 7
+          },
+          {
+            "action": "Armado del legajo",
+            "count": 1,
+            "label": "supuesto",
+            "minutes": 10
+          }
+        ],
+        "label": "supuesto",
+        "source": "Estimación propia del equipo (editable), no una medición"
+      },
+      "synthetic": true,
+      "turnCaps": {
+        "perDay": 1000,
+        "perHour": 200
+      },
+      "untrustedSenderEmailsPerDay": 3,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-norte",
+      "SK": "BROKER#brk-norte-pablo",
+      "active": true,
+      "brokerId": "brk-norte-pablo",
+      "cognitoSub": "",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "Broker",
+      "firmId": "firm-norte",
+      "name": "Pablo Giménez",
+      "role": "BROKER",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-norte",
+      "SK": "CHECKLIST#COMMERCIAL_INVOICE#v001",
+      "checklistVersion": 1,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "docType": "COMMERCIAL_INVOICE",
+      "entity": "Checklist",
+      "firmId": "firm-norte",
+      "items": [
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-01",
+          "required": true,
+          "text": "Número y fecha de emisión"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-02",
+          "required": true,
+          "text": "Razón social, domicilio y país del vendedor"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-03",
+          "required": true,
+          "text": "Razón social, CUIT y domicilio del comprador iguales a los del registro del importador en el estudio"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-04",
+          "required": true,
+          "text": "Incoterm y lugar convenido"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-05",
+          "required": true,
+          "text": "Moneda, cantidad, precio unitario y total de cada ítem, y total de la factura"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-06",
+          "required": true,
+          "text": "Descripción de la mercadería suficiente para identificarla"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-07",
+          "required": true,
+          "text": "País de origen de la mercadería"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-08",
+          "required": true,
+          "text": "Firma del vendedor (manuscrita o digital)"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-norte",
+      "SK": "CHECKLIST#PACKING_LIST#v001",
+      "checklistVersion": 1,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "docType": "PACKING_LIST",
+      "entity": "Checklist",
+      "firmId": "firm-norte",
+      "items": [
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-01",
+          "required": true,
+          "text": "Número de la factura comercial a la que corresponde"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-02",
+          "required": true,
+          "text": "Cantidad y tipo de bultos, con marcas y números"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-03",
+          "required": true,
+          "text": "Peso neto y bruto por bulto y totales, en kilogramos"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-04",
+          "required": true,
+          "text": "Peso bruto total y cantidad de bultos iguales a los de la factura"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-05",
+          "required": true,
+          "text": "Contenido de cada bulto"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-norte",
+      "SK": "CHECKLIST#CERTIFICATE_OF_ORIGIN#v001",
+      "checklistVersion": 1,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "docType": "CERTIFICATE_OF_ORIGIN",
+      "entity": "Checklist",
+      "firmId": "firm-norte",
+      "items": [
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-01",
+          "required": true,
+          "text": "Emitido por la entidad habilitada del país exportador"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-02",
+          "required": true,
+          "text": "Firmado y sellado por la entidad emisora"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-03",
+          "required": true,
+          "text": "Número y fecha de la factura comercial a la que se refiere"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-04",
+          "required": true,
+          "text": "Descripción y cantidades iguales a las de la factura"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-05",
+          "required": true,
+          "text": "País de origen declarado"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-06",
+          "required": false,
+          "text": "El estudio confirma en cada operación si el certificado aplica y su vigencia"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-norte",
+      "SK": "RESP_MATRIX#v001",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "ResponsibilityMatrix",
+      "fallback": "BROKER",
+      "firmId": "firm-norte",
+      "matrixVersion": 1,
+      "rules": [
+        {
+          "code": "LOW_CONFIDENCE",
+          "docType": "ANY",
+          "responsible": "SENDER"
+        },
+        {
+          "code": "BUYER_DATA_MISMATCH",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "IMPORTER",
+          "then": "SUPPLIER"
+        },
+        {
+          "code": "INCOTERM_MISMATCH",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "INVOICE_NUMBER_MISMATCH",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "MISSING_SIGNATURE",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "GROSS_WEIGHT_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "NET_WEIGHT_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "PACKAGES_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "INVOICE_NUMBER_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "MISSING_SIGNATURE",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "MISSING_STAMP",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "ORIGIN_MISMATCH",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "INVOICE_NUMBER_MISMATCH",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-qa",
+      "SK": "META",
+      "active": true,
+      "businessHours": {
+        "from": "09:00",
+        "timezone": "America/Argentina/Buenos_Aires",
+        "to": "18:00",
+        "weekdays": [
+          "MON",
+          "TUE",
+          "WED",
+          "THU",
+          "FRI"
+        ]
+      },
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "Firm",
+      "firmId": "firm-qa",
+      "kind": "QA",
+      "mailboxAddress": "estudio-qa@sim.legajo.demo.craftech.io",
+      "name": "Estudio QA",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-qa",
+      "SK": "SETTINGS",
+      "assumptions": {
+        "demurrageUsdPerDay": {
+          "max": 180,
+          "min": 160
+        },
+        "freeDaysAtPort": 5,
+        "label": "supuesto",
+        "source": "Fuentes secundarias no verificadas"
+      },
+      "costBudgetUsdPerDossier": 2,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "FirmSettings",
+      "firmId": "firm-qa",
+      "humanActionMinutes": {
+        "items": [
+          {
+            "action": "TAKE",
+            "label": "supuesto",
+            "minutes": 2
+          },
+          {
+            "action": "SEND",
+            "label": "supuesto",
+            "minutes": 3
+          },
+          {
+            "action": "WAIVE",
+            "label": "supuesto",
+            "minutes": 4
+          },
+          {
+            "action": "CLASSIFY",
+            "label": "supuesto",
+            "minutes": 4
+          },
+          {
+            "action": "APPROVE",
+            "label": "supuesto",
+            "minutes": 10
+          },
+          {
+            "action": "REOPEN",
+            "label": "supuesto",
+            "minutes": 5
+          }
+        ],
+        "label": "supuesto",
+        "source": "Estimación propia del equipo (editable), no una medición"
+      },
+      "manualBaseline": {
+        "items": [
+          {
+            "action": "Contactos por legajo",
+            "count": 8,
+            "label": "supuesto",
+            "minutes": 8
+          },
+          {
+            "action": "Revisión de documentos",
+            "count": 3,
+            "label": "supuesto",
+            "minutes": 7
+          },
+          {
+            "action": "Armado del legajo",
+            "count": 1,
+            "label": "supuesto",
+            "minutes": 10
+          }
+        ],
+        "label": "supuesto",
+        "source": "Estimación propia del equipo (editable), no una medición"
+      },
+      "synthetic": true,
+      "turnCaps": {
+        "perDay": 600,
+        "perHour": 120
+      },
+      "untrustedSenderEmailsPerDay": 3,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-qa",
+      "SK": "BROKER#brk-qa-runner",
+      "active": true,
+      "brokerId": "brk-qa-runner",
+      "cognitoSub": "",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "Broker",
+      "firmId": "firm-qa",
+      "name": "QA runner",
+      "role": "BROKER",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-qa",
+      "SK": "BROKER#brk-qa-analyst",
+      "active": true,
+      "brokerId": "brk-qa-analyst",
+      "cognitoSub": "",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "Broker",
+      "firmId": "firm-qa",
+      "name": "QA analyst",
+      "role": "ANALYST",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-qa",
+      "SK": "CHECKLIST#COMMERCIAL_INVOICE#v001",
+      "checklistVersion": 1,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "docType": "COMMERCIAL_INVOICE",
+      "entity": "Checklist",
+      "firmId": "firm-qa",
+      "items": [
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-01",
+          "required": true,
+          "text": "Número y fecha de emisión"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-02",
+          "required": true,
+          "text": "Razón social, domicilio y país del vendedor"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-03",
+          "required": true,
+          "text": "Razón social, CUIT y domicilio del comprador iguales a los del registro del importador en el estudio"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-04",
+          "required": true,
+          "text": "Incoterm y lugar convenido"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-05",
+          "required": true,
+          "text": "Moneda, cantidad, precio unitario y total de cada ítem, y total de la factura"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-06",
+          "required": true,
+          "text": "Descripción de la mercadería suficiente para identificarla"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-07",
+          "required": true,
+          "text": "País de origen de la mercadería"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-08",
+          "required": true,
+          "text": "Firma del vendedor (manuscrita o digital)"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-qa",
+      "SK": "CHECKLIST#PACKING_LIST#v001",
+      "checklistVersion": 1,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "docType": "PACKING_LIST",
+      "entity": "Checklist",
+      "firmId": "firm-qa",
+      "items": [
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-01",
+          "required": true,
+          "text": "Número de la factura comercial a la que corresponde"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-02",
+          "required": true,
+          "text": "Cantidad y tipo de bultos, con marcas y números"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-03",
+          "required": true,
+          "text": "Peso neto y bruto por bulto y totales, en kilogramos"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-04",
+          "required": true,
+          "text": "Peso bruto total y cantidad de bultos iguales a los de la factura"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-05",
+          "required": true,
+          "text": "Contenido de cada bulto"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-qa",
+      "SK": "CHECKLIST#CERTIFICATE_OF_ORIGIN#v001",
+      "checklistVersion": 1,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "docType": "CERTIFICATE_OF_ORIGIN",
+      "entity": "Checklist",
+      "firmId": "firm-qa",
+      "items": [
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-01",
+          "required": true,
+          "text": "Emitido por la entidad habilitada del país exportador"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-02",
+          "required": true,
+          "text": "Firmado y sellado por la entidad emisora"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-03",
+          "required": true,
+          "text": "Número y fecha de la factura comercial a la que se refiere"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-04",
+          "required": true,
+          "text": "Descripción y cantidades iguales a las de la factura"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-05",
+          "required": true,
+          "text": "País de origen declarado"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-06",
+          "required": false,
+          "text": "El estudio confirma en cada operación si el certificado aplica y su vigencia"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-qa",
+      "SK": "RESP_MATRIX#v001",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "ResponsibilityMatrix",
+      "fallback": "BROKER",
+      "firmId": "firm-qa",
+      "matrixVersion": 1,
+      "rules": [
+        {
+          "code": "LOW_CONFIDENCE",
+          "docType": "ANY",
+          "responsible": "SENDER"
+        },
+        {
+          "code": "BUYER_DATA_MISMATCH",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "IMPORTER",
+          "then": "SUPPLIER"
+        },
+        {
+          "code": "INCOTERM_MISMATCH",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "INVOICE_NUMBER_MISMATCH",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "MISSING_SIGNATURE",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "GROSS_WEIGHT_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "NET_WEIGHT_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "PACKAGES_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "INVOICE_NUMBER_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "MISSING_SIGNATURE",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "MISSING_STAMP",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "ORIGIN_MISMATCH",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "INVOICE_NUMBER_MISMATCH",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-sim",
+      "SK": "META",
+      "active": true,
+      "businessHours": {
+        "from": "09:00",
+        "timezone": "America/Argentina/Buenos_Aires",
+        "to": "18:00",
+        "weekdays": [
+          "MON",
+          "TUE",
+          "WED",
+          "THU",
+          "FRI"
+        ]
+      },
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "Firm",
+      "firmId": "firm-sim",
+      "kind": "QA",
+      "mailboxAddress": "estudio-sim@sim.legajo.demo.craftech.io",
+      "name": "Estudio de lote",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-sim",
+      "SK": "SETTINGS",
+      "assumptions": {
+        "demurrageUsdPerDay": {
+          "max": 180,
+          "min": 160
+        },
+        "freeDaysAtPort": 5,
+        "label": "supuesto",
+        "source": "Fuentes secundarias no verificadas"
+      },
+      "costBudgetUsdPerDossier": 2,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "FirmSettings",
+      "firmId": "firm-sim",
+      "humanActionMinutes": {
+        "items": [
+          {
+            "action": "TAKE",
+            "label": "supuesto",
+            "minutes": 2
+          },
+          {
+            "action": "SEND",
+            "label": "supuesto",
+            "minutes": 3
+          },
+          {
+            "action": "WAIVE",
+            "label": "supuesto",
+            "minutes": 4
+          },
+          {
+            "action": "CLASSIFY",
+            "label": "supuesto",
+            "minutes": 4
+          },
+          {
+            "action": "APPROVE",
+            "label": "supuesto",
+            "minutes": 10
+          },
+          {
+            "action": "REOPEN",
+            "label": "supuesto",
+            "minutes": 5
+          }
+        ],
+        "label": "supuesto",
+        "source": "Estimación propia del equipo (editable), no una medición"
+      },
+      "manualBaseline": {
+        "items": [
+          {
+            "action": "Contactos por legajo",
+            "count": 8,
+            "label": "supuesto",
+            "minutes": 8
+          },
+          {
+            "action": "Revisión de documentos",
+            "count": 3,
+            "label": "supuesto",
+            "minutes": 7
+          },
+          {
+            "action": "Armado del legajo",
+            "count": 1,
+            "label": "supuesto",
+            "minutes": 10
+          }
+        ],
+        "label": "supuesto",
+        "source": "Estimación propia del equipo (editable), no una medición"
+      },
+      "synthetic": true,
+      "turnCaps": {
+        "perDay": 800,
+        "perHour": 120
+      },
+      "untrustedSenderEmailsPerDay": 3,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-sim",
+      "SK": "CHECKLIST#COMMERCIAL_INVOICE#v001",
+      "checklistVersion": 1,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "docType": "COMMERCIAL_INVOICE",
+      "entity": "Checklist",
+      "firmId": "firm-sim",
+      "items": [
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-01",
+          "required": true,
+          "text": "Número y fecha de emisión"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-02",
+          "required": true,
+          "text": "Razón social, domicilio y país del vendedor"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-03",
+          "required": true,
+          "text": "Razón social, CUIT y domicilio del comprador iguales a los del registro del importador en el estudio"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-04",
+          "required": true,
+          "text": "Incoterm y lugar convenido"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-05",
+          "required": true,
+          "text": "Moneda, cantidad, precio unitario y total de cada ítem, y total de la factura"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-06",
+          "required": true,
+          "text": "Descripción de la mercadería suficiente para identificarla"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-07",
+          "required": true,
+          "text": "País de origen de la mercadería"
+        },
+        {
+          "docType": "COMMERCIAL_INVOICE",
+          "itemId": "CI-08",
+          "required": true,
+          "text": "Firma del vendedor (manuscrita o digital)"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-sim",
+      "SK": "CHECKLIST#PACKING_LIST#v001",
+      "checklistVersion": 1,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "docType": "PACKING_LIST",
+      "entity": "Checklist",
+      "firmId": "firm-sim",
+      "items": [
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-01",
+          "required": true,
+          "text": "Número de la factura comercial a la que corresponde"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-02",
+          "required": true,
+          "text": "Cantidad y tipo de bultos, con marcas y números"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-03",
+          "required": true,
+          "text": "Peso neto y bruto por bulto y totales, en kilogramos"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-04",
+          "required": true,
+          "text": "Peso bruto total y cantidad de bultos iguales a los de la factura"
+        },
+        {
+          "docType": "PACKING_LIST",
+          "itemId": "PL-05",
+          "required": true,
+          "text": "Contenido de cada bulto"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-sim",
+      "SK": "CHECKLIST#CERTIFICATE_OF_ORIGIN#v001",
+      "checklistVersion": 1,
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "docType": "CERTIFICATE_OF_ORIGIN",
+      "entity": "Checklist",
+      "firmId": "firm-sim",
+      "items": [
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-01",
+          "required": true,
+          "text": "Emitido por la entidad habilitada del país exportador"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-02",
+          "required": true,
+          "text": "Firmado y sellado por la entidad emisora"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-03",
+          "required": true,
+          "text": "Número y fecha de la factura comercial a la que se refiere"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-04",
+          "required": true,
+          "text": "Descripción y cantidades iguales a las de la factura"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-05",
+          "required": true,
+          "text": "País de origen declarado"
+        },
+        {
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "itemId": "CO-06",
+          "required": false,
+          "text": "El estudio confirma en cada operación si el certificado aplica y su vigencia"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "FIRM#firm-sim",
+      "SK": "RESP_MATRIX#v001",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "entity": "ResponsibilityMatrix",
+      "fallback": "BROKER",
+      "firmId": "firm-sim",
+      "matrixVersion": 1,
+      "rules": [
+        {
+          "code": "LOW_CONFIDENCE",
+          "docType": "ANY",
+          "responsible": "SENDER"
+        },
+        {
+          "code": "BUYER_DATA_MISMATCH",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "IMPORTER",
+          "then": "SUPPLIER"
+        },
+        {
+          "code": "INCOTERM_MISMATCH",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "INVOICE_NUMBER_MISMATCH",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "MISSING_SIGNATURE",
+          "docType": "COMMERCIAL_INVOICE",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "GROSS_WEIGHT_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "NET_WEIGHT_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "PACKAGES_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "INVOICE_NUMBER_MISMATCH",
+          "docType": "PACKING_LIST",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "MISSING_SIGNATURE",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "MISSING_STAMP",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "ORIGIN_MISMATCH",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        },
+        {
+          "code": "INVOICE_NUMBER_MISMATCH",
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "responsible": "SUPPLIER"
+        }
+      ],
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    }
+  ],
+  "seed": 20260925,
+  "table": "Firms"
+}

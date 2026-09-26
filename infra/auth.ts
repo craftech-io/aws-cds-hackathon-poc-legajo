@@ -74,9 +74,9 @@ function senderConfiguration(identity: unknown): $util.Output<EmailConfiguration
     .apply((live) => applySender(emailSenderFor({ domain: live.emailIdentity, arn: live.arn, verified: live.verifiedForSendingStatus }, appDomain)));
 }
 
-// The SES identity belongs to infra/messaging-email.ts, which sst.config.ts evaluates after this
-// module and which exports nothing until WP-18. A dynamic import inside an Output settles once that
-// module has run, whatever the order.
+// The SES identity belongs to infra/messaging-email.ts (`emailIdentity`), which sst.config.ts
+// evaluates after this module. A dynamic import inside an Output settles once that module has run,
+// whatever the order.
 const emailConfiguration = $util.output(import("./messaging-email").then((module) => senderConfiguration(Reflect.get(module, "emailIdentity"))));
 
 /** Adds `firmId`, the role and `isJudge` to the tokens; reads only `Firms` (its broker rows and GSI1). */

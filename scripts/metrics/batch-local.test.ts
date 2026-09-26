@@ -102,6 +102,6 @@ describe("metrics batch with the scripted agent", () => {
   });
 
   it.todo(
-    "runs the 200 entries of scripts/seed/data/metrics/batch-inputs.jsonl through the in-process world and writes 200 SCRIPTED rows with 0 violations — pending: the seed's batch entries (WP-08), the world factory over them (WP-31) and the local flows' entries, worker and targets (WP-25 to WP-30)",
+    "runs the 200 entries of scripts/seed/data/metrics/batch-inputs.jsonl through the in-process world and writes 200 SCRIPTED rows with 0 violations — pending: the world factory over the seed's batch entries (WP-31) and the local flows' entries, worker and targets (WP-25 to WP-30)",
   );
 });

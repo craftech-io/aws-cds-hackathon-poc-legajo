@@ -139,6 +139,6 @@ describe("walk of the guided tour", () => {
   });
 
   it.todo(
-    "walks TOUR_STEPS over the in-process world loaded with the `judge` template and the scripted Harness (tests/flows/support/world.ts) with no problem — pending: the judge template (scripts/seed/data/worlds/judge.json, WP-08; loader and world factory, WP-31), the clock, timers and milestones (WP-27), the worker (WP-28), the channel entries (WP-29), the supplier simulator (WP-30), the outbound pipeline (WP-25) and the console's clock, dossier and simulator procedures (WP-33)",
+    "walks TOUR_STEPS over the in-process world loaded with the `judge` template and the scripted Harness (tests/flows/support/world.ts) with no problem — pending: the loader and world factory over the judge template (scripts/seed/data/worlds/judge.json, WP-31), the clock, timers and milestones (WP-27), the worker (WP-28), the channel entries (WP-29), the supplier simulator (WP-30), the outbound pipeline (WP-25) and the console's clock, dossier and simulator procedures (WP-33)",
   );
 });

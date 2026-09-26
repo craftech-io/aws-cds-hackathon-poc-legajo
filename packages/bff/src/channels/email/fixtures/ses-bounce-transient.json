@@ -1,0 +1,67 @@
+{
+  "version": "0",
+  "id": "5b2b9a36-0000-4c1d-8e3f-000000000001",
+  "detail-type": "Email Bounced",
+  "source": "aws.ses",
+  "account": "776805327629",
+  "time": "2026-10-21T03:30:04Z",
+  "region": "us-east-1",
+  "resources": [
+    "arn:aws:ses:us-east-1:776805327629:configuration-set/aws-cds-hackathon-poc-legajo-email-poc"
+  ],
+  "detail": {
+    "eventType": "Bounce",
+    "mail": {
+      "timestamp": "2026-10-21T03:30:01.000Z",
+      "source": "\"Estudio Delta via Legajo listo\" <op-4474-p2k8r4@legajo.demo.craftech.io>",
+      "sourceArn": "arn:aws:ses:us-east-1:776805327629:identity/legajo.demo.craftech.io",
+      "sendingAccountId": "776805327629",
+      "messageId": "0100019a2b3c4d5e-6f708192-a3b4-45c6-97d8-e9fa0b1c2d3e-000000",
+      "destination": [
+        "bounce@simulator.amazonses.com"
+      ],
+      "headersTruncated": false,
+      "tags": {
+        "ses:configuration-set": [
+          "aws-cds-hackathon-poc-legajo-email-poc"
+        ],
+        "ses:source-ip": [
+          "203.0.113.10"
+        ],
+        "ses:from-domain": [
+          "legajo.demo.craftech.io"
+        ],
+        "stage": [
+          "poc"
+        ],
+        "kind": [
+          "DOCS_REQUEST"
+        ],
+        "mailId": [
+          "01JQ7ZK8X4M2N6P9R3T5V7W9Z1"
+        ],
+        "operationId": [
+          "op-4474"
+        ],
+        "messageId": [
+          "msg-4474out1"
+        ]
+      }
+    },
+    "bounce": {
+      "feedbackId": "0100019a2b3c4d5f-feedback-000001",
+      "bounceType": "Transient",
+      "bounceSubType": "MailboxFull",
+      "bouncedRecipients": [
+        {
+          "emailAddress": "bounce@simulator.amazonses.com",
+          "action": "failed",
+          "status": "4.2.2",
+          "diagnosticCode": "smtp; 452 4.2.2 mailbox full"
+        }
+      ],
+      "timestamp": "2026-10-21T03:30:03.500Z",
+      "reportingMTA": "dns; b224-13.smtp-out.amazonses.com"
+    }
+  }
+}

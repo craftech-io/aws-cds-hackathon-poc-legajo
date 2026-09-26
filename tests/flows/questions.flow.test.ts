@@ -26,6 +26,6 @@ describe("importer question flows", () => {
     `[FL-052:pending] "¿Cuánto me sale si se atrasa?": plan estimate_delay_risk → send_whatsapp(REPLY) with the word "supuesto" and only figures present in the tool result — needs ${NEEDS.tools}; ${NEEDS.pipeline}; ${NEEDS.worker}`,
   );
   it.todo(
-    `[FL-053:pending] "¿Qué significa canal naranja?": plan get_dispatch_status → send_whatsapp(REPLY) grounded on genericExplanation (grounding ≥ 0.75), no recommendation — needs ${NEEDS.tools}; ${NEEDS.pipeline}; ${NEEDS.worker}; ${NEEDS.seed}`,
+    `[FL-053:pending] "¿Qué significa canal naranja?": plan get_dispatch_status → send_whatsapp(REPLY) grounded on genericExplanation (grounding ≥ 0.75), no recommendation — needs ${NEEDS.tools}; ${NEEDS.pipeline}; ${NEEDS.worker}`,
   );
 });

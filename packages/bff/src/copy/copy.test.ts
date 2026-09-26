@@ -94,7 +94,7 @@ describe("importer texts (es-AR) and their gloss", () => {
   });
 
   it("fit a long supplier name in a list row description", () => {
-    const long = { supplierName: "Guangzhou Evergrow Plastics Co. International Trading Division", etaText: "22/10" };
+    const long = { supplierName: "Guangzhou Lotusmere Plastics Co. International Trading Division", etaText: "22/10" };
     for (const pack of [importerEsAR, importerGloss]) {
       expect(charCount(pack.operationChoice.rowDescription(long))).toBeLessThanOrEqual(LIST_ROW_DESCRIPTION_MAX_CHARS);
     }

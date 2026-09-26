@@ -1,0 +1,80 @@
+{
+  "Records": [
+    {
+      "eventSource": "aws:ses",
+      "eventVersion": "1.0",
+      "ses": {
+        "mail": {
+          "timestamp": "2026-10-15T14:10:05.123Z",
+          "source": "supplier-qingdao@sim.legajo.demo.craftech.io",
+          "messageId": "o3vrnil0e2ic28trm7dfhrc2v0clambda4nbp0g1",
+          "destination": [
+            "op-4471-k7p2q9@legajo.demo.craftech.io"
+          ],
+          "headersTruncated": false,
+          "headers": [
+            {
+              "name": "From",
+              "value": "\"Qingdao Bluewave Textiles Co., Ltd.\" <supplier-qingdao@sim.legajo.demo.craftech.io>"
+            },
+            {
+              "name": "To",
+              "value": "op-4471-k7p2q9@legajo.demo.craftech.io"
+            },
+            {
+              "name": "Subject",
+              "value": "Re: [Op 4471] Missing documents: packing list, certificate of origin (Invoice QBT-2026-0917)"
+            },
+            {
+              "name": "Message-ID",
+              "value": "<reply-4471-1@sim.legajo.demo.craftech.io>"
+            },
+            {
+              "name": "X-Legajo-Mail-Id",
+              "value": "01JQ7ZK8X4M2N6P9R3T5V7W9Y1; clock=GLOBAL#firm-delta"
+            }
+          ],
+          "commonHeaders": {
+            "returnPath": "bounce@bounce.legajo.demo.craftech.io",
+            "from": [
+              "\"Qingdao Bluewave Textiles Co., Ltd.\" <supplier-qingdao@sim.legajo.demo.craftech.io>"
+            ],
+            "date": "Thu, 15 Oct 2026 22:10:04 +0800",
+            "to": [
+              "op-4471-k7p2q9@legajo.demo.craftech.io"
+            ],
+            "messageId": "<reply-4471-1@sim.legajo.demo.craftech.io>",
+            "subject": "Re: [Op 4471] Missing documents: packing list, certificate of origin (Invoice QBT-2026-0917)"
+          }
+        },
+        "receipt": {
+          "timestamp": "2026-10-15T14:10:05.123Z",
+          "processingTimeMillis": 574,
+          "recipients": [
+            "op-4471-k7p2q9@legajo.demo.craftech.io"
+          ],
+          "spamVerdict": {
+            "status": "PASS"
+          },
+          "virusVerdict": {
+            "status": "PASS"
+          },
+          "spfVerdict": {
+            "status": "PASS"
+          },
+          "dkimVerdict": {
+            "status": "PASS"
+          },
+          "dmarcVerdict": {
+            "status": "PASS"
+          },
+          "action": {
+            "type": "Lambda",
+            "functionArn": "arn:aws:lambda:us-east-1:776805327629:function:aws-cds-hackathon-poc-legajo-poc-InboundEmailFunction",
+            "invocationType": "Event"
+          }
+        }
+      }
+    }
+  ]
+}

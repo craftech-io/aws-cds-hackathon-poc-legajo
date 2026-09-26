@@ -61,6 +61,7 @@ describe("Memory sentinels (SC-09/11, SC-20/5)", () => {
     const seedNames = filesUnder("scripts/seed/data", (path) => path.endsWith(".json"))
       .flatMap((path) => [...readFileSync(path, "utf8").matchAll(/"name"\s*:\s*"([^"]+)"/g)].map((match) => match[1] ?? ""))
       .filter((name) => name.length > 3);
+    expect(seedNames.length).toBeGreaterThan(0);
     expect(seedNames.filter((name) => foldText(SENTINELS.F.phrase).includes(foldText(name)))).toEqual([]);
   });
 
@@ -71,7 +72,9 @@ describe("Memory sentinels (SC-09/11, SC-20/5)", () => {
   });
 
   it("no word of A or B appears in the seed, its checklist or the world templates", () => {
-    for (const path of filesUnder("scripts/seed/data", (file) => /\.(json|jsonl|csv|txt)$/.test(file))) expect(toneWordsIn(readFileSync(path, "utf8")), path).toEqual([]);
+    const seed = filesUnder("scripts/seed/data", (file) => /\.(json|jsonl|csv|txt)$/.test(file));
+    expect(seed.length).toBeGreaterThan(0);
+    for (const path of seed) expect(toneWordsIn(readFileSync(path, "utf8")), path).toEqual([]);
   });
 
   it("no word of A or B appears in the plans of the scripted Harness", () => {

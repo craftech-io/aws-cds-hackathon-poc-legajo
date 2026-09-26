@@ -1,0 +1,4971 @@
+{
+  "altContacts": [
+    {
+      "email": "j00-konkan-ops@sim.legajo.demo.craftech.io",
+      "supplierId": "sup-konkan"
+    }
+  ],
+  "derived": {
+    "fields": {
+      "Importer": [
+        "phoneHash"
+      ],
+      "Operation": [
+        "worldEpoch",
+        "threadTag",
+        "threadAddress"
+      ],
+      "SupplierContact": [
+        "emailHash"
+      ]
+    },
+    "keys": "packages/bff/src/connector/item-shape.ts",
+    "threadAddressPlaceholder": "{threadAddress}",
+    "worldEpoch": "COUNTER#EPOCH#<clockId>"
+  },
+  "generatorVersion": "1.0.0",
+  "items": {
+    "AuditLog": [
+      {
+        "action": "SEND_WHATSAPP",
+        "actor": "AGENT",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-12T10:00:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "DEFER",
+        "decisionId": "01M4R35N40XWTHSCY7TVMCT54Y",
+        "detail": {
+          "kind": "DOCS_REQUEST",
+          "nextAllowedAt": "2026-10-13T09:00:00-03:00"
+        },
+        "entity": "Decision",
+        "evaluated": [
+          {
+            "detail": "the agent has the conversation",
+            "result": "PASS",
+            "ruleId": "CP-CONTROL-BROKER"
+          },
+          {
+            "detail": "DOCS_REQUEST goes to the importer by WhatsApp",
+            "result": "PASS",
+            "ruleId": "CP-KIND-CHANNEL"
+          },
+          {
+            "detail": "the importer's registered phone",
+            "result": "PASS",
+            "ruleId": "CP-RECIPIENT-FENCE"
+          },
+          {
+            "detail": "opt-in in force; approved template",
+            "result": "PASS",
+            "ruleId": "CP-OPTIN"
+          },
+          {
+            "detail": "opt-in in force; approved template",
+            "result": "PASS",
+            "ruleId": "CP-OPTOUT"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-SUPPLIER-AUTH"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-BOUNCED-CONTACT"
+          },
+          {
+            "detail": "allowed for the dossier's status",
+            "result": "PASS",
+            "ruleId": "CP-APPROVED-SCOPE"
+          },
+          {
+            "detail": "outside Buenos Aires business hours: deferred to 2026-10-13T09:00:00-03:00",
+            "result": "DEFER",
+            "ruleId": "CP-HOURS-AR"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "month": "2026-10",
+        "operationId": "op-4478",
+        "refs": {
+          "operationId": "op-4478",
+          "timerKey": "TIMER#DEFERRED_SEND#deferred-4478-1"
+        },
+        "ruleIds": [
+          "CP-HOURS-AR"
+        ],
+        "synthetic": true,
+        "trigger": "MILESTONE",
+        "ts": "2026-10-12T13:00:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "SEND_WHATSAPP",
+        "actor": "SYSTEM",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T09:00:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ALLOW",
+        "decisionId": "01M4TJ4GG0AJ9SR5K5NW1QWH03",
+        "detail": {
+          "kind": "DOCS_REQUEST"
+        },
+        "entity": "Decision",
+        "evaluated": [
+          {
+            "detail": "the agent has the conversation",
+            "result": "PASS",
+            "ruleId": "CP-CONTROL-BROKER"
+          },
+          {
+            "detail": "DOCS_REQUEST goes to the importer by WhatsApp",
+            "result": "PASS",
+            "ruleId": "CP-KIND-CHANNEL"
+          },
+          {
+            "detail": "the importer's registered phone",
+            "result": "PASS",
+            "ruleId": "CP-RECIPIENT-FENCE"
+          },
+          {
+            "detail": "opt-in in force; approved template",
+            "result": "PASS",
+            "ruleId": "CP-OPTIN"
+          },
+          {
+            "detail": "opt-in in force; approved template",
+            "result": "PASS",
+            "ruleId": "CP-OPTOUT"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-SUPPLIER-AUTH"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-BOUNCED-CONTACT"
+          },
+          {
+            "detail": "allowed for the dossier's status",
+            "result": "PASS",
+            "ruleId": "CP-APPROVED-SCOPE"
+          },
+          {
+            "detail": "inside Buenos Aires business hours",
+            "result": "PASS",
+            "ruleId": "CP-HOURS-AR"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-HOURS-SUPPLIER"
+          },
+          {
+            "detail": "first request or reminder of the day for this contact",
+            "result": "PASS",
+            "ruleId": "CP-ONE-PER-DAY"
+          },
+          {
+            "detail": "opt-in in force; approved template",
+            "result": "PASS",
+            "ruleId": "CP-WA-24H"
+          },
+          {
+            "detail": "asks for no identity, bank or card data",
+            "result": "PASS",
+            "ruleId": "CP-NO-SENSITIVE-ASK"
+          },
+          {
+            "detail": "no free text: approved template",
+            "result": "PASS",
+            "ruleId": "CP-NO-FOREIGN-LINKS"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "messageId": "msg-01M4TJ4GG0J296CEZEHHVECZ0Z",
+        "month": "2026-10",
+        "operationId": "op-4478",
+        "refs": {
+          "messageId": "msg-01M4TJ4GG0J296CEZEHHVECZ0Z",
+          "operationId": "op-4478"
+        },
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-ONE-PER-DAY",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ],
+        "synthetic": true,
+        "trigger": "MILESTONE",
+        "ts": "2026-10-13T12:00:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "SEND_WHATSAPP",
+        "actor": "AGENT",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T09:06:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ALLOW",
+        "decisionId": "01M4TJFG205FKRFPS6AMEBH7DE",
+        "detail": {
+          "answers": "msg-01M4TJDNF0BBTWS5TBG2NC8D2N",
+          "kind": "CONTACT_CONFIRMATION"
+        },
+        "entity": "Decision",
+        "evaluated": [
+          {
+            "detail": "the agent has the conversation",
+            "result": "PASS",
+            "ruleId": "CP-CONTROL-BROKER"
+          },
+          {
+            "detail": "CONTACT_CONFIRMATION goes to the importer by WhatsApp",
+            "result": "PASS",
+            "ruleId": "CP-KIND-CHANNEL"
+          },
+          {
+            "detail": "the importer's registered phone",
+            "result": "PASS",
+            "ruleId": "CP-RECIPIENT-FENCE"
+          },
+          {
+            "detail": "opt-in in force; inside the 24-hour window",
+            "result": "PASS",
+            "ruleId": "CP-OPTIN"
+          },
+          {
+            "detail": "opt-in in force; inside the 24-hour window",
+            "result": "PASS",
+            "ruleId": "CP-OPTOUT"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-SUPPLIER-AUTH"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-BOUNCED-CONTACT"
+          },
+          {
+            "detail": "allowed for the dossier's status",
+            "result": "PASS",
+            "ruleId": "CP-APPROVED-SCOPE"
+          },
+          {
+            "detail": "a reply to the importer is exempt",
+            "result": "SKIP",
+            "ruleId": "CP-HOURS-AR"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-HOURS-SUPPLIER"
+          },
+          {
+            "detail": "only DOCS_REQUEST and REMINDER count",
+            "result": "SKIP",
+            "ruleId": "CP-ONE-PER-DAY"
+          },
+          {
+            "detail": "opt-in in force; inside the 24-hour window",
+            "result": "PASS",
+            "ruleId": "CP-WA-24H"
+          },
+          {
+            "detail": "asks for no identity, bank or card data",
+            "result": "PASS",
+            "ruleId": "CP-NO-SENSITIVE-ASK"
+          },
+          {
+            "detail": "no link or contact outside the turn's",
+            "result": "PASS",
+            "ruleId": "CP-NO-FOREIGN-LINKS"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "messageId": "msg-01M4TJFG203M71BR5YQH11GNXT",
+        "month": "2026-10",
+        "operationId": "op-4478",
+        "refs": {
+          "messageId": "msg-01M4TJFG203M71BR5YQH11GNXT",
+          "operationId": "op-4478"
+        },
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ],
+        "synthetic": true,
+        "trigger": "IMPORTER_MESSAGE",
+        "ts": "2026-10-13T12:06:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "CONTACT_CONFIRMED",
+        "actor": "IMPORTER",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T09:15:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ACTION",
+        "decisionId": "01M4TJZZD0PANDED0XSW9WZ9AD",
+        "entity": "Decision",
+        "evaluated": [],
+        "firmId": "firm-judge-00",
+        "month": "2026-10",
+        "operationId": "op-4478",
+        "refs": {
+          "contactId": "ctc-ligurmare-1",
+          "operationId": "op-4478"
+        },
+        "ruleIds": [],
+        "synthetic": true,
+        "ts": "2026-10-13T12:15:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "SEND_EMAIL",
+        "actor": "AGENT",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T09:20:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ALLOW",
+        "decisionId": "01M4TK94C01NM955AXS332TR8G",
+        "detail": {
+          "kind": "DOCS_REQUEST"
+        },
+        "entity": "Decision",
+        "evaluated": [
+          {
+            "detail": "the agent has the conversation",
+            "result": "PASS",
+            "ruleId": "CP-CONTROL-BROKER"
+          },
+          {
+            "detail": "DOCS_REQUEST goes to the supplier by email",
+            "result": "PASS",
+            "ruleId": "CP-KIND-CHANNEL"
+          },
+          {
+            "detail": "a registered contact inside the SYSTEM fence",
+            "result": "PASS",
+            "ruleId": "CP-RECIPIENT-FENCE"
+          },
+          {
+            "detail": "only WhatsApp to the importer",
+            "result": "SKIP",
+            "ruleId": "CP-OPTIN"
+          },
+          {
+            "detail": "only WhatsApp to the importer",
+            "result": "SKIP",
+            "ruleId": "CP-OPTOUT"
+          },
+          {
+            "detail": "authorized, confirmed and active contact, inside the supplier's hours",
+            "result": "PASS",
+            "ruleId": "CP-SUPPLIER-AUTH"
+          },
+          {
+            "detail": "authorized, confirmed and active contact, inside the supplier's hours",
+            "result": "PASS",
+            "ruleId": "CP-BOUNCED-CONTACT"
+          },
+          {
+            "detail": "allowed for the dossier's status",
+            "result": "PASS",
+            "ruleId": "CP-APPROVED-SCOPE"
+          },
+          {
+            "detail": "only WhatsApp to the importer",
+            "result": "SKIP",
+            "ruleId": "CP-HOURS-AR"
+          },
+          {
+            "detail": "authorized, confirmed and active contact, inside the supplier's hours",
+            "result": "PASS",
+            "ruleId": "CP-HOURS-SUPPLIER"
+          },
+          {
+            "detail": "first request or reminder of the day for this contact",
+            "result": "PASS",
+            "ruleId": "CP-ONE-PER-DAY"
+          },
+          {
+            "detail": "only WhatsApp to the importer",
+            "result": "SKIP",
+            "ruleId": "CP-WA-24H"
+          },
+          {
+            "detail": "asks for no identity, bank or card data",
+            "result": "PASS",
+            "ruleId": "CP-NO-SENSITIVE-ASK"
+          },
+          {
+            "detail": "no link or contact outside the turn's",
+            "result": "PASS",
+            "ruleId": "CP-NO-FOREIGN-LINKS"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "messageId": "msg-01M4TK94C02AZ25878QMW0YVJ5",
+        "month": "2026-10",
+        "operationId": "op-4478",
+        "refs": {
+          "contactId": "ctc-ligurmare-1",
+          "messageId": "msg-01M4TK94C02AZ25878QMW0YVJ5",
+          "operationId": "op-4478"
+        },
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-SUPPLIER-AUTH",
+          "CP-BOUNCED-CONTACT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-SUPPLIER",
+          "CP-ONE-PER-DAY",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ],
+        "synthetic": true,
+        "trigger": "CONTACT_CONFIRMED",
+        "ts": "2026-10-13T12:20:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "SEND_WHATSAPP",
+        "actor": "AGENT",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T09:21:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ALLOW",
+        "decisionId": "01M4TKAYZ06V3WD398T2C57GYW",
+        "detail": {
+          "answers": "msg-01M4TJZZD0GW18GFJ9ZESQP5VD",
+          "kind": "REPLY"
+        },
+        "entity": "Decision",
+        "evaluated": [
+          {
+            "detail": "the agent has the conversation",
+            "result": "PASS",
+            "ruleId": "CP-CONTROL-BROKER"
+          },
+          {
+            "detail": "REPLY goes to the importer by WhatsApp",
+            "result": "PASS",
+            "ruleId": "CP-KIND-CHANNEL"
+          },
+          {
+            "detail": "the importer's registered phone",
+            "result": "PASS",
+            "ruleId": "CP-RECIPIENT-FENCE"
+          },
+          {
+            "detail": "opt-in in force; inside the 24-hour window",
+            "result": "PASS",
+            "ruleId": "CP-OPTIN"
+          },
+          {
+            "detail": "opt-in in force; inside the 24-hour window",
+            "result": "PASS",
+            "ruleId": "CP-OPTOUT"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-SUPPLIER-AUTH"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-BOUNCED-CONTACT"
+          },
+          {
+            "detail": "allowed for the dossier's status",
+            "result": "PASS",
+            "ruleId": "CP-APPROVED-SCOPE"
+          },
+          {
+            "detail": "a reply to the importer is exempt",
+            "result": "SKIP",
+            "ruleId": "CP-HOURS-AR"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-HOURS-SUPPLIER"
+          },
+          {
+            "detail": "only DOCS_REQUEST and REMINDER count",
+            "result": "SKIP",
+            "ruleId": "CP-ONE-PER-DAY"
+          },
+          {
+            "detail": "opt-in in force; inside the 24-hour window",
+            "result": "PASS",
+            "ruleId": "CP-WA-24H"
+          },
+          {
+            "detail": "asks for no identity, bank or card data",
+            "result": "PASS",
+            "ruleId": "CP-NO-SENSITIVE-ASK"
+          },
+          {
+            "detail": "no link or contact outside the turn's",
+            "result": "PASS",
+            "ruleId": "CP-NO-FOREIGN-LINKS"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "messageId": "msg-01M4TKAYZ0Y4TVKCWPBC357BPR",
+        "month": "2026-10",
+        "operationId": "op-4478",
+        "refs": {
+          "messageId": "msg-01M4TKAYZ0Y4TVKCWPBC357BPR",
+          "operationId": "op-4478"
+        },
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ],
+        "synthetic": true,
+        "trigger": "CONTACT_CONFIRMED",
+        "ts": "2026-10-13T12:21:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "SEND_EMAIL",
+        "actor": "AGENT",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-14T10:00:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ALLOW",
+        "decisionId": "01M4X7Z34058ABHJHVZPRG5BVJ",
+        "detail": {
+          "kind": "REMINDER"
+        },
+        "entity": "Decision",
+        "evaluated": [
+          {
+            "detail": "the agent has the conversation",
+            "result": "PASS",
+            "ruleId": "CP-CONTROL-BROKER"
+          },
+          {
+            "detail": "REMINDER goes to the supplier by email",
+            "result": "PASS",
+            "ruleId": "CP-KIND-CHANNEL"
+          },
+          {
+            "detail": "a registered contact inside the SYSTEM fence",
+            "result": "PASS",
+            "ruleId": "CP-RECIPIENT-FENCE"
+          },
+          {
+            "detail": "only WhatsApp to the importer",
+            "result": "SKIP",
+            "ruleId": "CP-OPTIN"
+          },
+          {
+            "detail": "only WhatsApp to the importer",
+            "result": "SKIP",
+            "ruleId": "CP-OPTOUT"
+          },
+          {
+            "detail": "authorized, confirmed and active contact, inside the supplier's hours",
+            "result": "PASS",
+            "ruleId": "CP-SUPPLIER-AUTH"
+          },
+          {
+            "detail": "authorized, confirmed and active contact, inside the supplier's hours",
+            "result": "PASS",
+            "ruleId": "CP-BOUNCED-CONTACT"
+          },
+          {
+            "detail": "allowed for the dossier's status",
+            "result": "PASS",
+            "ruleId": "CP-APPROVED-SCOPE"
+          },
+          {
+            "detail": "only WhatsApp to the importer",
+            "result": "SKIP",
+            "ruleId": "CP-HOURS-AR"
+          },
+          {
+            "detail": "authorized, confirmed and active contact, inside the supplier's hours",
+            "result": "PASS",
+            "ruleId": "CP-HOURS-SUPPLIER"
+          },
+          {
+            "detail": "first request or reminder of the day for this contact",
+            "result": "PASS",
+            "ruleId": "CP-ONE-PER-DAY"
+          },
+          {
+            "detail": "only WhatsApp to the importer",
+            "result": "SKIP",
+            "ruleId": "CP-WA-24H"
+          },
+          {
+            "detail": "asks for no identity, bank or card data",
+            "result": "PASS",
+            "ruleId": "CP-NO-SENSITIVE-ASK"
+          },
+          {
+            "detail": "no link or contact outside the turn's",
+            "result": "PASS",
+            "ruleId": "CP-NO-FOREIGN-LINKS"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "messageId": "msg-01M4X7Z340053VHGK9DZ6DN816",
+        "month": "2026-10",
+        "operationId": "op-4478",
+        "refs": {
+          "contactId": "ctc-ligurmare-1",
+          "messageId": "msg-01M4X7Z340053VHGK9DZ6DN816",
+          "operationId": "op-4478"
+        },
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-SUPPLIER-AUTH",
+          "CP-BOUNCED-CONTACT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-SUPPLIER",
+          "CP-ONE-PER-DAY",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ],
+        "synthetic": true,
+        "trigger": "MILESTONE",
+        "ts": "2026-10-14T13:00:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "SEND_WHATSAPP",
+        "actor": "AGENT",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-09T10:00:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ALLOW",
+        "decisionId": "01M4GBZG406YK5PHG4DJMK755B",
+        "detail": {
+          "kind": "DOCS_REQUEST"
+        },
+        "entity": "Decision",
+        "evaluated": [
+          {
+            "detail": "the agent has the conversation",
+            "result": "PASS",
+            "ruleId": "CP-CONTROL-BROKER"
+          },
+          {
+            "detail": "DOCS_REQUEST goes to the importer by WhatsApp",
+            "result": "PASS",
+            "ruleId": "CP-KIND-CHANNEL"
+          },
+          {
+            "detail": "the importer's registered phone",
+            "result": "PASS",
+            "ruleId": "CP-RECIPIENT-FENCE"
+          },
+          {
+            "detail": "opt-in in force; approved template",
+            "result": "PASS",
+            "ruleId": "CP-OPTIN"
+          },
+          {
+            "detail": "opt-in in force; approved template",
+            "result": "PASS",
+            "ruleId": "CP-OPTOUT"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-SUPPLIER-AUTH"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-BOUNCED-CONTACT"
+          },
+          {
+            "detail": "allowed for the dossier's status",
+            "result": "PASS",
+            "ruleId": "CP-APPROVED-SCOPE"
+          },
+          {
+            "detail": "inside Buenos Aires business hours",
+            "result": "PASS",
+            "ruleId": "CP-HOURS-AR"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-HOURS-SUPPLIER"
+          },
+          {
+            "detail": "first request or reminder of the day for this contact",
+            "result": "PASS",
+            "ruleId": "CP-ONE-PER-DAY"
+          },
+          {
+            "detail": "opt-in in force; approved template",
+            "result": "PASS",
+            "ruleId": "CP-WA-24H"
+          },
+          {
+            "detail": "asks for no identity, bank or card data",
+            "result": "PASS",
+            "ruleId": "CP-NO-SENSITIVE-ASK"
+          },
+          {
+            "detail": "no free text: approved template",
+            "result": "PASS",
+            "ruleId": "CP-NO-FOREIGN-LINKS"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "messageId": "msg-01M4GBZG40HBJJJAGQAC2JGSCC",
+        "month": "2026-10",
+        "operationId": "op-4487",
+        "refs": {
+          "messageId": "msg-01M4GBZG40HBJJJAGQAC2JGSCC",
+          "operationId": "op-4487"
+        },
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-ONE-PER-DAY",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ],
+        "synthetic": true,
+        "trigger": "MILESTONE",
+        "ts": "2026-10-09T13:00:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "READY_FOR_REVIEW",
+        "actor": "AGENT",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-09T15:45:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ACTION",
+        "decisionId": "01M4GZQ6Z0PSWMGV2CQ42D04VF",
+        "entity": "Decision",
+        "evaluated": [],
+        "firmId": "firm-judge-00",
+        "month": "2026-10",
+        "operationId": "op-4487",
+        "refs": {
+          "operationId": "op-4487"
+        },
+        "ruleIds": [],
+        "synthetic": true,
+        "ts": "2026-10-09T18:45:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "DOSSIER_APPROVED",
+        "actor": "BROKER:brk-judge-00",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T11:00:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ACTION",
+        "decisionId": "01M4TS07R0NRGM15NDGYRV6AY7",
+        "entity": "Decision",
+        "evaluated": [],
+        "firmId": "firm-judge-00",
+        "month": "2026-10",
+        "operationId": "op-4487",
+        "refs": {
+          "brokerId": "brk-judge-00",
+          "operationId": "op-4487"
+        },
+        "ruleIds": [],
+        "synthetic": true,
+        "ts": "2026-10-13T14:00:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "SEND_WHATSAPP",
+        "actor": "BROKER:brk-judge-00",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T11:00:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ALLOW",
+        "decisionId": "01M4TS07R08GN672MGW97QK7G7",
+        "detail": {
+          "kind": "APPROVAL_NOTICE"
+        },
+        "entity": "Decision",
+        "evaluated": [
+          {
+            "detail": "not written by the agent",
+            "result": "SKIP",
+            "ruleId": "CP-CONTROL-BROKER"
+          },
+          {
+            "detail": "APPROVAL_NOTICE goes to the importer by WhatsApp",
+            "result": "PASS",
+            "ruleId": "CP-KIND-CHANNEL"
+          },
+          {
+            "detail": "the importer's registered phone",
+            "result": "PASS",
+            "ruleId": "CP-RECIPIENT-FENCE"
+          },
+          {
+            "detail": "opt-in in force; approved template",
+            "result": "PASS",
+            "ruleId": "CP-OPTIN"
+          },
+          {
+            "detail": "opt-in in force; approved template",
+            "result": "PASS",
+            "ruleId": "CP-OPTOUT"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-SUPPLIER-AUTH"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-BOUNCED-CONTACT"
+          },
+          {
+            "detail": "allowed for the dossier's status",
+            "result": "PASS",
+            "ruleId": "CP-APPROVED-SCOPE"
+          },
+          {
+            "detail": "inside Buenos Aires business hours",
+            "result": "PASS",
+            "ruleId": "CP-HOURS-AR"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-HOURS-SUPPLIER"
+          },
+          {
+            "detail": "only DOCS_REQUEST and REMINDER count",
+            "result": "SKIP",
+            "ruleId": "CP-ONE-PER-DAY"
+          },
+          {
+            "detail": "opt-in in force; approved template",
+            "result": "PASS",
+            "ruleId": "CP-WA-24H"
+          },
+          {
+            "detail": "asks for no identity, bank or card data",
+            "result": "PASS",
+            "ruleId": "CP-NO-SENSITIVE-ASK"
+          },
+          {
+            "detail": "no free text: approved template",
+            "result": "PASS",
+            "ruleId": "CP-NO-FOREIGN-LINKS"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "messageId": "msg-01M4TS07R036HA2X9JN6GGEF95",
+        "month": "2026-10",
+        "operationId": "op-4487",
+        "refs": {
+          "messageId": "msg-01M4TS07R036HA2X9JN6GGEF95",
+          "operationId": "op-4487"
+        },
+        "ruleIds": [
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ],
+        "synthetic": true,
+        "trigger": "APPROVAL",
+        "ts": "2026-10-13T14:00:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "RESPONSIBLE_ASSIGNED",
+        "actor": "AGENT",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T11:04:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ACTION",
+        "decisionId": "01M4TS7J40Z966QBQC3ZSN5GVV",
+        "entity": "Decision",
+        "evaluated": [],
+        "firmId": "firm-judge-00",
+        "month": "2026-10",
+        "operationId": "op-4488",
+        "refs": {
+          "observationId": "obs-4488-PL-PACKAGES_MISMATCH",
+          "operationId": "op-4488"
+        },
+        "ruleIds": [
+          "RESP-MATRIX"
+        ],
+        "synthetic": true,
+        "ts": "2026-10-13T14:04:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "SEND_EMAIL",
+        "actor": "AGENT",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T11:04:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "DENY",
+        "decisionId": "01M4TS7J40FHZCE6NF4R3AJ3DT",
+        "detail": {
+          "kind": "CORRECTION_REQUEST"
+        },
+        "entity": "Decision",
+        "evaluated": [
+          {
+            "detail": "the agent has the conversation",
+            "result": "PASS",
+            "ruleId": "CP-CONTROL-BROKER"
+          },
+          {
+            "detail": "CORRECTION_REQUEST goes to the supplier by email",
+            "result": "PASS",
+            "ruleId": "CP-KIND-CHANNEL"
+          },
+          {
+            "detail": "a registered contact inside the SYSTEM fence",
+            "result": "PASS",
+            "ruleId": "CP-RECIPIENT-FENCE"
+          },
+          {
+            "detail": "only WhatsApp to the importer",
+            "result": "SKIP",
+            "ruleId": "CP-OPTIN"
+          },
+          {
+            "detail": "only WhatsApp to the importer",
+            "result": "SKIP",
+            "ruleId": "CP-OPTOUT"
+          },
+          {
+            "detail": "the importer has not authorized the agent to write to this supplier",
+            "result": "DENY",
+            "ruleId": "CP-SUPPLIER-AUTH"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "month": "2026-10",
+        "operationId": "op-4488",
+        "refs": {
+          "operationId": "op-4488"
+        },
+        "ruleIds": [
+          "CP-SUPPLIER-AUTH"
+        ],
+        "synthetic": true,
+        "trigger": "IMPORTER_MESSAGE",
+        "ts": "2026-10-13T14:04:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "ESCALATED",
+        "actor": "AGENT",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T11:04:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ACTION",
+        "decisionId": "01M4TS7J40WJRMCBS4PNEKM5MK",
+        "entity": "Decision",
+        "evaluated": [],
+        "firmId": "firm-judge-00",
+        "month": "2026-10",
+        "operationId": "op-4488",
+        "reason": "OTHER",
+        "refs": {
+          "escalationId": "esc-other-1",
+          "operationId": "op-4488"
+        },
+        "ruleIds": [],
+        "synthetic": true,
+        "ts": "2026-10-13T14:04:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "SEND_WHATSAPP",
+        "actor": "AGENT",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T11:05:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ALLOW",
+        "decisionId": "01M4TS9CQ06QFH2M7RCVKD1AWS",
+        "detail": {
+          "answers": "msg-01M4TS3WY0S8SA0H5AWBMWCZ62",
+          "kind": "REPLY"
+        },
+        "entity": "Decision",
+        "evaluated": [
+          {
+            "detail": "the agent has the conversation",
+            "result": "PASS",
+            "ruleId": "CP-CONTROL-BROKER"
+          },
+          {
+            "detail": "REPLY goes to the importer by WhatsApp",
+            "result": "PASS",
+            "ruleId": "CP-KIND-CHANNEL"
+          },
+          {
+            "detail": "the importer's registered phone",
+            "result": "PASS",
+            "ruleId": "CP-RECIPIENT-FENCE"
+          },
+          {
+            "detail": "opt-in in force; inside the 24-hour window",
+            "result": "PASS",
+            "ruleId": "CP-OPTIN"
+          },
+          {
+            "detail": "opt-in in force; inside the 24-hour window",
+            "result": "PASS",
+            "ruleId": "CP-OPTOUT"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-SUPPLIER-AUTH"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-BOUNCED-CONTACT"
+          },
+          {
+            "detail": "allowed for the dossier's status",
+            "result": "PASS",
+            "ruleId": "CP-APPROVED-SCOPE"
+          },
+          {
+            "detail": "a reply to the importer is exempt",
+            "result": "SKIP",
+            "ruleId": "CP-HOURS-AR"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-HOURS-SUPPLIER"
+          },
+          {
+            "detail": "only DOCS_REQUEST and REMINDER count",
+            "result": "SKIP",
+            "ruleId": "CP-ONE-PER-DAY"
+          },
+          {
+            "detail": "opt-in in force; inside the 24-hour window",
+            "result": "PASS",
+            "ruleId": "CP-WA-24H"
+          },
+          {
+            "detail": "asks for no identity, bank or card data",
+            "result": "PASS",
+            "ruleId": "CP-NO-SENSITIVE-ASK"
+          },
+          {
+            "detail": "no link or contact outside the turn's",
+            "result": "PASS",
+            "ruleId": "CP-NO-FOREIGN-LINKS"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "messageId": "msg-01M4TS9CQ05KKXZ4ZB9769M400",
+        "month": "2026-10",
+        "operationId": "op-4488",
+        "refs": {
+          "messageId": "msg-01M4TS9CQ05KKXZ4ZB9769M400",
+          "operationId": "op-4488"
+        },
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ],
+        "synthetic": true,
+        "trigger": "IMPORTER_MESSAGE",
+        "ts": "2026-10-13T14:05:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "ESCALATION_RESOLVED",
+        "actor": "BROKER:brk-judge-00",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T12:30:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ACTION",
+        "decisionId": "01M4TY5160XKY6E7JE44FYR07Q",
+        "entity": "Decision",
+        "evaluated": [],
+        "firmId": "firm-judge-00",
+        "month": "2026-10",
+        "operationId": "op-4488",
+        "refs": {
+          "brokerId": "brk-judge-00",
+          "escalationId": "esc-other-1",
+          "operationId": "op-4488"
+        },
+        "ruleIds": [],
+        "synthetic": true,
+        "ts": "2026-10-13T15:30:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "READY_FOR_REVIEW",
+        "actor": "AGENT",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T16:32:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ACTION",
+        "decisionId": "01M4VC04W0V419EBXS2QWZ5V0K",
+        "entity": "Decision",
+        "evaluated": [],
+        "firmId": "firm-judge-00",
+        "month": "2026-10",
+        "operationId": "op-4488",
+        "refs": {
+          "operationId": "op-4488"
+        },
+        "ruleIds": [],
+        "synthetic": true,
+        "ts": "2026-10-13T19:32:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "action": "SEND_WHATSAPP",
+        "actor": "AGENT",
+        "atReal": "2026-09-25T12:00:00.000Z",
+        "atSim": "2026-10-13T16:33:00-03:00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "decision": "ALLOW",
+        "decisionId": "01M4VC1ZF0GG20P5TP7A7T5P9P",
+        "detail": {
+          "answers": "msg-01M4VBWFP030SJG1N693Z3VZ27",
+          "kind": "REPLY"
+        },
+        "entity": "Decision",
+        "evaluated": [
+          {
+            "detail": "the agent has the conversation",
+            "result": "PASS",
+            "ruleId": "CP-CONTROL-BROKER"
+          },
+          {
+            "detail": "REPLY goes to the importer by WhatsApp",
+            "result": "PASS",
+            "ruleId": "CP-KIND-CHANNEL"
+          },
+          {
+            "detail": "the importer's registered phone",
+            "result": "PASS",
+            "ruleId": "CP-RECIPIENT-FENCE"
+          },
+          {
+            "detail": "opt-in in force; inside the 24-hour window",
+            "result": "PASS",
+            "ruleId": "CP-OPTIN"
+          },
+          {
+            "detail": "opt-in in force; inside the 24-hour window",
+            "result": "PASS",
+            "ruleId": "CP-OPTOUT"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-SUPPLIER-AUTH"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-BOUNCED-CONTACT"
+          },
+          {
+            "detail": "allowed for the dossier's status",
+            "result": "PASS",
+            "ruleId": "CP-APPROVED-SCOPE"
+          },
+          {
+            "detail": "a reply to the importer is exempt",
+            "result": "SKIP",
+            "ruleId": "CP-HOURS-AR"
+          },
+          {
+            "detail": "only email to the supplier",
+            "result": "SKIP",
+            "ruleId": "CP-HOURS-SUPPLIER"
+          },
+          {
+            "detail": "only DOCS_REQUEST and REMINDER count",
+            "result": "SKIP",
+            "ruleId": "CP-ONE-PER-DAY"
+          },
+          {
+            "detail": "opt-in in force; inside the 24-hour window",
+            "result": "PASS",
+            "ruleId": "CP-WA-24H"
+          },
+          {
+            "detail": "asks for no identity, bank or card data",
+            "result": "PASS",
+            "ruleId": "CP-NO-SENSITIVE-ASK"
+          },
+          {
+            "detail": "no link or contact outside the turn's",
+            "result": "PASS",
+            "ruleId": "CP-NO-FOREIGN-LINKS"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "messageId": "msg-01M4VC1ZF0GHV4EG3JAFXFR07K",
+        "month": "2026-10",
+        "operationId": "op-4488",
+        "refs": {
+          "messageId": "msg-01M4VC1ZF0GHV4EG3JAFXFR07K",
+          "operationId": "op-4488"
+        },
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ],
+        "synthetic": true,
+        "trigger": "IMPORTER_MESSAGE",
+        "ts": "2026-10-13T19:33:00.000Z",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      }
+    ],
+    "Conversations": [
+      {
+        "author": "AGENT",
+        "body": "Hola, te escribimos desde Estudio Delta. Operación 4478, buque Austral Aurora, arribo estimado 19/10. Faltan: packing list y certificado de origen. ¿Cómo seguimos?",
+        "buttons": [
+          {
+            "action": "UPLOAD",
+            "title": "Subir documentos",
+            "url": "https://legajo.demo.craftech.io/u/5_J05keNjAg3eWXdoUebbEVilp904Qo-rELjE3Z6ZU4"
+          },
+          {
+            "action": "SUPPLIER_SENDS",
+            "title": "Los manda el proveedor"
+          },
+          {
+            "action": "QUESTION",
+            "title": "Tengo una duda"
+          },
+          {
+            "action": "OPT_OUT",
+            "title": "No recibir avisos"
+          }
+        ],
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "counterpart": "IMPORTER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "deferredTimerKey": "TIMER#DEFERRED_SEND#deferred-4478-1",
+        "direction": "OUT",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "simulated",
+        "importerId": "imp-norpampa",
+        "kind": "DOCS_REQUEST",
+        "messageId": "msg-01M4TJ4GG0J296CEZEHHVECZ0Z",
+        "operationId": "op-4478",
+        "policy": {
+          "decision": "ALLOW",
+          "ruleIds": [
+            "CP-CONTROL-BROKER",
+            "CP-KIND-CHANNEL",
+            "CP-RECIPIENT-FENCE",
+            "CP-OPTIN",
+            "CP-OPTOUT",
+            "CP-APPROVED-SCOPE",
+            "CP-HOURS-AR",
+            "CP-ONE-PER-DAY",
+            "CP-WA-24H",
+            "CP-NO-SENSITIVE-ASK",
+            "CP-NO-FOREIGN-LINKS"
+          ]
+        },
+        "refs": {
+          "docTypes": [
+            "PACKING_LIST",
+            "CERTIFICATE_OF_ORIGIN"
+          ]
+        },
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-13T12:00:00.000Z",
+        "simulated": true,
+        "status": "READ",
+        "synthetic": true,
+        "template": {
+          "name": "legajo_docs_pendientes",
+          "params": [
+            "Estudio Delta",
+            "4478",
+            "Austral Aurora",
+            "19/10",
+            "packing list y certificado de origen"
+          ]
+        },
+        "to": "+5491155510001",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "attachments": [],
+        "author": "IMPORTER",
+        "body": "Los manda el proveedor",
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "counterpart": "IMPORTER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "IN",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "+5491155510001",
+        "importerId": "imp-norpampa",
+        "interactive": {
+          "action": "SUPPLIER_SENDS",
+          "type": "button_reply"
+        },
+        "messageId": "msg-01M4TJDNF0BBTWS5TBG2NC8D2N",
+        "operationId": "op-4478",
+        "refs": {},
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-13T12:05:00.000Z",
+        "simulated": true,
+        "status": "RECEIVED",
+        "synthetic": true,
+        "to": "simulated",
+        "trusted": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "author": "AGENT",
+        "body": "¿Le escribimos a tu proveedor a j***@sim.legajo.demo.craftech.io? Confirmá con un botón o pasanos otro contacto.",
+        "buttons": [
+          {
+            "action": "CONFIRM_CONTACT",
+            "title": "Sí, escribile"
+          },
+          {
+            "action": "REJECT_CONTACT",
+            "title": "No"
+          },
+          {
+            "action": "OTHER_CONTACT",
+            "title": "Otro contacto"
+          }
+        ],
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "counterpart": "IMPORTER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "OUT",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "simulated",
+        "importerId": "imp-norpampa",
+        "interactive": {
+          "actions": [
+            "CONFIRM_CONTACT",
+            "REJECT_CONTACT",
+            "OTHER_CONTACT"
+          ],
+          "type": "button"
+        },
+        "kind": "CONTACT_CONFIRMATION",
+        "messageId": "msg-01M4TJFG203M71BR5YQH11GNXT",
+        "operationId": "op-4478",
+        "policy": {
+          "decision": "ALLOW",
+          "ruleIds": [
+            "CP-CONTROL-BROKER",
+            "CP-KIND-CHANNEL",
+            "CP-RECIPIENT-FENCE",
+            "CP-OPTIN",
+            "CP-OPTOUT",
+            "CP-APPROVED-SCOPE",
+            "CP-WA-24H",
+            "CP-NO-SENSITIVE-ASK",
+            "CP-NO-FOREIGN-LINKS"
+          ]
+        },
+        "refs": {},
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-13T12:06:00.000Z",
+        "simulated": true,
+        "status": "READ",
+        "synthetic": true,
+        "to": "+5491155510001",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "attachments": [],
+        "author": "IMPORTER",
+        "body": "Sí, escribile",
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "counterpart": "IMPORTER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "IN",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "+5491155510001",
+        "importerId": "imp-norpampa",
+        "interactive": {
+          "action": "CONFIRM_CONTACT",
+          "type": "button_reply"
+        },
+        "messageId": "msg-01M4TJZZD0GW18GFJ9ZESQP5VD",
+        "operationId": "op-4478",
+        "refs": {},
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-13T12:15:00.000Z",
+        "simulated": true,
+        "status": "RECEIVED",
+        "synthetic": true,
+        "to": "simulated",
+        "trusted": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "author": "AGENT",
+        "body": "Hello,\n\nWe are writing on behalf of Estudio Delta, the customs broker of Norpampa Insumos SRL, about invoice LVW-1190 (FOB Genoa, vessel Austral Aurora, estimated arrival in Buenos Aires on Oct 19, 2026).\nFor operation 4478 we still need the packing list and certificate of origin. Please reply to this email with them as PDF by Oct 15, 2026, 17:00 (your time).\nThe packing list has to match the commercial invoice in gross weight and number of packages.\n\nThank you,\nEstudio Delta",
+        "channel": "EMAIL",
+        "clockId": "JUDGE#firm-judge-00",
+        "contactId": "ctc-ligurmare-1",
+        "counterpart": "SUPPLIER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "OUT",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "{threadAddress}",
+        "kind": "DOCS_REQUEST",
+        "messageId": "msg-01M4TK94C02AZ25878QMW0YVJ5",
+        "operationId": "op-4478",
+        "policy": {
+          "decision": "ALLOW",
+          "ruleIds": [
+            "CP-CONTROL-BROKER",
+            "CP-KIND-CHANNEL",
+            "CP-RECIPIENT-FENCE",
+            "CP-SUPPLIER-AUTH",
+            "CP-BOUNCED-CONTACT",
+            "CP-APPROVED-SCOPE",
+            "CP-HOURS-SUPPLIER",
+            "CP-ONE-PER-DAY",
+            "CP-NO-SENSITIVE-ASK",
+            "CP-NO-FOREIGN-LINKS"
+          ]
+        },
+        "providerMessageId": "010091d75b2842c0-e1075170-4543-c17f-0ba0-69c28f4a8db2-000000",
+        "refs": {
+          "docTypes": [
+            "PACKING_LIST",
+            "CERTIFICATE_OF_ORIGIN"
+          ]
+        },
+        "rfcMessageId": "<010091d75b2842c0-e1075170-4543-c17f-0ba0-69c28f4a8db2-000000@email.amazonses.com>",
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-13T12:20:00.000Z",
+        "simulated": false,
+        "status": "DELIVERED",
+        "subject": "[Op 4478] Missing documents: packing list, certificate of origin (Invoice LVW-1190)",
+        "synthetic": true,
+        "to": "j00-ligurmare@sim.legajo.demo.craftech.io",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "author": "AGENT",
+        "body": "Listo, ya le escribimos a Ligurmare Valve Works S.r.l. para pedirle el packing list y el certificado de origen de la operación 4478. Te avisamos cuando lleguen.",
+        "buttons": [],
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "counterpart": "IMPORTER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "OUT",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "simulated",
+        "importerId": "imp-norpampa",
+        "kind": "REPLY",
+        "messageId": "msg-01M4TKAYZ0Y4TVKCWPBC357BPR",
+        "operationId": "op-4478",
+        "policy": {
+          "decision": "ALLOW",
+          "ruleIds": [
+            "CP-CONTROL-BROKER",
+            "CP-KIND-CHANNEL",
+            "CP-RECIPIENT-FENCE",
+            "CP-OPTIN",
+            "CP-OPTOUT",
+            "CP-APPROVED-SCOPE",
+            "CP-WA-24H",
+            "CP-NO-SENSITIVE-ASK",
+            "CP-NO-FOREIGN-LINKS"
+          ]
+        },
+        "refs": {
+          "docTypes": [
+            "PACKING_LIST",
+            "CERTIFICATE_OF_ORIGIN"
+          ]
+        },
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-13T12:21:00.000Z",
+        "simulated": true,
+        "status": "READ",
+        "synthetic": true,
+        "to": "+5491155510001",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "author": "AGENT",
+        "body": "Hello,\n\nThis is a reminder about invoice LVW-1190 (operation 4478): the packing list and certificate of origin are still missing.\nThe deadline is Oct 15, 2026, 17:00 (your time). Please reply to this email with them as PDF.\n\nThank you,\nEstudio Delta",
+        "channel": "EMAIL",
+        "clockId": "JUDGE#firm-judge-00",
+        "contactId": "ctc-ligurmare-1",
+        "counterpart": "SUPPLIER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "OUT",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "{threadAddress}",
+        "inReplyTo": "<010091d75b2842c0-e1075170-4543-c17f-0ba0-69c28f4a8db2-000000@email.amazonses.com>",
+        "kind": "REMINDER",
+        "messageId": "msg-01M4X7Z340053VHGK9DZ6DN816",
+        "operationId": "op-4478",
+        "policy": {
+          "decision": "ALLOW",
+          "ruleIds": [
+            "CP-CONTROL-BROKER",
+            "CP-KIND-CHANNEL",
+            "CP-RECIPIENT-FENCE",
+            "CP-SUPPLIER-AUTH",
+            "CP-BOUNCED-CONTACT",
+            "CP-APPROVED-SCOPE",
+            "CP-HOURS-SUPPLIER",
+            "CP-ONE-PER-DAY",
+            "CP-NO-SENSITIVE-ASK",
+            "CP-NO-FOREIGN-LINKS"
+          ]
+        },
+        "providerMessageId": "01001b8f8af7a862-55d923aa-8562-5185-12a5-6e0820b0e9c5-000000",
+        "references": [
+          "<010091d75b2842c0-e1075170-4543-c17f-0ba0-69c28f4a8db2-000000@email.amazonses.com>"
+        ],
+        "refs": {
+          "docTypes": [
+            "PACKING_LIST",
+            "CERTIFICATE_OF_ORIGIN"
+          ]
+        },
+        "rfcMessageId": "<01001b8f8af7a862-55d923aa-8562-5185-12a5-6e0820b0e9c5-000000@email.amazonses.com>",
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-14T13:00:00.000Z",
+        "simulated": false,
+        "status": "DELIVERED",
+        "subject": "[Op 4478] Reminder: packing list, certificate of origin still missing (Invoice LVW-1190)",
+        "synthetic": true,
+        "to": "j00-ligurmare@sim.legajo.demo.craftech.io",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "author": "AGENT",
+        "body": "Hola, te escribimos desde Estudio Delta. Operación 4487, buque Pacifica Horizon, arribo estimado 16/10. Faltan: factura comercial, packing list y certificado de origen. ¿Cómo seguimos?",
+        "buttons": [
+          {
+            "action": "UPLOAD",
+            "title": "Subir documentos",
+            "url": "https://legajo.demo.craftech.io/u/wFhE4jf3-t7i00QqWYBWO6PGdFlV6rbhS_1ZBFhMNl8"
+          },
+          {
+            "action": "SUPPLIER_SENDS",
+            "title": "Los manda el proveedor"
+          },
+          {
+            "action": "QUESTION",
+            "title": "Tengo una duda"
+          },
+          {
+            "action": "OPT_OUT",
+            "title": "No recibir avisos"
+          }
+        ],
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "counterpart": "IMPORTER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "OUT",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "simulated",
+        "importerId": "imp-norpampa",
+        "kind": "DOCS_REQUEST",
+        "messageId": "msg-01M4GBZG40HBJJJAGQAC2JGSCC",
+        "operationId": "op-4487",
+        "policy": {
+          "decision": "ALLOW",
+          "ruleIds": [
+            "CP-CONTROL-BROKER",
+            "CP-KIND-CHANNEL",
+            "CP-RECIPIENT-FENCE",
+            "CP-OPTIN",
+            "CP-OPTOUT",
+            "CP-APPROVED-SCOPE",
+            "CP-HOURS-AR",
+            "CP-ONE-PER-DAY",
+            "CP-WA-24H",
+            "CP-NO-SENSITIVE-ASK",
+            "CP-NO-FOREIGN-LINKS"
+          ]
+        },
+        "refs": {
+          "docTypes": [
+            "COMMERCIAL_INVOICE",
+            "PACKING_LIST",
+            "CERTIFICATE_OF_ORIGIN"
+          ]
+        },
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-09T13:00:00.000Z",
+        "simulated": true,
+        "status": "READ",
+        "synthetic": true,
+        "template": {
+          "name": "legajo_docs_pendientes",
+          "params": [
+            "Estudio Delta",
+            "4487",
+            "Pacifica Horizon",
+            "16/10",
+            "factura comercial, packing list y certificado de origen"
+          ]
+        },
+        "to": "+5491155510001",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "author": "BROKER:brk-judge-00",
+        "body": "Operación 4487: el estudio aprobó el legajo. Te vamos a avisar las novedades del despacho por acá.",
+        "buttons": [],
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "counterpart": "IMPORTER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "OUT",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "simulated",
+        "importerId": "imp-norpampa",
+        "kind": "APPROVAL_NOTICE",
+        "messageId": "msg-01M4TS07R036HA2X9JN6GGEF95",
+        "operationId": "op-4487",
+        "policy": {
+          "decision": "ALLOW",
+          "ruleIds": [
+            "CP-KIND-CHANNEL",
+            "CP-RECIPIENT-FENCE",
+            "CP-OPTIN",
+            "CP-OPTOUT",
+            "CP-APPROVED-SCOPE",
+            "CP-HOURS-AR",
+            "CP-WA-24H",
+            "CP-NO-SENSITIVE-ASK",
+            "CP-NO-FOREIGN-LINKS"
+          ]
+        },
+        "refs": {},
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-13T14:00:00.000Z",
+        "simulated": true,
+        "status": "READ",
+        "synthetic": true,
+        "template": {
+          "name": "legajo_aprobado",
+          "params": [
+            "4487"
+          ]
+        },
+        "to": "+5491155510001",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "attachments": [
+          {
+            "contentType": "application/pdf",
+            "docVersionId": "dv-4488-CI-1",
+            "index": 0,
+            "s3Key": "sim/msg-01M4TS07R0FN85R5WCCBVNXM8K/0.pdf",
+            "sizeBytes": 2465,
+            "status": "ACCEPTED"
+          }
+        ],
+        "author": "IMPORTER",
+        "body": "Te mando la factura comercial.",
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "counterpart": "IMPORTER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "IN",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "+5491155510005",
+        "importerId": "imp-sierras",
+        "messageId": "msg-01M4TS07R0FN85R5WCCBVNXM8K",
+        "operationId": "op-4488",
+        "refs": {},
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-13T14:00:00.000Z",
+        "simulated": true,
+        "status": "RECEIVED",
+        "synthetic": true,
+        "to": "simulated",
+        "trusted": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "attachments": [
+          {
+            "contentType": "application/pdf",
+            "docVersionId": "dv-4488-PL-1",
+            "index": 0,
+            "s3Key": "sim/msg-01M4TS22B0ZNJ915VEDZN10ZVV/0.pdf",
+            "sizeBytes": 2035,
+            "status": "ACCEPTED"
+          }
+        ],
+        "author": "IMPORTER",
+        "body": "Va el packing list.",
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "counterpart": "IMPORTER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "IN",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "+5491155510005",
+        "importerId": "imp-sierras",
+        "messageId": "msg-01M4TS22B0ZNJ915VEDZN10ZVV",
+        "operationId": "op-4488",
+        "refs": {},
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-13T14:01:00.000Z",
+        "simulated": true,
+        "status": "RECEIVED",
+        "synthetic": true,
+        "to": "simulated",
+        "trusted": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "attachments": [
+          {
+            "contentType": "application/pdf",
+            "docVersionId": "dv-4488-CO-1",
+            "index": 0,
+            "s3Key": "sim/msg-01M4TS3WY0S8SA0H5AWBMWCZ62/0.pdf",
+            "sizeBytes": 2119,
+            "status": "ACCEPTED"
+          }
+        ],
+        "author": "IMPORTER",
+        "body": "Y el certificado de origen.",
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "counterpart": "IMPORTER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "IN",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "+5491155510005",
+        "importerId": "imp-sierras",
+        "messageId": "msg-01M4TS3WY0S8SA0H5AWBMWCZ62",
+        "operationId": "op-4488",
+        "refs": {},
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-13T14:02:00.000Z",
+        "simulated": true,
+        "status": "RECEIVED",
+        "synthetic": true,
+        "to": "simulated",
+        "trusted": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "author": "AGENT",
+        "body": "Recibimos la factura comercial, el packing list y el certificado de origen de la operación 4488. El packing list tiene una diferencia en la cantidad de bultos con la factura y la corrección la tiene que emitir el proveedor. El estudio te va a confirmar cómo seguimos.",
+        "buttons": [],
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "counterpart": "IMPORTER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "OUT",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "simulated",
+        "importerId": "imp-sierras",
+        "kind": "REPLY",
+        "messageId": "msg-01M4TS9CQ05KKXZ4ZB9769M400",
+        "operationId": "op-4488",
+        "policy": {
+          "decision": "ALLOW",
+          "ruleIds": [
+            "CP-CONTROL-BROKER",
+            "CP-KIND-CHANNEL",
+            "CP-RECIPIENT-FENCE",
+            "CP-OPTIN",
+            "CP-OPTOUT",
+            "CP-APPROVED-SCOPE",
+            "CP-WA-24H",
+            "CP-NO-SENSITIVE-ASK",
+            "CP-NO-FOREIGN-LINKS"
+          ]
+        },
+        "refs": {},
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-13T14:05:00.000Z",
+        "simulated": true,
+        "status": "READ",
+        "synthetic": true,
+        "to": "+5491155510005",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "attachments": [
+          {
+            "contentType": "application/pdf",
+            "docVersionId": "dv-4488-PL-2",
+            "index": 0,
+            "s3Key": "sim/msg-01M4VBWFP030SJG1N693Z3VZ27/0.pdf",
+            "sizeBytes": 2035,
+            "status": "ACCEPTED"
+          }
+        ],
+        "author": "IMPORTER",
+        "body": "Te reenvío el packing list corregido.",
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "counterpart": "IMPORTER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "IN",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "+5491155510005",
+        "importerId": "imp-sierras",
+        "messageId": "msg-01M4VBWFP030SJG1N693Z3VZ27",
+        "operationId": "op-4488",
+        "refs": {},
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-13T19:30:00.000Z",
+        "simulated": true,
+        "status": "RECEIVED",
+        "synthetic": true,
+        "to": "simulated",
+        "trusted": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "author": "AGENT",
+        "body": "Recibimos el packing list corregido de la operación 4488. Los tres documentos están en regla y el legajo quedó listo para la revisión del estudio.",
+        "buttons": [],
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "counterpart": "IMPORTER",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "direction": "OUT",
+        "entity": "Message",
+        "firmId": "firm-judge-00",
+        "from": "simulated",
+        "importerId": "imp-sierras",
+        "kind": "REPLY",
+        "messageId": "msg-01M4VC1ZF0GHV4EG3JAFXFR07K",
+        "operationId": "op-4488",
+        "policy": {
+          "decision": "ALLOW",
+          "ruleIds": [
+            "CP-CONTROL-BROKER",
+            "CP-KIND-CHANNEL",
+            "CP-RECIPIENT-FENCE",
+            "CP-OPTIN",
+            "CP-OPTOUT",
+            "CP-APPROVED-SCOPE",
+            "CP-WA-24H",
+            "CP-NO-SENSITIVE-ASK",
+            "CP-NO-FOREIGN-LINKS"
+          ]
+        },
+        "refs": {},
+        "sentAtReal": "2026-09-25T12:00:00.000Z",
+        "sentAtSim": "2026-10-13T19:33:00.000Z",
+        "simulated": true,
+        "status": "READ",
+        "synthetic": true,
+        "to": "+5491155510005",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      }
+    ],
+    "Firms": [
+      {
+        "active": true,
+        "businessHours": {
+          "from": "09:00",
+          "timezone": "America/Argentina/Buenos_Aires",
+          "to": "18:00",
+          "weekdays": [
+            "MON",
+            "TUE",
+            "WED",
+            "THU",
+            "FRI"
+          ]
+        },
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Firm",
+        "firmId": "firm-judge-00",
+        "kind": "JUDGE",
+        "mailboxAddress": "estudio-j00@sim.legajo.demo.craftech.io",
+        "name": "Estudio Delta",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "assumptions": {
+          "demurrageUsdPerDay": {
+            "max": 180,
+            "min": 160
+          },
+          "freeDaysAtPort": 5,
+          "label": "supuesto",
+          "source": "Fuentes secundarias no verificadas"
+        },
+        "costBudgetUsdPerDossier": 2,
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "FirmSettings",
+        "firmId": "firm-judge-00",
+        "humanActionMinutes": {
+          "items": [
+            {
+              "action": "TAKE",
+              "label": "supuesto",
+              "minutes": 2
+            },
+            {
+              "action": "SEND",
+              "label": "supuesto",
+              "minutes": 3
+            },
+            {
+              "action": "WAIVE",
+              "label": "supuesto",
+              "minutes": 4
+            },
+            {
+              "action": "CLASSIFY",
+              "label": "supuesto",
+              "minutes": 4
+            },
+            {
+              "action": "APPROVE",
+              "label": "supuesto",
+              "minutes": 10
+            },
+            {
+              "action": "REOPEN",
+              "label": "supuesto",
+              "minutes": 5
+            }
+          ],
+          "label": "supuesto",
+          "source": "Estimación propia del equipo (editable), no una medición"
+        },
+        "manualBaseline": {
+          "items": [
+            {
+              "action": "Contactos por legajo",
+              "count": 8,
+              "label": "supuesto",
+              "minutes": 8
+            },
+            {
+              "action": "Revisión de documentos",
+              "count": 3,
+              "label": "supuesto",
+              "minutes": 7
+            },
+            {
+              "action": "Armado del legajo",
+              "count": 1,
+              "label": "supuesto",
+              "minutes": 10
+            }
+          ],
+          "label": "supuesto",
+          "source": "Estimación propia del equipo (editable), no una medición"
+        },
+        "synthetic": true,
+        "turnCaps": {
+          "perDay": 1000,
+          "perHour": 200
+        },
+        "untrustedSenderEmailsPerDay": 3,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "active": true,
+        "brokerId": "brk-judge-00",
+        "cognitoSub": "",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Broker",
+        "firmId": "firm-judge-00",
+        "name": "Jurado",
+        "role": "JUDGE",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "checklistVersion": 1,
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Checklist",
+        "firmId": "firm-judge-00",
+        "items": [
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-01",
+            "required": true,
+            "text": "Número y fecha de emisión"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-02",
+            "required": true,
+            "text": "Razón social, domicilio y país del vendedor"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-03",
+            "required": true,
+            "text": "Razón social, CUIT y domicilio del comprador iguales a los del registro del importador en el estudio"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-04",
+            "required": true,
+            "text": "Incoterm y lugar convenido"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-05",
+            "required": true,
+            "text": "Moneda, cantidad, precio unitario y total de cada ítem, y total de la factura"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-06",
+            "required": true,
+            "text": "Descripción de la mercadería suficiente para identificarla"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-07",
+            "required": true,
+            "text": "País de origen de la mercadería"
+          },
+          {
+            "docType": "COMMERCIAL_INVOICE",
+            "itemId": "CI-08",
+            "required": true,
+            "text": "Firma del vendedor (manuscrita o digital)"
+          }
+        ],
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "checklistVersion": 1,
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "PACKING_LIST",
+        "entity": "Checklist",
+        "firmId": "firm-judge-00",
+        "items": [
+          {
+            "docType": "PACKING_LIST",
+            "itemId": "PL-01",
+            "required": true,
+            "text": "Número de la factura comercial a la que corresponde"
+          },
+          {
+            "docType": "PACKING_LIST",
+            "itemId": "PL-02",
+            "required": true,
+            "text": "Cantidad y tipo de bultos, con marcas y números"
+          },
+          {
+            "docType": "PACKING_LIST",
+            "itemId": "PL-03",
+            "required": true,
+            "text": "Peso neto y bruto por bulto y totales, en kilogramos"
+          },
+          {
+            "docType": "PACKING_LIST",
+            "itemId": "PL-04",
+            "required": true,
+            "text": "Peso bruto total y cantidad de bultos iguales a los de la factura"
+          },
+          {
+            "docType": "PACKING_LIST",
+            "itemId": "PL-05",
+            "required": true,
+            "text": "Contenido de cada bulto"
+          }
+        ],
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "checklistVersion": 1,
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Checklist",
+        "firmId": "firm-judge-00",
+        "items": [
+          {
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "itemId": "CO-01",
+            "required": true,
+            "text": "Emitido por la entidad habilitada del país exportador"
+          },
+          {
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "itemId": "CO-02",
+            "required": true,
+            "text": "Firmado y sellado por la entidad emisora"
+          },
+          {
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "itemId": "CO-03",
+            "required": true,
+            "text": "Número y fecha de la factura comercial a la que se refiere"
+          },
+          {
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "itemId": "CO-04",
+            "required": true,
+            "text": "Descripción y cantidades iguales a las de la factura"
+          },
+          {
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "itemId": "CO-05",
+            "required": true,
+            "text": "País de origen declarado"
+          },
+          {
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "itemId": "CO-06",
+            "required": false,
+            "text": "El estudio confirma en cada operación si el certificado aplica y su vigencia"
+          }
+        ],
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "ResponsibilityMatrix",
+        "fallback": "BROKER",
+        "firmId": "firm-judge-00",
+        "matrixVersion": 1,
+        "rules": [
+          {
+            "code": "LOW_CONFIDENCE",
+            "docType": "ANY",
+            "responsible": "SENDER"
+          },
+          {
+            "code": "BUYER_DATA_MISMATCH",
+            "docType": "COMMERCIAL_INVOICE",
+            "responsible": "IMPORTER",
+            "then": "SUPPLIER"
+          },
+          {
+            "code": "INCOTERM_MISMATCH",
+            "docType": "COMMERCIAL_INVOICE",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "INVOICE_NUMBER_MISMATCH",
+            "docType": "COMMERCIAL_INVOICE",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "MISSING_SIGNATURE",
+            "docType": "COMMERCIAL_INVOICE",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "GROSS_WEIGHT_MISMATCH",
+            "docType": "PACKING_LIST",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "NET_WEIGHT_MISMATCH",
+            "docType": "PACKING_LIST",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "PACKAGES_MISMATCH",
+            "docType": "PACKING_LIST",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "INVOICE_NUMBER_MISMATCH",
+            "docType": "PACKING_LIST",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "MISSING_SIGNATURE",
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "MISSING_STAMP",
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "ORIGIN_MISMATCH",
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "responsible": "SUPPLIER"
+          },
+          {
+            "code": "INVOICE_NUMBER_MISMATCH",
+            "docType": "CERTIFICATE_OF_ORIGIN",
+            "responsible": "SUPPLIER"
+          }
+        ],
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      }
+    ],
+    "LegajoMetrics": [],
+    "Operations": [
+      {
+        "carrier": "Austral Line",
+        "clockId": "JUDGE#firm-judge-00",
+        "control": "AGENT",
+        "controlHistory": [
+          {
+            "atSim": "2026-09-22T11:00:00-03:00",
+            "by": "SEED",
+            "control": "AGENT"
+          }
+        ],
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dispatch": {
+          "history": [],
+          "status": "NONE"
+        },
+        "dossierHistory": [
+          {
+            "atSim": "2026-09-22T11:00:00-03:00",
+            "by": "SEED",
+            "status": "OPEN"
+          }
+        ],
+        "dossierStatus": "OPEN",
+        "entity": "Operation",
+        "eta": "2026-10-22T08:00:00-03:00",
+        "etaHistory": [
+          {
+            "atSim": "2026-09-22T11:00:00-03:00",
+            "eta": "2026-10-22T08:00:00-03:00",
+            "eventId": "evt_R4MK87CAENHA783CQTHPGV2SNK",
+            "source": "SEED"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "importerId": "imp-norpampa",
+        "incoterm": "FOB",
+        "incotermPlace": "Qingdao",
+        "invoiceNumber": "QBT-2026-0917",
+        "openedAtSim": "2026-09-22T11:00:00-03:00",
+        "operationId": "op-4471",
+        "operationNumber": "4471",
+        "portOfDischarge": "Buenos Aires",
+        "portOfLoading": "Qingdao",
+        "regime": "Importación para consumo",
+        "sessionEpoch": 0,
+        "simState": {
+          "injectionStep": 0,
+          "repliesSent": 0,
+          "versionsSent": {}
+        },
+        "supplierId": "sup-qingdao",
+        "synthetic": true,
+        "templateOperation": "op-4471",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Austral Aurora",
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-4471-CI-1",
+        "currentVersion": 1,
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Document",
+        "operationId": "op-4471",
+        "receivedAtSim": "2026-09-22T14:00:00-03:00",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "PACKING_LIST",
+        "entity": "Document",
+        "operationId": "op-4471",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Document",
+        "operationId": "op-4471",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "COMMERCIAL_INVOICE",
+        "docVersionId": "dv-4471-CI-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-4471",
+        "readAtSim": "2026-09-22T14:01:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.97,
+          "docType": "COMMERCIAL_INVOICE",
+          "fields": {
+            "buyerName": "Norpampa Insumos SRL",
+            "buyerTaxId": "30-70263787-2",
+            "currency": "USD",
+            "documentNumber": "QBT-2026-0917",
+            "grossWeightKg": 12840,
+            "incoterm": "FOB",
+            "invoiceNumber": "QBT-2026-0917",
+            "issueDate": "2026-09-17",
+            "issuerName": "Qingdao Bluewave Textiles Co., Ltd.",
+            "netWeightKg": 12198,
+            "originCountry": "China",
+            "packages": 214,
+            "signed": true,
+            "totalAmount": 31104.9
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-b837c1e03a16f40c38f513ddf75d7c8a13860359221f44d566ba4e7260b60a8a-dv-4471-CI-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-09-22T14:00:00-03:00",
+        "s3Key": "ops/op-4471/COMMERCIAL_INVOICE/v001-b837c1e0.pdf",
+        "sha256": "b837c1e03a16f40c38f513ddf75d7c8a13860359221f44d566ba4e7260b60a8a",
+        "sizeBytes": 2382,
+        "source": {
+          "channel": "CONSOLE",
+          "party": "BROKER"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-15T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4471",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "DOCS_REQUEST",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-17T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4471",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-19T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4471",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP_FINAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-20T11:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4471",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ESCALATION",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-22T11:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4471",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ARRIVAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "carrier": "Río Sur Shipping",
+        "clockId": "JUDGE#firm-judge-00",
+        "control": "AGENT",
+        "controlHistory": [
+          {
+            "atSim": "2026-09-24T11:00:00-03:00",
+            "by": "SEED",
+            "control": "AGENT"
+          }
+        ],
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dispatch": {
+          "history": [],
+          "status": "NONE"
+        },
+        "dossierHistory": [
+          {
+            "atSim": "2026-09-24T11:00:00-03:00",
+            "by": "SEED",
+            "status": "OPEN"
+          }
+        ],
+        "dossierStatus": "OPEN",
+        "entity": "Operation",
+        "eta": "2026-10-24T10:00:00-03:00",
+        "etaHistory": [
+          {
+            "atSim": "2026-09-24T11:00:00-03:00",
+            "eta": "2026-10-24T10:00:00-03:00",
+            "eventId": "evt_JGBZ5TE0WNGZXCRY8B3XSWBBM1",
+            "source": "SEED"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "importerId": "imp-patagonia",
+        "incoterm": "FOB",
+        "incotermPlace": "Nhava Sheva",
+        "invoiceNumber": "KCP/2026/771",
+        "openedAtSim": "2026-09-24T11:00:00-03:00",
+        "operationId": "op-4474",
+        "operationNumber": "4474",
+        "portOfDischarge": "Buenos Aires",
+        "portOfLoading": "Nhava Sheva",
+        "regime": "Importación para consumo",
+        "sessionEpoch": 0,
+        "simState": {
+          "injectionStep": 0,
+          "repliesSent": 0,
+          "versionsSent": {}
+        },
+        "supplierId": "sup-konkan",
+        "synthetic": true,
+        "templateOperation": "op-4474",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Río Sur Tern",
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Document",
+        "operationId": "op-4474",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "PACKING_LIST",
+        "entity": "Document",
+        "operationId": "op-4474",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Document",
+        "operationId": "op-4474",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-17T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4474",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "DOCS_REQUEST",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-19T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4474",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-21T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4474",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP_FINAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-22T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4474",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ESCALATION",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-24T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4474",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ARRIVAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "carrier": "Pacifica Container Lines",
+        "clockId": "JUDGE#firm-judge-00",
+        "control": "AGENT",
+        "controlHistory": [
+          {
+            "atSim": "2026-09-27T11:00:00-03:00",
+            "by": "SEED",
+            "control": "AGENT"
+          }
+        ],
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dispatch": {
+          "history": [],
+          "status": "NONE"
+        },
+        "dossierHistory": [
+          {
+            "atSim": "2026-09-27T11:00:00-03:00",
+            "by": "SEED",
+            "status": "OPEN"
+          }
+        ],
+        "dossierStatus": "OPEN",
+        "entity": "Operation",
+        "eta": "2026-10-27T08:00:00-03:00",
+        "etaHistory": [
+          {
+            "atSim": "2026-09-27T11:00:00-03:00",
+            "eta": "2026-10-27T08:00:00-03:00",
+            "eventId": "evt_HZY38TQRN3CVXFXQK066T3CVNT",
+            "source": "SEED"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "importerId": "imp-riberas",
+        "incoterm": "FOB",
+        "incotermPlace": "Busan",
+        "invoiceNumber": "BCP-77120",
+        "openedAtSim": "2026-09-27T11:00:00-03:00",
+        "operationId": "op-4477",
+        "operationNumber": "4477",
+        "portOfDischarge": "Buenos Aires",
+        "portOfLoading": "Busan",
+        "regime": "Importación para consumo",
+        "sessionEpoch": 0,
+        "simState": {
+          "injectionStep": 0,
+          "repliesSent": 0,
+          "versionsSent": {}
+        },
+        "supplierId": "sup-busan",
+        "synthetic": true,
+        "templateOperation": "op-4477",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Pacifica Dawn",
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Document",
+        "operationId": "op-4477",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "PACKING_LIST",
+        "entity": "Document",
+        "operationId": "op-4477",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Document",
+        "operationId": "op-4477",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-20T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4477",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "DOCS_REQUEST",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-22T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4477",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-24T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4477",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP_FINAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-25T11:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4477",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ESCALATION",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-27T11:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4477",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ARRIVAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "carrier": "Austral Line",
+        "clockId": "JUDGE#firm-judge-00",
+        "control": "AGENT",
+        "controlHistory": [
+          {
+            "atSim": "2026-09-21T11:00:00-03:00",
+            "by": "SEED",
+            "control": "AGENT"
+          }
+        ],
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dispatch": {
+          "history": [],
+          "status": "NONE"
+        },
+        "dossierHistory": [
+          {
+            "atSim": "2026-09-21T11:00:00-03:00",
+            "by": "SEED",
+            "status": "OPEN"
+          }
+        ],
+        "dossierStatus": "OPEN",
+        "entity": "Operation",
+        "eta": "2026-10-19T08:00:00-03:00",
+        "etaHistory": [
+          {
+            "atSim": "2026-09-21T11:00:00-03:00",
+            "eta": "2026-10-19T08:00:00-03:00",
+            "eventId": "evt_GS5CE6W6B5V2SS6AXHFR74ZD8C",
+            "source": "SEED"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "importerId": "imp-norpampa",
+        "incoterm": "FOB",
+        "incotermPlace": "Genoa",
+        "invoiceNumber": "LVW-1190",
+        "openedAtSim": "2026-09-21T11:00:00-03:00",
+        "operationId": "op-4478",
+        "operationNumber": "4478",
+        "portOfDischarge": "Buenos Aires",
+        "portOfLoading": "Genoa",
+        "regime": "Importación para consumo",
+        "sessionEpoch": 0,
+        "simState": {
+          "injectionStep": 0,
+          "repliesSent": 0,
+          "versionsSent": {}
+        },
+        "supplierId": "sup-ligurmare",
+        "synthetic": true,
+        "templateOperation": "op-4478",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Austral Aurora",
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-4478-CI-1",
+        "currentVersion": 1,
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Document",
+        "operationId": "op-4478",
+        "receivedAtSim": "2026-09-21T14:00:00-03:00",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "PACKING_LIST",
+        "entity": "Document",
+        "lastRequestedAtSim": "2026-10-14T10:00:00-03:00",
+        "operationId": "op-4478",
+        "requestedFrom": "SUPPLIER",
+        "responsibleParty": "SUPPLIER",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentVersion": 0,
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Document",
+        "lastRequestedAtSim": "2026-10-14T10:00:00-03:00",
+        "operationId": "op-4478",
+        "requestedFrom": "SUPPLIER",
+        "responsibleParty": "SUPPLIER",
+        "status": "MISSING",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "COMMERCIAL_INVOICE",
+        "docVersionId": "dv-4478-CI-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-4478",
+        "readAtSim": "2026-09-21T14:01:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.98,
+          "docType": "COMMERCIAL_INVOICE",
+          "fields": {
+            "buyerName": "Norpampa Insumos SRL",
+            "buyerTaxId": "30-70263787-2",
+            "currency": "USD",
+            "documentNumber": "LVW-1190",
+            "grossWeightKg": 16511,
+            "incoterm": "FOB",
+            "invoiceNumber": "LVW-1190",
+            "issueDate": "2026-09-11",
+            "issuerName": "Ligurmare Valve Works S.r.l.",
+            "netWeightKg": 14839,
+            "originCountry": "Italy",
+            "packages": 209,
+            "signed": true,
+            "totalAmount": 194135.92
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-e39517f3a5d79f3271c54273e38042233820b58275f9812e0cbb2cd2f770473e-dv-4478-CI-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-09-21T14:00:00-03:00",
+        "s3Key": "ops/op-4478/COMMERCIAL_INVOICE/v001-e39517f3.pdf",
+        "sha256": "e39517f3a5d79f3271c54273e38042233820b58275f9812e0cbb2cd2f770473e",
+        "sizeBytes": 2346,
+        "source": {
+          "channel": "CONSOLE",
+          "party": "BROKER"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-12T13:00:00.000Z",
+        "entity": "Timer",
+        "firedAtSim": "2026-10-12T10:00:00-03:00",
+        "firedBy": "CLOCK",
+        "kind": "MILESTONE",
+        "operationId": "op-4478",
+        "payload": {},
+        "status": "FIRED",
+        "synthetic": true,
+        "timerId": "DOCS_REQUEST",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-14T13:00:00.000Z",
+        "entity": "Timer",
+        "firedAtSim": "2026-10-14T10:00:00-03:00",
+        "firedBy": "CLOCK",
+        "kind": "MILESTONE",
+        "operationId": "op-4478",
+        "payload": {},
+        "status": "FIRED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-16T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4478",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP_FINAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-17T11:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4478",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ESCALATION",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-19T11:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4478",
+        "payload": {},
+        "status": "SCHEDULED",
+        "synthetic": true,
+        "timerId": "ARRIVAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-13T12:00:00.000Z",
+        "entity": "Timer",
+        "firedAtSim": "2026-10-13T09:00:00-03:00",
+        "firedBy": "CLOCK",
+        "kind": "DEFERRED_SEND",
+        "operationId": "op-4478",
+        "payload": {
+          "kind": "DOCS_REQUEST",
+          "messageId": "msg-01M4TJ4GG0J296CEZEHHVECZ0Z"
+        },
+        "reason": "CP-HOURS-AR",
+        "status": "FIRED",
+        "synthetic": true,
+        "timerId": "deferred-4478-1",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "approvedAtSim": "2026-10-13T11:00:00-03:00",
+        "approvedBy": "brk-judge-00",
+        "carrier": "Pacifica Container Lines",
+        "clockId": "JUDGE#firm-judge-00",
+        "control": "AGENT",
+        "controlHistory": [
+          {
+            "atSim": "2026-09-21T11:00:00-03:00",
+            "by": "SEED",
+            "control": "AGENT"
+          }
+        ],
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dispatch": {
+          "history": [],
+          "status": "NONE"
+        },
+        "dossierHistory": [
+          {
+            "atSim": "2026-09-21T11:00:00-03:00",
+            "by": "SEED",
+            "status": "OPEN"
+          },
+          {
+            "atSim": "2026-10-09T15:45:00-03:00",
+            "by": "AGENT",
+            "status": "READY_FOR_REVIEW"
+          },
+          {
+            "atSim": "2026-10-13T11:00:00-03:00",
+            "by": "BROKER:brk-judge-00",
+            "status": "APPROVED"
+          }
+        ],
+        "dossierStatus": "APPROVED",
+        "entity": "Operation",
+        "eta": "2026-10-16T07:00:00-03:00",
+        "etaHistory": [
+          {
+            "atSim": "2026-09-21T11:00:00-03:00",
+            "eta": "2026-10-16T07:00:00-03:00",
+            "eventId": "evt_ATPN6PPQ3QGJ29NZ556MEF49VJ",
+            "source": "SEED"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "importerId": "imp-norpampa",
+        "incoterm": "FOB",
+        "incotermPlace": "Shenzhen",
+        "invoiceNumber": "SZB-20870",
+        "openedAtSim": "2026-09-21T11:00:00-03:00",
+        "operationId": "op-4487",
+        "operationNumber": "4487",
+        "portOfDischarge": "Buenos Aires",
+        "portOfLoading": "Shenzhen",
+        "regime": "Importación para consumo",
+        "sessionEpoch": 0,
+        "simState": {
+          "injectionStep": 0,
+          "repliesSent": 0,
+          "versionsSent": {}
+        },
+        "supplierId": "sup-shenzhen",
+        "synthetic": true,
+        "templateOperation": "op-4487",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Pacifica Horizon",
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-4487-CI-1",
+        "currentVersion": 1,
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Document",
+        "lastRequestedAtSim": "2026-10-09T10:00:00-03:00",
+        "operationId": "op-4487",
+        "receivedAtSim": "2026-10-09T15:40:00-03:00",
+        "requestedFrom": "IMPORTER",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-4487-PL-1",
+        "currentVersion": 1,
+        "docType": "PACKING_LIST",
+        "entity": "Document",
+        "lastRequestedAtSim": "2026-10-09T10:00:00-03:00",
+        "operationId": "op-4487",
+        "receivedAtSim": "2026-10-09T15:41:00-03:00",
+        "requestedFrom": "IMPORTER",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-4487-CO-1",
+        "currentVersion": 1,
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Document",
+        "lastRequestedAtSim": "2026-10-09T10:00:00-03:00",
+        "operationId": "op-4487",
+        "receivedAtSim": "2026-10-09T15:42:00-03:00",
+        "requestedFrom": "IMPORTER",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "COMMERCIAL_INVOICE",
+        "docVersionId": "dv-4487-CI-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-4487",
+        "readAtSim": "2026-10-09T15:41:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.99,
+          "docType": "COMMERCIAL_INVOICE",
+          "fields": {
+            "buyerName": "Norpampa Insumos SRL",
+            "buyerTaxId": "30-70263787-2",
+            "currency": "USD",
+            "documentNumber": "SZB-20870",
+            "grossWeightKg": 1683,
+            "incoterm": "FOB",
+            "invoiceNumber": "SZB-20870",
+            "issueDate": "2026-09-08",
+            "issuerName": "Shenzhen Brightpath Electronics Co.",
+            "netWeightKg": 1584,
+            "originCountry": "China",
+            "packages": 99,
+            "signed": true,
+            "totalAmount": 20953.44
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-25a080b3515c1e19ccc4f8918b68fcba16f3f47d1b2b51c5cb8186ec809cb0e5-dv-4487-CI-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-10-09T15:40:00-03:00",
+        "s3Key": "ops/op-4487/COMMERCIAL_INVOICE/v001-25a080b3.pdf",
+        "sha256": "25a080b3515c1e19ccc4f8918b68fcba16f3f47d1b2b51c5cb8186ec809cb0e5",
+        "sizeBytes": 2502,
+        "source": {
+          "channel": "UPLOAD_LINK",
+          "party": "IMPORTER",
+          "uploadToken": "wFhE4jf3-t7i00QqWYBWO6PGdFlV6rbhS_1ZBFhMNl8"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "PACKING_LIST",
+        "docVersionId": "dv-4487-PL-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-4487",
+        "readAtSim": "2026-10-09T15:42:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.94,
+          "docType": "PACKING_LIST",
+          "fields": {
+            "buyerName": "Norpampa Insumos SRL",
+            "documentNumber": "PL-SZB-20870",
+            "grossWeightKg": 1683,
+            "invoiceNumber": "SZB-20870",
+            "issueDate": "2026-09-08",
+            "issuerName": "Shenzhen Brightpath Electronics Co.",
+            "netWeightKg": 1584,
+            "packages": 99
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-c45a328a663a279e81bdfaa3f03edc288930d28bb656109283bc0971f658ff1a-dv-4487-PL-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-10-09T15:41:00-03:00",
+        "s3Key": "ops/op-4487/PACKING_LIST/v001-c45a328a.pdf",
+        "sha256": "c45a328a663a279e81bdfaa3f03edc288930d28bb656109283bc0971f658ff1a",
+        "sizeBytes": 2052,
+        "source": {
+          "channel": "UPLOAD_LINK",
+          "party": "IMPORTER",
+          "uploadToken": "wFhE4jf3-t7i00QqWYBWO6PGdFlV6rbhS_1ZBFhMNl8"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "docVersionId": "dv-4487-CO-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-4487",
+        "readAtSim": "2026-10-09T15:43:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.94,
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "fields": {
+            "buyerName": "Norpampa Insumos SRL",
+            "documentNumber": "SCC-2026-89692",
+            "invoiceNumber": "SZB-20870",
+            "issueDate": "2026-09-10",
+            "issuerName": "Shenzhen Brightpath Electronics Co.",
+            "issuingBody": "Synthetic Chamber of Commerce (fictitious)",
+            "originCountry": "China",
+            "signed": true,
+            "stamped": true
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-ec3c1efebef90ec7433b4e605085ffd8767b251a16dcfc7f3b397cdb7b22ba9a-dv-4487-CO-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-10-09T15:42:00-03:00",
+        "s3Key": "ops/op-4487/CERTIFICATE_OF_ORIGIN/v001-ec3c1efe.pdf",
+        "sha256": "ec3c1efebef90ec7433b4e605085ffd8767b251a16dcfc7f3b397cdb7b22ba9a",
+        "sizeBytes": 2164,
+        "source": {
+          "channel": "UPLOAD_LINK",
+          "party": "IMPORTER",
+          "uploadToken": "wFhE4jf3-t7i00QqWYBWO6PGdFlV6rbhS_1ZBFhMNl8"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-09T13:00:00.000Z",
+        "entity": "Timer",
+        "firedAtSim": "2026-10-09T10:00:00-03:00",
+        "firedBy": "CLOCK",
+        "kind": "MILESTONE",
+        "operationId": "op-4487",
+        "payload": {},
+        "status": "FIRED",
+        "synthetic": true,
+        "timerId": "DOCS_REQUEST",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-11T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4487",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-13T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4487",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP_FINAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-14T10:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4487",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "ESCALATION",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-16T10:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4487",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "ARRIVAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "carrier": "Austral Line",
+        "clockId": "JUDGE#firm-judge-00",
+        "control": "AGENT",
+        "controlHistory": [
+          {
+            "atSim": "2026-09-21T11:00:00-03:00",
+            "by": "SEED",
+            "control": "AGENT"
+          }
+        ],
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dispatch": {
+          "history": [],
+          "status": "NONE"
+        },
+        "dossierHistory": [
+          {
+            "atSim": "2026-09-21T11:00:00-03:00",
+            "by": "SEED",
+            "status": "OPEN"
+          },
+          {
+            "atSim": "2026-10-13T16:32:00-03:00",
+            "by": "AGENT",
+            "status": "READY_FOR_REVIEW"
+          }
+        ],
+        "dossierStatus": "READY_FOR_REVIEW",
+        "entity": "Operation",
+        "eta": "2026-10-21T08:00:00-03:00",
+        "etaHistory": [
+          {
+            "atSim": "2026-09-21T11:00:00-03:00",
+            "eta": "2026-10-21T08:00:00-03:00",
+            "eventId": "evt_53DSC2A78AVBVKF3T7P1SQGJWP",
+            "source": "SEED"
+          }
+        ],
+        "firmId": "firm-judge-00",
+        "importerId": "imp-sierras",
+        "incoterm": "CIF",
+        "incotermPlace": "Buenos Aires",
+        "invoiceNumber": "EHT-55790",
+        "openedAtSim": "2026-09-21T11:00:00-03:00",
+        "operationId": "op-4488",
+        "operationNumber": "4488",
+        "portOfDischarge": "Buenos Aires",
+        "portOfLoading": "Hamburg",
+        "regime": "Importación para consumo",
+        "sessionEpoch": 0,
+        "simState": {
+          "injectionStep": 0,
+          "repliesSent": 0,
+          "versionsSent": {}
+        },
+        "supplierId": "sup-elbhafen",
+        "synthetic": true,
+        "templateOperation": "op-4488",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Austral Aurora",
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-4488-CI-1",
+        "currentVersion": 1,
+        "docType": "COMMERCIAL_INVOICE",
+        "entity": "Document",
+        "operationId": "op-4488",
+        "receivedAtSim": "2026-10-13T11:00:00-03:00",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-4488-PL-2",
+        "currentVersion": 2,
+        "docType": "PACKING_LIST",
+        "entity": "Document",
+        "operationId": "op-4488",
+        "receivedAtSim": "2026-10-13T16:30:00-03:00",
+        "responsibleParty": "SUPPLIER",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "currentDocVersionId": "dv-4488-CO-1",
+        "currentVersion": 1,
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "entity": "Document",
+        "operationId": "op-4488",
+        "receivedAtSim": "2026-10-13T11:02:00-03:00",
+        "status": "VALID",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "validatedBy": "READER",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "COMMERCIAL_INVOICE",
+        "docVersionId": "dv-4488-CI-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-4488",
+        "readAtSim": "2026-10-13T11:01:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.93,
+          "docType": "COMMERCIAL_INVOICE",
+          "fields": {
+            "buyerName": "Sierras Textil SRL",
+            "buyerTaxId": "30-75983900-4",
+            "currency": "USD",
+            "documentNumber": "EHT-55790",
+            "grossWeightKg": 3430,
+            "incoterm": "CIF",
+            "invoiceNumber": "EHT-55790",
+            "issueDate": "2026-09-09",
+            "issuerName": "Elbhafen Tools GmbH",
+            "netWeightKg": 3185,
+            "originCountry": "Germany",
+            "packages": 245,
+            "signed": true,
+            "totalAmount": 41392.99
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-7be10a5d5b61b54a91843b781623b15bf383b8e71b648ad860f051dfea7f1e5e-dv-4488-CI-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-10-13T11:00:00-03:00",
+        "s3Key": "ops/op-4488/COMMERCIAL_INVOICE/v001-7be10a5d.pdf",
+        "sha256": "7be10a5d5b61b54a91843b781623b15bf383b8e71b648ad860f051dfea7f1e5e",
+        "sizeBytes": 2465,
+        "source": {
+          "channel": "WHATSAPP",
+          "messageId": "msg-01M4TS07R0FN85R5WCCBVNXM8K",
+          "party": "IMPORTER"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "PACKING_LIST",
+        "docVersionId": "dv-4488-PL-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-4488",
+        "readAtSim": "2026-10-13T11:02:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.96,
+          "docType": "PACKING_LIST",
+          "fields": {
+            "buyerName": "Sierras Textil SRL",
+            "documentNumber": "PL-EHT-55790",
+            "grossWeightKg": 3430,
+            "invoiceNumber": "EHT-55790",
+            "issueDate": "2026-09-09",
+            "issuerName": "Elbhafen Tools GmbH",
+            "netWeightKg": 3185,
+            "packages": 243
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [
+            {
+              "againstDocType": "COMMERCIAL_INVOICE",
+              "code": "PACKAGES_MISMATCH",
+              "expected": "245",
+              "field": "packages",
+              "found": "243",
+              "severity": "BLOCKING"
+            }
+          ],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-ba5bcd9d1c475f15f61d124ba59d45f4b13bac2b2cad6c7f60d6a4496c25d4af-dv-4488-PL-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-10-13T11:01:00-03:00",
+        "s3Key": "ops/op-4488/PACKING_LIST/v001-ba5bcd9d.pdf",
+        "sha256": "ba5bcd9d1c475f15f61d124ba59d45f4b13bac2b2cad6c7f60d6a4496c25d4af",
+        "sizeBytes": 2035,
+        "source": {
+          "channel": "WHATSAPP",
+          "messageId": "msg-01M4TS22B0ZNJ915VEDZN10ZVV",
+          "party": "IMPORTER"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "PACKING_LIST",
+        "docVersionId": "dv-4488-PL-2",
+        "entity": "DocumentVersion",
+        "operationId": "op-4488",
+        "readAtSim": "2026-10-13T16:31:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.95,
+          "docType": "PACKING_LIST",
+          "fields": {
+            "buyerName": "Sierras Textil SRL",
+            "documentNumber": "PL-EHT-55790",
+            "grossWeightKg": 3430,
+            "invoiceNumber": "EHT-55790",
+            "issueDate": "2026-09-09",
+            "issuerName": "Elbhafen Tools GmbH",
+            "netWeightKg": 3185,
+            "packages": 245
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-7da204260c60e35844171fdfc32d9d4a5ec3a54d4fc3a13983df47044ff01007-dv-4488-PL-2",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-10-13T16:30:00-03:00",
+        "s3Key": "ops/op-4488/PACKING_LIST/v002-7da20426.pdf",
+        "sha256": "7da204260c60e35844171fdfc32d9d4a5ec3a54d4fc3a13983df47044ff01007",
+        "sizeBytes": 2035,
+        "source": {
+          "channel": "WHATSAPP",
+          "messageId": "msg-01M4VBWFP030SJG1N693Z3VZ27",
+          "party": "IMPORTER"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 2,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "CERTIFICATE_OF_ORIGIN",
+        "docVersionId": "dv-4488-CO-1",
+        "entity": "DocumentVersion",
+        "operationId": "op-4488",
+        "readAtSim": "2026-10-13T11:03:00-03:00",
+        "readerAttempts": 1,
+        "reading": {
+          "confidence": 0.99,
+          "docType": "CERTIFICATE_OF_ORIGIN",
+          "fields": {
+            "buyerName": "Sierras Textil SRL",
+            "documentNumber": "SCC-2026-38278",
+            "invoiceNumber": "EHT-55790",
+            "issueDate": "2026-09-11",
+            "issuerName": "Elbhafen Tools GmbH",
+            "issuingBody": "Synthetic Chamber of Commerce (fictitious)",
+            "originCountry": "Germany",
+            "signed": true,
+            "stamped": true
+          },
+          "language": "en",
+          "matchedBy": "SHA256",
+          "observations": [],
+          "pages": 1,
+          "readerVersion": "reader-mock-1.0.0",
+          "readingId": "rdg-085a1d32437d694bb6d1a75beff7152c712970226ff9135332c8bbaeb3985889-dv-4488-CO-1",
+          "status": "RECOGNIZED"
+        },
+        "receivedAtSim": "2026-10-13T11:02:00-03:00",
+        "s3Key": "ops/op-4488/CERTIFICATE_OF_ORIGIN/v001-085a1d32.pdf",
+        "sha256": "085a1d32437d694bb6d1a75beff7152c712970226ff9135332c8bbaeb3985889",
+        "sizeBytes": 2119,
+        "source": {
+          "channel": "WHATSAPP",
+          "messageId": "msg-01M4TS3WY0S8SA0H5AWBMWCZ62",
+          "party": "IMPORTER"
+        },
+        "state": "READ",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "versionNo": 1,
+        "world": "judge"
+      },
+      {
+        "againstDocType": "COMMERCIAL_INVOICE",
+        "attempts": 0,
+        "clockId": "JUDGE#firm-judge-00",
+        "code": "PACKAGES_MISMATCH",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "docType": "PACKING_LIST",
+        "entity": "Observation",
+        "escalationId": "esc-other-1",
+        "expected": "245",
+        "field": "packages",
+        "firstDocVersionId": "dv-4488-PL-1",
+        "flaggedForReview": false,
+        "found": "243",
+        "history": [
+          {
+            "atSim": "2026-10-13T11:02:00-03:00",
+            "by": "SYSTEM",
+            "docVersionId": "dv-4488-PL-1",
+            "status": "OPEN"
+          },
+          {
+            "atSim": "2026-10-13T16:31:00-03:00",
+            "by": "SYSTEM",
+            "docVersionId": "dv-4488-PL-2",
+            "status": "RESOLVED"
+          }
+        ],
+        "lastDocVersionId": "dv-4488-PL-2",
+        "matchesMatrix": true,
+        "matrixDefault": "SUPPLIER",
+        "observationId": "obs-4488-PL-PACKAGES_MISMATCH",
+        "operationId": "op-4488",
+        "responsibleParty": "SUPPLIER",
+        "severity": "BLOCKING",
+        "status": "RESOLVED",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-14T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4488",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "DOCS_REQUEST",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-16T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4488",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-18T13:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4488",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "FOLLOWUP_FINAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-19T11:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4488",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "ESCALATION",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "dueAtSim": "2026-10-21T11:00:00.000Z",
+        "entity": "Timer",
+        "kind": "MILESTONE",
+        "operationId": "op-4488",
+        "payload": {},
+        "reason": "DOSSIER_COMPLETE",
+        "status": "SKIPPED",
+        "synthetic": true,
+        "timerId": "ARRIVAL",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "emailSent": false,
+        "entity": "Escalation",
+        "escalationId": "esc-other-1",
+        "firmId": "firm-judge-00",
+        "notifyImporter": false,
+        "observationId": "obs-4488-PL-PACKAGES_MISMATCH",
+        "openedAtSim": "2026-10-13T11:04:00-03:00",
+        "openedBy": "AGENT",
+        "operationId": "op-4488",
+        "reason": "OTHER",
+        "resolution": "El estudio pidió la corrección al proveedor por fuera de la plataforma.",
+        "resolvedAtSim": "2026-10-13T12:30:00-03:00",
+        "resolvedBy": "BROKER:brk-judge-00",
+        "status": "RESOLVED",
+        "summary": "Sin autorización para escribirle al proveedor: la corrección del packing list la gestiona el estudio.",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      }
+    ],
+    "Parties": [
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "contactFirstName": "Lucía",
+        "contactName": "Lucía Benítez",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Importer",
+        "firmId": "firm-judge-00",
+        "importerId": "imp-norpampa",
+        "language": "es",
+        "name": "Norpampa Insumos SRL",
+        "phoneE164": "+5491155510001",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Consent",
+        "firmId": "firm-judge-00",
+        "grantedAt": "2026-09-30T11:00:00-03:00",
+        "history": [
+          {
+            "action": "GRANTED",
+            "atSim": "2026-09-30T11:00:00-03:00",
+            "by": "SEED",
+            "medium": "SIGNED_FORM",
+            "textVersion": "v1"
+          }
+        ],
+        "importerId": "imp-norpampa",
+        "medium": "SIGNED_FORM",
+        "synthetic": true,
+        "textVersion": "v1",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "contactFirstName": "Tomás",
+        "contactName": "Tomás Quiroga",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Importer",
+        "firmId": "firm-judge-00",
+        "importerId": "imp-patagonia",
+        "language": "es",
+        "name": "Patagonia Frío SA",
+        "phoneE164": "+5491155510004",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Consent",
+        "firmId": "firm-judge-00",
+        "grantedAt": "2026-09-29T15:00:00-03:00",
+        "history": [
+          {
+            "action": "GRANTED",
+            "atSim": "2026-09-29T15:00:00-03:00",
+            "by": "SEED",
+            "medium": "SIGNED_FORM",
+            "textVersion": "v1"
+          }
+        ],
+        "importerId": "imp-patagonia",
+        "medium": "SIGNED_FORM",
+        "synthetic": true,
+        "textVersion": "v1",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "contactFirstName": "Nicolás",
+        "contactName": "Nicolás Ibarra",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Importer",
+        "firmId": "firm-judge-00",
+        "importerId": "imp-riberas",
+        "language": "es",
+        "name": "Riberas Ferretería SA",
+        "phoneE164": "+5491155510006",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Consent",
+        "firmId": "firm-judge-00",
+        "grantedAt": "2026-09-28T11:00:00-03:00",
+        "history": [
+          {
+            "action": "GRANTED",
+            "atSim": "2026-09-28T11:00:00-03:00",
+            "by": "SEED",
+            "medium": "EMAIL",
+            "textVersion": "v1"
+          }
+        ],
+        "importerId": "imp-riberas",
+        "medium": "EMAIL",
+        "synthetic": true,
+        "textVersion": "v1",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "contactFirstName": "Valeria",
+        "contactName": "Valeria Paz",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Importer",
+        "firmId": "firm-judge-00",
+        "importerId": "imp-sierras",
+        "language": "es",
+        "name": "Sierras Textil SRL",
+        "phoneE164": "+5491155510005",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "channel": "WHATSAPP",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Consent",
+        "firmId": "firm-judge-00",
+        "grantedAt": "2026-10-01T11:00:00-03:00",
+        "history": [
+          {
+            "action": "GRANTED",
+            "atSim": "2026-10-01T11:00:00-03:00",
+            "by": "SEED",
+            "medium": "IN_PERSON",
+            "textVersion": "v1"
+          }
+        ],
+        "importerId": "imp-sierras",
+        "medium": "IN_PERSON",
+        "synthetic": true,
+        "textVersion": "v1",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "authorized": true,
+        "authorizedAt": "2026-09-30T11:00:00-03:00",
+        "brokerId": "brk-judge-00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierAuthorization",
+        "firmId": "firm-judge-00",
+        "history": [
+          {
+            "action": "AUTHORIZED",
+            "atSim": "2026-09-30T11:00:00-03:00",
+            "by": "BROKER:brk-judge-00"
+          }
+        ],
+        "importerId": "imp-norpampa",
+        "supplierId": "sup-qingdao",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "authorized": true,
+        "authorizedAt": "2026-09-30T11:00:00-03:00",
+        "brokerId": "brk-judge-00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierAuthorization",
+        "firmId": "firm-judge-00",
+        "history": [
+          {
+            "action": "AUTHORIZED",
+            "atSim": "2026-09-30T11:00:00-03:00",
+            "by": "BROKER:brk-judge-00"
+          }
+        ],
+        "importerId": "imp-norpampa",
+        "supplierId": "sup-ligurmare",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "authorized": true,
+        "authorizedAt": "2026-09-29T15:00:00-03:00",
+        "brokerId": "brk-judge-00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierAuthorization",
+        "firmId": "firm-judge-00",
+        "history": [
+          {
+            "action": "AUTHORIZED",
+            "atSim": "2026-09-29T15:00:00-03:00",
+            "by": "BROKER:brk-judge-00"
+          }
+        ],
+        "importerId": "imp-patagonia",
+        "supplierId": "sup-konkan",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "authorized": true,
+        "authorizedAt": "2026-09-28T11:00:00-03:00",
+        "brokerId": "brk-judge-00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierAuthorization",
+        "firmId": "firm-judge-00",
+        "history": [
+          {
+            "action": "AUTHORIZED",
+            "atSim": "2026-09-28T11:00:00-03:00",
+            "by": "BROKER:brk-judge-00"
+          }
+        ],
+        "importerId": "imp-riberas",
+        "supplierId": "sup-busan",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "authorized": true,
+        "authorizedAt": "2026-09-28T11:00:00-03:00",
+        "brokerId": "brk-judge-00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierAuthorization",
+        "firmId": "firm-judge-00",
+        "history": [
+          {
+            "action": "AUTHORIZED",
+            "atSim": "2026-09-28T11:00:00-03:00",
+            "by": "BROKER:brk-judge-00"
+          }
+        ],
+        "importerId": "imp-riberas",
+        "supplierId": "sup-shenzhen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "authorized": true,
+        "authorizedAt": "2026-10-01T11:00:00-03:00",
+        "brokerId": "brk-judge-00",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierAuthorization",
+        "firmId": "firm-judge-00",
+        "history": [
+          {
+            "action": "AUTHORIZED",
+            "atSim": "2026-10-01T11:00:00-03:00",
+            "by": "BROKER:brk-judge-00"
+          }
+        ],
+        "importerId": "imp-sierras",
+        "supplierId": "sup-qingdao",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "behaviour": "SEEDED_ERROR",
+        "behaviourParams": {},
+        "clockId": "JUDGE#firm-judge-00",
+        "country": "CN",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Supplier",
+        "firmId": "firm-judge-00",
+        "language": "en",
+        "name": "Qingdao Bluewave Textiles Co., Ltd.",
+        "supplierId": "sup-qingdao",
+        "synthetic": true,
+        "timezone": "Asia/Shanghai",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "confirmedAt": "2026-09-22T11:00:00-03:00",
+        "confirmedBy": "SEED",
+        "contactId": "ctc-qingdao-1",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "email": "j00-qingdao@sim.legajo.demo.craftech.io",
+        "entity": "SupplierContact",
+        "firmId": "firm-judge-00",
+        "status": "ACTIVE",
+        "statusHistory": [
+          {
+            "atSim": "2026-09-22T11:00:00-03:00",
+            "by": "SEED",
+            "reason": "registered by the firm",
+            "status": "ACTIVE"
+          }
+        ],
+        "supplierId": "sup-qingdao",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "bounces": 0,
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierProfile",
+        "firmId": "firm-judge-00",
+        "lateDocTypes": [],
+        "medianReplyHours": 1.3,
+        "repliesMeasured": 6,
+        "supplierId": "sup-qingdao",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "workingContactId": "ctc-qingdao-1",
+        "world": "judge"
+      },
+      {
+        "behaviour": "BOUNCE",
+        "behaviourParams": {},
+        "clockId": "JUDGE#firm-judge-00",
+        "country": "IN",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Supplier",
+        "firmId": "firm-judge-00",
+        "language": "en",
+        "name": "Konkanshore Specialty Chemicals Pvt Ltd",
+        "supplierId": "sup-konkan",
+        "synthetic": true,
+        "timezone": "Asia/Kolkata",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "confirmedAt": "2026-09-22T11:00:00-03:00",
+        "confirmedBy": "SEED",
+        "contactId": "ctc-konkan-1",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "email": "bounce+j00@simulator.amazonses.com",
+        "entity": "SupplierContact",
+        "firmId": "firm-judge-00",
+        "status": "ACTIVE",
+        "statusHistory": [
+          {
+            "atSim": "2026-09-22T11:00:00-03:00",
+            "by": "SEED",
+            "reason": "registered by the firm",
+            "status": "ACTIVE"
+          }
+        ],
+        "supplierId": "sup-konkan",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "bounces": 0,
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierProfile",
+        "firmId": "firm-judge-00",
+        "lateDocTypes": [
+          "CERTIFICATE_OF_ORIGIN"
+        ],
+        "repliesMeasured": 0,
+        "supplierId": "sup-konkan",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "behaviour": "UNKNOWN_DOC",
+        "behaviourParams": {},
+        "clockId": "JUDGE#firm-judge-00",
+        "country": "KR",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Supplier",
+        "firmId": "firm-judge-00",
+        "language": "en",
+        "name": "Busan Coastal Parts Co.",
+        "supplierId": "sup-busan",
+        "synthetic": true,
+        "timezone": "Asia/Seoul",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "confirmedAt": "2026-09-22T11:00:00-03:00",
+        "confirmedBy": "SEED",
+        "contactId": "ctc-busan-1",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "email": "j00-busan@sim.legajo.demo.craftech.io",
+        "entity": "SupplierContact",
+        "firmId": "firm-judge-00",
+        "status": "ACTIVE",
+        "statusHistory": [
+          {
+            "atSim": "2026-09-22T11:00:00-03:00",
+            "by": "SEED",
+            "reason": "registered by the firm",
+            "status": "ACTIVE"
+          }
+        ],
+        "supplierId": "sup-busan",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "bounces": 0,
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierProfile",
+        "firmId": "firm-judge-00",
+        "lateDocTypes": [],
+        "medianReplyHours": 1.7,
+        "repliesMeasured": 6,
+        "supplierId": "sup-busan",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "workingContactId": "ctc-busan-1",
+        "world": "judge"
+      },
+      {
+        "behaviour": "NEVER",
+        "behaviourParams": {},
+        "clockId": "JUDGE#firm-judge-00",
+        "country": "IT",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Supplier",
+        "firmId": "firm-judge-00",
+        "language": "en",
+        "name": "Ligurmare Valve Works S.r.l.",
+        "supplierId": "sup-ligurmare",
+        "synthetic": true,
+        "timezone": "Europe/Rome",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "confirmedAt": "2026-10-13T09:15:00-03:00",
+        "confirmedBy": "IMPORTER",
+        "contactId": "ctc-ligurmare-1",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "email": "j00-ligurmare@sim.legajo.demo.craftech.io",
+        "entity": "SupplierContact",
+        "firmId": "firm-judge-00",
+        "status": "ACTIVE",
+        "statusHistory": [
+          {
+            "atSim": "2026-09-22T11:00:00-03:00",
+            "by": "SEED",
+            "reason": "registered by the firm",
+            "status": "ACTIVE"
+          },
+          {
+            "atSim": "2026-10-13T09:15:00-03:00",
+            "by": "IMPORTER",
+            "reason": "confirmed by the importer",
+            "status": "ACTIVE"
+          }
+        ],
+        "supplierId": "sup-ligurmare",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "bounces": 0,
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierProfile",
+        "firmId": "firm-judge-00",
+        "lateDocTypes": [],
+        "repliesMeasured": 0,
+        "supplierId": "sup-ligurmare",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "behaviour": "PROMPT",
+        "behaviourParams": {},
+        "clockId": "JUDGE#firm-judge-00",
+        "country": "CN",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Supplier",
+        "firmId": "firm-judge-00",
+        "language": "en",
+        "name": "Shenzhen Brightpath Electronics Co.",
+        "supplierId": "sup-shenzhen",
+        "synthetic": true,
+        "timezone": "Asia/Shanghai",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "confirmedAt": "2026-09-22T11:00:00-03:00",
+        "confirmedBy": "SEED",
+        "contactId": "ctc-shenzhen-1",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "email": "j00-shenzhen@sim.legajo.demo.craftech.io",
+        "entity": "SupplierContact",
+        "firmId": "firm-judge-00",
+        "status": "ACTIVE",
+        "statusHistory": [
+          {
+            "atSim": "2026-09-22T11:00:00-03:00",
+            "by": "SEED",
+            "reason": "registered by the firm",
+            "status": "ACTIVE"
+          }
+        ],
+        "supplierId": "sup-shenzhen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "bounces": 0,
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierProfile",
+        "firmId": "firm-judge-00",
+        "lateDocTypes": [],
+        "medianReplyHours": 1.3,
+        "repliesMeasured": 6,
+        "supplierId": "sup-shenzhen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "workingContactId": "ctc-shenzhen-1",
+        "world": "judge"
+      },
+      {
+        "behaviour": "PROMPT",
+        "behaviourParams": {},
+        "clockId": "JUDGE#firm-judge-00",
+        "country": "DE",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "Supplier",
+        "firmId": "firm-judge-00",
+        "language": "en",
+        "name": "Elbhafen Tools GmbH",
+        "supplierId": "sup-elbhafen",
+        "synthetic": true,
+        "timezone": "Europe/Berlin",
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "clockId": "JUDGE#firm-judge-00",
+        "confirmedAt": "2026-09-22T11:00:00-03:00",
+        "confirmedBy": "SEED",
+        "contactId": "ctc-elbhafen-1",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "email": "j00-elbhafen@sim.legajo.demo.craftech.io",
+        "entity": "SupplierContact",
+        "firmId": "firm-judge-00",
+        "status": "ACTIVE",
+        "statusHistory": [
+          {
+            "atSim": "2026-09-22T11:00:00-03:00",
+            "by": "SEED",
+            "reason": "registered by the firm",
+            "status": "ACTIVE"
+          }
+        ],
+        "supplierId": "sup-elbhafen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "world": "judge"
+      },
+      {
+        "bounces": 0,
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "entity": "SupplierProfile",
+        "firmId": "firm-judge-00",
+        "lateDocTypes": [],
+        "medianReplyHours": 2.5,
+        "repliesMeasured": 6,
+        "supplierId": "sup-elbhafen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "workingContactId": "ctc-elbhafen-1",
+        "world": "judge"
+      }
+    ],
+    "Platform": [
+      {
+        "PK": "POP#firm-judge-00#4471",
+        "SK": "META",
+        "carrier": "Austral Line",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "customs": {
+          "status": "NONE"
+        },
+        "documents": {
+          "CERTIFICATE_OF_ORIGIN": "MISSING",
+          "COMMERCIAL_INVOICE": "VALID",
+          "PACKING_LIST": "MISSING"
+        },
+        "entity": "PlatformOperation",
+        "eta": "2026-10-22T08:00:00-03:00",
+        "firmId": "firm-judge-00",
+        "importerId": "imp-norpampa",
+        "incoterm": "FOB",
+        "incotermPlace": "Qingdao",
+        "invoiceNumber": "QBT-2026-0917",
+        "operationNumber": "4471",
+        "port": "Buenos Aires",
+        "regime": "Importación para consumo",
+        "supplierId": "sup-qingdao",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Austral Aurora",
+        "world": "judge"
+      },
+      {
+        "PK": "POP#firm-judge-00#4474",
+        "SK": "META",
+        "carrier": "Río Sur Shipping",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "customs": {
+          "status": "NONE"
+        },
+        "documents": {
+          "CERTIFICATE_OF_ORIGIN": "MISSING",
+          "COMMERCIAL_INVOICE": "MISSING",
+          "PACKING_LIST": "MISSING"
+        },
+        "entity": "PlatformOperation",
+        "eta": "2026-10-24T10:00:00-03:00",
+        "firmId": "firm-judge-00",
+        "importerId": "imp-patagonia",
+        "incoterm": "FOB",
+        "incotermPlace": "Nhava Sheva",
+        "invoiceNumber": "KCP/2026/771",
+        "operationNumber": "4474",
+        "port": "Buenos Aires",
+        "regime": "Importación para consumo",
+        "supplierId": "sup-konkan",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Río Sur Tern",
+        "world": "judge"
+      },
+      {
+        "PK": "POP#firm-judge-00#4477",
+        "SK": "META",
+        "carrier": "Pacifica Container Lines",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "customs": {
+          "status": "NONE"
+        },
+        "documents": {
+          "CERTIFICATE_OF_ORIGIN": "MISSING",
+          "COMMERCIAL_INVOICE": "MISSING",
+          "PACKING_LIST": "MISSING"
+        },
+        "entity": "PlatformOperation",
+        "eta": "2026-10-27T08:00:00-03:00",
+        "firmId": "firm-judge-00",
+        "importerId": "imp-riberas",
+        "incoterm": "FOB",
+        "incotermPlace": "Busan",
+        "invoiceNumber": "BCP-77120",
+        "operationNumber": "4477",
+        "port": "Buenos Aires",
+        "regime": "Importación para consumo",
+        "supplierId": "sup-busan",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Pacifica Dawn",
+        "world": "judge"
+      },
+      {
+        "PK": "POP#firm-judge-00#4478",
+        "SK": "META",
+        "carrier": "Austral Line",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "customs": {
+          "status": "NONE"
+        },
+        "documents": {
+          "CERTIFICATE_OF_ORIGIN": "MISSING",
+          "COMMERCIAL_INVOICE": "VALID",
+          "PACKING_LIST": "MISSING"
+        },
+        "entity": "PlatformOperation",
+        "eta": "2026-10-19T08:00:00-03:00",
+        "firmId": "firm-judge-00",
+        "importerId": "imp-norpampa",
+        "incoterm": "FOB",
+        "incotermPlace": "Genoa",
+        "invoiceNumber": "LVW-1190",
+        "operationNumber": "4478",
+        "port": "Buenos Aires",
+        "regime": "Importación para consumo",
+        "supplierId": "sup-ligurmare",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Austral Aurora",
+        "world": "judge"
+      },
+      {
+        "PK": "POP#firm-judge-00#4487",
+        "SK": "META",
+        "carrier": "Pacifica Container Lines",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "customs": {
+          "status": "NONE"
+        },
+        "documents": {
+          "CERTIFICATE_OF_ORIGIN": "VALID",
+          "COMMERCIAL_INVOICE": "VALID",
+          "PACKING_LIST": "VALID"
+        },
+        "entity": "PlatformOperation",
+        "eta": "2026-10-16T07:00:00-03:00",
+        "firmId": "firm-judge-00",
+        "importerId": "imp-norpampa",
+        "incoterm": "FOB",
+        "incotermPlace": "Shenzhen",
+        "invoiceNumber": "SZB-20870",
+        "operationNumber": "4487",
+        "port": "Buenos Aires",
+        "regime": "Importación para consumo",
+        "supplierId": "sup-shenzhen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Pacifica Horizon",
+        "world": "judge"
+      },
+      {
+        "PK": "POP#firm-judge-00#4488",
+        "SK": "META",
+        "carrier": "Austral Line",
+        "clockId": "JUDGE#firm-judge-00",
+        "createdAt": "2026-09-25T12:00:00.000Z",
+        "customs": {
+          "status": "NONE"
+        },
+        "documents": {
+          "CERTIFICATE_OF_ORIGIN": "VALID",
+          "COMMERCIAL_INVOICE": "VALID",
+          "PACKING_LIST": "VALID"
+        },
+        "entity": "PlatformOperation",
+        "eta": "2026-10-21T08:00:00-03:00",
+        "firmId": "firm-judge-00",
+        "importerId": "imp-sierras",
+        "incoterm": "CIF",
+        "incotermPlace": "Buenos Aires",
+        "invoiceNumber": "EHT-55790",
+        "operationNumber": "4488",
+        "port": "Buenos Aires",
+        "regime": "Importación para consumo",
+        "supplierId": "sup-elbhafen",
+        "synthetic": true,
+        "updatedAt": "2026-09-25T12:00:00.000Z",
+        "version": 1,
+        "vessel": "Austral Aurora",
+        "world": "judge"
+      }
+    ]
+  },
+  "operations": [
+    {
+      "clockId": "JUDGE#firm-judge-00",
+      "dossierStatus": "OPEN",
+      "firmId": "firm-judge-00",
+      "importerId": "imp-norpampa",
+      "model": "op-4471",
+      "operationId": "op-4471",
+      "operationNumber": "4471",
+      "supplierId": "sup-qingdao"
+    },
+    {
+      "clockId": "JUDGE#firm-judge-00",
+      "dossierStatus": "OPEN",
+      "firmId": "firm-judge-00",
+      "importerId": "imp-patagonia",
+      "model": "op-4474",
+      "operationId": "op-4474",
+      "operationNumber": "4474",
+      "supplierId": "sup-konkan"
+    },
+    {
+      "clockId": "JUDGE#firm-judge-00",
+      "dossierStatus": "OPEN",
+      "firmId": "firm-judge-00",
+      "importerId": "imp-riberas",
+      "model": "op-4477",
+      "operationId": "op-4477",
+      "operationNumber": "4477",
+      "supplierId": "sup-busan"
+    },
+    {
+      "clockId": "JUDGE#firm-judge-00",
+      "dossierStatus": "OPEN",
+      "firmId": "firm-judge-00",
+      "importerId": "imp-norpampa",
+      "model": "op-4478",
+      "operationId": "op-4478",
+      "operationNumber": "4478",
+      "supplierId": "sup-ligurmare"
+    },
+    {
+      "clockId": "JUDGE#firm-judge-00",
+      "dossierStatus": "APPROVED",
+      "firmId": "firm-judge-00",
+      "importerId": "imp-norpampa",
+      "model": "op-4487",
+      "operationId": "op-4487",
+      "operationNumber": "4487",
+      "supplierId": "sup-shenzhen"
+    },
+    {
+      "clockId": "JUDGE#firm-judge-00",
+      "dossierStatus": "READY_FOR_REVIEW",
+      "firmId": "firm-judge-00",
+      "importerId": "imp-sierras",
+      "model": "op-4488",
+      "operationId": "op-4488",
+      "operationNumber": "4488",
+      "supplierId": "sup-elbhafen"
+    }
+  ],
+  "placeholders": {
+    "brokerId": "brk-judge-00",
+    "clockId": "JUDGE#firm-judge-00",
+    "firmId": "firm-judge-00",
+    "mailboxTag": "j00",
+    "note": "the world factory writes the judge's two digits instead of 00",
+    "phonePrefix": "+54911555100"
+  },
+  "seed": 20260925,
+  "source": {
+    "clockId": "JUDGE#firm-judge-00",
+    "firmId": "firm-judge-00",
+    "firmKind": "JUDGE"
+  },
+  "startAtSim": "2026-10-14T10:30:00-03:00",
+  "template": "judge",
+  "tour": {
+    "operationId": "op-4471",
+    "operationNumber": "4471",
+    "windowEndSim": "2026-10-16T09:00:00-03:00",
+    "windowStartSim": "2026-10-14T10:30:00-03:00"
+  }
+}

@@ -1,0 +1,214 @@
+{
+  "app": "aws-cds-hackathon-poc-legajo",
+  "clock": {
+    "generatedAt": "2026-09-25T12:00:00.000Z",
+    "startAtSim": "2026-10-14T10:30:00-03:00"
+  },
+  "generatorVersion": "1.0.0",
+  "metrics": {
+    "batch": {
+      "counts": {
+        "bounce": 16,
+        "entries": 200,
+        "firmDelta": 140,
+        "firmNorte": 60,
+        "late": 4,
+        "never": 10,
+        "prompt": 120,
+        "withEtaChange": 40,
+        "withSeededError": 50
+      },
+      "sha256": "d19782356aaf9531c0426845ec7acc56a127dc1db5dce32df3645447f2cb427b"
+    },
+    "qaFixture": {
+      "aggregates": {
+        "completeBeforeArrivalPct": 100,
+        "consoleMinutesObserved": 2.3,
+        "correctResponsiblePct": 100,
+        "humanMinutesPerDossier": 6.7,
+        "interventionsPerDossier": 0.7,
+        "latencyP50Ms": 41000,
+        "latencyP95Ms": 48000,
+        "manualBaselineMinutes": 95,
+        "policyViolations": 0
+      },
+      "sha256": "8e52167d00334220fc44eb1aa0829be6db6b485453da0f8a2ed6afb50ff82266"
+    }
+  },
+  "pdfs": {
+    "count": 105,
+    "files": {
+      "op-4471/CERTIFICATE_OF_ORIGIN-v1.pdf": "eff06919da4183f5d91912c303fd8693d9e210f4f971cfc50addad785d35479b",
+      "op-4471/COMMERCIAL_INVOICE-v1.pdf": "b837c1e03a16f40c38f513ddf75d7c8a13860359221f44d566ba4e7260b60a8a",
+      "op-4471/PACKING_LIST-v1.pdf": "ac57f42fb4d33f916aaec1b959717356fd4f6c57badb3a49ac2295f40eebcaaf",
+      "op-4471/PACKING_LIST-v2.pdf": "154f77076d55b6d25e8d2fc8c5809960329cdcc749a3f01fcf8bc2e4ffce11da",
+      "op-4472/CERTIFICATE_OF_ORIGIN-v1.pdf": "30fc1371e9ff896a8d625f6c620805792ba85edb75788636ed61bd8cf278f124",
+      "op-4472/COMMERCIAL_INVOICE-v1.pdf": "3f7b6e7c39a7f00a2122550178ff056a15e9ca4c60088dd97708a8f81dd9da18",
+      "op-4472/PACKING_LIST-v1.pdf": "8bc49e79ce8c8407301b268abbf6c0227735ca981fa9ac3b6a849f68a5cfb33e",
+      "op-4473/CERTIFICATE_OF_ORIGIN-v1.pdf": "621f634f979f8d80c1f82670bc62ee653d02f7b49891efcdd308c7688bc6a6a1",
+      "op-4473/COMMERCIAL_INVOICE-v1.pdf": "8dbcc95f9998a656295deb2b51ae44498bb843235b402ec6541a0e2683d47557",
+      "op-4473/PACKING_LIST-v1.pdf": "70bfbc48bd9ede8274b3d7d2552f864ee89710f56bf5fe4b6a44457e807ebe77",
+      "op-4474/CERTIFICATE_OF_ORIGIN-v1.pdf": "12e62cd64fc65976e1df4f96b84551b90724d487a9a07f29e1e6240d42b5135b",
+      "op-4474/COMMERCIAL_INVOICE-v1.pdf": "e878f1790acd1239704e2d75102061bd450fc7883d54e2a23475475f73d85ff7",
+      "op-4474/PACKING_LIST-v1.pdf": "c82cd7fb590835716780ffbbb66460cc2da5f71b8723cf5e037bde50e4c7906b",
+      "op-4475/CERTIFICATE_OF_ORIGIN-v1.pdf": "6195ac9f52fe832d04a8fa18a4b86b4fc73a52cd566c06e6b177e138f6442b39",
+      "op-4475/COMMERCIAL_INVOICE-v1.pdf": "f228e9bee1a2d27c2e86c39d713ea8f7dd21da00299a992623b0f5434127c87f",
+      "op-4475/PACKING_LIST-v1.pdf": "fee76f435da60d84a73afe9e08215eb222b35bd478964eae4c9f9c9635418cac",
+      "op-4476/CERTIFICATE_OF_ORIGIN-v1.pdf": "28f22efb6ccbabd13d36c61797d02c31f74049509be57c3eaba589e415c65297",
+      "op-4476/COMMERCIAL_INVOICE-v1.pdf": "3f9979137c998a981369a4a700b35d0f58baf9b51dbe313a2c5213de47681272",
+      "op-4476/PACKING_LIST-v1.pdf": "27464b7036f03162065df90488b39b0a5af007672ab37f3744d85ff8a5bb15dd",
+      "op-4477/CERTIFICATE_OF_ORIGIN-v1.pdf": "b912bc7415691bb50b303281daf779e1329c8b0340eadeeddb6d1f4e11f08b1e",
+      "op-4477/COMMERCIAL_INVOICE-v1.pdf": "b6334f37236bafd3345d73bfaf84a0c8abc4823b1522a3fb439adc4fb2a5076b",
+      "op-4477/PACKING_LIST-v1.pdf": "8a2868b5d07a0e925573b470403226bda1dc2104cdf02c3655ba63f11c7edc2d",
+      "op-4478/CERTIFICATE_OF_ORIGIN-v1.pdf": "361724d92a6c2946a7516c25b6079eed3b69e16a946acf666d63be1a9920e0d1",
+      "op-4478/COMMERCIAL_INVOICE-v1.pdf": "e39517f3a5d79f3271c54273e38042233820b58275f9812e0cbb2cd2f770473e",
+      "op-4478/PACKING_LIST-v1.pdf": "c628348a3402d21115c286a77f12613e0517351673e7bc31f55398f2d1ceec9e",
+      "op-4479/CERTIFICATE_OF_ORIGIN-v1.pdf": "27b5dc91f70851d0cc17290997f65e184d7e0e2821440917af36921e13755756",
+      "op-4479/CERTIFICATE_OF_ORIGIN-v2.pdf": "89530e6102fe85e612f3beb238d243a0be4be09454fd03c24a11b6b01022c964",
+      "op-4479/CERTIFICATE_OF_ORIGIN-v3.pdf": "6e16689ecbe5a7bf85d89464a52d0e7e2ec6b594e8a0749fabfdc1d902e0c6a5",
+      "op-4479/COMMERCIAL_INVOICE-v1.pdf": "b15c56587040b0fec918445fa6d191b0194356f6afa7c61e7a003af7016f4f54",
+      "op-4479/PACKING_LIST-v1.pdf": "15084274f159a0b30a1369808e6a4b84ee4aec8153ce36c351399bdaf4c9ec9c",
+      "op-4480/CERTIFICATE_OF_ORIGIN-v1.pdf": "e10243f4f258891906dae28a9f457042d11af1720e9b08bce77f6f3337e6a851",
+      "op-4480/COMMERCIAL_INVOICE-v1.pdf": "b7bc872618dc8cb63a53e22937921cba65b98c125242a42f767caf1c7138f0da",
+      "op-4480/PACKING_LIST-v1.pdf": "52d1ff72b267684a9b942d4fd19b69e808eda6f33f6b38cd551c00a6213184b4",
+      "op-4481/CERTIFICATE_OF_ORIGIN-v1.pdf": "55271428dbe584683e752963ab9dbc4d0f5cb7e6b5e38b614c8c96a53f4cdc03",
+      "op-4481/COMMERCIAL_INVOICE-v1.pdf": "20463196aca1fe1bcbd6367be11f1a4784727e6a27ec629aa2ec726ec26371d6",
+      "op-4481/PACKING_LIST-v1.pdf": "df2c61f93883ed4bc847fd26c464d1e1b8396a0b07ba6d5d51e704b76f084200",
+      "op-4482/CERTIFICATE_OF_ORIGIN-v1.pdf": "ed39b102ca262d91f6e71aa8e846591bd0d897b1414131c71d49f13dcb2ff05e",
+      "op-4482/COMMERCIAL_INVOICE-v1.pdf": "fefa86577ca73d51ac20d2ed2625822a6c262dedc225010e82b0c832c711b304",
+      "op-4482/PACKING_LIST-v1.pdf": "5036f6a8fcf3ea09fa27defdb4c628923b024142a166bed0ee9489d75d24ae57",
+      "op-4483/CERTIFICATE_OF_ORIGIN-v1.pdf": "f9bdcdeba151e243a9931e7ea46216ae51cc4cd1153d6d5b0cf05da056d0f580",
+      "op-4483/COMMERCIAL_INVOICE-v1.pdf": "552a78c6522d243602cef47941293d7578040c5c0b923fb5d85783facfc18d82",
+      "op-4483/PACKING_LIST-v1.pdf": "c99fc00b123a8a848e6b1d58c5985625960fd2e2af74916438237520025be295",
+      "op-4484/CERTIFICATE_OF_ORIGIN-v1.pdf": "550c33032ee27ca4a97ac29fb5841d14510bc397e69863132c2e3669dab5783d",
+      "op-4484/COMMERCIAL_INVOICE-v1.pdf": "b47ce582f760be5549215ee64fe31f3e17146dec85b75b32a4d4635a9859eefa",
+      "op-4484/COMMERCIAL_INVOICE-v2.pdf": "bd0bf8c15682d736850c6c70dc0e23f307ea84ffc6e67c1a698b7c1df9166526",
+      "op-4484/PACKING_LIST-v1.pdf": "df5000fd0a9c61145165880cb5f37381a60c46836442d3d5540f63d6e4df36d7",
+      "op-4485/CERTIFICATE_OF_ORIGIN-v1.pdf": "f4c6138297571ccda642376badc42e704f38fd196d5dec76dc1fe95707bb9eb6",
+      "op-4485/COMMERCIAL_INVOICE-v1.pdf": "fc1e5d2c8168511160db399a59ea6c2464846bdabed6fcbe810530dbcca4e275",
+      "op-4485/PACKING_LIST-v1.pdf": "002510588fde04fced964a992d3abbaea489584cbcd31459e03b7c399f3e9d92",
+      "op-4485/PACKING_LIST-v2.pdf": "94111724b50d39415cbb49bc3e55a489ba3d7515261b92d1356b7670502fdf7f",
+      "op-4486/CERTIFICATE_OF_ORIGIN-v1.pdf": "1042539bbf681e32c0075f767b8e8b056561febe112004fcff8d86637a83a724",
+      "op-4486/CERTIFICATE_OF_ORIGIN-v2.pdf": "ffbb49a5731e44b365ce74c1ba2b08ad6e207472e047b4a8c415968a28b6cc15",
+      "op-4486/COMMERCIAL_INVOICE-v1.pdf": "a820ca7e1e48ecae246c44c89cb272fcfd53e7ce4c13e2cc4c47fc69258fb5ff",
+      "op-4486/PACKING_LIST-v1.pdf": "6ffdc9d2d6299401e9997f72cfe180fbbcd02fea42784ab183e8fed694f3c270",
+      "op-4487/CERTIFICATE_OF_ORIGIN-v1.pdf": "ec3c1efebef90ec7433b4e605085ffd8767b251a16dcfc7f3b397cdb7b22ba9a",
+      "op-4487/COMMERCIAL_INVOICE-v1.pdf": "25a080b3515c1e19ccc4f8918b68fcba16f3f47d1b2b51c5cb8186ec809cb0e5",
+      "op-4487/PACKING_LIST-v1.pdf": "c45a328a663a279e81bdfaa3f03edc288930d28bb656109283bc0971f658ff1a",
+      "op-4488/CERTIFICATE_OF_ORIGIN-v1.pdf": "085a1d32437d694bb6d1a75beff7152c712970226ff9135332c8bbaeb3985889",
+      "op-4488/COMMERCIAL_INVOICE-v1.pdf": "7be10a5d5b61b54a91843b781623b15bf383b8e71b648ad860f051dfea7f1e5e",
+      "op-4488/PACKING_LIST-v1.pdf": "ba5bcd9d1c475f15f61d124ba59d45f4b13bac2b2cad6c7f60d6a4496c25d4af",
+      "op-4488/PACKING_LIST-v2.pdf": "7da204260c60e35844171fdfc32d9d4a5ec3a54d4fc3a13983df47044ff01007",
+      "op-4489/CERTIFICATE_OF_ORIGIN-v1.pdf": "c4f8f71a7d70c7c06a98a99f6f0bd339617c27451c77382ed0406983cb45a74d",
+      "op-4489/COMMERCIAL_INVOICE-v1.pdf": "0333a2f0e5c159ad1ca544618418514809fbd70ea6833c43431bc225560b67f9",
+      "op-4489/PACKING_LIST-v1.pdf": "9ad57475306781111cbcb2105af8045fc9685f0f87b008d65ef17e8781ac153b",
+      "op-4490/CERTIFICATE_OF_ORIGIN-v1.pdf": "a314f5c33c8a78fb6007fd5fa9334b912700a7af94fe09d1f80d7ea6bd81bd46",
+      "op-4490/COMMERCIAL_INVOICE-v1.pdf": "69c80a25366dc590b0392f7feaf8e17f20cd8e4a1bf6c1bcccd0f64154032ddf",
+      "op-4490/PACKING_LIST-v1.pdf": "bda073e788a4cb5498f05348c62306852350ffb10c6743284eec6debd63bc8d3",
+      "op-4491/CERTIFICATE_OF_ORIGIN-v1.pdf": "dc32e8f01b3b21e6d7fc45abc1c28e5a4bcf04c9d3f8b1395729b9cd96300326",
+      "op-4491/COMMERCIAL_INVOICE-v1.pdf": "f22b4694f3e0ec53282b85666dc5253238d9e59913a3efc51f8163d0d01a0a37",
+      "op-4491/PACKING_LIST-v1.pdf": "5070f1a457518d71494432c088b53b3e34c0a5349c9a853b568c98af683917ae",
+      "op-4492/CERTIFICATE_OF_ORIGIN-v1.pdf": "4c5f8b8b4ef7ae18e89ebd53c952b7ca57676adbc57c714ad3c2414ce5ae8524",
+      "op-4492/COMMERCIAL_INVOICE-v1.pdf": "a3b1f23b76221e85fe8b11710cd568a70aef644c7813005eec3f1b95a8aee7ee",
+      "op-4492/PACKING_LIST-v1.pdf": "eb193e0cb9f53c322479d0e737646aabb064f0d7a8117e8a7b08441f85d765dd",
+      "op-4493/CERTIFICATE_OF_ORIGIN-v1.pdf": "7181421ccc673f2c7a481d2407b2461ec2871d32dfe0d0082640d13ec544fd37",
+      "op-4493/COMMERCIAL_INVOICE-v1.pdf": "8c8c6cd4fc9c914957e9d3dc9fe9444442ea0ba3523691cc2ee3288e271798a8",
+      "op-4493/PACKING_LIST-v1.pdf": "888d6c462a69d7dea251845b86a055e99d0993e3f99258b163b29cf728c4702c",
+      "op-4493/PACKING_LIST-v2.pdf": "b1aaea7f8479f2988e8e9bf4a393a951a28b5ec64ddf2b418fb9c58909ff89c2",
+      "op-4494/CERTIFICATE_OF_ORIGIN-v1.pdf": "9fd35c4f7903e8fe84f5f56a632dacd42fda290c1edf4185621a07a8bc7e1ccc",
+      "op-4494/CERTIFICATE_OF_ORIGIN-v2.pdf": "2df480ebcca69ef20de1c5ff2508d3176c893de42cbd83f7b0ec875eec250a2c",
+      "op-4494/COMMERCIAL_INVOICE-v1.pdf": "040900708a26fe37e1f5da120d21dcd694adcf1708eef2e421579ff9411db68e",
+      "op-4494/PACKING_LIST-v1.pdf": "dedc83e6d6afb0d15ac243d92221846bb8ff10e145c56ccfcf2bbff3a26d1111",
+      "op-5501/CERTIFICATE_OF_ORIGIN-v1.pdf": "cff895d4547666e736da4c719066ef40de02895e2bb0813db9e2de44693fed28",
+      "op-5501/COMMERCIAL_INVOICE-v1.pdf": "835bb4c08456f9805e21f33ca9c87607ad151c395996fed2af3f431c7e0ac2ae",
+      "op-5501/PACKING_LIST-v1.pdf": "fa075bbb8b920f1d7fc2f5b60ba1672a6db35953de091f115a8de309d1ac58ed",
+      "op-5501/PACKING_LIST-v2.pdf": "3b6fe6e55bf26ca6c5820458bdf3f913f36371771d1fa87ad9a7787ef0a8831c",
+      "op-5502/CERTIFICATE_OF_ORIGIN-v1.pdf": "d6e2fb0dcb1452914f7cb9a303368f1ef08fb6cba50a79c5bb8ba40158d111ef",
+      "op-5502/COMMERCIAL_INVOICE-v1.pdf": "770003e1aa7d642ba8e4cf20c2f3ec647276a7d4f2a3aeabf701f85c06841576",
+      "op-5502/PACKING_LIST-v1.pdf": "2ac5894dbe5496a595f2c849b53a1a99a686eadfc1e7b7d92842123395da8475",
+      "op-5503/CERTIFICATE_OF_ORIGIN-v1.pdf": "5e3767e73e8d0fb2690836724656788dd296b5126cf76b2dc7a9ea3bab591580",
+      "op-5503/CERTIFICATE_OF_ORIGIN-v2.pdf": "86a3969290747b67d00c2bf31fb030d264d01532eff3d2b5568b2b2bc3652257",
+      "op-5503/COMMERCIAL_INVOICE-v1.pdf": "b405b93f7b14114d6294eb5e78dcf6b7b6c454397e23ddcd91bbd7f9e2cb6647",
+      "op-5503/PACKING_LIST-v1.pdf": "4427e30a734788d642903a5a526b804e1c6f12100ed7a3ddce77060189d08deb",
+      "op-5504/CERTIFICATE_OF_ORIGIN-v1.pdf": "b37f61fe59e1754bb0532858ca3c6e1e80488113fe18710d57e5767232ddeb58",
+      "op-5504/COMMERCIAL_INVOICE-v1.pdf": "683962ed7deb9a346ffdcacf62804ff816f928fb9fbd9fd451d988d49bf53fcb",
+      "op-5504/COMMERCIAL_INVOICE-v2.pdf": "bc4254b9457715efe22f6929320cbbcac799fe57bc5ba9ece0b014ddeecbd237",
+      "op-5504/PACKING_LIST-v1.pdf": "9dfdafea373dac7df43c2203ac925d53c4e61ccee3f41b6d56a8767d39103706",
+      "op-5505/CERTIFICATE_OF_ORIGIN-v1.pdf": "e7f1ffa2414e2600ea182b8adb2c13d77ea0bc421817b440ee915e8ac8e86aa7",
+      "op-5505/COMMERCIAL_INVOICE-v1.pdf": "9b7ea2caed42dc6ff0b04f7ae09181496c4c7e23375afaf47cc2eaab2dd74982",
+      "op-5505/PACKING_LIST-v1.pdf": "9c0e917b1fee6235a63cb9eb9a2e4bce739b5f3effa2a28d80e31a16252e2a39",
+      "op-5506/CERTIFICATE_OF_ORIGIN-v1.pdf": "b03b3ad0862928d871a9473c612a04da809fc690f3432dec22d7143085555d06",
+      "op-5506/COMMERCIAL_INVOICE-v1.pdf": "ba3f550a37f99fe3cddeb2ebdc60e18d8ac036da5bfcd1ed25223b3eb99e72fc",
+      "op-5506/PACKING_LIST-v1.pdf": "09c1f65c5782abec8493192c47b255370eaa83fffee60b8a8a80ae53cfd9618b",
+      "unknown/unknown-1.pdf": "b9f66216b2caf185573bc08033bb849fc6daafc77128e87959d91c52f1abbb52",
+      "unknown/unknown-2.pdf": "8f056ebb34e4872be855c4bae95a037cd6cebf877c3d632e2d96583298b9631e",
+      "unknown/unknown-3.pdf": "2a67938718e803f7ce0b97b025d511243023baa353da7e3154a7fc636b12d7fe"
+    }
+  },
+  "readerCatalog": {
+    "items": 204,
+    "readings": 102,
+    "unknown": 3
+  },
+  "seed": 20260925,
+  "tables": {
+    "AuditLog": {
+      "count": 46,
+      "sha256": "84171198db2cd8e17bda4787b62a9ebc36701b308bbf1f265615b4099310fac9"
+    },
+    "Conversations": {
+      "count": 33,
+      "sha256": "329f3302c3bc537fd90d2037d190600ab03d80ecc61c5364806edb67a21d323b"
+    },
+    "Firms": {
+      "count": 29,
+      "sha256": "e47f89e223e5a1f3e627870f12bc0cf4c801d6205035bd5f4fdb2e07b9802682"
+    },
+    "LegajoMetrics": {
+      "count": 3,
+      "sha256": "546a803d47152440ba83f52680a301fd59beb172f5652e6c618a998e17b09e3d"
+    },
+    "Operations": {
+      "count": 366,
+      "sha256": "411ae666c4dd9c213bf725d31d2626a0fc7f2d02a012e617f32c23d3161190d6"
+    },
+    "Parties": {
+      "count": 111,
+      "sha256": "e2c834cb6c27aadfd6d5a7ad7a4644f65ccac6ce61f35f37bd55adfff7dd3362"
+    },
+    "Platform": {
+      "count": 35,
+      "sha256": "7a9d6c441636ba5355a04eca3629739153c86a321bfde3e9c4cda9c1e9da06fd"
+    },
+    "ReaderCatalog": {
+      "count": 204,
+      "sha256": "9fca6024be1eee8af9bfd3a937d186908b9aba9b58071ac39c20a216175c37c3"
+    },
+    "Reference": {
+      "count": 80,
+      "sha256": "09d6d51311098b0df871d349501402a14def1a424bed90c332652edcd54c28d1"
+    }
+  },
+  "validation": {
+    "errors": [],
+    "status": "PASS",
+    "warnings": []
+  },
+  "worlds": {
+    "demo-firm-delta": {
+      "sha256": "7a1eee416bb079301779d0162812979f15cf78d3fe9b2f112f6e0dc41d57644c"
+    },
+    "demo-firm-norte": {
+      "sha256": "a81037c6eb6d5403ee59e75cc2ff3a288c286f54ab1fcfcb7755bead3c3d5719"
+    },
+    "judge": {
+      "sha256": "30560007450b4286d6beb9a7c216122a742683c33834ec4e8dd73e7f9c8ae1b6"
+    },
+    "models": {
+      "sha256": "247c456dba01f4a25bd358bea6d5931cbd6840cd9080e6f7f32d9532b89bca3c"
+    },
+    "qa-min": {
+      "sha256": "56d5d330f4da5320bd0e7715124d361d9b2917967fa3af51070927a718806a1f"
+    }
+  }
+}

@@ -9,7 +9,9 @@
 // A Lambda links what it needs and reads `Resource.<Name>.name` (through `readLinked`), never
 // `process.env`. `storageLinks(fn)` returns exactly the tables and buckets infra/iam-capabilities.ts
 // declares for a function, so a module never picks them by hand; the mocks' tables it lists in
-// `storageFor(fn).mockTables` come from infra/mocks.ts.
+// `storageFor(fn).mockTables` come from infra/mocks.ts. The Ingress mail bucket is never linked whole:
+// its readers reach it only through the per-route Linkables of infra/messaging-email.ts
+// (`InboundMailOps`, `InboundMailSim`: `s3:GetObject` on one prefix), which `emailLinks(fn)` brings.
 
 import type { LambdaName } from "./iam-capabilities";
 import { buckets } from "./storage-buckets";
@@ -20,8 +22,12 @@ export { AuditLog, Conversations, Firms, LegajoMetrics, Operations, Parties, Ref
 export { buckets, documentsBucket, inboundMailBucket, mediaBucket, seedBucket, uploadsBucket } from "./storage-buckets";
 export { storageFor } from "./storage-keys";
 
-/** Tables and buckets of this module a function links, as iam-capabilities.ts declares them. */
+/** Buckets that are only reachable through a narrower Linkable of another module. */
+export const ROUTED_BUCKETS = ["InboundMail"] as const;
+
+/** Tables and buckets of this module a function links, as iam-capabilities.ts declares them (never InboundMail). */
 export function storageLinks(fn: LambdaName): Array<sst.aws.Dynamo | sst.aws.Bucket> {
   const needs = storageFor(fn);
-  return [...needs.tables.map((name) => tables[name]), ...needs.buckets.map((name) => buckets[name])];
+  const direct = needs.buckets.filter((name) => !(ROUTED_BUCKETS as readonly string[]).includes(name));
+  return [...needs.tables.map((name) => tables[name]), ...direct.map((name) => buckets[name])];
 }

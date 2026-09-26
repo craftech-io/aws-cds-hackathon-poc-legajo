@@ -1,0 +1,26 @@
+{
+  "messaging_product": "whatsapp",
+  "recipient_type": "individual",
+  "to": "5491155500101",
+  "type": "template",
+  "template": {
+    "name": "legajo_docs_pendientes",
+    "language": { "code": "es_AR" },
+    "components": [
+      {
+        "type": "body",
+        "parameters": [
+          { "type": "text", "text": "Estudio Delta" },
+          { "type": "text", "text": "4471" },
+          { "type": "text", "text": "Austral Aurora" },
+          { "type": "text", "text": "22/10" },
+          { "type": "text", "text": "certificado de origen y packing list" }
+        ]
+      },
+      { "type": "button", "sub_type": "url", "index": "0", "parameters": [{ "type": "text", "text": "Zq3v9Kf0mX2bR7wLpT4yNc8hJd1sGa6eUo5iQkVxWtY" }] },
+      { "type": "button", "sub_type": "quick_reply", "index": "1", "parameters": [{ "type": "payload", "payload": "nonceSupplierSends000000000000001" }] },
+      { "type": "button", "sub_type": "quick_reply", "index": "2", "parameters": [{ "type": "payload", "payload": "nonceQuestion0000000000000000002" }] },
+      { "type": "button", "sub_type": "quick_reply", "index": "3", "parameters": [{ "type": "payload", "payload": "nonceOptOut000000000000000000003" }] }
+    ]
+  }
+}

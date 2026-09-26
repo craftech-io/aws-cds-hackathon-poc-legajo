@@ -1,0 +1,1710 @@
+{
+  "count": 33,
+  "generatedAt": "2026-09-25T12:00:00.000Z",
+  "items": [
+    {
+      "PK": "OP#op-4478",
+      "SK": "MSG#2026-10-13T12:00:00.000Z#msg-01M4TJ4GG0D26M27YTXJJHMWCR",
+      "author": "AGENT",
+      "body": "Hola, te escribimos desde Estudio Delta. Operación 4478, buque Austral Aurora, arribo estimado 19/10. Faltan: packing list y certificado de origen. ¿Cómo seguimos?",
+      "buttons": [
+        {
+          "action": "UPLOAD",
+          "title": "Subir documentos",
+          "url": "https://legajo.demo.craftech.io/u/ng_QiHpPuDvCzEgGc5ebiohWFFrkrNzr9r8aVhaRYfc"
+        },
+        {
+          "action": "SUPPLIER_SENDS",
+          "title": "Los manda el proveedor"
+        },
+        {
+          "action": "QUESTION",
+          "title": "Tengo una duda"
+        },
+        {
+          "action": "OPT_OUT",
+          "title": "No recibir avisos"
+        }
+      ],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-norpampa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "deferredTimerKey": "TIMER#DEFERRED_SEND#deferred-4478-1",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "simulated",
+      "importerId": "imp-norpampa",
+      "kind": "DOCS_REQUEST",
+      "messageId": "msg-01M4TJ4GG0D26M27YTXJJHMWCR",
+      "operationId": "op-4478",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-ONE-PER-DAY",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {
+        "docTypes": [
+          "PACKING_LIST",
+          "CERTIFICATE_OF_ORIGIN"
+        ]
+      },
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T12:00:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "legajo_docs_pendientes",
+        "params": [
+          "Estudio Delta",
+          "4478",
+          "Austral Aurora",
+          "19/10",
+          "packing list y certificado de origen"
+        ]
+      },
+      "to": "+54911555000101",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4478",
+      "SK": "MSG#2026-10-13T12:05:00.000Z#msg-01M4TJDNF0JZTTP5DH6HCKSVHE",
+      "attachments": [],
+      "author": "IMPORTER",
+      "body": "Los manda el proveedor",
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-norpampa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "IN",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "+54911555000101",
+      "importerId": "imp-norpampa",
+      "interactive": {
+        "action": "SUPPLIER_SENDS",
+        "type": "button_reply"
+      },
+      "messageId": "msg-01M4TJDNF0JZTTP5DH6HCKSVHE",
+      "operationId": "op-4478",
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T12:05:00.000Z",
+      "simulated": true,
+      "status": "RECEIVED",
+      "synthetic": true,
+      "to": "simulated",
+      "trusted": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4478",
+      "SK": "MSG#2026-10-13T12:06:00.000Z#msg-01M4TJFG203E70VZ083VVMPX5Y",
+      "author": "AGENT",
+      "body": "¿Le escribimos a tu proveedor a s***@sim.legajo.demo.craftech.io? Confirmá con un botón o pasanos otro contacto.",
+      "buttons": [
+        {
+          "action": "CONFIRM_CONTACT",
+          "title": "Sí, escribile"
+        },
+        {
+          "action": "REJECT_CONTACT",
+          "title": "No"
+        },
+        {
+          "action": "OTHER_CONTACT",
+          "title": "Otro contacto"
+        }
+      ],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-norpampa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "simulated",
+      "importerId": "imp-norpampa",
+      "interactive": {
+        "actions": [
+          "CONFIRM_CONTACT",
+          "REJECT_CONTACT",
+          "OTHER_CONTACT"
+        ],
+        "type": "button"
+      },
+      "kind": "CONTACT_CONFIRMATION",
+      "messageId": "msg-01M4TJFG203E70VZ083VVMPX5Y",
+      "operationId": "op-4478",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T12:06:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "to": "+54911555000101",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4478",
+      "SK": "MSG#2026-10-13T12:15:00.000Z#msg-01M4TJZZD0R6KSPZAVG30PQXFJ",
+      "attachments": [],
+      "author": "IMPORTER",
+      "body": "Sí, escribile",
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-norpampa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "IN",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "+54911555000101",
+      "importerId": "imp-norpampa",
+      "interactive": {
+        "action": "CONFIRM_CONTACT",
+        "type": "button_reply"
+      },
+      "messageId": "msg-01M4TJZZD0R6KSPZAVG30PQXFJ",
+      "operationId": "op-4478",
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T12:15:00.000Z",
+      "simulated": true,
+      "status": "RECEIVED",
+      "synthetic": true,
+      "to": "simulated",
+      "trusted": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4478",
+      "SK": "MSG#2026-10-13T12:20:00.000Z#msg-01M4TK94C049V57GN7NF06AR34",
+      "author": "AGENT",
+      "body": "Hello,\n\nWe are writing on behalf of Estudio Delta, the customs broker of Norpampa Insumos SRL, about invoice LVW-1190 (FOB Genoa, vessel Austral Aurora, estimated arrival in Buenos Aires on Oct 19, 2026).\nFor operation 4478 we still need the packing list and certificate of origin. Please reply to this email with them as PDF by Oct 15, 2026, 17:00 (your time).\nThe packing list has to match the commercial invoice in gross weight and number of packages.\n\nThank you,\nEstudio Delta",
+      "channel": "EMAIL",
+      "clockId": "GLOBAL#firm-delta",
+      "contactId": "ctc-ligurmare-1",
+      "counterpart": "SUPPLIER",
+      "counterpartKey": "CONTACT#ctc-ligurmare-1",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "op-4478-2qqwe9@legajo.demo.craftech.io",
+      "kind": "DOCS_REQUEST",
+      "messageId": "msg-01M4TK94C049V57GN7NF06AR34",
+      "operationId": "op-4478",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-SUPPLIER-AUTH",
+          "CP-BOUNCED-CONTACT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-SUPPLIER",
+          "CP-ONE-PER-DAY",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "providerMessageId": "0100f3fcdc9016fc-521c97de-3578-4869-b421-f333da814b3f-000000",
+      "refs": {
+        "docTypes": [
+          "PACKING_LIST",
+          "CERTIFICATE_OF_ORIGIN"
+        ]
+      },
+      "rfcMessageId": "<0100f3fcdc9016fc-521c97de-3578-4869-b421-f333da814b3f-000000@email.amazonses.com>",
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T12:20:00.000Z",
+      "simulated": false,
+      "status": "DELIVERED",
+      "subject": "[Op 4478] Missing documents: packing list, certificate of origin (Invoice LVW-1190)",
+      "synthetic": true,
+      "to": "supplier-ligurmare@sim.legajo.demo.craftech.io",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4478",
+      "SK": "MSG#2026-10-13T12:21:00.000Z#msg-01M4TKAYZ0V3E8ZW6FTT7Q2BRF",
+      "author": "AGENT",
+      "body": "Listo, ya le escribimos a Ligurmare Valve Works S.r.l. para pedirle el packing list y el certificado de origen de la operación 4478. Te avisamos cuando lleguen.",
+      "buttons": [],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-norpampa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "simulated",
+      "importerId": "imp-norpampa",
+      "kind": "REPLY",
+      "messageId": "msg-01M4TKAYZ0V3E8ZW6FTT7Q2BRF",
+      "operationId": "op-4478",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {
+        "docTypes": [
+          "PACKING_LIST",
+          "CERTIFICATE_OF_ORIGIN"
+        ]
+      },
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T12:21:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "to": "+54911555000101",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4478",
+      "SK": "MSG#2026-10-14T13:00:00.000Z#msg-01M4X7Z340BNAVHKVB200H9R8J",
+      "author": "AGENT",
+      "body": "Hello,\n\nThis is a reminder about invoice LVW-1190 (operation 4478): the packing list and certificate of origin are still missing.\nThe deadline is Oct 15, 2026, 17:00 (your time). Please reply to this email with them as PDF.\n\nThank you,\nEstudio Delta",
+      "channel": "EMAIL",
+      "clockId": "GLOBAL#firm-delta",
+      "contactId": "ctc-ligurmare-1",
+      "counterpart": "SUPPLIER",
+      "counterpartKey": "CONTACT#ctc-ligurmare-1",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "op-4478-2qqwe9@legajo.demo.craftech.io",
+      "inReplyTo": "<0100f3fcdc9016fc-521c97de-3578-4869-b421-f333da814b3f-000000@email.amazonses.com>",
+      "kind": "REMINDER",
+      "messageId": "msg-01M4X7Z340BNAVHKVB200H9R8J",
+      "operationId": "op-4478",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-SUPPLIER-AUTH",
+          "CP-BOUNCED-CONTACT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-SUPPLIER",
+          "CP-ONE-PER-DAY",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "providerMessageId": "0100d49fdc7bacb7-03585c6a-9d59-940f-229f-4fa83cdc4e78-000000",
+      "references": [
+        "<0100f3fcdc9016fc-521c97de-3578-4869-b421-f333da814b3f-000000@email.amazonses.com>"
+      ],
+      "refs": {
+        "docTypes": [
+          "PACKING_LIST",
+          "CERTIFICATE_OF_ORIGIN"
+        ]
+      },
+      "rfcMessageId": "<0100d49fdc7bacb7-03585c6a-9d59-940f-229f-4fa83cdc4e78-000000@email.amazonses.com>",
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-14T13:00:00.000Z",
+      "simulated": false,
+      "status": "DELIVERED",
+      "subject": "[Op 4478] Reminder: packing list, certificate of origin still missing (Invoice LVW-1190)",
+      "synthetic": true,
+      "to": "supplier-ligurmare@sim.legajo.demo.craftech.io",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4487",
+      "SK": "MSG#2026-10-09T13:00:00.000Z#msg-01M4GBZG40BKWX699BA6W8PG6D",
+      "author": "AGENT",
+      "body": "Hola, te escribimos desde Estudio Delta. Operación 4487, buque Pacifica Horizon, arribo estimado 16/10. Faltan: factura comercial, packing list y certificado de origen. ¿Cómo seguimos?",
+      "buttons": [
+        {
+          "action": "UPLOAD",
+          "title": "Subir documentos",
+          "url": "https://legajo.demo.craftech.io/u/JE5ytzjrqvyhHZUo_V0q1x5NKffp5xgUKiTqstzXwUg"
+        },
+        {
+          "action": "SUPPLIER_SENDS",
+          "title": "Los manda el proveedor"
+        },
+        {
+          "action": "QUESTION",
+          "title": "Tengo una duda"
+        },
+        {
+          "action": "OPT_OUT",
+          "title": "No recibir avisos"
+        }
+      ],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-norpampa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "simulated",
+      "importerId": "imp-norpampa",
+      "kind": "DOCS_REQUEST",
+      "messageId": "msg-01M4GBZG40BKWX699BA6W8PG6D",
+      "operationId": "op-4487",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-ONE-PER-DAY",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {
+        "docTypes": [
+          "COMMERCIAL_INVOICE",
+          "PACKING_LIST",
+          "CERTIFICATE_OF_ORIGIN"
+        ]
+      },
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-09T13:00:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "legajo_docs_pendientes",
+        "params": [
+          "Estudio Delta",
+          "4487",
+          "Pacifica Horizon",
+          "16/10",
+          "factura comercial, packing list y certificado de origen"
+        ]
+      },
+      "to": "+54911555000101",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4487",
+      "SK": "MSG#2026-10-13T14:00:00.000Z#msg-01M4TS07R0EA2Z2V2GFR528D2C",
+      "author": "BROKER:brk-delta-diego",
+      "body": "Operación 4487: el estudio aprobó el legajo. Te vamos a avisar las novedades del despacho por acá.",
+      "buttons": [],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-norpampa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "simulated",
+      "importerId": "imp-norpampa",
+      "kind": "APPROVAL_NOTICE",
+      "messageId": "msg-01M4TS07R0EA2Z2V2GFR528D2C",
+      "operationId": "op-4487",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T14:00:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "legajo_aprobado",
+        "params": [
+          "4487"
+        ]
+      },
+      "to": "+54911555000101",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4488",
+      "SK": "MSG#2026-10-13T14:00:00.000Z#msg-01M4TS07R06ZBANA2NWMZ4C53R",
+      "attachments": [
+        {
+          "contentType": "application/pdf",
+          "docVersionId": "dv-4488-CI-1",
+          "index": 0,
+          "s3Key": "sim/msg-01M4TS07R06ZBANA2NWMZ4C53R/0.pdf",
+          "sizeBytes": 2465,
+          "status": "ACCEPTED"
+        }
+      ],
+      "author": "IMPORTER",
+      "body": "Te mando la factura comercial.",
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-sierras",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "IN",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "+54911555000105",
+      "importerId": "imp-sierras",
+      "messageId": "msg-01M4TS07R06ZBANA2NWMZ4C53R",
+      "operationId": "op-4488",
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T14:00:00.000Z",
+      "simulated": true,
+      "status": "RECEIVED",
+      "synthetic": true,
+      "to": "simulated",
+      "trusted": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4488",
+      "SK": "MSG#2026-10-13T14:01:00.000Z#msg-01M4TS22B0FCM2Z7E2FB5J9X6X",
+      "attachments": [
+        {
+          "contentType": "application/pdf",
+          "docVersionId": "dv-4488-PL-1",
+          "index": 0,
+          "s3Key": "sim/msg-01M4TS22B0FCM2Z7E2FB5J9X6X/0.pdf",
+          "sizeBytes": 2035,
+          "status": "ACCEPTED"
+        }
+      ],
+      "author": "IMPORTER",
+      "body": "Va el packing list.",
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-sierras",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "IN",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "+54911555000105",
+      "importerId": "imp-sierras",
+      "messageId": "msg-01M4TS22B0FCM2Z7E2FB5J9X6X",
+      "operationId": "op-4488",
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T14:01:00.000Z",
+      "simulated": true,
+      "status": "RECEIVED",
+      "synthetic": true,
+      "to": "simulated",
+      "trusted": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4488",
+      "SK": "MSG#2026-10-13T14:02:00.000Z#msg-01M4TS3WY06W98JR9S0JNBBH2A",
+      "attachments": [
+        {
+          "contentType": "application/pdf",
+          "docVersionId": "dv-4488-CO-1",
+          "index": 0,
+          "s3Key": "sim/msg-01M4TS3WY06W98JR9S0JNBBH2A/0.pdf",
+          "sizeBytes": 2119,
+          "status": "ACCEPTED"
+        }
+      ],
+      "author": "IMPORTER",
+      "body": "Y el certificado de origen.",
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-sierras",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "IN",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "+54911555000105",
+      "importerId": "imp-sierras",
+      "messageId": "msg-01M4TS3WY06W98JR9S0JNBBH2A",
+      "operationId": "op-4488",
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T14:02:00.000Z",
+      "simulated": true,
+      "status": "RECEIVED",
+      "synthetic": true,
+      "to": "simulated",
+      "trusted": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4488",
+      "SK": "MSG#2026-10-13T14:05:00.000Z#msg-01M4TS9CQ0XBWY78M39HVVF0M7",
+      "author": "AGENT",
+      "body": "Recibimos la factura comercial, el packing list y el certificado de origen de la operación 4488. El packing list tiene una diferencia en la cantidad de bultos con la factura y la corrección la tiene que emitir el proveedor. El estudio te va a confirmar cómo seguimos.",
+      "buttons": [],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-sierras",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "simulated",
+      "importerId": "imp-sierras",
+      "kind": "REPLY",
+      "messageId": "msg-01M4TS9CQ0XBWY78M39HVVF0M7",
+      "operationId": "op-4488",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T14:05:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "to": "+54911555000105",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4488",
+      "SK": "MSG#2026-10-13T19:30:00.000Z#msg-01M4VBWFP00P7XB9SSNXSD2JVX",
+      "attachments": [
+        {
+          "contentType": "application/pdf",
+          "docVersionId": "dv-4488-PL-2",
+          "index": 0,
+          "s3Key": "sim/msg-01M4VBWFP00P7XB9SSNXSD2JVX/0.pdf",
+          "sizeBytes": 2035,
+          "status": "ACCEPTED"
+        }
+      ],
+      "author": "IMPORTER",
+      "body": "Te reenvío el packing list corregido.",
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-sierras",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "IN",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "+54911555000105",
+      "importerId": "imp-sierras",
+      "messageId": "msg-01M4VBWFP00P7XB9SSNXSD2JVX",
+      "operationId": "op-4488",
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T19:30:00.000Z",
+      "simulated": true,
+      "status": "RECEIVED",
+      "synthetic": true,
+      "to": "simulated",
+      "trusted": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4488",
+      "SK": "MSG#2026-10-13T19:33:00.000Z#msg-01M4VC1ZF0BS7QN16YWRZEN821",
+      "author": "AGENT",
+      "body": "Recibimos el packing list corregido de la operación 4488. Los tres documentos están en regla y el legajo quedó listo para la revisión del estudio.",
+      "buttons": [],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-sierras",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "simulated",
+      "importerId": "imp-sierras",
+      "kind": "REPLY",
+      "messageId": "msg-01M4VC1ZF0BS7QN16YWRZEN821",
+      "operationId": "op-4488",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T19:33:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "to": "+54911555000105",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4489",
+      "SK": "MSG#2026-10-05T12:00:00.000Z#msg-01M45YYRG07ZDXDVHSF56EBDPG",
+      "author": "AGENT",
+      "body": "Hola, te escribimos desde Estudio Delta. Operación 4489, buque Río Sur Tern, arribo estimado 10/10. Faltan: factura comercial, packing list y certificado de origen. ¿Cómo seguimos?",
+      "buttons": [
+        {
+          "action": "UPLOAD",
+          "title": "Subir documentos",
+          "url": "https://legajo.demo.craftech.io/u/BMI5ETERw53ZC4-DpGu_Z5eg3iB65O_SfUaPhc2ZZpk"
+        },
+        {
+          "action": "SUPPLIER_SENDS",
+          "title": "Los manda el proveedor"
+        },
+        {
+          "action": "QUESTION",
+          "title": "Tengo una duda"
+        },
+        {
+          "action": "OPT_OUT",
+          "title": "No recibir avisos"
+        }
+      ],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-riberas",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "deferredTimerKey": "TIMER#DEFERRED_SEND#deferred-4489-1",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "simulated",
+      "importerId": "imp-riberas",
+      "kind": "DOCS_REQUEST",
+      "messageId": "msg-01M45YYRG07ZDXDVHSF56EBDPG",
+      "operationId": "op-4489",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-ONE-PER-DAY",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {
+        "docTypes": [
+          "COMMERCIAL_INVOICE",
+          "PACKING_LIST",
+          "CERTIFICATE_OF_ORIGIN"
+        ]
+      },
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-05T12:00:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "legajo_docs_pendientes",
+        "params": [
+          "Estudio Delta",
+          "4489",
+          "Río Sur Tern",
+          "10/10",
+          "factura comercial, packing list y certificado de origen"
+        ]
+      },
+      "to": "+54911555000106",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4489",
+      "SK": "MSG#2026-10-05T12:55:00.000Z#msg-01M4623F50K5M8DB0YYNKQASRP",
+      "author": "BROKER:brk-delta-diego",
+      "body": "Operación 4489: el estudio aprobó el legajo. Te vamos a avisar las novedades del despacho por acá.",
+      "buttons": [],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-riberas",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "simulated",
+      "importerId": "imp-riberas",
+      "kind": "APPROVAL_NOTICE",
+      "messageId": "msg-01M4623F50K5M8DB0YYNKQASRP",
+      "operationId": "op-4489",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-05T12:55:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "legajo_aprobado",
+        "params": [
+          "4489"
+        ]
+      },
+      "to": "+54911555000106",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4489",
+      "SK": "MSG#2026-10-09T13:00:00.000Z#msg-01M4GBZG40BT8MK8MN8J1JTH0V",
+      "author": "SYSTEM",
+      "body": "Operación 4489: el despacho quedó oficializado. Significa que la aduana registró la declaración y el trámite empezó a correr. Ante cualquier duda, consultá con el estudio.",
+      "buttons": [
+        {
+          "action": "TALK_TO_FIRM",
+          "title": "Hablar con el estudio"
+        }
+      ],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-riberas",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "simulated",
+      "importerId": "imp-riberas",
+      "kind": "DISPATCH_STATUS",
+      "messageId": "msg-01M4GBZG40BT8MK8MN8J1JTH0V",
+      "operationId": "op-4489",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-09T13:00:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "despacho_estado",
+        "params": [
+          "4489",
+          "el despacho quedó oficializado",
+          "Significa que la aduana registró la declaración y el trámite empezó a correr."
+        ]
+      },
+      "to": "+54911555000106",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4489",
+      "SK": "MSG#2026-10-13T13:00:00.000Z#msg-01M4TNJC40EBM013FQGEXJRMM0",
+      "author": "SYSTEM",
+      "body": "Operación 4489: la aduana asignó canal verde. Significa que la aduana no va a revisar la documentación ni la mercadería antes de liberarla. Ante cualquier duda, consultá con el estudio.",
+      "buttons": [
+        {
+          "action": "TALK_TO_FIRM",
+          "title": "Hablar con el estudio"
+        }
+      ],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-riberas",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "simulated",
+      "importerId": "imp-riberas",
+      "kind": "DISPATCH_STATUS",
+      "messageId": "msg-01M4TNJC40EBM013FQGEXJRMM0",
+      "operationId": "op-4489",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T13:00:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "despacho_estado",
+        "params": [
+          "4489",
+          "la aduana asignó canal verde",
+          "Significa que la aduana no va a revisar la documentación ni la mercadería antes de liberarla."
+        ]
+      },
+      "to": "+54911555000106",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-4489",
+      "SK": "MSG#2026-10-13T18:00:00.000Z#msg-01M4V6QP80QVWFKNRN318JMFJT",
+      "author": "SYSTEM",
+      "body": "Operación 4489: la mercadería quedó liberada. Significa que la aduana terminó el trámite de esta operación. Ante cualquier duda, consultá con el estudio.",
+      "buttons": [
+        {
+          "action": "TALK_TO_FIRM",
+          "title": "Hablar con el estudio"
+        }
+      ],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-delta",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-riberas",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-delta",
+      "from": "simulated",
+      "importerId": "imp-riberas",
+      "kind": "DISPATCH_STATUS",
+      "messageId": "msg-01M4V6QP80QVWFKNRN318JMFJT",
+      "operationId": "op-4489",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T18:00:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "despacho_estado",
+        "params": [
+          "4489",
+          "la mercadería quedó liberada",
+          "Significa que la aduana terminó el trámite de esta operación."
+        ]
+      },
+      "to": "+54911555000106",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1
+    },
+    {
+      "PK": "OP#op-7992",
+      "SK": "MSG#2026-10-09T13:00:00.000Z#msg-01M4GBZG40S0QE7M80MHCX904W",
+      "author": "AGENT",
+      "body": "Hola, te escribimos desde Estudio QA. Operación 7992, buque Pacifica Horizon, arribo estimado 16/10. Faltan: factura comercial, packing list y certificado de origen. ¿Cómo seguimos?",
+      "buttons": [
+        {
+          "action": "UPLOAD",
+          "title": "Subir documentos",
+          "url": "https://legajo.demo.craftech.io/u/ywfbPBhdDHfB4sy-Sa4Nz3WQnlvTvmLgADU0gTH6Epw"
+        },
+        {
+          "action": "SUPPLIER_SENDS",
+          "title": "Los manda el proveedor"
+        },
+        {
+          "action": "QUESTION",
+          "title": "Tengo una duda"
+        },
+        {
+          "action": "OPT_OUT",
+          "title": "No recibir avisos"
+        }
+      ],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-qa",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-qa-firmqa-min-c",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-qa",
+      "from": "simulated",
+      "importerId": "imp-qa-firmqa-min-c",
+      "kind": "DOCS_REQUEST",
+      "messageId": "msg-01M4GBZG40S0QE7M80MHCX904W",
+      "operationId": "op-7992",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-ONE-PER-DAY",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {
+        "docTypes": [
+          "COMMERCIAL_INVOICE",
+          "PACKING_LIST",
+          "CERTIFICATE_OF_ORIGIN"
+        ]
+      },
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-09T13:00:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "legajo_docs_pendientes",
+        "params": [
+          "Estudio QA",
+          "7992",
+          "Pacifica Horizon",
+          "16/10",
+          "factura comercial, packing list y certificado de origen"
+        ]
+      },
+      "to": "+5491155509992",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "OP#op-7992",
+      "SK": "MSG#2026-10-13T14:00:00.000Z#msg-01M4TS07R09652H3Y5BED1G0XB",
+      "author": "BROKER:brk-qa-runner",
+      "body": "Operación 7992: el estudio aprobó el legajo. Te vamos a avisar las novedades del despacho por acá.",
+      "buttons": [],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-qa",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-qa-firmqa-min-c",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-qa",
+      "from": "simulated",
+      "importerId": "imp-qa-firmqa-min-c",
+      "kind": "APPROVAL_NOTICE",
+      "messageId": "msg-01M4TS07R09652H3Y5BED1G0XB",
+      "operationId": "op-7992",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T14:00:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "legajo_aprobado",
+        "params": [
+          "7992"
+        ]
+      },
+      "to": "+5491155509992",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "OP#op-7993",
+      "SK": "MSG#2026-10-13T14:00:00.000Z#msg-01M4TS07R0VJZ3A872WJM17WW0",
+      "attachments": [
+        {
+          "contentType": "application/pdf",
+          "docVersionId": "dv-7993-CI-1",
+          "index": 0,
+          "s3Key": "sim/msg-01M4TS07R0VJZ3A872WJM17WW0/0.pdf",
+          "sizeBytes": 2465,
+          "status": "ACCEPTED"
+        }
+      ],
+      "author": "IMPORTER",
+      "body": "Te mando la factura comercial.",
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-qa",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-qa-firmqa-min-d",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "IN",
+      "entity": "Message",
+      "firmId": "firm-qa",
+      "from": "+5491155509993",
+      "importerId": "imp-qa-firmqa-min-d",
+      "messageId": "msg-01M4TS07R0VJZ3A872WJM17WW0",
+      "operationId": "op-7993",
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T14:00:00.000Z",
+      "simulated": true,
+      "status": "RECEIVED",
+      "synthetic": true,
+      "to": "simulated",
+      "trusted": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "OP#op-7993",
+      "SK": "MSG#2026-10-13T14:01:00.000Z#msg-01M4TS22B0X342VVAYJH19A7Z3",
+      "attachments": [
+        {
+          "contentType": "application/pdf",
+          "docVersionId": "dv-7993-PL-1",
+          "index": 0,
+          "s3Key": "sim/msg-01M4TS22B0X342VVAYJH19A7Z3/0.pdf",
+          "sizeBytes": 2035,
+          "status": "ACCEPTED"
+        }
+      ],
+      "author": "IMPORTER",
+      "body": "Va el packing list.",
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-qa",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-qa-firmqa-min-d",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "IN",
+      "entity": "Message",
+      "firmId": "firm-qa",
+      "from": "+5491155509993",
+      "importerId": "imp-qa-firmqa-min-d",
+      "messageId": "msg-01M4TS22B0X342VVAYJH19A7Z3",
+      "operationId": "op-7993",
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T14:01:00.000Z",
+      "simulated": true,
+      "status": "RECEIVED",
+      "synthetic": true,
+      "to": "simulated",
+      "trusted": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "OP#op-7993",
+      "SK": "MSG#2026-10-13T14:02:00.000Z#msg-01M4TS3WY0YHDA8H8JYGEJ97VM",
+      "attachments": [
+        {
+          "contentType": "application/pdf",
+          "docVersionId": "dv-7993-CO-1",
+          "index": 0,
+          "s3Key": "sim/msg-01M4TS3WY0YHDA8H8JYGEJ97VM/0.pdf",
+          "sizeBytes": 2119,
+          "status": "ACCEPTED"
+        }
+      ],
+      "author": "IMPORTER",
+      "body": "Y el certificado de origen.",
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-qa",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-qa-firmqa-min-d",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "IN",
+      "entity": "Message",
+      "firmId": "firm-qa",
+      "from": "+5491155509993",
+      "importerId": "imp-qa-firmqa-min-d",
+      "messageId": "msg-01M4TS3WY0YHDA8H8JYGEJ97VM",
+      "operationId": "op-7993",
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T14:02:00.000Z",
+      "simulated": true,
+      "status": "RECEIVED",
+      "synthetic": true,
+      "to": "simulated",
+      "trusted": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "OP#op-7993",
+      "SK": "MSG#2026-10-13T14:05:00.000Z#msg-01M4TS9CQ08NFV0Y1XS0F0RJ8G",
+      "author": "AGENT",
+      "body": "Recibimos la factura comercial, el packing list y el certificado de origen de la operación 7993. El packing list tiene una diferencia en la cantidad de bultos con la factura y la corrección la tiene que emitir el proveedor. El estudio te va a confirmar cómo seguimos.",
+      "buttons": [],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-qa",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-qa-firmqa-min-d",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-qa",
+      "from": "simulated",
+      "importerId": "imp-qa-firmqa-min-d",
+      "kind": "REPLY",
+      "messageId": "msg-01M4TS9CQ08NFV0Y1XS0F0RJ8G",
+      "operationId": "op-7993",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T14:05:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "to": "+5491155509993",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "OP#op-7993",
+      "SK": "MSG#2026-10-13T19:30:00.000Z#msg-01M4VBWFP0JHV89KMFNT8YK4ST",
+      "attachments": [
+        {
+          "contentType": "application/pdf",
+          "docVersionId": "dv-7993-PL-2",
+          "index": 0,
+          "s3Key": "sim/msg-01M4VBWFP0JHV89KMFNT8YK4ST/0.pdf",
+          "sizeBytes": 2035,
+          "status": "ACCEPTED"
+        }
+      ],
+      "author": "IMPORTER",
+      "body": "Te reenvío el packing list corregido.",
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-qa",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-qa-firmqa-min-d",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "IN",
+      "entity": "Message",
+      "firmId": "firm-qa",
+      "from": "+5491155509993",
+      "importerId": "imp-qa-firmqa-min-d",
+      "messageId": "msg-01M4VBWFP0JHV89KMFNT8YK4ST",
+      "operationId": "op-7993",
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T19:30:00.000Z",
+      "simulated": true,
+      "status": "RECEIVED",
+      "synthetic": true,
+      "to": "simulated",
+      "trusted": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "OP#op-7993",
+      "SK": "MSG#2026-10-13T19:33:00.000Z#msg-01M4VC1ZF09YAAM14MR50PV61Z",
+      "author": "AGENT",
+      "body": "Recibimos el packing list corregido de la operación 7993. Los tres documentos están en regla y el legajo quedó listo para la revisión del estudio.",
+      "buttons": [],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-qa",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-qa-firmqa-min-d",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-qa",
+      "from": "simulated",
+      "importerId": "imp-qa-firmqa-min-d",
+      "kind": "REPLY",
+      "messageId": "msg-01M4VC1ZF09YAAM14MR50PV61Z",
+      "operationId": "op-7993",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T19:33:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "to": "+5491155509993",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "OP#op-7994",
+      "SK": "MSG#2026-10-05T12:00:00.000Z#msg-01M45YYRG0V0SAEEDQB1MJBA3E",
+      "author": "AGENT",
+      "body": "Hola, te escribimos desde Estudio QA. Operación 7994, buque Río Sur Tern, arribo estimado 10/10. Faltan: factura comercial, packing list y certificado de origen. ¿Cómo seguimos?",
+      "buttons": [
+        {
+          "action": "UPLOAD",
+          "title": "Subir documentos",
+          "url": "https://legajo.demo.craftech.io/u/t8M6ozWnyXpw1OrZfbNB4V7HI8cWtgI2o-VksU7QPAU"
+        },
+        {
+          "action": "SUPPLIER_SENDS",
+          "title": "Los manda el proveedor"
+        },
+        {
+          "action": "QUESTION",
+          "title": "Tengo una duda"
+        },
+        {
+          "action": "OPT_OUT",
+          "title": "No recibir avisos"
+        }
+      ],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-qa",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-qa-firmqa-min-e",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "deferredTimerKey": "TIMER#DEFERRED_SEND#deferred-7994-1",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-qa",
+      "from": "simulated",
+      "importerId": "imp-qa-firmqa-min-e",
+      "kind": "DOCS_REQUEST",
+      "messageId": "msg-01M45YYRG0V0SAEEDQB1MJBA3E",
+      "operationId": "op-7994",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-CONTROL-BROKER",
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-ONE-PER-DAY",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {
+        "docTypes": [
+          "COMMERCIAL_INVOICE",
+          "PACKING_LIST",
+          "CERTIFICATE_OF_ORIGIN"
+        ]
+      },
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-05T12:00:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "legajo_docs_pendientes",
+        "params": [
+          "Estudio QA",
+          "7994",
+          "Río Sur Tern",
+          "10/10",
+          "factura comercial, packing list y certificado de origen"
+        ]
+      },
+      "to": "+5491155509994",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "OP#op-7994",
+      "SK": "MSG#2026-10-05T12:55:00.000Z#msg-01M4623F50QKC611980D21KWXE",
+      "author": "BROKER:brk-qa-runner",
+      "body": "Operación 7994: el estudio aprobó el legajo. Te vamos a avisar las novedades del despacho por acá.",
+      "buttons": [],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-qa",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-qa-firmqa-min-e",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-qa",
+      "from": "simulated",
+      "importerId": "imp-qa-firmqa-min-e",
+      "kind": "APPROVAL_NOTICE",
+      "messageId": "msg-01M4623F50QKC611980D21KWXE",
+      "operationId": "op-7994",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-05T12:55:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "legajo_aprobado",
+        "params": [
+          "7994"
+        ]
+      },
+      "to": "+5491155509994",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "OP#op-7994",
+      "SK": "MSG#2026-10-09T13:00:00.000Z#msg-01M4GBZG40ZDS0YQ6DJ4GX02TJ",
+      "author": "SYSTEM",
+      "body": "Operación 7994: el despacho quedó oficializado. Significa que la aduana registró la declaración y el trámite empezó a correr. Ante cualquier duda, consultá con el estudio.",
+      "buttons": [
+        {
+          "action": "TALK_TO_FIRM",
+          "title": "Hablar con el estudio"
+        }
+      ],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-qa",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-qa-firmqa-min-e",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-qa",
+      "from": "simulated",
+      "importerId": "imp-qa-firmqa-min-e",
+      "kind": "DISPATCH_STATUS",
+      "messageId": "msg-01M4GBZG40ZDS0YQ6DJ4GX02TJ",
+      "operationId": "op-7994",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-09T13:00:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "despacho_estado",
+        "params": [
+          "7994",
+          "el despacho quedó oficializado",
+          "Significa que la aduana registró la declaración y el trámite empezó a correr."
+        ]
+      },
+      "to": "+5491155509994",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "OP#op-7994",
+      "SK": "MSG#2026-10-13T13:00:00.000Z#msg-01M4TNJC40Q5X49MPPR3PM2GQK",
+      "author": "SYSTEM",
+      "body": "Operación 7994: la aduana asignó canal verde. Significa que la aduana no va a revisar la documentación ni la mercadería antes de liberarla. Ante cualquier duda, consultá con el estudio.",
+      "buttons": [
+        {
+          "action": "TALK_TO_FIRM",
+          "title": "Hablar con el estudio"
+        }
+      ],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-qa",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-qa-firmqa-min-e",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-qa",
+      "from": "simulated",
+      "importerId": "imp-qa-firmqa-min-e",
+      "kind": "DISPATCH_STATUS",
+      "messageId": "msg-01M4TNJC40Q5X49MPPR3PM2GQK",
+      "operationId": "op-7994",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T13:00:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "despacho_estado",
+        "params": [
+          "7994",
+          "la aduana asignó canal verde",
+          "Significa que la aduana no va a revisar la documentación ni la mercadería antes de liberarla."
+        ]
+      },
+      "to": "+5491155509994",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    },
+    {
+      "PK": "OP#op-7994",
+      "SK": "MSG#2026-10-13T18:00:00.000Z#msg-01M4V6QP806PK1HDN8N2HRM28C",
+      "author": "SYSTEM",
+      "body": "Operación 7994: la mercadería quedó liberada. Significa que la aduana terminó el trámite de esta operación. Ante cualquier duda, consultá con el estudio.",
+      "buttons": [
+        {
+          "action": "TALK_TO_FIRM",
+          "title": "Hablar con el estudio"
+        }
+      ],
+      "channel": "WHATSAPP",
+      "clockId": "GLOBAL#firm-qa",
+      "counterpart": "IMPORTER",
+      "counterpartKey": "IMP#imp-qa-firmqa-min-e",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "direction": "OUT",
+      "entity": "Message",
+      "firmId": "firm-qa",
+      "from": "simulated",
+      "importerId": "imp-qa-firmqa-min-e",
+      "kind": "DISPATCH_STATUS",
+      "messageId": "msg-01M4V6QP806PK1HDN8N2HRM28C",
+      "operationId": "op-7994",
+      "policy": {
+        "decision": "ALLOW",
+        "ruleIds": [
+          "CP-KIND-CHANNEL",
+          "CP-RECIPIENT-FENCE",
+          "CP-OPTIN",
+          "CP-OPTOUT",
+          "CP-APPROVED-SCOPE",
+          "CP-HOURS-AR",
+          "CP-WA-24H",
+          "CP-NO-SENSITIVE-ASK",
+          "CP-NO-FOREIGN-LINKS"
+        ]
+      },
+      "refs": {},
+      "sentAtReal": "2026-09-25T12:00:00.000Z",
+      "sentAtSim": "2026-10-13T18:00:00.000Z",
+      "simulated": true,
+      "status": "READ",
+      "synthetic": true,
+      "template": {
+        "name": "despacho_estado",
+        "params": [
+          "7994",
+          "la mercadería quedó liberada",
+          "Significa que la aduana terminó el trámite de esta operación."
+        ]
+      },
+      "to": "+5491155509994",
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "world": "qa"
+    }
+  ],
+  "seed": 20260925,
+  "table": "Conversations"
+}

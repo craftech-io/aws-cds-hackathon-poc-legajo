@@ -1,0 +1,13 @@
+{
+  "demoRecipients": {
+    "emails": ["demo-recipient-1@sim.legajo.demo.craftech.io"],
+    "phones": ["+5491155500199"]
+  },
+  "firmMailboxCc": {
+    "firm-delta": ["demo-recipient-1@sim.legajo.demo.craftech.io"]
+  },
+  "importerPhones": {
+    "imp-norpampa": "+5491155500199"
+  },
+  "operatorEmail": "demo-operator@sim.legajo.demo.craftech.io"
+}

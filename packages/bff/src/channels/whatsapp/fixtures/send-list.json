@@ -1,0 +1,21 @@
+{
+  "messaging_product": "whatsapp",
+  "recipient_type": "individual",
+  "to": "5491155500101",
+  "type": "interactive",
+  "interactive": {
+    "type": "list",
+    "body": { "text": "Tenés más de una operación abierta con el estudio. ¿Sobre cuál es tu mensaje?" },
+    "action": {
+      "button": "Elegir operación",
+      "sections": [
+        {
+          "rows": [
+            { "id": "nonceRow4471000000000000000001", "title": "Operación 4471", "description": "Qingdao Bluewave Textiles Co., Ltd. · arribo estimado 22/10" },
+            { "id": "nonceRow4476000000000000000002", "title": "Operación 4476", "description": "Qingdao Bluewave Textiles Co., Ltd. · arribo estimado 29/10" }
+          ]
+        }
+      ]
+    }
+  }
+}

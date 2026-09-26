@@ -1,0 +1,20 @@
+{
+  "aggregates": {
+    "completeBeforeArrivalPct": 100,
+    "consoleMinutesObserved": 2.3,
+    "correctResponsiblePct": 100,
+    "humanMinutesPerDossier": 6.7,
+    "interventionsPerDossier": 0.7,
+    "latencyP50Ms": 41000,
+    "latencyP95Ms": 48000,
+    "manualBaselineMinutes": 95,
+    "policyViolations": 0
+  },
+  "clockId": "GLOBAL#firm-qa",
+  "operations": [
+    "op-7992",
+    "op-7993",
+    "op-7994"
+  ],
+  "template": "qa-min"
+}

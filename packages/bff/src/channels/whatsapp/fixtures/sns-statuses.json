@@ -1,0 +1,22 @@
+{
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:us-east-1:776805327629:aws-cds-hackathon-poc-legajo-wa-inbound:6f0c1b2a-3d4e-4f50-8a9b-0c1d2e3f4a5b",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "9d8c7b6a-5f4e-4d3c-8b2a-1f0e9d8c7b6a",
+        "TopicArn": "arn:aws:sns:us-east-1:776805327629:aws-cds-hackathon-poc-legajo-wa-inbound",
+        "Subject": null,
+        "Message": "{\"context\":{\"MetaWabaIds\":[{\"wabaId\":\"1234567890123456\",\"arn\":\"arn:aws:social-messaging:us-east-1:776805327629:waba/0a1b2c3d4e5f60718293a4b5c6d7e8f9\"}],\"MetaPhoneNumberIds\":[{\"metaPhoneNumberId\":\"1098765432109876\",\"arn\":\"arn:aws:social-messaging:us-east-1:776805327629:phone-number-id/1a2b3c4d5e6f708192a3b4c5d6e7f809\"}]},\"whatsAppWebhookEntry\":\"{\\\"id\\\":\\\"1234567890123456\\\",\\\"changes\\\":[{\\\"field\\\":\\\"messages\\\",\\\"value\\\":{\\\"messaging_product\\\":\\\"whatsapp\\\",\\\"metadata\\\":{\\\"display_phone_number\\\":\\\"5491155500199\\\",\\\"phone_number_id\\\":\\\"1098765432109876\\\"},\\\"statuses\\\":[{\\\"id\\\":\\\"__SENT_ID__\\\",\\\"status\\\":\\\"sent\\\",\\\"timestamp\\\":\\\"1792069500\\\",\\\"recipient_id\\\":\\\"__FROM__\\\",\\\"conversation\\\":{\\\"id\\\":\\\"c0ffee00c0ffee00c0ffee00c0ffee00\\\",\\\"origin\\\":{\\\"type\\\":\\\"utility\\\"}},\\\"pricing\\\":{\\\"billable\\\":true,\\\"pricing_model\\\":\\\"PMP\\\",\\\"category\\\":\\\"utility\\\"}},{\\\"id\\\":\\\"__SENT_ID__\\\",\\\"status\\\":\\\"delivered\\\",\\\"timestamp\\\":\\\"1792069502\\\",\\\"recipient_id\\\":\\\"__FROM__\\\",\\\"pricing\\\":{\\\"billable\\\":true,\\\"pricing_model\\\":\\\"PMP\\\",\\\"category\\\":\\\"utility\\\"}},{\\\"id\\\":\\\"__SENT_ID__\\\",\\\"status\\\":\\\"read\\\",\\\"timestamp\\\":\\\"1792069560\\\",\\\"recipient_id\\\":\\\"__FROM__\\\"},{\\\"id\\\":\\\"__MARKETING_ID__\\\",\\\"status\\\":\\\"delivered\\\",\\\"timestamp\\\":\\\"1792069503\\\",\\\"recipient_id\\\":\\\"__FROM__\\\",\\\"pricing\\\":{\\\"billable\\\":true,\\\"pricing_model\\\":\\\"PMP\\\",\\\"category\\\":\\\"marketing\\\"}},{\\\"id\\\":\\\"__FAILED_ID__\\\",\\\"status\\\":\\\"failed\\\",\\\"timestamp\\\":\\\"1792069504\\\",\\\"recipient_id\\\":\\\"__FROM__\\\",\\\"errors\\\":[{\\\"code\\\":131047,\\\"title\\\":\\\"Re-engagement message\\\",\\\"message\\\":\\\"Re-engagement message\\\",\\\"error_data\\\":{\\\"details\\\":\\\"Message failed to send because more than 24 hours have passed since the customer last replied to this number.\\\"}}]}]}}]}\",\"aws_account_id\":\"776805327629\",\"message_timestamp\":\"2026-10-15T13:05:00.000Z\",\"messageId\":\"9d8c7b6a-5f4e-4d3c-8b2a-1f0e9d8c7b6a\"}",
+        "Timestamp": "2026-10-15T13:05:00.412Z",
+        "SignatureVersion": "1",
+        "Signature": "EXAMPLEpH+DcEwjAPg8O9mY8dReBSwksfg2S7WKQcikcNKWLQjwu6A4VbeS0QHVCkhRS7fUQvi2egU3N858fiTDN6bkkOxYDVrY0Ad8L10Hs3zH81mtnPk5uvvolIC1CXGu43obcgFxeL3khZl8IKvO61GWB6jI9b5+gLPoBc1Q=",
+        "SigningCertUrl": "https://sns.us-east-1.amazonaws.com/SimpleNotificationService-0000000000000000000000000000000.pem",
+        "UnsubscribeUrl": "https://sns.us-east-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-east-1:776805327629:aws-cds-hackathon-poc-legajo-wa-inbound:6f0c1b2a-3d4e-4f50-8a9b-0c1d2e3f4a5b",
+        "MessageAttributes": {}
+      }
+    }
+  ]
+}

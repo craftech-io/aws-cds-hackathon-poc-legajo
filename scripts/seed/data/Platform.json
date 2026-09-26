@@ -1,0 +1,1065 @@
+{
+  "count": 35,
+  "generatedAt": "2026-09-25T12:00:00.000Z",
+  "items": [
+    {
+      "PK": "POP#firm-delta#4471",
+      "SK": "META",
+      "carrier": "Austral Line",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-22T08:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-norpampa",
+      "incoterm": "FOB",
+      "incotermPlace": "Qingdao",
+      "invoiceNumber": "QBT-2026-0917",
+      "operationNumber": "4471",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-qingdao",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Austral Aurora"
+    },
+    {
+      "PK": "POP#firm-delta#4472",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-23T07:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-cuyo",
+      "incoterm": "CIF",
+      "incotermPlace": "Buenos Aires",
+      "invoiceNumber": "EHT-55812",
+      "operationNumber": "4472",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-elbhafen",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Horizon"
+    },
+    {
+      "PK": "POP#firm-delta#4473",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-23T07:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-litoral",
+      "incoterm": "FOB",
+      "incotermPlace": "Shenzhen",
+      "invoiceNumber": "SZB-20931",
+      "operationNumber": "4473",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-shenzhen",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Horizon"
+    },
+    {
+      "PK": "POP#firm-delta#4474",
+      "SK": "META",
+      "carrier": "Río Sur Shipping",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-24T10:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-patagonia",
+      "incoterm": "FOB",
+      "incotermPlace": "Nhava Sheva",
+      "invoiceNumber": "KCP/2026/771",
+      "operationNumber": "4474",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-konkan",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Río Sur Tern"
+    },
+    {
+      "PK": "POP#firm-delta#4475",
+      "SK": "META",
+      "carrier": "Austral Line",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-27T06:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-patagonia",
+      "incoterm": "FOB",
+      "incotermPlace": "Ho Chi Minh City",
+      "invoiceNumber": "SRF-0412",
+      "operationNumber": "4475",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-saigon",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Austral Meridian"
+    },
+    {
+      "PK": "POP#firm-delta#4476",
+      "SK": "META",
+      "carrier": "Río Sur Shipping",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-26T09:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-sierras",
+      "incoterm": "FOB",
+      "incotermPlace": "Istanbul",
+      "invoiceNumber": "BKW-3318",
+      "operationNumber": "4476",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-bosphorus",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Río Sur Tern"
+    },
+    {
+      "PK": "POP#firm-delta#4477",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-27T08:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-riberas",
+      "incoterm": "FOB",
+      "incotermPlace": "Busan",
+      "invoiceNumber": "BCP-77120",
+      "operationNumber": "4477",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-busan",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Dawn"
+    },
+    {
+      "PK": "POP#firm-delta#4478",
+      "SK": "META",
+      "carrier": "Austral Line",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-19T08:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-norpampa",
+      "incoterm": "FOB",
+      "incotermPlace": "Genoa",
+      "invoiceNumber": "LVW-1190",
+      "operationNumber": "4478",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-ligurmare",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Austral Aurora"
+    },
+    {
+      "PK": "POP#firm-delta#4479",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "VALID"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-28T07:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-cuyo",
+      "incoterm": "FOB",
+      "incotermPlace": "Guangzhou",
+      "invoiceNumber": "GEP-24-0981",
+      "operationNumber": "4479",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-lotusmere",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Dawn"
+    },
+    {
+      "PK": "POP#firm-delta#4480",
+      "SK": "META",
+      "carrier": "Austral Line",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-29T06:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-sierras",
+      "incoterm": "FOB",
+      "incotermPlace": "Valencia",
+      "invoiceNumber": "LC-2026-4410",
+      "operationNumber": "4480",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-levante",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Austral Meridian"
+    },
+    {
+      "PK": "POP#firm-delta#4481",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-30T07:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-riberas",
+      "incoterm": "FOB",
+      "incotermPlace": "Ningbo",
+      "invoiceNumber": "NHL-8812",
+      "operationNumber": "4481",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-ningbo",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Horizon"
+    },
+    {
+      "PK": "POP#firm-delta#4482",
+      "SK": "META",
+      "carrier": "Río Sur Shipping",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-30T09:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-patagonia",
+      "incoterm": "CIF",
+      "incotermPlace": "Buenos Aires",
+      "invoiceNumber": "MVP-40077",
+      "operationNumber": "4482",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-maasvlakte",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Río Sur Petrel"
+    },
+    {
+      "PK": "POP#firm-delta#4483",
+      "SK": "META",
+      "carrier": "Río Sur Shipping",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-11-02T09:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-norpampa",
+      "incoterm": "FOB",
+      "incotermPlace": "Santos",
+      "invoiceNumber": "SVA-15520",
+      "operationNumber": "4483",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-santosverde",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Río Sur Petrel"
+    },
+    {
+      "PK": "POP#firm-delta#4484",
+      "SK": "META",
+      "carrier": "Austral Line",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "WITH_OBSERVATION",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-11-03T08:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-cuyo",
+      "incoterm": "CIF",
+      "incotermPlace": "Buenos Aires",
+      "invoiceNumber": "EHT-55903",
+      "operationNumber": "4484",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-elbhafen",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Austral Aurora"
+    },
+    {
+      "PK": "POP#firm-delta#4485",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "WITH_OBSERVATION"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-11-04T07:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-sierras",
+      "incoterm": "FOB",
+      "incotermPlace": "Qingdao",
+      "invoiceNumber": "QBT-2026-1002",
+      "operationNumber": "4485",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-qingdao",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Dawn"
+    },
+    {
+      "PK": "POP#firm-delta#4486",
+      "SK": "META",
+      "carrier": "Austral Line",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "VALID"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-11-05T06:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-riberas",
+      "incoterm": "FOB",
+      "incotermPlace": "Shenzhen",
+      "invoiceNumber": "SZB-21044",
+      "operationNumber": "4486",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-shenzhen",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Austral Meridian"
+    },
+    {
+      "PK": "POP#firm-delta#4487",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "VALID",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "VALID"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-16T07:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-norpampa",
+      "incoterm": "FOB",
+      "incotermPlace": "Shenzhen",
+      "invoiceNumber": "SZB-20870",
+      "operationNumber": "4487",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-shenzhen",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Horizon"
+    },
+    {
+      "PK": "POP#firm-delta#4488",
+      "SK": "META",
+      "carrier": "Austral Line",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "VALID",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "VALID"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-21T08:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-sierras",
+      "incoterm": "CIF",
+      "incotermPlace": "Buenos Aires",
+      "invoiceNumber": "EHT-55790",
+      "operationNumber": "4488",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-elbhafen",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Austral Aurora"
+    },
+    {
+      "PK": "POP#firm-delta#4489",
+      "SK": "META",
+      "carrier": "Río Sur Shipping",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "channel": "VERDE",
+        "status": "LIBERADO"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "VALID",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "VALID"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-10T08:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-riberas",
+      "incoterm": "FOB",
+      "incotermPlace": "Ningbo",
+      "invoiceNumber": "NHL-8701",
+      "operationNumber": "4489",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-ningbo",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Río Sur Tern"
+    },
+    {
+      "PK": "POP#firm-delta#4490",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-11-10T07:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-patagonia",
+      "incoterm": "FOB",
+      "incotermPlace": "Ho Chi Minh City",
+      "invoiceNumber": "SRF-0460",
+      "operationNumber": "4490",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-saigon",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Dawn"
+    },
+    {
+      "PK": "POP#firm-delta#4491",
+      "SK": "META",
+      "carrier": "Austral Line",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-11-12T06:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-litoral",
+      "incoterm": "FOB",
+      "incotermPlace": "Shenzhen",
+      "invoiceNumber": "SZB-21102",
+      "operationNumber": "4491",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-shenzhen",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Austral Meridian"
+    },
+    {
+      "PK": "POP#firm-delta#4492",
+      "SK": "META",
+      "carrier": "Río Sur Shipping",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "VALID"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-11-14T09:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-cuyo",
+      "incoterm": "FOB",
+      "incotermPlace": "Guangzhou",
+      "invoiceNumber": "GEP-24-1011",
+      "operationNumber": "4492",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-lotusmere",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Río Sur Petrel"
+    },
+    {
+      "PK": "POP#firm-delta#4493",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-11-17T07:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-sierras",
+      "incoterm": "FOB",
+      "incotermPlace": "Istanbul",
+      "invoiceNumber": "BKW-3390",
+      "operationNumber": "4493",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-bosphorus",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Horizon"
+    },
+    {
+      "PK": "POP#firm-delta#4494",
+      "SK": "META",
+      "carrier": "Austral Line",
+      "clockId": "GLOBAL#firm-delta",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-11-20T08:00:00-03:00",
+      "firmId": "firm-delta",
+      "importerId": "imp-riberas",
+      "incoterm": "FOB",
+      "incotermPlace": "Busan",
+      "invoiceNumber": "BCP-77301",
+      "operationNumber": "4494",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-busan",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Austral Aurora"
+    },
+    {
+      "PK": "POP#firm-norte#5501",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-norte",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-23T07:00:00-03:00",
+      "firmId": "firm-norte",
+      "importerId": "imp-altiplano",
+      "incoterm": "CIF",
+      "incotermPlace": "Buenos Aires",
+      "invoiceNumber": "EHT-56001",
+      "operationNumber": "5501",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-n-elbhafen",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Horizon"
+    },
+    {
+      "PK": "POP#firm-norte#5502",
+      "SK": "META",
+      "carrier": "Río Sur Shipping",
+      "clockId": "GLOBAL#firm-norte",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-25T10:00:00-03:00",
+      "firmId": "firm-norte",
+      "importerId": "imp-quebrada",
+      "incoterm": "FOB",
+      "incotermPlace": "Shenzhen",
+      "invoiceNumber": "SZB-21210",
+      "operationNumber": "5502",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-n-shenzhen",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Río Sur Tern"
+    },
+    {
+      "PK": "POP#firm-norte#5503",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-norte",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "VALID"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-29T07:00:00-03:00",
+      "firmId": "firm-norte",
+      "importerId": "imp-altiplano",
+      "incoterm": "FOB",
+      "incotermPlace": "Ho Chi Minh City",
+      "invoiceNumber": "SRF-0501",
+      "operationNumber": "5503",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-n-saigon",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Dawn"
+    },
+    {
+      "PK": "POP#firm-norte#5504",
+      "SK": "META",
+      "carrier": "Austral Line",
+      "clockId": "GLOBAL#firm-norte",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-11-04T06:00:00-03:00",
+      "firmId": "firm-norte",
+      "importerId": "imp-quebrada",
+      "incoterm": "FOB",
+      "incotermPlace": "Qingdao",
+      "invoiceNumber": "QBT-2026-1100",
+      "operationNumber": "5504",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-n-qingdao",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Austral Meridian"
+    },
+    {
+      "PK": "POP#firm-norte#5505",
+      "SK": "META",
+      "carrier": "Austral Line",
+      "clockId": "GLOBAL#firm-norte",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "VALID",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "VALID"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-18T08:00:00-03:00",
+      "firmId": "firm-norte",
+      "importerId": "imp-altiplano",
+      "incoterm": "CIF",
+      "incotermPlace": "Buenos Aires",
+      "invoiceNumber": "EHT-55950",
+      "operationNumber": "5505",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-n-elbhafen",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Austral Aurora"
+    },
+    {
+      "PK": "POP#firm-norte#5506",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-norte",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-11-12T07:00:00-03:00",
+      "firmId": "firm-norte",
+      "importerId": "imp-quebrada",
+      "incoterm": "FOB",
+      "incotermPlace": "Shenzhen",
+      "invoiceNumber": "SZB-21300",
+      "operationNumber": "5506",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-n-shenzhen",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Horizon"
+    },
+    {
+      "PK": "POP#firm-qa#7990",
+      "SK": "META",
+      "carrier": "Austral Line",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-22T08:00:00-03:00",
+      "firmId": "firm-qa",
+      "importerId": "imp-qa-firmqa-min-a",
+      "incoterm": "FOB",
+      "incotermPlace": "Qingdao",
+      "invoiceNumber": "QBT-2026-0917",
+      "operationNumber": "7990",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-qa-firmqa-min-a",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Austral Aurora",
+      "world": "qa"
+    },
+    {
+      "PK": "POP#firm-qa#7991",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "MISSING",
+        "COMMERCIAL_INVOICE": "MISSING",
+        "PACKING_LIST": "MISSING"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-23T07:00:00-03:00",
+      "firmId": "firm-qa",
+      "importerId": "imp-qa-firmqa-min-b",
+      "incoterm": "CIF",
+      "incotermPlace": "Buenos Aires",
+      "invoiceNumber": "EHT-55812",
+      "operationNumber": "7991",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-qa-firmqa-min-b",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Horizon",
+      "world": "qa"
+    },
+    {
+      "PK": "POP#firm-qa#7992",
+      "SK": "META",
+      "carrier": "Pacifica Container Lines",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "VALID",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "VALID"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-16T07:00:00-03:00",
+      "firmId": "firm-qa",
+      "importerId": "imp-qa-firmqa-min-c",
+      "incoterm": "FOB",
+      "incotermPlace": "Shenzhen",
+      "invoiceNumber": "SZB-20870",
+      "operationNumber": "7992",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-qa-firmqa-min-c",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Pacifica Horizon",
+      "world": "qa"
+    },
+    {
+      "PK": "POP#firm-qa#7993",
+      "SK": "META",
+      "carrier": "Austral Line",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "status": "NONE"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "VALID",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "VALID"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-21T08:00:00-03:00",
+      "firmId": "firm-qa",
+      "importerId": "imp-qa-firmqa-min-d",
+      "incoterm": "CIF",
+      "incotermPlace": "Buenos Aires",
+      "invoiceNumber": "EHT-55790",
+      "operationNumber": "7993",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-qa-firmqa-min-d",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Austral Aurora",
+      "world": "qa"
+    },
+    {
+      "PK": "POP#firm-qa#7994",
+      "SK": "META",
+      "carrier": "Río Sur Shipping",
+      "clockId": "GLOBAL#firm-qa",
+      "createdAt": "2026-09-25T12:00:00.000Z",
+      "customs": {
+        "channel": "VERDE",
+        "status": "LIBERADO"
+      },
+      "documents": {
+        "CERTIFICATE_OF_ORIGIN": "VALID",
+        "COMMERCIAL_INVOICE": "VALID",
+        "PACKING_LIST": "VALID"
+      },
+      "entity": "PlatformOperation",
+      "eta": "2026-10-10T08:00:00-03:00",
+      "firmId": "firm-qa",
+      "importerId": "imp-qa-firmqa-min-e",
+      "incoterm": "FOB",
+      "incotermPlace": "Ningbo",
+      "invoiceNumber": "NHL-8701",
+      "operationNumber": "7994",
+      "port": "Buenos Aires",
+      "regime": "Importación para consumo",
+      "supplierId": "sup-qa-firmqa-min-e",
+      "synthetic": true,
+      "updatedAt": "2026-09-25T12:00:00.000Z",
+      "version": 1,
+      "vessel": "Río Sur Tern",
+      "world": "qa"
+    }
+  ],
+  "seed": 20260925,
+  "table": "Platform"
+}

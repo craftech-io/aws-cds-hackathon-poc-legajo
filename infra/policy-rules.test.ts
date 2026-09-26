@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CEDAR_STATEMENT_IDS, cedarPermitId, cedarSessionId } from "../packages/shared/src/rules";
 import { GATEWAY_TOOLS, gatewayActionName, type GatewayToolName, type ToolTarget } from "../packages/shared/src/tools";
+import { gatewayInlinePayloads } from "./agent-tool-schemas";
 import {
   GATEWAY_TARGETS,
   KILL_SWITCH_ACTIVE,
@@ -20,7 +21,6 @@ import {
   unguardedReads,
   type CedarPolicyDefinition,
   type CedarRequest,
-  type GatewayToolSchema,
   type ToolInputSchemas,
 } from "./policy-rules";
 
@@ -48,9 +48,6 @@ function catalogSchemas(): ToolInputSchemas {
   return schemas;
 }
 
-// The Gateway payloads generated from zod (`npm run tools:build-schemas`, WP-22), once they exist.
-const generatedModule: Record<string, unknown> = await import("./agent-tool-schemas");
-const generated = Reflect.get(generatedModule, "gatewayToolSchemas") as Record<ToolTarget, { inlinePayload: GatewayToolSchema[] }> | undefined;
 
 const request = (action: string, input: Record<string, unknown>, overrides: Partial<CedarRequest> = {}): CedarRequest => ({
   principal: inputs.harnessPrincipalId,
@@ -139,9 +136,8 @@ describe("cited fields: declared in the tool schema and read only behind `has`",
     for (const policy of policies) expect(unguardedReads(policy.statement), policy.id).toEqual([]);
   });
 
-  it.skipIf(generated === undefined)("declares them in the Gateway schemas generated from zod (npm run tools:build-schemas)", () => {
-    const payloads = Object.fromEntries(GATEWAY_TARGETS.map((target) => [target, generated?.[target].inlinePayload ?? []])) as Record<ToolTarget, GatewayToolSchema[]>;
-    expect(schemaProblems(policies, inputSchemasByAction(payloads))).toEqual([]);
+  it("declares them in the Gateway schemas generated from zod (npm run tools:build-schemas)", () => {
+    expect(schemaProblems(policies, inputSchemasByAction(gatewayInlinePayloads))).toEqual([]);
   });
 
   it("reports a read without `has`, an undeclared field, a non-string comparison and a tool no permit names", () => {
