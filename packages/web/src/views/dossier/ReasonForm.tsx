@@ -1,14 +1,15 @@
 // A decision of the firm that carries its reason: dispensing an observation, reopening a dossier,
 // resolving an escalation. One required text, one button, the refusal of the BFF in words. The reason
 // travels to the audit log with the user behind the session.
+import { CONSOLE_REASON_MAX } from "@legajo/shared";
 import { type FormEvent, useId, useState } from "react";
 import { ApiErrorNotice } from "../../components/ApiErrorNotice";
 import { Button } from "../../components/Button";
 import { ERROR_CLASS, FIELD_CLASS, HINT_CLASS, LABEL_CLASS } from "../../components/form-classes";
 import type { ApiError } from "../../lib/api-error";
 
-/** The BFF keeps at most 500 characters of a reason or a resolution. */
-const REASON_MAX = 500;
+/** The BFF keeps at most this many characters of a reason or a resolution. */
+const REASON_MAX = CONSOLE_REASON_MAX;
 
 interface ReasonFormProps {
   readonly label: string;

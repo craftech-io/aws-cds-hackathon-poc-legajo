@@ -9,7 +9,7 @@ import type { RecordKey } from "@legajo/bff/qa-driver/contract-inputs";
 import type { Inspection } from "@legajo/bff/qa-driver/memory-inspect";
 import { QA_GLOBAL_CLOCK_ID } from "@legajo/shared";
 import { SENT_STATUSES, outbound } from "./lib/asserts";
-import { consoleQuery } from "./lib/console";
+import { type ConsoleAction, consoleQuery } from "./lib/console";
 import { WAITS } from "./lib/eventually";
 import { matchesKeywords } from "@legajo/bff/qa-driver/keywords";
 import { SENTINELS, sentinelMessage } from "./lib/sentinels";
@@ -102,7 +102,11 @@ export const sc20 = defineScenario({
       title: "the console refuses another firm's data to the QA principal as to anyone",
       flows: ["FL-082"],
       async run(ctx) {
-        for (const call of [{ procedure: "operations.get", input: { operationId: "op-4471" } }, { procedure: "operations.list", input: { clockId: "GLOBAL#firm-delta" } }]) {
+        const calls: ConsoleAction[] = [
+          { procedure: "operations.get", input: { operationId: "op-4471" } },
+          { procedure: "operations.list", input: { clockId: "GLOBAL#firm-delta" } },
+        ];
+        for (const call of calls) {
           const answer = await ctx.attempt("console", call);
           ctx.check(!answer.ok && answer.error.code === "FORBIDDEN" && answer.error.reason === "CROSS_FIRM", `${call.procedure} of firm-delta is 403 CROSS_FIRM`);
         }

@@ -2,12 +2,11 @@
 // time zone and first contacts (FL-004; an address outside the demo's recipient fence is refused
 // with RECIPIENT_NOT_ALLOWED, a duplicated one with CONFLICT, both shown in the form), one more
 // contact, and the behaviour of the simulated supplier, for all its operations or one (FL-088).
-import { SupplierBehaviour } from "@legajo/shared";
+import { EmailInput, SupplierBehaviour } from "@legajo/shared";
 import { useState } from "react";
 import { SelectField } from "../../components/SelectField";
 import { BEHAVIOUR_LABELS, registryCopy } from "./copy";
 import { ChangeOutcome, FormBody, FormFooter, TextField, useRegistryChange } from "./form-parts";
-import { Email } from "./registry-api";
 import { type OperationScope, type SupplierRow, isCountryCode, isTimeZone, operationsOf, parseContactLines } from "./registry-model";
 
 interface FormProps {
@@ -65,7 +64,7 @@ export function ContactForm({ supplier, onSaved, onClose }: FormProps & { readon
   const change = useRegistryChange(onSaved);
   const [email, setEmail] = useState("");
   const [touched, setTouched] = useState(false);
-  const parsed = Email.safeParse(email);
+  const parsed = EmailInput.safeParse(email);
   const submit = () => {
     setTouched(true);
     if (parsed.success) void change.run({ kind: "upsertContact", input: { supplierId: supplier.supplierId, email: parsed.data } });

@@ -79,7 +79,7 @@ export const sc04 = defineScenario({
         const { operationId } = opOf(ctx, "a", "b");
         const docVersionId = ctx.state.unknownVersion;
         ensure(typeof docVersionId === "string", "step 5 found the unrecognized version");
-        await ctx.qa("console", { procedure: "dossier.classifyDocument", input: { docVersionId, docType: "CERTIFICATE_OF_ORIGIN" } });
+        await ctx.qa("console", { procedure: "dossier.classifyDocument", input: { operationId, docVersionId, outcome: "CLASSIFY", docType: "CERTIFICATE_OF_ORIGIN" } });
         const classified = await ctx.settled(operationId);
         const version = classified.versions.find((row) => row.docVersionId === docVersionId);
         ctx.check(version?.classifiedBy === "BROKER:brk-qa-runner", "the version records who classified it");

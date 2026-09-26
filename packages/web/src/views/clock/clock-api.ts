@@ -10,8 +10,9 @@
 //   clock.fireMilestone       { operationId, milestone, force? }
 //   clock.moveEta             { operationId, eta, force? }
 //   clock.emitDispatchStatus  { operationId, status, channel?, force? }
-//   clock.reset               {}                (BROKER or JUDGE, once every 10 minutes per world)
-import { CustomsChannel, IsoInstant, MilestoneName, OperationNumber, TimerKind } from "@legajo/shared";
+//   clock.reset               {}                (BROKER or JUDGE, once every 10 minutes per world; the
+//                                                shared `ClockResetInput`, as the scenarios send it)
+import { ClockResetInput, CustomsChannel, IsoInstant, MilestoneName, OperationNumber, TimerKind } from "@legajo/shared";
 import { getUntypedClient } from "@trpc/client";
 import { z } from "zod";
 import type { ConsoleClient } from "../../lib/trpc";
@@ -84,7 +85,7 @@ export function commandRequest(command: ClockCommand, force = false): ProcedureR
       return { path: "clock.emitDispatchStatus", input: { operationId: command.operationId, status: EmittedStatus.parse(command.status), ...channel, ...forced } };
     }
     case "reset":
-      return { path: "clock.reset", input: {} };
+      return { path: "clock.reset", input: ClockResetInput.parse({}) };
   }
 }
 

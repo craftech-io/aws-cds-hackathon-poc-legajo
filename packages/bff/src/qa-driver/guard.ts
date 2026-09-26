@@ -5,14 +5,17 @@
 //   1. the firm is of QA type (`firm-qa`, `firm-sim`, `firm-judge-test`) and matches the clock;
 //   2. the clock is `qa-*` (every action but `batch.run`), or one of the two fixed QA clocks with its
 //      closed list of actions, or a `sim-*` clock of `batch.run`; any other clock is FORBIDDEN;
-//   3. every operation the input names belongs to that world.
+//   3. every operation, importer and supplier the input names belongs to that world (firm and clock);
+//      a Memory actor (`<importerId>-e<epoch>`) is one of an importer of that world, of an epoch the
+//      world already reached (SC-20 inspects the actor of a past epoch of `GLOBAL#firm-qa`).
 //
 // Console actions (`console.<procedure>`) run the real `appRouter` as a firm-qa user, so an id of
 // another firm is left to `firmProcedure`, which refuses it with 403 + `AuditLog DENY CROSS_FIRM`
 // before the procedure reads anything (SC-20/3): a call that names only other firms' worlds is such a
-// cross-firm probe. An operation of firm-qa must still be of the world the call names.
+// cross-firm probe. An operation or a party of a QA firm must still be of the world the call names:
+// firm-qa owns `GLOBAL#firm-qa` and every `qa-*` world, so `firmProcedure` alone cannot tell them apart.
 import { JUDGE_TEST_CLOCK_ID, QA_FIRM_IDS, QA_GLOBAL_CLOCK_ID, ToolError, parseClockId } from "@legajo/shared";
-import { fencedIdsOf, firmOfClockId, operationOfChildId } from "../auth/scope";
+import { type FencedId, fencedIdsOf, firmOfClockId, operationOfChildId } from "../auth/scope";
 import { QA_REASON, type QaActionName } from "./contract";
 import type { QaParsedInput } from "./contract-inputs";
 
@@ -40,6 +43,10 @@ export interface Scope {
   readonly clockId?: string;
   /** Operations the input names that belong to a QA firm, with the world each one belongs to. */
   readonly operations: readonly ScopedOperation[];
+  /** Importers and suppliers the input names that belong to a QA firm, with their world. */
+  readonly parties?: readonly ScopedParty[];
+  /** Memory actors the input names (`memory.inspect`); each one's importer is in `parties`. */
+  readonly actors?: readonly ScopedActor[];
   /** A console call that names only other firms: `firmProcedure` refuses it (CROSS_FIRM) before any read. */
   readonly crossFirmProbe?: true;
 }
@@ -50,9 +57,30 @@ export interface ScopedOperation {
   readonly clockId: string;
 }
 
+export interface ScopedParty {
+  readonly kind: "importer" | "supplier";
+  readonly id: string;
+  readonly firmId: string;
+  readonly clockId: string;
+}
+
+export interface ScopedActor {
+  readonly actorId: string;
+  readonly importerId: string;
+  readonly epoch: number;
+  /** Current epoch of the fenced world; absent when its clock does not exist. */
+  readonly worldEpoch?: number;
+}
+
 export interface GuardLookups {
   findOperation(operationId: string): Promise<ScopedOperation | undefined>;
+  findImporter(importerId: string): Promise<ScopedParty | undefined>;
+  findSupplier(supplierId: string): Promise<ScopedParty | undefined>;
+  worldEpochOf(clockId: string): Promise<number | undefined>;
 }
+
+/** Memory actor of an importer in one world epoch (docs/architecture.md §9.1): `<importerId>-e<worldEpoch>`. */
+const MEMORY_ACTOR = /^(imp-[A-Za-z0-9-]+)-e(\d{1,9})$/;
 
 function forbidden(message: string): ToolError {
   return new ToolError("FORBIDDEN", message, QA_REASON.QA_FENCE);
@@ -81,6 +109,16 @@ export function checkFence(scope: Scope): void {
   for (const operation of scope.operations) {
     if (operation.clockId !== scope.clockId || operation.firmId !== scope.firmId) throw forbidden(`${operation.operationId} is not an operation of ${scope.clockId}`);
   }
+  const parties = scope.parties ?? [];
+  for (const party of parties) {
+    if (party.clockId !== scope.clockId || party.firmId !== scope.firmId) throw forbidden(`${party.id} is not a party of ${scope.clockId}`);
+    // World-factory ids embed the world (`imp-qa-<runId>-<scenario>-<key>`): a cheap second check.
+    if (parsed.scope === "QA" && party.kind === "importer" && !party.id.startsWith(`imp-${scope.clockId}-`)) throw forbidden(`${party.id} is not an importer of ${scope.clockId}`);
+  }
+  for (const actor of scope.actors ?? []) {
+    const ownImporter = parties.some((party) => party.kind === "importer" && party.id === actor.importerId);
+    if (!ownImporter || actor.worldEpoch === undefined || actor.epoch > actor.worldEpoch) throw forbidden(`${actor.actorId} is not a Memory actor of ${scope.clockId}`);
+  }
 }
 
 async function requireOperation(lookups: GuardLookups, operationId: string): Promise<ScopedOperation> {
@@ -89,14 +127,23 @@ async function requireOperation(lookups: GuardLookups, operationId: string): Pro
   return operation;
 }
 
-function worldOf(name: string, clockId: string, operations: readonly ScopedOperation[] = []): Scope {
+function worldOf(name: string, clockId: string, operations: readonly ScopedOperation[] = [], parties: readonly ScopedParty[] = []): Scope {
   const firmId = firmOfClockId(clockId);
   if (firmId === undefined) throw new ToolError("INVALID", `invalid clock id "${clockId}"`);
-  return { name, firmId, clockId, operations };
+  return { name, firmId, clockId, operations, parties };
 }
 
-// Operations (and document versions or observations, through their operation) named anywhere in a
-// console input; ids of non-QA firms stay for `firmProcedure` to refuse.
+const isQaFirm = (firmId: string | undefined): boolean => firmId !== undefined && QA_FIRM_IDS.includes(firmId);
+
+async function partiesOf(ids: readonly FencedId[], lookups: GuardLookups): Promise<ScopedParty[]> {
+  const found = await Promise.all(
+    ids.map((id) => (id.kind === "importer" ? lookups.findImporter(id.id) : id.kind === "supplier" ? lookups.findSupplier(id.id) : Promise.resolve(undefined))),
+  );
+  return found.filter((party) => party !== undefined);
+}
+
+// Operations (and document versions or observations, through their operation), importers and
+// suppliers named anywhere in a console input; ids of non-QA firms stay for `firmProcedure` to refuse.
 async function consoleScope(procedure: string, input: unknown, lookups: GuardLookups): Promise<Scope> {
   const name = `console.${procedure}`;
   const router = procedure.split(".")[0] ?? "";
@@ -111,13 +158,29 @@ async function consoleScope(procedure: string, input: unknown, lookups: GuardLoo
     if (operationId !== undefined) operationIds.add(operationId);
   }
   const found = (await Promise.all([...operationIds].map((operationId) => lookups.findOperation(operationId)))).filter((operation) => operation !== undefined);
-  const ours = found.filter((operation) => QA_FIRM_IDS.includes(operation.firmId));
-  const clockId = clocks[0] ?? ours[0]?.clockId;
-  const foreign = [...clocks.map(firmOfClockId), ...found.map((operation) => operation.firmId)].some((firmId) => firmId !== undefined && !QA_FIRM_IDS.includes(firmId));
-  if (clockId !== undefined && QA_FIRM_IDS.includes(firmOfClockId(clockId) ?? "")) return worldOf(name, clockId, ours);
-  if (foreign && ours.length === 0) return { name, firmId: "firm-qa", operations: [], crossFirmProbe: true };
+  const parties = await partiesOf(walk.ids, lookups);
+  const ours = found.filter((operation) => isQaFirm(operation.firmId));
+  const ourParties = parties.filter((party) => isQaFirm(party.firmId));
+  const clockId = clocks[0] ?? ours[0]?.clockId ?? ourParties[0]?.clockId;
+  const firms = [...clocks.map(firmOfClockId), ...found.map((operation) => operation.firmId), ...parties.map((party) => party.firmId)];
+  const foreign = firms.some((firmId) => firmId !== undefined && !isQaFirm(firmId));
+  if (clockId !== undefined && isQaFirm(firmOfClockId(clockId))) return worldOf(name, clockId, ours, ourParties);
+  if (foreign && ours.length === 0 && ourParties.length === 0) return { name, firmId: "firm-qa", operations: [], crossFirmProbe: true };
   if (clockId === undefined) throw forbidden(`${name} must name its world (clockId) or an operation of it`);
-  return worldOf(name, clockId, ours);
+  return worldOf(name, clockId, ours, ourParties);
+}
+
+// `memory.inspect` of an actor by id: the actor's importer is read from `Parties` and must be of the
+// fenced world, and its epoch one the world already reached; anything else is FORBIDDEN (checkFence).
+async function withActor(scope: Scope, actorId: string, lookups: GuardLookups): Promise<Scope> {
+  const match = MEMORY_ACTOR.exec(actorId);
+  const importerId = match?.[1];
+  if (importerId === undefined || scope.clockId === undefined) throw forbidden(`${actorId} is not a Memory actor of a QA world`);
+  const importer = await lookups.findImporter(importerId);
+  if (importer === undefined) throw forbidden(`${actorId} is not a Memory actor of ${scope.clockId}`);
+  const worldEpoch = await lookups.worldEpochOf(scope.clockId);
+  const actor: ScopedActor = { actorId, importerId, epoch: Number(match?.[2]), ...(worldEpoch === undefined ? {} : { worldEpoch }) };
+  return { ...scope, parties: [...(scope.parties ?? []), importer], actors: [actor] };
 }
 
 function platformScope(input: QaParsedInput<"platform.get">): Scope {
@@ -150,6 +213,13 @@ export async function resolveScope(action: QaActionName, raw: unknown, lookups: 
   }
   if (action === "batch.run") return worldOf(action, `sim-${(raw as QaParsedInput<"batch.run">).batchId}`);
   if (action === "platform.get") return platformScope(raw as QaParsedInput<"platform.get">);
+  const scope = await namedWorld(action, input, lookups);
+  const actorId = action === "memory.inspect" && typeof input.actorId === "string" ? input.actorId : undefined;
+  return actorId === undefined ? scope : withActor(scope, actorId, lookups);
+}
+
+/** The world of an action that names an operation or a clock (the operation's own clock wins). */
+async function namedWorld(action: QaActionName, input: Record<string, unknown>, lookups: GuardLookups): Promise<Scope> {
   const operationId = typeof input.operationId === "string" ? input.operationId : undefined;
   const namedClock = typeof input.clockId === "string" ? input.clockId : undefined;
   if (operationId !== undefined) {

@@ -93,7 +93,7 @@ export const sc22 = defineScenario({
         const { operationId } = opOf(ctx, "c");
         const observation = observations(await ctx.settled(operationId), { code: "MISSING_SIGNATURE" })[0];
         ensure(observation !== undefined, "the observation to waive");
-        await ctx.qa("console", { procedure: "dossier.waiveObservation", input: { observationId: observation.observationId, reason: "El certificado firmado ya fue presentado en papel." } });
+        await ctx.qa("console", { procedure: "dossier.waiveObservation", input: { operationId, observationId: observation.observationId, reason: "El certificado firmado ya fue presentado en papel." } });
         const waived = await ctx.settled(operationId);
         ctx.check(observations(waived, { code: "MISSING_SIGNATURE" })[0]?.status === "WAIVED_BY_BROKER", "the observation is waived");
         ctx.check(decisions(waived, { action: "WAIVED" }).some((row) => row.refs.brokerId === "brk-qa-runner"), "WAIVED is audited with the broker");

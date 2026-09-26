@@ -16,7 +16,7 @@ import type { Logger } from "../lib/log";
 import { consoleFailure, procedureKind } from "./console";
 import { QaRequest, type QaResponse, READ_ONLY_ACTIONS, type QaActionName } from "./contract";
 import { ACTION_INPUTS, type QaParsedInput } from "./contract-inputs";
-import { checkFence, checkWorldKey, resolveScope } from "./guard";
+import { type GuardLookups, checkFence, checkWorldKey, resolveScope } from "./guard";
 import type { ActionContext, ActionHandlers } from "./ports";
 
 /** Source of the driver's idempotency marks (`Runtime/IDEMP#QA#<key>`). */
@@ -66,10 +66,21 @@ async function remember(data: Connector, key: string, result: unknown, atReal: s
 }
 
 export function createQaDriver(deps: QaDriverDeps) {
-  const lookups = {
-    async findOperation(operationId: string) {
+  const lookups: GuardLookups = {
+    async findOperation(operationId) {
       const operation = await deps.data.operations.findOperation(operationId);
       return operation === undefined ? undefined : { operationId: operation.operationId, firmId: operation.firmId, clockId: operation.clockId };
+    },
+    async findImporter(importerId) {
+      const importer = await deps.data.parties.findImporter(importerId);
+      return importer === undefined ? undefined : { kind: "importer", id: importer.importerId, firmId: importer.firmId, clockId: importer.clockId };
+    },
+    async findSupplier(supplierId) {
+      const supplier = await deps.data.parties.findSupplier(supplierId);
+      return supplier === undefined ? undefined : { kind: "supplier", id: supplier.supplierId, firmId: supplier.firmId, clockId: supplier.clockId };
+    },
+    async worldEpochOf(clockId) {
+      return (await deps.data.world.findClock(clockId))?.worldEpoch;
     },
   };
 

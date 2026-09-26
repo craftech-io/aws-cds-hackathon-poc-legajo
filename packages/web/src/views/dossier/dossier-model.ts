@@ -4,7 +4,7 @@
 // only BROKER or JUDGE, ADR-0010); when approving needs the password again (15 minutes of real time,
 // the BFF's `recentLoginProcedure`); and how the firm may write to the importer (control taken, the
 // 24-hour window of WhatsApp, the scope of an approved dossier). The BFF enforces every rule again.
-import { type ConsoleRole, type ConversationControl, type DocStatus, type DocType, type DossierStatus, type Party, canApprove } from "@legajo/shared";
+import { CONSOLE_TEXT_MAX, type ConsoleRole, type ConversationControl, type DocStatus, type DocType, type DossierStatus, type Party, canApprove } from "@legajo/shared";
 import { DOC_TYPE_ORDER } from "./labels";
 import type { DocumentData, DossierData, MessageData, ObservationData, TimelineEntryData, VersionData } from "./types";
 
@@ -145,4 +145,4 @@ export const BROKER_TEMPLATES = ["legajo_escalado", "legajo_recordatorio"] as co
 export type BrokerTemplate = (typeof BROKER_TEMPLATES)[number];
 
 /** Longest free text the console lets the firm send in one message. */
-export const BROKER_TEXT_MAX = 1000;
+export const BROKER_TEXT_MAX = CONSOLE_TEXT_MAX;

@@ -5,7 +5,7 @@
 // different `origin_jti` inside the window gets the fixed notice of docs/design-brief.md §7.1, which
 // neither blocks nor offers a reset. The sign-in records this session as the last one, and every
 // later call of the session keeps it fresh (judge-activity.ts, from `firmProcedure`).
-import { judgeClockId } from "@legajo/shared";
+import { ConnectorError, judgeClockId } from "@legajo/shared";
 import type { Principal } from "../auth/principal";
 import { isSignInFresh } from "../auth/principal";
 import type { Connector } from "../connector/index";
@@ -22,22 +22,35 @@ export interface OtherSession {
   readonly minutesAgo: number;
 }
 
-/** The notice for `sessionId` given the clock's last session, or `null`. */
+/**
+ * The notice for `sessionId` given the clock's last session, or `null`. When `sessionId` already is
+ * the last session (its own write won, or this is a repeated check), the session it took over from counts.
+ */
 export function otherSessionOf(clock: Pick<Clock, "lastSession">, sessionId: string, realNow: Date): OtherSession | null {
   const last = clock.lastSession;
-  if (last === undefined || last.originJti === sessionId) return null;
-  const elapsed = realNow.getTime() - Date.parse(last.lastActiveAtReal);
+  const other = last?.originJti === sessionId ? last.previous : last;
+  if (other === undefined || other.originJti === sessionId) return null;
+  const elapsed = realNow.getTime() - Date.parse(other.lastActiveAtReal);
   if (elapsed < 0 || elapsed >= OTHER_SESSION_WINDOW_MS) return null;
-  return { lastActiveAtReal: last.lastActiveAtReal, minutesAgo: Math.floor(elapsed / 60_000) };
+  return { lastActiveAtReal: other.lastActiveAtReal, minutesAgo: Math.floor(elapsed / 60_000) };
 }
 
-/** Reads the judge world, answers the notice and records this session as the last one. */
+/**
+ * Reads the judge world, answers the notice and records this session as the last one. The notice
+ * comes from the read; the write is best-effort: calls of the same sign-in race on the clock's version
+ * (the shell's first batch, StrictMode's double effect), and a lost race must not cost the notice.
+ * The session's next call records it again (judge-activity.ts).
+ */
 export async function touchJudgeSession(data: Connector, principal: Principal, realNow: Date): Promise<{ worldReady: boolean; otherSession: OtherSession | null }> {
   const clockId = judgeClockId(principal.firmId);
   const clock = await data.world.findClock(clockId);
   if (clock === undefined) return { worldReady: false, otherSession: null };
   const otherSession = otherSessionOf(clock, sessionIdOf(principal), realNow);
-  await markJudgeActivity(data, clock, principal, realNow, 0);
+  try {
+    await markJudgeActivity(data, clock, principal, realNow, 0);
+  } catch (error) {
+    if (!(error instanceof ConnectorError && error.code === "CONFLICT")) throw error;
+  }
   return { worldReady: true, otherSession };
 }
 

@@ -15,22 +15,38 @@ const PLATFORM = "https://abc123.lambda-url.us-east-1.on.aws/";
 const dlqMessage = (eventId: string, clockId: string, handle: string) => ({ Body: JSON.stringify({ eventId, clockId, type: "POISON" }), ReceiptHandle: handle, Attributes: { MessageDeduplicationId: eventId } });
 
 describe("dlq.find and dlq.delete: only the scenario's own event", () => {
-  it("finds the event by its deduplication id and reports the others by id only", async () => {
+  const OWN = `qa-${"a".repeat(40)}`;
+  const OTHER_QA = `qa-${"b".repeat(40)}`;
+
+  it("finds the event by its deduplication id; other QA events by id, other firms' only by count", async () => {
     const sqs = mockClient(SQSClient);
-    sqs.on(ReceiveMessageCommand).resolves({ Messages: [dlqMessage("qa-1", "qa-812-1-sc19", "h1"), dlqMessage("evt-real", "GLOBAL#firm-delta", "h2")] });
+    sqs.on(ReceiveMessageCommand).resolves({ Messages: [dlqMessage(OWN, "qa-812-1-sc19", "h1"), dlqMessage("evt-real", "GLOBAL#firm-delta", "h2"), dlqMessage(OTHER_QA, "qa-812-1-sc18", "h3")] });
     const dlq = sqsDlq({ queueUrl: () => QUEUE, client: new SQSClient({}) });
-    expect(await dlq.find({ clockId: "qa-812-1-sc19", eventId: "qa-1" })).toEqual({ found: true, others: ["evt-real"] });
+    expect(await dlq.find({ clockId: "qa-812-1-sc19", eventId: OWN })).toEqual({ found: true, others: [OTHER_QA], foreign: 1 });
     expect(sqs.commandCalls(DeleteMessageCommand)).toHaveLength(0);
     expect(sqs.commandCalls(ReceiveMessageCommand)[0]?.args[0].input).toMatchObject({ VisibilityTimeout: 2, QueueUrl: QUEUE });
   });
 
   it("deletes only its own message, and refuses an event of another world", async () => {
     const sqs = mockClient(SQSClient);
-    sqs.on(ReceiveMessageCommand).resolves({ Messages: [dlqMessage("evt-real", "GLOBAL#firm-delta", "h2"), dlqMessage("qa-1", "qa-812-1-sc19", "h1")] });
+    sqs.on(ReceiveMessageCommand).resolves({ Messages: [dlqMessage("evt-real", "GLOBAL#firm-delta", "h2"), dlqMessage(OWN, "qa-812-1-sc19", "h1")] });
     const dlq = sqsDlq({ queueUrl: () => QUEUE, client: new SQSClient({}) });
-    expect(await dlq.remove({ clockId: "qa-812-1-sc19", eventId: "qa-1" })).toEqual({ deleted: true, others: ["evt-real"] });
+    expect(await dlq.remove({ clockId: "qa-812-1-sc19", eventId: OWN })).toEqual({ deleted: true, others: [], foreign: 1 });
     expect(sqs.commandCalls(DeleteMessageCommand).map((call) => call.args[0].input.ReceiptHandle)).toEqual(["h1"]);
-    await expect(dlq.remove({ clockId: "qa-812-1-sc20", eventId: "qa-1" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(dlq.remove({ clockId: "qa-812-1-sc20", eventId: OWN })).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("fails closed on a body without a world or unreadable, and on an id no scenario injected (SEC-2)", async () => {
+    const sqs = mockClient(SQSClient);
+    const noWorld = { Body: JSON.stringify({ eventId: OWN, type: "EMAIL_IN" }), ReceiptHandle: "h4", Attributes: { MessageDeduplicationId: OWN } };
+    const unreadable = { Body: "{truncated", ReceiptHandle: "h5", Attributes: { MessageDeduplicationId: OTHER_QA } };
+    sqs.on(ReceiveMessageCommand).resolves({ Messages: [noWorld, unreadable] });
+    const dlq = sqsDlq({ queueUrl: () => QUEUE, client: new SQSClient({}) });
+    await expect(dlq.remove({ clockId: "qa-812-1-sc19", eventId: OWN })).rejects.toMatchObject({ code: "FORBIDDEN", reason: "QA_FENCE" });
+    await expect(dlq.remove({ clockId: "qa-812-1-sc19", eventId: OTHER_QA })).rejects.toMatchObject({ code: "FORBIDDEN", reason: "QA_FENCE" });
+    await expect(dlq.remove({ clockId: "qa-812-1-sc19", eventId: "evt-real" })).rejects.toMatchObject({ code: "FORBIDDEN", reason: "QA_FENCE" });
+    await expect(dlq.find({ clockId: "qa-812-1-sc19", eventId: "evt-real" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    expect(sqs.commandCalls(DeleteMessageCommand)).toHaveLength(0);
   });
 });
 

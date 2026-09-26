@@ -5,7 +5,7 @@
 import { ConnectorError, judgeClockId } from "@legajo/shared";
 import type { Principal } from "../auth/principal";
 import type { Connector } from "../connector/index";
-import type { Clock } from "../domain/world-state";
+import type { Clock, PreviousSession } from "../domain/world-state";
 import type { Logger } from "../lib/log";
 
 /** Calls of the session that already owns `lastSession` refresh it at most this often. */
@@ -28,6 +28,14 @@ export function needsRefresh(clock: Pick<Clock, "lastSession">, sessionId: strin
   return last.originJti !== sessionId || elapsed >= refreshMs;
 }
 
+/** The other session `sessionId` takes over from (or keeps, when it already owns `lastSession`). */
+function previousOf(clock: Pick<Clock, "lastSession">, sessionId: string): { previous?: PreviousSession } {
+  const last = clock.lastSession;
+  if (last === undefined) return {};
+  if (last.originJti !== sessionId) return { previous: { originJti: last.originJti, lastActiveAtReal: last.lastActiveAtReal } };
+  return last.previous === undefined ? {} : { previous: last.previous };
+}
+
 /**
  * Records the principal's session as the last one of `clock`. `refreshMs` 0 always writes (the
  * sign-in itself); a newer `lastSession` than `realNow` is never overwritten.
@@ -38,7 +46,8 @@ export async function markJudgeActivity(data: Connector, clock: Clock, principal
   for (let attempt = 1; attempt <= WRITE_ATTEMPTS; attempt += 1) {
     if (!needsRefresh(current, sessionId, realNow, refreshMs)) return;
     try {
-      await data.world.updateClock(current.clockId, { lastSession: { originJti: sessionId, authTime: principal.authTime, lastActiveAtReal: realNow.toISOString() } }, current.version);
+      const lastSession = { originJti: sessionId, authTime: principal.authTime, lastActiveAtReal: realNow.toISOString(), ...previousOf(current, sessionId) };
+      await data.world.updateClock(current.clockId, { lastSession }, current.version);
       return;
     } catch (error) {
       if (!(error instanceof ConnectorError && error.code === "CONFLICT") || attempt === WRITE_ATTEMPTS) throw error;

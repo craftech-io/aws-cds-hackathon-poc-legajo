@@ -257,7 +257,7 @@ Los marcados con `qa` los alcanza el `QaDriver` por el `appRouter` real (mismos 
 
 ## Procedimientos de la consola (tRPC)
 
-Todo procedimiento pasa por `firmProcedure`; los marcados **B** exigen rol `BROKER` o `JUDGE` y los marcados **R** login ≤ 15 min.
+Todo procedimiento pasa por `firmProcedure`; los marcados **B** exigen rol `BROKER` o `JUDGE` y los marcados **R** login ≤ 15 min. Las entradas de los procedimientos que cambian un legajo, una conversación, el registro o reinician un mundo se definen una sola vez en `packages/shared/src/console-inputs.ts` (`.strict()`, `clockId` opcional en el registro y el reinicio, obligatorio de hecho para `firm-qa`; `classifyDocument` = `{operationId, docVersionId, outcome: CLASSIFY \| DISCARD, docType?}`; `waiveObservation` con `operationId`; `consent.record` con `grantedAt` obligatorio): la consola, los escenarios (`scripts/scenarios/lib/console.ts`, que tipa la acción `console` desde `AppRouter` o, si el procedimiento aún no está registrado, desde ese esquema) y el router que los registra importan el mismo esquema.
 
 | Router | Procedimientos |
 |---|---|
@@ -312,7 +312,7 @@ Invocación directa (`lambda:InvokeFunction`) del rol `qa-runner`. Toda acción 
 | `guardrail.probe` | `ApplyGuardrail` de G1 con una cadena de ataque conocida; devuelve `GUARDRAIL_INTERVENED` o no (evidencia determinista de que G1 está activo) |
 | `turn.forceFailure` | Hace fallar el próximo turno de una operación QA (timeout simulado del Harness) para probar el fallback |
 | `event.poison` | Encola un evento `POISON` (con su `ADD` en `inFlight`, como todo productor) que el worker falla con visibilidad 0 hasta la DLQ; en el último intento el worker lo saca de `inFlight`, escribe `OPSTATE#<op>.processError` y audita `EVENT_DEAD_LETTERED` (`docs/architecture.md` §7, FL-098); devuelve el `eventId` |
-| `dlq.find`, `dlq.delete` | `{eventId}`: busca el mensaje de la DLQ `OperationEventsDlq.fifo` con ese `eventId` (`ReceiveMessage` con visibilidad corta; los demás mensajes se devuelven sin tocar y se informan como `others`) y lo borra (`DeleteMessage`); nunca borra un mensaje que no creó el escenario |
+| `dlq.find`, `dlq.delete` | `{clockId, eventId}`: solo un `eventId` de QA (`qa-<40 hex>`, derivado de la clave del paso); busca el mensaje de la DLQ `OperationEventsDlq.fifo` con ese `eventId` y cuyo cuerpo nombra ese `clockId` (sin mundo o ilegible → `FORBIDDEN QA_FENCE`, nunca se toma) (`ReceiveMessage` con visibilidad corta; los demás mensajes se devuelven sin tocar: los de mundos QA se informan por id en `others`, los de otros estudios o sin mundo legible solo como cantidad en `foreign`) y lo borra (`DeleteMessage`); nunca borra un mensaje que no creó el escenario |
 | `alarm.history` | `{since}`: transiciones de la alarma de la DLQ (`DescribeAlarmHistory`) posteriores a `since` |
 | `platform.get` | `{firmId, operationNumber}`: `GET /v1/operations/{n}?firm=` de `PlatformMock` con el rol del `QaDriver` (solo lectura; estudios de tipo QA) |
 | `probe.mocks` | `GET /v1/health` de `ReaderMock` y `PlatformMock` con el rol del `QaDriver`, y un `HEALTH_PROBE` por la cola para probar el rol del worker contra el lector |

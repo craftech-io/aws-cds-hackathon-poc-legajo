@@ -67,6 +67,30 @@ describe("checkFence: the clocks and firms of ADR-0005", () => {
     expect(fenceCode({ ...scope("snapshot", undefined), crossFirmProbe: true })).toBe("FORBIDDEN");
   });
 
+  it("refuses an importer or supplier of another world, and a qa-* importer without the world's prefix", () => {
+    const party = (id: string, clockId: string, firmId = "firm-qa", kind: "importer" | "supplier" = "importer") => ({ kind, id, firmId, clockId });
+    const withParties = (parties: NonNullable<Scope["parties"]>): Scope => ({ ...scope("console.registry.consent.revoke", QA_CLOCK), parties });
+    expect(fenceCode(withParties([party("imp-qa-812-1-sc01-a", QA_CLOCK)]))).toBeUndefined();
+    expect(fenceCode(withParties([party("imp-qamin", "GLOBAL#firm-qa")]))).toBe("FORBIDDEN");
+    expect(fenceCode(withParties([party("sup-qamin", "GLOBAL#firm-qa", "firm-qa", "supplier")]))).toBe("FORBIDDEN");
+    expect(fenceCode(withParties([party("imp-qa-812-1-sc02-a", OTHER_QA_CLOCK)]))).toBe("FORBIDDEN");
+    expect(fenceCode(withParties([party("imp-sc01a", QA_CLOCK)]))).toBe("FORBIDDEN");
+  });
+
+  it("admits a Memory actor only of an importer of the world, up to the world's epoch", () => {
+    const importer = { kind: "importer" as const, id: "imp-qamin", firmId: "firm-qa", clockId: "GLOBAL#firm-qa" };
+    const inspect = (epoch: number, worldEpoch?: number): Scope => ({
+      ...scope("memory.inspect", "GLOBAL#firm-qa"),
+      parties: [importer],
+      actors: [{ actorId: `imp-qamin-e${epoch}`, importerId: "imp-qamin", epoch, ...(worldEpoch === undefined ? {} : { worldEpoch }) }],
+    });
+    expect(fenceCode(inspect(1, 2))).toBeUndefined();
+    expect(fenceCode(inspect(2, 2))).toBeUndefined();
+    expect(fenceCode(inspect(3, 2))).toBe("FORBIDDEN");
+    expect(fenceCode(inspect(1))).toBe("FORBIDDEN");
+    expect(fenceCode({ ...inspect(1, 2), parties: [] })).toBe("FORBIDDEN");
+  });
+
   it("admits the world-less probes only without a world", () => {
     for (const action of WORLDLESS_ACTIONS) expect(fenceCode(scope(action, undefined)), action).toBeUndefined();
     expect(fenceCode(scope("snapshot", undefined))).toBe("FORBIDDEN");
@@ -107,6 +131,43 @@ describe("QaDriver: the fence on stored data", () => {
     expect(crossWorld).toMatchObject({ ok: false, error: { code: "FORBIDDEN", reason: "QA_FENCE" } });
     expect(await driver({ action: "console", idempotencyKey: key(3, "d"), input: { procedure: "operations.list", input: { clockId: "GLOBAL#firm-qa" } } })).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
     expect(await driver({ action: "console", idempotencyKey: key(3, "e"), input: { procedure: "account.session" } })).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
+    expect(calls.get("console")).toBe(2);
+  });
+
+  it("fences memory.inspect by actor to the importers of the world it names (SEC-1)", async () => {
+    const { handlers, calls } = countingHandlers();
+    const { driver, stores } = await driverUnderTest(handlers);
+    const inspect = (label: string, actorId: string, clockId: string) => driver({ action: "memory.inspect", idempotencyKey: key(9, label), input: { actorId, clockId, sessionIds: ["s1"] } });
+    const fenced = { ok: false, error: { code: "FORBIDDEN", reason: "QA_FENCE" } };
+    expect(await inspect("a", "imp-qa-812-1-sc01-a-e1", QA_CLOCK)).toMatchObject({ ok: true });
+    // A demo firm's importer, the synthetic judge's, another scenario's and GLOBAL#firm-qa's, all under a qa-* clock.
+    expect(await inspect("b", "imp-norpampa-e1", QA_CLOCK)).toMatchObject(fenced);
+    expect(await inspect("c", "imp-jtest-e1", QA_CLOCK)).toMatchObject(fenced);
+    expect(await inspect("d", "imp-qa-812-1-sc02-a-e1", QA_CLOCK)).toMatchObject(fenced);
+    expect(await inspect("e", "imp-qamin-e1", QA_CLOCK)).toMatchObject(fenced);
+    expect(await inspect("f", "imp-norpampa-e1", "GLOBAL#firm-qa")).toMatchObject(fenced);
+    expect(await inspect("g", "not-an-actor", QA_CLOCK)).toMatchObject(fenced);
+    // SC-20 reads the actor of a past epoch of GLOBAL#firm-qa after its reset, never a future one.
+    const clock = await stores.connector.world.getClock("GLOBAL#firm-qa");
+    await stores.connector.world.updateClock("GLOBAL#firm-qa", { worldEpoch: 2 }, clock.version);
+    expect(await inspect("h", "imp-qamin-e1", "GLOBAL#firm-qa")).toMatchObject({ ok: true });
+    expect(await inspect("i", "imp-qamin-e3", "GLOBAL#firm-qa")).toMatchObject(fenced);
+    expect(calls.get("memory.inspect")).toBe(2);
+  });
+
+  it("fences the importers and suppliers of a console call to the world it names (B2)", async () => {
+    const { handlers, calls } = countingHandlers();
+    const { driver } = await driverUnderTest(handlers);
+    const call = (label: string, procedure: string, input: Record<string, unknown>) => driver({ action: "console", idempotencyKey: key(10, label), input: { procedure, input } });
+    const fenced = { ok: false, error: { code: "FORBIDDEN", reason: "QA_FENCE" } };
+    expect(await call("a", "registry.consent.revoke", { clockId: QA_CLOCK, importerId: "imp-qa-812-1-sc01-a" })).toMatchObject({ ok: true });
+    expect(await call("b", "registry.consent.revoke", { clockId: QA_CLOCK, importerId: "imp-qamin" })).toMatchObject(fenced);
+    expect(await call("c", "registry.authorization.set", { clockId: QA_CLOCK, importerId: "imp-qa-812-1-sc01-a", supplierId: "sup-qamin", authorized: true })).toMatchObject(fenced);
+    expect(await call("d", "registry.supplierBehaviour.set", { clockId: QA_CLOCK, supplierId: "sup-sc02a", behaviour: "PROMPT" })).toMatchObject(fenced);
+    expect(await call("e", "registry.contacts.confirm", { importerId: "imp-qa-812-1-sc02-a", clockId: QA_CLOCK })).toMatchObject(fenced);
+    // Without a clock, a QA party names its own world; a party of GLOBAL#firm-qa lands on its closed list.
+    expect(await call("f", "registry.consent.revoke", { importerId: "imp-qa-812-1-sc02-a" })).toMatchObject({ ok: true });
+    expect(await call("g", "registry.consent.revoke", { importerId: "imp-qamin" })).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
     expect(calls.get("console")).toBe(2);
   });
 

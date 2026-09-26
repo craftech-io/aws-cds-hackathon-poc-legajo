@@ -1,5 +1,5 @@
 // Test-only worlds for the `QaDriver` over the in-memory connector: a scenario world `qa-812-1-sc01`
-// (operation `op-7001`), the minimal QA world `GLOBAL#firm-qa` (`op-4471-qa`), the synthetic judge's
+// (operation `op-7001`, importer `imp-qa-812-1-sc01-a`), the minimal QA world `GLOBAL#firm-qa` (`op-4471-qa`), the synthetic judge's
 // world `JUDGE#firm-judge-test` (`op-4471-jt`) and the demo slice of firm-delta (`op-4471`), plus a
 // handler table whose every action only counts its calls. Nothing here ships in a Lambda.
 import { JUDGE_TEST_CLOCK_ID, QA_GLOBAL_CLOCK_ID, threadAddress } from "@legajo/shared";
@@ -20,20 +20,22 @@ interface WorldSeed {
   readonly operationId: string;
   readonly operationNumber: string;
   readonly suffix: string;
+  /** World-factory ids embed a `qa-*` world (`imp-qa-<runId>-<scenario>-<key>`). */
+  readonly importerId: string;
   readonly phone: string;
 }
 
 export const QA_WORLDS: readonly WorldSeed[] = [
-  { clockId: QA_CLOCK, firmId: "firm-qa", operationId: "op-7001", operationNumber: "7001", suffix: "sc01a", phone: "+5491155590001" },
-  { clockId: OTHER_QA_CLOCK, firmId: "firm-qa", operationId: "op-7002", operationNumber: "7002", suffix: "sc02a", phone: "+5491155590002" },
-  { clockId: QA_GLOBAL_CLOCK_ID, firmId: "firm-qa", operationId: "op-4471-qa", operationNumber: "4471", suffix: "qamin", phone: "+5491155590003" },
-  { clockId: JUDGE_TEST_CLOCK_ID, firmId: "firm-judge-test", operationId: "op-4471-jt", operationNumber: "4471", suffix: "jtest", phone: "+5491155590004" },
+  { clockId: QA_CLOCK, firmId: "firm-qa", operationId: "op-7001", operationNumber: "7001", suffix: "sc01a", importerId: "imp-qa-812-1-sc01-a", phone: "+5491155590001" },
+  { clockId: OTHER_QA_CLOCK, firmId: "firm-qa", operationId: "op-7002", operationNumber: "7002", suffix: "sc02a", importerId: "imp-qa-812-1-sc02-a", phone: "+5491155590002" },
+  { clockId: QA_GLOBAL_CLOCK_ID, firmId: "firm-qa", operationId: "op-4471-qa", operationNumber: "4471", suffix: "qamin", importerId: "imp-qamin", phone: "+5491155590003" },
+  { clockId: JUDGE_TEST_CLOCK_ID, firmId: "firm-judge-test", operationId: "op-4471-jt", operationNumber: "4471", suffix: "jtest", importerId: "imp-jtest", phone: "+5491155590004" },
 ];
 
 async function seedWorld(stores: MemoryStores, world: WorldSeed): Promise<void> {
   const { parties, operations, world: clocks } = stores.connector;
   const scope = { firmId: world.firmId, clockId: world.clockId };
-  const importerId = `imp-${world.suffix}`;
+  const { importerId } = world;
   const supplierId = `sup-${world.suffix}`;
   const email = `qa-${world.suffix}@sim.legajo.demo.craftech.io`;
   await clocks.createClock({ ...scope, mode: "PAUSED", offsetMs: 0, pausedSimNow: START_SIM, startAtSim: START_SIM, worldEpoch: 1, settings: { rateLimitPerHour: 20 } });

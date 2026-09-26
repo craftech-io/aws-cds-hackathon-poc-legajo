@@ -96,10 +96,10 @@ export const sc19 = defineScenario({
         await awaitState(ctx, operationId, "processError of the poison event", (snapshot) => snapshot.processError?.eventId === eventId, WAITS.dlqSec);
         await ctx.qa("op.settle", { operationId, timeoutSec: WAITS.settleSec });
         const found = await ctx.eventually("the event in the DLQ", async () => {
-          const match = (await ctx.qa("dlq.find", { clockId, eventId })) as { found: boolean; others: string[] };
+          const match = (await ctx.qa("dlq.find", { clockId, eventId })) as { found: boolean; others: string[]; foreign: number };
           return match.found ? match : undefined;
         }, WAITS.dlqSec, 15);
-        ctx.check(found.others.length === 0, `other events in the DLQ: ${found.others.join(", ")}`);
+        ctx.check(found.others.length === 0 && found.foreign === 0, `other events in the DLQ: ${[...found.others, ...(found.foreign > 0 ? [`${found.foreign} of other firms`] : [])].join(", ")}`);
         await ctx.eventually("the DLQ alarm in ALARM after the injection", async () => {
           const history = (await ctx.qa("alarm.history", { since: injectedAt })) as { transitions: Array<{ to?: string }> };
           return history.transitions.some((transition) => transition.to === "ALARM");

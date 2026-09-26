@@ -4,6 +4,7 @@
 // through the console), a clone of op-4473 (importer without opt-in) and one of op-4472 (no
 // authorization to write to the supplier). The registry refuses a supplier address outside the fence.
 import { SENT_STATUSES, decisions, openEscalations, outbound } from "./lib/asserts";
+import type { ConsoleAction } from "./lib/console";
 import { importerSays, tap } from "./lib/flows";
 import { type ScenarioContext, defineScenario } from "./lib/steps";
 import { advanceTo, awaitState, createWorld, opOf, worldOf } from "./lib/world";
@@ -45,7 +46,7 @@ export const sc16 = defineScenario({
           ],
         });
         const d = opOf(ctx, "d");
-        await ctx.qa("console", { procedure: "registry.consent.record", input: { clockId: worldOf(ctx).clockId, importerId: d.importerId, medium: "SIGNED_FORM", textVersion: CONSENT_TEXT_VERSION } });
+        await ctx.qa("console", { procedure: "registry.consent.record", input: { clockId: worldOf(ctx).clockId, importerId: d.importerId, medium: "SIGNED_FORM", grantedAt: START, textVersion: CONSENT_TEXT_VERSION } });
         const settled = await ctx.settled(d.operationId);
         ctx.check(settled.parties.consent !== null && settled.parties.consent.revokedAt === null, "the opt-in is in force");
         ctx.check(decisions(settled, { action: "CONSENT_GRANTED" }).length === 1, "CONSENT_GRANTED is audited");
@@ -119,7 +120,7 @@ export const sc16 = defineScenario({
       flows: ["FL-004"],
       async run(ctx) {
         const clockId = worldOf(ctx).clockId;
-        const supplier = (email: string) => ({ procedure: "registry.suppliers.upsert", input: { clockId, name: "Proveedor de prueba (ficticio)", country: "CN", timezone: "Asia/Shanghai", language: "en", contacts: [{ email }] } });
+        const supplier = (email: string): ConsoleAction => ({ procedure: "registry.suppliers.upsert", input: { clockId, name: "Proveedor de prueba (ficticio)", country: "CN", timezone: "Asia/Shanghai", language: "en", contacts: [email] } });
         const fenced = await ctx.attempt("console", supplier("compras@example.com"));
         ctx.check(!fenced.ok && fenced.error.reason === "RECIPIENT_NOT_ALLOWED", "a reserved domain is refused by the fence");
         const valid = `qa-${ctx.runId}-sc16-reg@sim.legajo.demo.craftech.io`;

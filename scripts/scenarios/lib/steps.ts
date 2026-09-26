@@ -10,10 +10,14 @@
 import { READ_ONLY_ACTIONS, type QaActionName, type QaResponse, idempotencyKeyOf } from "@legajo/bff/qa-driver/contract";
 import type { QaInput } from "@legajo/bff/qa-driver/contract-inputs";
 import type { QaSnapshot } from "@legajo/bff/qa-driver/snapshot";
+import { type ConsoleAction, checkedConsoleAction } from "./console";
 import type { DriverClient } from "./driver-client";
 import { WAITS, eventually } from "./eventually";
 
 export type Suite = "smoke" | "full";
+
+/** An action's input as a scenario writes it: the `console` action typed per procedure (lib/console.ts). */
+export type ScenarioQaInput<A extends QaActionName> = A extends "console" ? ConsoleAction : QaInput<A>;
 export type BlockOrigin = "PREFILTER" | "HARNESS_G1" | "CEDAR" | "LAMBDA_FENCE" | "OUTBOUND_VERIFY" | "MODEL_REFUSAL" | "NONE";
 
 export interface StepDef {
@@ -84,11 +88,11 @@ export interface ScenarioContext {
   readonly state: Record<string, unknown>;
   /** Results of the scenarios that ran before (SC-20 aggregates their policy audits). */
   readonly previous: readonly { readonly scenario: string; readonly violations: number; readonly unaudited: number }[];
-  qa<A extends QaActionName>(action: A, input: QaInput<A>): Promise<any>;
+  qa<A extends QaActionName>(action: A, input: ScenarioQaInput<A>): Promise<any>;
   /** Idempotency key of the last call of this step (a later step may replay a platform event with it). */
   lastKey(): string | undefined;
   /** The driver's answer as it is, for an expected refusal. */
-  attempt<A extends QaActionName>(action: A, input: QaInput<A>): Promise<QaResponse<any>>;
+  attempt<A extends QaActionName>(action: A, input: ScenarioQaInput<A>): Promise<QaResponse<any>>;
   snapshot(operationId: string): Promise<QaSnapshot>;
   /** `op.settle` and a snapshot: the only snapshot negatives and exact counts accept. */
   settled(operationId: string, timeoutSec?: number): Promise<QaSnapshot>;
@@ -104,6 +108,14 @@ export interface ScenarioContext {
   blocked(origin: BlockOrigin, detail: string): void;
   note(name: string, value: string): void;
   warn(message: string): void;
+}
+
+function consoleInput(action: ConsoleAction): ConsoleAction {
+  try {
+    return checkedConsoleAction(action);
+  } catch (error) {
+    throw new ScenarioBug(`the input of console.${action.procedure} is not the procedure's: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 export interface ContextOptions {
@@ -123,7 +135,8 @@ export function stepContext(options: ContextOptions, step: number, record: StepR
   // Snapshot → the number of changing calls when it was taken after a settle.
   const settledAt = new WeakMap<object, number>();
 
-  async function call<A extends QaActionName>(action: A, input: QaInput<A>): Promise<QaResponse<any>> {
+  async function call<A extends QaActionName>(action: A, written: ScenarioQaInput<A>): Promise<QaResponse<any>> {
+    const input = (action === "console" ? consoleInput(written as ConsoleAction) : written) as QaInput<A>;
     const changing = !READ_ONLY_ACTIONS.has(action) && !(action === "console" && /\.(?:get|list|timeline|summary|violations|decisionsByRule|export|threads)$/.test((input as { procedure?: string }).procedure ?? ""));
     const label = changing ? `m${++changes}` : `r${++reads}`;
     const key = idempotencyKeyOf({ runId: options.runId, scenario: options.scenario.slug, step, label });

@@ -19,7 +19,7 @@ const toImporter: NewEntity<typeof Message> = {
   channel: "WHATSAPP",
   kind: "DOCS_REQUEST",
   counterpart: "IMPORTER",
-  importerId: "imp-sc01a",
+  importerId: "imp-qa-812-1-sc01-a",
   to: "+5491155590001",
   from: "simulated",
   body: "Operación 7001: faltan documentos.",
@@ -87,8 +87,8 @@ describe("QaDriver actions over stored state", () => {
   it("expires the last upload link and the last nonce of a button, only in a qa-* world", async () => {
     const { driver, stores } = await setup();
     await stores.connector.conversations.appendMessage(toImporter);
-    await stores.connector.runtime.putUploadLink({ token: TOKEN, operationId: "op-7001", importerId: "imp-sc01a", firmId: "firm-qa", clockId: QA_CLOCK, docTypes: ["PACKING_LIST"], createdAtReal: REAL_NOW, expiresAtReal: "2026-09-29T15:00:00.000Z" });
-    await stores.connector.runtime.putNonce({ nonce: "nonce-supplier-01", action: "SUPPLIER_SENDS", operationId: "op-7001", importerId: "imp-sc01a", phoneHash: "b".repeat(64), clockId: QA_CLOCK });
+    await stores.connector.runtime.putUploadLink({ token: TOKEN, operationId: "op-7001", importerId: "imp-qa-812-1-sc01-a", firmId: "firm-qa", clockId: QA_CLOCK, docTypes: ["PACKING_LIST"], createdAtReal: REAL_NOW, expiresAtReal: "2026-09-29T15:00:00.000Z" });
+    await stores.connector.runtime.putNonce({ nonce: "nonce-supplier-01", action: "SUPPLIER_SENDS", operationId: "op-7001", importerId: "imp-qa-812-1-sc01-a", phoneHash: "b".repeat(64), clockId: QA_CLOCK });
     expect(await driver({ action: "link.expire", idempotencyKey: key(4), input: { operationId: "op-7001" } })).toMatchObject({ ok: true });
     expect((await stores.connector.runtime.getUploadLink(TOKEN))?.expiresAtReal).toBe("2026-09-26T14:59:59.000Z");
     expect(await driver({ action: "nonce.expire", idempotencyKey: key(4, "b"), input: { operationId: "op-7001", action: "SUPPLIER_SENDS" } })).toMatchObject({ ok: true });
@@ -119,9 +119,9 @@ describe("QaDriver actions over stored state", () => {
       },
     };
     const { driver } = await setup({ memory });
-    expect(await driver({ action: "memory.inspect", idempotencyKey: key(6), input: { operationId: "op-7001" } })).toMatchObject({ ok: true, result: { actorId: "imp-sc01a-e1", records: [] } });
-    expect(seen).toContain(`/importers/imp-sc01a-e1/${"s".repeat(48)}/summary/`);
-    expect(await driver({ action: "memory.inspect", idempotencyKey: key(6, "b"), input: { actorId: "imp-sc01a-e1" } })).toMatchObject({ ok: false, error: { code: "INVALID" } });
+    expect(await driver({ action: "memory.inspect", idempotencyKey: key(6), input: { operationId: "op-7001" } })).toMatchObject({ ok: true, result: { actorId: "imp-qa-812-1-sc01-a-e1", records: [] } });
+    expect(seen).toContain(`/importers/imp-qa-812-1-sc01-a-e1/${"s".repeat(48)}/summary/`);
+    expect(await driver({ action: "memory.inspect", idempotencyKey: key(6, "b"), input: { actorId: "imp-qa-812-1-sc01-a-e1" } })).toMatchObject({ ok: false, error: { code: "INVALID" } });
   });
 
   it("resolves the nonce of the last button and derives the wamid before handing the message to the channel", async () => {

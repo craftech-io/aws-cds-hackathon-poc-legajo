@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { ConnectorError } from "@legajo/shared";
 import { START_SIM } from "../connector/testing";
 import { otherSessionOf } from "./account";
 import { DIEGO, SUBS, consoleWorld, principalOf } from "./testing";
@@ -47,6 +48,35 @@ describe("account router", () => {
     now = new Date("2026-09-26T14:59:00.000Z");
     await world.caller(judge("jti-a")).clock.get({});
     expect((await world.stores.connector.world.getClock(JUDGE_CLOCK)).lastSession).toMatchObject({ originJti: "jti-b", lastActiveAtReal: "2026-09-26T15:00:00.000Z" });
+  });
+
+  it("[FL-079] keeps the notice when the sign-in's own write loses the race on the clock's version", async () => {
+    let now = new Date("2026-09-26T15:00:00.000Z");
+    const world = await consoleWorld({ wallClock: () => now, judgeWorld: true });
+    await world.caller(judge("jti-a")).account.session();
+    now = new Date("2026-09-26T15:10:00.000Z");
+    const conflict = vi.spyOn(world.stores.connector.world, "updateClock").mockRejectedValue(new ConnectorError("CONFLICT", "version moved"));
+    expect((await world.caller(judge("jti-b")).account.session()).otherSession).toEqual({ lastActiveAtReal: "2026-09-26T15:00:00.000Z", minutesAgo: 10 });
+    conflict.mockRestore();
+  });
+
+  it("[FL-079] answers the notice to every concurrent and repeated check of the same sign-in", async () => {
+    let now = new Date("2026-09-26T15:00:00.000Z");
+    const world = await consoleWorld({ wallClock: () => now, judgeWorld: true });
+    await world.caller(judge("jti-a")).account.session();
+    now = new Date("2026-09-26T15:05:00.000Z");
+    const second = world.caller(judge("jti-b"));
+    // The shell's first batch: the sign-in check twice (StrictMode) and a clock read, all at once.
+    const [first, doubled] = await Promise.all([second.account.session(), second.account.session(), second.clock.get({})]);
+    const notice = { lastActiveAtReal: "2026-09-26T15:00:00.000Z", minutesAgo: 5 };
+    expect(first.otherSession).toEqual(notice);
+    expect(doubled.otherSession).toEqual(notice);
+    expect((await second.account.session()).otherSession).toEqual(notice);
+    expect((await world.stores.connector.world.getClock(JUDGE_CLOCK)).lastSession).toMatchObject({ originJti: "jti-b", previous: { originJti: "jti-a" } });
+    // The first session is told about the second one, and nobody past two idle hours.
+    expect((await world.caller(judge("jti-a")).account.session()).otherSession).toEqual({ lastActiveAtReal: "2026-09-26T15:05:00.000Z", minutesAgo: 0 });
+    now = new Date("2026-09-26T17:06:00.000Z");
+    expect((await second.account.session()).otherSession).toBeNull();
   });
 
   it("[FL-079] says so when the judge world does not exist yet", async () => {

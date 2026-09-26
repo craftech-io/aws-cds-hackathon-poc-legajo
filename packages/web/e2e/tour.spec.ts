@@ -61,12 +61,9 @@ test.describe("the guided tour against the real world of a judge", () => {
     await expectNoRawCodes(page);
   });
 
-  // Fixme until `account.session` tolerates concurrent writers of `lastSession`: the shell's first
-  // batch carries `clock.get` and `account.session` (twice under React's StrictMode), their writes race
-  // on the clock's version, and `touchJudgeSession` turns the lost race into a CONFLICT for the call
-  // whose answer the shell keeps, so the notice it computed never shows
-  // (packages/bff/src/routers/{account,judge-activity}.ts, WP-33).
-  test.fixme("a second session on the same judge world gets the fixed notice, without a reset", async ({ page, browser }) => {
+  // The shell's first batch carries `clock.get` and `account.session` (twice under React's StrictMode):
+  // their writes race on the clock's version, and the notice must survive the race (FL-079).
+  test("a second session on the same judge world gets the fixed notice, without a reset", async ({ page, browser }) => {
     await plantSession(page, "judge", { signedInAgo: 3_600 });
     const recorded = page.waitForResponse((response) => response.url().includes("account.session") && response.ok());
     await page.goto("/app/operations");

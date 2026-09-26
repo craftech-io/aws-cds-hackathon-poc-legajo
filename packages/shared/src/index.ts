@@ -229,3 +229,29 @@ export {
   toToolFailure,
 } from "./errors";
 export type { ErrorReason, ToolErrorShape, ToolFailure, ToolOk, ToolResult } from "./errors";
+
+export {
+  AuthorizationSetInput,
+  CONSOLE_CHANGE_INPUTS,
+  CONSOLE_REASON_MAX,
+  CONSOLE_TEXT_MAX,
+  ClassifyDocumentInput,
+  ClockResetInput,
+  ConsentRecordInput,
+  ConsentRevokeInput,
+  ContactConfirmInput,
+  ContactUpsertInput,
+  ConversationControlInput,
+  ConversationSendInput,
+  CountryCodeInput,
+  DossierApproveInput,
+  DossierReopenInput,
+  E164Phone,
+  EmailInput,
+  ImporterUpsertInput,
+  SupplierBehaviourSetInput,
+  SupplierUpsertInput,
+  WaiveObservationInput,
+  isConsoleChangePath,
+} from "./console-inputs";
+export type { ConsoleChangeInputs, ConsoleChangePath } from "./console-inputs";

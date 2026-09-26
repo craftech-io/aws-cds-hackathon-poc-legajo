@@ -1,15 +1,14 @@
 // Pure rules of the registry (FL-001, FL-003, FL-004, FL-006, FL-088): how the opt-in and the
 // authorizations of an importer read, which suppliers an importer works with, what the forms send
-// (validated with the same schemas as registry-api.ts) and the refusal texts of the fence and of a
+// (validated with the same shared schemas as registry-api.ts) and the refusal texts of the fence and of a
 // duplicated phone or email. No React here: registry-model.test.ts covers it.
-import { DocType } from "@legajo/shared";
+import { CountryCodeInput, DocType, E164Phone, EmailInput } from "@legajo/shared";
 import { z } from "zod";
 import { dataCopy } from "../../copy/console-data";
 import type { ApiError } from "../../lib/api-error";
 import { formatNumber, formatSimDateTime } from "../../lib/format";
 import type { RouterOutputs } from "../../lib/trpc-router";
 import { DOC_TYPE_LABELS, MEDIUM_LABELS, registryCopy } from "./copy";
-import { CountryCode, E164, Email } from "./registry-api";
 
 export type ImporterRow = RouterOutputs["registry"]["importers"]["list"]["importers"][number];
 export type SupplierRow = RouterOutputs["registry"]["suppliers"]["list"]["suppliers"][number];
@@ -91,11 +90,11 @@ export function registryErrorText(error: ApiError): string {
 }
 
 export function isE164(value: string): boolean {
-  return E164.safeParse(value.trim()).success;
+  return E164Phone.safeParse(value.trim()).success;
 }
 
 export function isCountryCode(value: string): boolean {
-  return CountryCode.safeParse(value.trim()).success;
+  return CountryCodeInput.safeParse(value.trim()).success;
 }
 
 /** Whether the zone exists (IANA name the runtime knows). */
@@ -113,7 +112,7 @@ export function isTimeZone(value: string): boolean {
 /** The contacts textarea: one address per line, blanks ignored, duplicates once; `undefined` when one is invalid. */
 export function parseContactLines(text: string): string[] | undefined {
   const lines = [...new Set(text.split(/\r?\n/).map((line) => line.trim().toLowerCase()).filter((line) => line !== ""))];
-  const parsed = lines.map((line) => Email.safeParse(line));
+  const parsed = lines.map((line) => EmailInput.safeParse(line));
   return parsed.every((result) => result.success) ? lines : undefined;
 }
 

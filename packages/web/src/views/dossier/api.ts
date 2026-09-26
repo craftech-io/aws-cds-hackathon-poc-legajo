@@ -1,9 +1,10 @@
 // Calls of the dossier view (docs/tool-catalog.md "Procedimientos de la consola"). The reads
 // (`operations.get`, `operations.timeline`, `operations.documentUrl`, `audit.list`) are typed by the
-// BFF's router. The actions of the `dossier` and `conversation` routers are called by name with the
-// inputs below and their answers validated with zod: the view only needs to know they succeeded and
-// reads the dossier again. Every id travels as the router gets it; the firm comes from the token.
-import { DocType, DocVersionId, ObservationId, OperationId } from "@legajo/shared";
+// BFF's router. The actions of the `dossier` and `conversation` routers are called by name, each
+// input validated with the one schema of its procedure (@legajo/shared console-inputs, the same the
+// scenarios and the BFF router use), and their answers with zod: the view only needs to know they
+// succeeded and reads the dossier again. Every id travels as the router gets it; the firm comes from the token.
+import { CONSOLE_CHANGE_INPUTS, type ConsoleChangeInputs, type ConsoleChangePath, type DocType, DocVersionId, OperationId } from "@legajo/shared";
 import { getUntypedClient } from "@trpc/client";
 import { z } from "zod";
 import type { ConsoleClient } from "../../lib/trpc";
@@ -59,20 +60,22 @@ export type DossierAction =
   | { readonly type: "sendText"; readonly operationId: string; readonly text: string }
   | { readonly type: "sendTemplate"; readonly operationId: string; readonly template: BrokerTemplate };
 
-/** Procedure and input of each action; ids are validated before they leave the browser. */
-export function actionRequest(action: DossierAction): { readonly path: string; readonly input: Readonly<Record<string, unknown>> } {
-  const operationId = OperationId.parse(action.operationId);
+type DossierPath = Extract<ConsoleChangePath, `dossier.${string}` | `conversation.${string}`>;
+type Request = { readonly [P in DossierPath]: { readonly path: P; readonly input: ConsoleChangeInputs[P] } }[DossierPath];
+
+function requestOf(action: DossierAction): Request {
+  const { operationId } = action;
   switch (action.type) {
     case "approve":
       return { path: "dossier.approve", input: { operationId } };
     case "reopen":
       return { path: "dossier.reopen", input: { operationId, reason: action.reason } };
     case "waive":
-      return { path: "dossier.waiveObservation", input: { operationId, observationId: ObservationId.parse(action.observationId), reason: action.reason } };
+      return { path: "dossier.waiveObservation", input: { operationId, observationId: action.observationId, reason: action.reason } };
     case "classify":
-      return { path: "dossier.classifyDocument", input: { operationId, docVersionId: DocVersionId.parse(action.docVersionId), outcome: "CLASSIFY", docType: DocType.parse(action.docType) } };
+      return { path: "dossier.classifyDocument", input: { operationId, docVersionId: action.docVersionId, outcome: "CLASSIFY", docType: action.docType } };
     case "discard":
-      return { path: "dossier.classifyDocument", input: { operationId, docVersionId: DocVersionId.parse(action.docVersionId), outcome: "DISCARD" } };
+      return { path: "dossier.classifyDocument", input: { operationId, docVersionId: action.docVersionId, outcome: "DISCARD" } };
     case "take":
       return { path: "conversation.take", input: { operationId } };
     case "release":
@@ -82,6 +85,12 @@ export function actionRequest(action: DossierAction): { readonly path: string; r
     case "sendTemplate":
       return { path: "conversation.send", input: { operationId, template: action.template } };
   }
+}
+
+/** Procedure and input of each action; ids and fields are validated before they leave the browser. */
+export function actionRequest(action: DossierAction): { readonly path: string; readonly input: Readonly<Record<string, unknown>> } {
+  const { path, input } = requestOf(action);
+  return { path, input: CONSOLE_CHANGE_INPUTS[path].parse(input) as Readonly<Record<string, unknown>> };
 }
 
 export function runDossierAction(trpc: ConsoleClient, action: DossierAction): Promise<void> {
