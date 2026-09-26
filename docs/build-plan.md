@@ -5,7 +5,7 @@ Paquetes de trabajo (WP) para construir con agentes en paralelo. Deriva de `docs
 Reglas del plan:
 
 - Cada WP tiene **un** agente dueño (`devops`, `typescript-dev`, `seed-generator` o `qa`) y una lista **exacta** de archivos y directorios que solo él toca durante su ola. **Dos WP de la misma ola nunca comparten un archivo**: `npm run lint:wp-ownership` (`scripts/lint/wp-ownership.ts`) parsea las listas de este documento y falla si dos WP de una ola se superponen. Un WP puede leer cualquier cosa.
-- Entre olas hay dependencia: una ola arranca cuando la anterior está mergeada a `main`, desplegada por CI y con su smoke en verde: el interino (`scripts/smoke/interim.ts`: `curl` de `/` y `/api/health` y `describe` de lo que ya existe) hasta que exista `SC-00` (WP-37), `SC-00` después.
+- Entre olas hay dependencia: una ola arranca cuando la anterior está mergeada a `main`, desplegada por CI y con su smoke en verde: el interino (`scripts/smoke/interim.ts`: `curl` de `/` y `/api/health` y `describe` de lo que ya existe) hasta que exista `SC-00` (WP-37), `SC-00` después. El estado de cada ola se declara en §5 y lo verifica `npm run lint`.
 - Cada WP entra en una sesión de un agente: si un WP no cierra en una sesión, se parte en la ola siguiente, no se estira.
 - Un WP de infra que apunta a un handler que todavía no existe crea ese archivo con un **stub** que devuelve `UNAVAILABLE`; el WP dueño del código lo reemplaza en su ola.
 - `security` revisa la rama al cierre de cada ola (lo que toque IAM, secretos, canales, datos o superficies públicas); `qa` verifica los criterios de aceptación antes de dar un WP por hecho. Ninguna ola se mergea sin las dos.
@@ -49,7 +49,7 @@ Reglas del plan:
 │       ├── public/{brand,landing,legal}/
 │       └── e2e/ (Playwright)
 ├── scripts/
-│   ├── lint/{max-lines,duplicates,typecheck-infra,forbidden-terms,wp-ownership,no-intl}.ts · flows/check.ts · reader/contract-check.ts · tour/{check,timeline}.ts
+│   ├── lint/{max-lines,duplicates,typecheck-infra,forbidden-terms,wp-ownership,no-intl,wave-status}.ts · flows/check.ts · reader/contract-check.ts · tour/{check,timeline}.ts
 │   ├── channels/{check-modes,whatsapp-templates,waba-event-destination}.ts · console/invite.ts · smoke/interim.ts · metrics/batch-local.ts
 │   ├── seed/{generate.ts,generate/,validate.ts,validate/,load.ts,load/,lib/,data/,pdfs/,overrides.example.json,__tests__/}
 │   ├── scenarios/{run.ts,lib/,sc-00-smoke.ts … sc-24-judge.ts,load-light.ts}
@@ -256,3 +256,17 @@ Ningún archivo aparece en dos WP de la misma ola (`npm run lint:wp-ownership`).
 | `packages/web/src/components/**`, `e2e/support/**`, claves compartidas de `copy/` | WP-12 | Congelados desde el cierre de la ola 4 (§1 nota 7) |
 
 El integrador de cada ola (`devops`) solo toca `package.json`, `package-lock.json` y `sst-env.d.ts` regenerados.
+
+## 5. Estado de las olas
+
+Una ola se declara `aceptada` solo cuando cumple la regla de entrada del plan para la siguiente: mergeada a `main`, desplegada por CI y con su smoke en verde, con `security` y `qa` cerrados. `npm run lint` corre `scripts/lint/wave-status.ts`, que falla si una ola figura `aceptada` y todavía tiene un bloqueo: una ola anterior no aceptada, un archivo de sus WP que no existe, un marcador pendiente en un archivo suyo (`it.todo`, `test.fixme`, stub de WP-02, puerto sin cablear por defecto en código productivo) o ningún deploy registrado (`sst-env.d.ts` sin recursos).
+
+| Ola | Estado | Qué falta para aceptarla |
+|---|---|---|
+| Ola 0 | `no aceptada` | Primer deploy de `poc` por CI con el smoke interino en verde (`sst-env.d.ts` sigue sin recursos). |
+| Ola 1 | `no aceptada` | Deploy por CI y smoke interino en verde; depende de la ola 0. |
+| Ola 2 | `no iniciada` | Ningún commit: faltan seed (`scripts/seed/generate/**`), política, canales, agente, tools y cola. |
+| Ola 3 | `no iniciada` | Ningún commit: faltan salida, intake, reloj, turnos y worker, entradas, `SimMail` y el `infra/bff.ts` real (sigue el stub de WP-02, sin `QaDriver`, `Bff`, `PublicWeb`, `PolicyAudit` ni `WorldJanitor`). |
+| Ola 4 | `no aceptada` | Arrancó sin las olas 2 y 3; le faltan el loader del seed, routers y los scripts de WhatsApp. |
+| Ola 5 | `no aceptada` | Arrancó sin las olas 2 y 3: el `QaDriver` usa puertos sin cablear por defecto (`NOT_WIRED` en `world.create`, reloj, `wa.inbound`, `email.inject`, `supplier.sendNow`, `event.poison`, `fence.probe`, `batch.run`), el lote de métricas usa el corredor sin cablear, `tests/flows` conserva `it.todo`, `packages/web/e2e` conserva `test.fixme` y `SC-00` nunca corrió contra `poc`. Se acepta después de mergear y desplegar las olas 2 y 3, cablear los puertos reales y convertir esos pendientes en pruebas. |
+| Ola 6 | `no iniciada` | Depende de las olas 0 a 5. |

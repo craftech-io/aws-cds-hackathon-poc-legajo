@@ -3,7 +3,7 @@
 // bytes for the same seed. The generator formats dates and numbers with its own tested helpers.
 //
 //   npm run lint   (runs max-lines, then this)
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -26,6 +26,11 @@ export function findIntlUsages(file: string, source: string): IntlUsage[] {
     if (FORBIDDEN.test(text)) usages.push({ file, line: index + 1 });
   });
   return usages;
+}
+
+/** Deterministic roots that do not exist yet: they are reported as unchecked, never as a clean pass. */
+export function missingRoots(exists: (path: string) => boolean, roots: readonly string[] = DETERMINISTIC_ROOTS): string[] {
+  return roots.filter((root) => !exists(root));
 }
 
 function walk(path: string, out: string[]): void {
@@ -52,7 +57,9 @@ function main(): void {
     for (const { file, line } of usages) console.error(`  ${file}:${line}`);
     process.exit(1);
   }
-  console.log(`no-intl: ${files.length} file(s) checked, no Intl or toLocale*.`);
+  const missing = missingRoots((root) => existsSync(join(cwd, root)));
+  const unchecked = missing.length > 0 ? `; not built yet, unchecked: ${missing.join(", ")} (docs/build-plan.md §5)` : "";
+  console.log(`no-intl: ${files.length} file(s) checked, no Intl or toLocale*${unchecked}.`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

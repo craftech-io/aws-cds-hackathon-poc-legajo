@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findIntlUsages } from "./no-intl";
+import { DETERMINISTIC_ROOTS, findIntlUsages, missingRoots } from "./no-intl";
 
 describe("no-intl", () => {
   it("flags Intl and toLocale* calls with their line", () => {
@@ -19,5 +19,11 @@ describe("no-intl", () => {
   it("ignores comments and identifiers that only contain the word", () => {
     const source = ["// never use Intl here", " * nor toLocaleString()", "const international = 1;", "const IntlFree = 2;"].join("\n");
     expect(findIntlUsages("gen.ts", source)).toEqual([]);
+  });
+
+  it("reports a deterministic root that does not exist instead of passing it as checked", () => {
+    expect(missingRoots(() => false)).toEqual(DETERMINISTIC_ROOTS);
+    expect(missingRoots((root) => root === "scripts/seed/generate")).toEqual([]);
+    expect(missingRoots((root) => root === "a", ["a", "b"])).toEqual(["b"]);
   });
 });
