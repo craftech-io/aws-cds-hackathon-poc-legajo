@@ -77,6 +77,13 @@ describe("citations", () => {
     expect(report.pending).toContain("FL-002 SMK/3");
   });
 
+  it("keeps a flow a cited file only declares with [FL-xxx:pending] as pending, never as covered", () => {
+    const flows = parseCatalog(CATALOG);
+    const report = checkCitations(flows, files({ "packages/bff/src/routers/registry.test.ts": 'it.todo("[FL-001:pending] registry.importers.upsert with consent.record")' }));
+    expect(report.errors).toEqual([]);
+    expect(report.pending).toContain("FL-001 U packages/bff/src/routers/registry.test.ts (declared pending)");
+  });
+
   it("accepts a tagged test and a scenario step that lists the flow", () => {
     const flows = parseCatalog(CATALOG);
     const report = checkCitations(

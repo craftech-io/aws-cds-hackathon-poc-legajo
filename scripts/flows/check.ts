@@ -7,7 +7,10 @@
 //   2. Every test file a flow cites that exists must carry the flow's `[FL-xxx]` tag, and every
 //      scenario file a flow cites that exists must list the flow in a `flows: [...]` step.
 //   3. A cited file that does not exist yet is pending and only reported, because the plan builds
-//      them wave by wave; `--strict` (the "100 % probada" gate, WP-42) fails on it.
+//      them wave by wave; `--strict` (the "100 % probada" gate, WP-42) fails on it. So is a cited
+//      file that exists but only declares the flow with `it.todo("[FL-xxx:pending] …")`: the tag
+//      goes on a test only when it drives the flow's own procedure and asserts its expected state,
+//      never on a read that finds state seeded straight through the connector.
 //
 //   npm run flows:check [-- --write] [-- --strict]
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -128,8 +131,14 @@ export function checkCitations(flows: readonly Flow[], files: FileAccess): Citat
     for (const level of ["U", "LF", "UI"] as const) {
       for (const cited of flow.tests[level]) {
         const path = resolveTestPath(level, cited);
-        if (!files.exists(path)) pending.push(`${flow.id} ${level} ${path}`);
-        else if (!files.read(path).includes(`[${flow.id}]`)) errors.push(`${flow.id}: ${path} has no test tagged [${flow.id}]`);
+        if (!files.exists(path)) {
+          pending.push(`${flow.id} ${level} ${path}`);
+          continue;
+        }
+        const source = files.read(path);
+        if (source.includes(`[${flow.id}]`)) continue;
+        if (source.includes(`[${flow.id}:pending]`)) pending.push(`${flow.id} ${level} ${path} (declared pending)`);
+        else errors.push(`${flow.id}: ${path} has no test tagged [${flow.id}]`);
       }
     }
     for (const step of [...flow.tests.SR, ...flow.tests.SMK]) {

@@ -9,7 +9,11 @@ describe("operations router", () => {
     world = await consoleWorld();
   });
 
-  it("[FL-080] [FL-005] lists the operations of the firm's world with documents, escalations and the process-error flag (a new operation shows OPEN with its 3 documents MISSING)", async () => {
+  // FL-005 needs operations.create (create_operation, WP-43) and schedule_milestones (WP-27): the
+  // list below reads a seeded operation, so it covers FL-080 only.
+  it.todo("[FL-005:pending] operations.create: META, 3 DOC#, 5 TIMER#MILESTONE# SCHEDULED at ETA - 7 d 10:00, - 5 d, - 3 d, - 48 h and ETA");
+
+  it("[FL-080] lists the operations of the firm's world with documents, escalations and the process-error flag (a new operation shows OPEN with its 3 documents MISSING)", async () => {
     const { operations, world: state } = world.stores.connector;
     await operations.openEscalation({ operationId: "op-4471", firmId: FIRM, clockId: CLOCK, reason: "OTHER", summary: "Revisar", openedAtSim: START_SIM, openedBy: "AGENT" });
     await state.recordProcessError({ operationId: "op-4471", clockId: CLOCK, eventId: "evt-1", type: "AGENT_TURN", atReal: REAL_NOW });
