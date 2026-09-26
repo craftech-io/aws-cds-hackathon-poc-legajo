@@ -212,7 +212,7 @@ Convenciones:
 ### FL-028 · El proveedor no responde (o responde tarde)
 - Actores: proveedor (`NEVER` / `LATE`), agente · Canal: email, WhatsApp · Disparador: hitos `FOLLOWUP` y `FOLLOWUP_FINAL`.
 - Pasos: 1) `FOLLOWUP`: `send_email REMINDER` en el hilo + `send_whatsapp` al importador si el importador tiene algo pendiente. 2) `LATE`: la respuesta llega después y sigue FL-021/022 sin recordatorios duplicados.
-- Estado esperado: un `REMINDER` por contacto por día; `lastReminderAt`.
+- Estado esperado: un `REMINDER` por contacto por día; `lastReminderAt`. En las plantillas `judge` y `demo-firm-delta`, `op-4478` ya trae el `REMINDER` del `FOLLOWUP` del 14/10 10:00 (15:00 en Roma, antes del inicio del mundo; `docs/seed-spec.md` §3), que el escalamiento cita entre los intentos.
 - Reglas: `CP-ONE-PER-DAY`, `CP-HOURS-SUPPLIER`.
 - Prueba: LF `supplier.flow.test.ts` · SR `SC-06/1..3`, `SC-06/9`. Notas: `SC-06/9`: clon de `op-4475` (`LATE`).
 

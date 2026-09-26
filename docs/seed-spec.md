@@ -53,7 +53,7 @@ Teléfonos ficticios: importadores de Delta `+54 9 11 5550 01xx`, de Norte `+54 
 | Operación | Estado de sus hitos al inicio |
 |---|---|
 | `op-4471` | Los 5 `SCHEDULED`: `DOCS_REQUEST` 15/10 10:00, `FOLLOWUP` 17/10 10:00, `FOLLOWUP_FINAL` 19/10 10:00, `ESCALATION` 20/10 08:00, `ARRIVAL` 22/10 08:00 |
-| `op-4478` | `DOCS_REQUEST` 12/10 10:00 y `FOLLOWUP` 14/10 10:00 `FIRED` (`firedBy CLOCK`) con sus mensajes históricos; `FOLLOWUP_FINAL` 16/10 10:00, `ESCALATION` 17/10 08:00 y `ARRIVAL` 19/10 08:00 `SCHEDULED` |
+| `op-4478` | `DOCS_REQUEST` 12/10 10:00 y `FOLLOWUP` 14/10 10:00 `FIRED` (`firedBy CLOCK`) con sus mensajes históricos, cada uno con la hora en que la política lo deja salir (invariante 10): el 12/10 es feriado en Argentina, así que la plantilla `legajo_docs_pendientes` quedó `DEFERRED` (`CP-HOURS-AR`) y salió el mar 13/10 09:00 por su `TIMER#DEFERRED_SEND` (`FIRED`); el importador contestó "Los manda el proveedor", confirmó el contacto y el `DOCS_REQUEST` al proveedor salió el 13/10 a las 09:2x (14:2x en Roma); el `REMINDER` del `FOLLOWUP` salió el 14/10 10:00 (15:00 en Roma). El proveedor está en Europe/Rome justamente para que ningún envío de la 4478 anterior al inicio quede diferido más allá de las 10:30 del 14/10 ni deje un temporizador en la ventana del recorrido (invariante 21). `FOLLOWUP_FINAL` 16/10 10:00, `ESCALATION` 17/10 08:00 y `ARRIVAL` 19/10 08:00 `SCHEDULED` |
 | `op-4474`, `op-4477` y el resto de las abiertas de Delta | Los 5 `SCHEDULED` (el primero es el `DOCS_REQUEST` de 4472 y 4473, el 16/10 10:00; en `judge`, el de 4474, el 17/10 10:00) |
 | `READY_FOR_REVIEW` y `APPROVED` (`op-4488`, `op-4487`; en Norte `op-5505`) | **Ningún hito `SCHEDULED`**: los anteriores al inicio `FIRED` con su historia y los demás `SKIPPED` con `reason DOSSIER_COMPLETE` (`ARRIVAL` incluido: la 4487 llega el 16/10 07:00 y no debe cortar el recorrido) |
 | Liberadas (`op-4489`) | Todos `FIRED` o `CANCELLED` (`LIBERADO` cierra los temporizadores) |
@@ -88,7 +88,7 @@ Las filas `BROKER#` se siembran con `cognitoSub` vacío; `console:invite` lo com
 
 | Id | Razón social (ficticia) | Contacto | Estudio | Opt-in WhatsApp | Autorizaciones de contacto con proveedor | Flujos |
 |---|---|---|---|---|---|---|
-| `imp-norpampa` | Norpampa Insumos SRL | Lucía Benítez | Delta | Sí (2026-09-30, `SIGNED_FORM`, texto v1) | `sup-qingdao`, `sup-gulfbay`, `sup-santosverde` | Guion, FL-007..012, 021..023, 066 |
+| `imp-norpampa` | Norpampa Insumos SRL | Lucía Benítez | Delta | Sí (2026-09-30, `SIGNED_FORM`, texto v1) | `sup-qingdao`, `sup-ligurmare`, `sup-santosverde` | Guion, FL-007..012, 021..023, 066 |
 | `imp-cuyo` | Vientos de Cuyo SA | Andrés Molina | Delta | Sí | `sup-evergrow` (no `sup-elbhafen`) | FL-013, 024, 039 |
 | `imp-litoral` | Litoral Hogar SRL | Carla Ruiz | Delta | **No** | `sup-shenzhen` | FL-002 |
 | `imp-patagonia` | Patagonia Frío SA | Tomás Quiroga | Delta | Sí | `sup-konkan`, `sup-saigon`, `sup-maasvlakte` | FL-019, 029, 030, 031 |
@@ -107,7 +107,7 @@ Todos escriben en inglés (`language: en`); los textos del simulador están en `
 | `sup-shenzhen` | Shenzhen Brightpath Electronics Co. | CN | Asia/Shanghai | `supplier-shenzhen@sim…` | `PROMPT` | — |
 | `sup-saigon` | Saigon Riverline Furniture JSC | VN | Asia/Ho_Chi_Minh | `supplier-saigon@sim…` | `LATE` | `delayHours: 30` |
 | `sup-elbhafen` | Elbhafen Tools GmbH | DE | Europe/Berlin | `supplier-elbhafen@sim…` | `PROMPT` | — |
-| `sup-gulfbay` | Gulfbay Industrial Supply LLC | US | America/Chicago | `supplier-gulfbay@sim…` | `NEVER` | — |
+| `sup-ligurmare` | Ligurmare Valve Works S.r.l. | IT | Europe/Rome | `supplier-ligurmare@sim…` | `NEVER` | — |
 | `sup-konkan` | Konkan Chemicals Pvt Ltd | IN | Asia/Kolkata | `bounce@simulator.amazonses.com` | `BOUNCE` | Contacto alternativo que conoce el importador: `supplier-konkan-ops@sim…` (no registrado) |
 | `sup-bosphorus` | Bosphorus Kitchenware A.S. | TR | Europe/Istanbul | `supplier-bosphorus@sim…` | `WRONG_DOC` | — |
 | `sup-busan` | Busan Coastal Parts Co. | KR | Asia/Seoul | `supplier-busan@sim…` | `UNKNOWN_DOC` | — |
@@ -132,7 +132,7 @@ Todas: régimen "Importación para consumo", puerto de destino Buenos Aires, tra
 | `op-4475` | Delta | `imp-patagonia` | `sup-saigon` | Austral Meridian | 27/10 06:00 | `SRF-0412` FOB Ho Chi Minh | M/M/M | — | FL-019, 028 (tarde) |
 | `op-4476` | Delta | `imp-sierras` | `sup-bosphorus` | Río Sur Tern | 26/10 09:00 | `BKW-3318` FOB Estambul | V/M/M | — (manda el documento equivocado) | FL-025 |
 | `op-4477` | Delta | `imp-riberas` | `sup-busan` | Pacifica Dawn | 27/10 08:00 | `BCP-77120` FOB Busan | M/M/M | — (manda un PDF desconocido) | FL-026 |
-| `op-4478` | Delta | `imp-norpampa` | `sup-gulfbay` | Austral Aurora | 19/10 08:00 | `GIS-1190` FOB Houston | V/M/M | — (no responde) | FL-028, 066, 071 |
+| `op-4478` | Delta | `imp-norpampa` | `sup-ligurmare` | Austral Aurora | 19/10 08:00 | `LVW-1190` FOB Génova | V/M/M | — (no responde) | FL-028, 066, 071 |
 | `op-4479` | Delta | `imp-cuyo` | `sup-evergrow` | Pacifica Dawn | 28/10 07:00 | `GEP-24-0981` FOB Guangzhou | V/V/M | CO v1 y v2 `INVOICE_NUMBER_MISMATCH` (SUPPLIER) | FL-024 |
 | `op-4480` | Delta | `imp-sierras` | `sup-levante` | Austral Meridian | 29/10 06:00 | `LC-2026-4410` FOB Valencia | V/M/M | — (promete) | FL-027 |
 | `op-4481` | Delta | `imp-riberas` | `sup-ningbo` | Pacifica Horizon | 30/10 07:00 | `NHL-8812` FOB Ningbo | M/M/M | — (auto-respuesta) | FL-032 |
@@ -156,7 +156,7 @@ Todas: régimen "Importación para consumo", puerto de destino Buenos Aires, tra
 | `op-5505` | Norte | `imp-altiplano` | `sup-n-elbhafen` | Austral Aurora | 18/10 08:00 | `EHT-55950` CIF Buenos Aires | V/V/V | — · **READY_FOR_REVIEW** | FL-082 |
 | `op-5506` | Norte | `imp-quebrada` | `sup-n-shenzhen` | Pacifica Horizon | 12/11 07:00 | `SZB-21300` FOB Shenzhen | M/M/M | — | Lista Norte |
 
-Hitos: el loader crea los 5 hitos de cada operación; los que caen antes del inicio simulado (14/10 10:30) se siembran `FIRED` con los mensajes históricos correspondientes (p. ej. `op-4478` ya tuvo `DOCS_REQUEST` el 12/10 10:00 y `FOLLOWUP` el 14/10 10:00; su `FOLLOWUP_FINAL` cae el 16/10 10:00, después de la ventana del recorrido, y su `ESCALATION` el 17/10 08:00). Las operaciones `READY_FOR_REVIEW` y `APPROVED` no tienen hitos `SCHEDULED`: los posteriores al inicio se siembran `SKIPPED` con `reason DOSSIER_COMPLETE` (§3).
+Hitos: el loader crea los 5 hitos de cada operación; los que caen antes del inicio simulado (14/10 10:30) se siembran `FIRED` con los mensajes históricos correspondientes, fechados a la hora en que la política los deja salir, no a la del hito (p. ej. `op-4478` ya tuvo `DOCS_REQUEST` el 12/10 10:00, feriado, con su WhatsApp diferido al 13/10 09:00, y `FOLLOWUP` el 14/10 10:00, con su `REMINDER` al proveedor a las 15:00 de Roma; su `FOLLOWUP_FINAL` cae el 16/10 10:00, después de la ventana del recorrido, y su `ESCALATION` el 17/10 08:00). Las operaciones `READY_FOR_REVIEW` y `APPROVED` no tienen hitos `SCHEDULED`: los posteriores al inicio se siembran `SKIPPED` con `reason DOSSIER_COMPLETE` (§3).
 
 ## 8. PDFs sintéticos
 
@@ -266,7 +266,7 @@ Todo item de un mundo QA lleva `world: "qa"`, `runId`, prefijo `qa/<runId>/` en 
 7. Teléfonos y emails únicos en todo el seed y en todas las plantillas de mundo; ningún dominio reservado; todo email de proveedor pertenece a `sim.legajo.demo.craftech.io` o a `simulator.amazonses.com`.
 8. Todo importador con operaciones que envían WhatsApp en un flujo del catálogo tiene opt-in vigente, salvo `imp-litoral` (sin opt-in a propósito).
 9. Toda autorización de contacto apunta a un proveedor del mismo estudio.
-10. Ningún mensaje histórico sembrado viola la política (el validador corre `policy_audit` sobre `Conversations`).
+10. Ningún mensaje histórico sembrado viola la política (el validador corre `policy_audit` sobre `Conversations`): cada mensaje lleva la hora en que la política lo deja salir y, si se difirió, su `TIMER#DEFERRED_SEND` `FIRED`. `scripts/seed/__tests__/invariants.test.ts` corre la política real (`packages/bff/src/policy/`, evaluación en un instante pasado, con la zona de cada parte y `HOLIDAY#AR`) sobre cada mensaje histórico de las plantillas `judge` y `demo-firm-delta` y falla si alguno se habría diferido o denegado a esa hora.
 11. Ningún texto de ninguna tabla ni de ningún PDF (texto y metadatos) contiene términos de la lista externa de prohibidos (`FORBIDDEN_TERMS`; con `CI=true`, su ausencia hace fallar la validación) ni nombres de empresas reales de la lista de control del generador; todo nombre de empresa, buque, transportista e institución tiene fila en `NAMECHECK`.
 12. Toda plantilla referida por un mensaje existe en `TEMPLATE#WHATSAPP`, empieza y termina con texto fijo y tiene botones de ≤ 25 caracteres.
 13. `Firms/SETTINGS` rotula como supuesto cada parámetro de §4 (`label: "supuesto"`, `source`).

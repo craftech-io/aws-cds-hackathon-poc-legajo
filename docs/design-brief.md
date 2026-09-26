@@ -125,7 +125,7 @@ Reloj 14/10 10:30 (mundo en pausa)
 | Operación | Historia |
 |---|---|
 | `4474` (Patagonia Frío, Konkan Chemicals) | Rebote: el email al proveedor rebota en el simulador de SES → contacto `BOUNCED` → plantilla `legajo_contacto_proveedor` → el importador escribe otro email → `propose_supplier_contact` → botón de confirmación → contacto `ACTIVE` → nuevo pedido |
-| `4478` (Norpampa, Gulfbay Industrial) | Silencio: el proveedor no responde; recordatorios `FOLLOWUP` y `FOLLOWUP_FINAL`; en ETA − 48 h, escalamiento determinista en la consola + email al buzón del estudio (estado, intentos, quién debe qué, riesgo rotulado "supuesto") |
+| `4478` (Norpampa, Ligurmare Valve Works) | Silencio: el proveedor no responde; recordatorios `FOLLOWUP` y `FOLLOWUP_FINAL`; en ETA − 48 h, escalamiento determinista en la consola + email al buzón del estudio (estado, intentos, quién debe qué, riesgo rotulado "supuesto") |
 | `4477` (Riberas Ferretería, Busan Coastal) | Documento desconocido: el lector devuelve `UNRECOGNIZED` y el estudio lo clasifica o descarta |
 | `4488` y `4487` | Un legajo listo para revisión y uno aprobado para mostrar los estados del despacho |
 
@@ -190,7 +190,7 @@ Detalle y schemas en `docs/tool-catalog.md`. El Gateway (MCP, `AWS_IAM`) tiene u
 |---|---|---|
 | Historia de la operación (corto plazo) | AgentCore Memory, eventos del Harness con `actorId = imp-<importerId>-e<worldEpoch>` y `sessionId = runtimeSessionId` (que incluye la época del mundo y la de la sesión); `eventExpiryDuration` 30 días | Una operación dura de 2 a 4 semanas; sus turnos comparten sesión. Un "Reiniciar demo" o un mundo QA nuevo empiezan con actor y sesión nuevos: nada de un jurado anterior ni de una corrida anterior llega al siguiente |
 | Preferencias del importador (largo plazo) | Estrategia propia `importerPreferences` (override de `userPreference` con instrucción de exclusión), namespace `/importers/{actorId}/preferences/` | Horario preferido, tono, quién de su empresa atiende |
-| Hechos del importador (largo plazo) | Estrategia semántica propia `importerFacts`, namespace `/importers/{actorId}/facts/` | "Suele subir por link", "su proveedor habitual demora el certificado" |
+| Hechos del importador (largo plazo) | Estrategia semántica propia `importerFacts`, namespace `/importers/{actorId}/facts/` | "Suele subir por link", "sube los documentos el mismo día que se los piden" |
 | Resumen por operación | Estrategia propia `operationSummary` (override de `summary`), namespace `/importers/{actorId}/{sessionId}/summary/`, recuperado con `topK 3` | Retomar tras un traspaso o tras un bloqueo del guardrail |
 | Perfil del proveedor (largo plazo) | **No** en Memory: `SupplierProfile` en `Parties`, calculado por código a partir de eventos medidos (latencia mediana de respuesta, rebotes, contacto que funciona, qué documento suele demorar, idioma, zona horaria); lo lee `get_counterpart_profile` | Son mediciones, no extracciones de un modelo; y Memory indexa el largo plazo por `actorId`, que es el importador |
 
@@ -244,7 +244,7 @@ Módulo puro `packages/bff/src/policy/` con el reloj de la operación inyectado;
 | 7 | `CP-BOUNCED-CONTACT` | Contacto `BOUNCED` o `COMPLAINED` no se usa | Email a proveedor |
 | 8 | `CP-APPROVED-SCOPE` | Legajo aprobado: al importador solo `APPROVAL_NOTICE` y `DISPATCH_STATUS`; al proveedor nada | Todos |
 | 9 | `CP-HOURS-AR` | Lunes a viernes 09:00-18:00 America/Argentina/Buenos_Aires, sin feriados nacionales; las respuestas a un mensaje del importador están exentas | WhatsApp proactivo |
-| 10 | `CP-HOURS-SUPPLIER` | Lunes a viernes 09:00-18:00 en la zona horaria del proveedor | Email a proveedor |
+| 10 | `CP-HOURS-SUPPLIER` | Lunes a viernes 09:00-18:00 en la zona horaria del proveedor (con su horario de verano; sin feriados del país del proveedor) | Email a proveedor |
 | 11 | `CP-ONE-PER-DAY` | Máximo un `DOCS_REQUEST` o `REMINDER` por contacto por día simulado | `DOCS_REQUEST`, `REMINDER` |
 | 12 | `CP-WA-24H` | Fuera de la ventana de 24 h solo plantillas aprobadas | WhatsApp |
 | 13 | `CP-NO-SENSITIVE-ASK` | Ningún texto pide documentos de identidad, datos bancarios ni claves fiscales por chat (política de Meta); los documentos van por link o email | Todo texto |
