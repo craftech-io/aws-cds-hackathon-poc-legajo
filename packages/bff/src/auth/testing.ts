@@ -1,17 +1,29 @@
-// Test-only Cognito stand-in: a throwaway RSA key pair, the JWKS a pool would publish for it and
-// a signer for id tokens. Nothing here ships in a Lambda bundle (only *.test.ts imports it).
+// Test-only Cognito stand-in and console wiring: a throwaway RSA key pair, the JWKS a pool would
+// publish for it, a signer for id tokens, broker rows in the in-memory connector and the
+// `ContextDeps` of a request over them. Nothing here ships in a Lambda bundle (only *.test.ts and
+// local test servers import it).
 import { type KeyObject, generateKeyPairSync, sign } from "node:crypto";
+import type { ConsoleRole } from "@legajo/shared";
 import type { Fetcher } from "aws-jwt-verify/https";
-import { type IdTokenVerifier, createCognitoIdTokenVerifier } from "./jwt";
+import type { Jwk, Jwks } from "aws-jwt-verify/jwk";
+import type { MemoryStores } from "../connector/index";
+import { createLogger } from "../lib/log";
+import type { HealthCheck } from "../routers/health";
+import type { ContextDeps } from "../routers/deps";
+import { type IdTokenVerifier, createCognitoIdTokenVerifier, jwksBuffer } from "./jwt";
+import { brokerLookupOf, createBrokerDirectory } from "./staff";
 
 export const TEST_POOL = { userPoolId: "us-east-1_TESTPOOL1", clientId: "test-web-client", region: "us-east-1" } as const;
 export const TEST_ISSUER = `https://cognito-idp.${TEST_POOL.region}.amazonaws.com/${TEST_POOL.userPoolId}`;
+/** Where the pool publishes its keys; the only URI a verifier of TEST_POOL may fetch. */
+export const TEST_JWKS_URI = `${TEST_ISSUER}/.well-known/jwks.json`;
 
 export type TestClaims = Record<string, unknown>;
 
 export interface TestIssuer {
   readonly kid: string;
-  readonly jwks: { keys: Record<string, unknown>[] };
+  /** What the pool would publish at `<issuer>/.well-known/jwks.json`. */
+  readonly jwks: Jwks & { readonly keys: readonly Jwk[] };
   /** Serves `jwks`; counts the requests so tests can assert the cache. */
   readonly fetcher: Fetcher & { requests: number };
   /** Signs an id token; `overrides` replace or (with `undefined`) remove default claims. */
@@ -33,14 +45,14 @@ export function createTestIssuer(options: { kid?: string; now?: () => Date } = {
   const kid = options.kid ?? "test-key-1";
   const now = options.now ?? (() => new Date());
   const { publicKey, privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
-  const jwks = { keys: [{ ...publicKey.export({ format: "jwk" }), kid, alg: "RS256", use: "sig" }] };
+  const exported = publicKey.export({ format: "jwk" });
+  const jwks = { keys: [{ kty: "RSA", n: exported.n ?? "", e: exported.e ?? "", kid, alg: "RS256", use: "sig" }] };
 
   const fetcher: TestIssuer["fetcher"] = {
     requests: 0,
     async fetch() {
       fetcher.requests += 1;
-      const bytes = new TextEncoder().encode(JSON.stringify(jwks));
-      return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+      return jwksBuffer(jwks);
     },
   };
 
@@ -69,5 +81,65 @@ export function createTestIssuer(options: { kid?: string; now?: () => Date } = {
       return signJwt({ alg: "RS256", typ: "JWT", kid, ...header }, payload, privateKey);
     },
     verifier: () => createCognitoIdTokenVerifier(TEST_POOL, { fetcher }),
+  };
+}
+
+export interface TestBroker {
+  readonly firmId: string;
+  readonly brokerId: string;
+  readonly role: ConsoleRole;
+  /** Cognito `sub` bound by `console:invite`; empty leaves the row unbound. */
+  readonly sub: string;
+  readonly active?: boolean;
+  readonly name?: string;
+}
+
+const REAL_STAMP = "2026-09-26T15:00:00.000Z";
+
+/** Broker rows as the seed writes them (`Firms/BROKER#`, GSI1 `SUB#<sub>` once bound). */
+export async function seedBrokers(stores: MemoryStores, brokers: readonly TestBroker[]): Promise<void> {
+  await stores.seed.loadItems(
+    "Firms",
+    brokers.map((broker) => ({
+      PK: `FIRM#${broker.firmId}`,
+      SK: `BROKER#${broker.brokerId}`,
+      entity: "Broker",
+      createdAt: REAL_STAMP,
+      updatedAt: REAL_STAMP,
+      version: 1,
+      synthetic: true,
+      brokerId: broker.brokerId,
+      firmId: broker.firmId,
+      name: broker.name ?? "Persona ficticia",
+      role: broker.role,
+      active: broker.active ?? true,
+      cognitoSub: broker.sub,
+      ...(broker.sub === "" ? {} : { cognitoSubKey: `SUB#${broker.sub}` }),
+    })),
+  );
+}
+
+export interface TestContextDepsOptions {
+  readonly verifier: IdTokenVerifier;
+  readonly stores: MemoryStores;
+  /** Real clock of the request (`auth_time` checks, audit stamps). */
+  readonly now?: () => Date;
+  /** Every log line, as JSON, for assertions. */
+  readonly lines?: string[];
+  readonly health?: readonly HealthCheck[];
+}
+
+/** `ContextDeps` over the in-memory connector: nothing leaves the process. */
+export function testContextDeps(options: TestContextDepsOptions): ContextDeps {
+  const now = options.now ?? (() => new Date());
+  const { connector } = options.stores;
+  return {
+    verifier: options.verifier,
+    brokers: createBrokerDirectory(brokerLookupOf(connector.firms), now),
+    connector,
+    totp: { isTotpEnabled: () => Promise.resolve(false) },
+    health: options.health ?? [],
+    wallClock: now,
+    loggerFor: (correlationId) => createLogger({ correlationId, level: "debug", now, sink: (line) => void options.lines?.push(line) }),
   };
 }

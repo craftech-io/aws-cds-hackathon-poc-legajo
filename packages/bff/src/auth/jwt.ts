@@ -1,11 +1,18 @@
-// Verifies the Cognito id token the console sends on every call: RS256 signature against the
-// pool's JWKS, issuer, audience (the web client id), `token_use = id` and expiry. The library is
-// AWS's own verifier; this module only adds the timeout and backoff every external call carries
-// and turns its errors into `AuthError` so the edge can tell "bad token" from "Cognito is down".
+// Verifies the Cognito id token the console sends on every call, offline: RS256 signature against
+// the pool's JWKS (fetched once per container from `<issuer>/.well-known/jwks.json` and cached),
+// issuer, audience (the web client id), `token_use = id` and expiry. The library is AWS's own
+// verifier; this module only adds the timeout and backoff every external call carries and turns its
+// errors into `AuthError` so the edge can tell "bad token" from "Cognito is down".
+//
+// The keys are never negotiable by a request: the JWKS URI derives from the pool id of the `Auth`
+// link, the token's own `jku`/`jwk`/`x5u` headers are ignored, and the Lambda entry
+// (routers/handler.ts → routers/deps.ts) builds this verifier with no options at all. Only a local
+// entry point (the UI server of the Playwright tests) passes `jwks`, which pins an ephemeral key set
+// and turns the network off (auth/no-jwks-override.test.ts).
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { FetchError, JwtBaseError, JwtExpiredError, NonRetryableFetchError } from "aws-jwt-verify/error";
 import { fetch as fetchJwks, type Fetcher } from "aws-jwt-verify/https";
-import { SimpleJwksCache } from "aws-jwt-verify/jwk";
+import { type Jwks, SimpleJwksCache } from "aws-jwt-verify/jwk";
 import { z } from "zod";
 import { withRetry } from "../lib/retry";
 import { AUTH_REASON, AuthError } from "./errors";
@@ -44,6 +51,12 @@ export interface IdTokenVerifierConfig {
 export interface IdTokenVerifierOptions {
   /** Test seam: serves the JWKS instead of the network. */
   readonly fetcher?: Fetcher;
+  /**
+   * Local entry points only (never the Lambda): the key set to trust, cached up front with the
+   * verifier's own `cacheJwks`. Without a `fetcher`, the network is off: a token naming another
+   * `kid` fails as TOKEN_INVALID instead of reaching Cognito.
+   */
+  readonly jwks?: Jwks;
 }
 
 // The JWKS is a small static document behind Cognito's CDN. It is fetched once per container and
@@ -74,9 +87,23 @@ function toAuthError(error: unknown): AuthError {
   return new AuthError(AUTH_REASON.AUTH_UNAVAILABLE, "id token could not be verified", { cause: error });
 }
 
+/** A JWKS document as the `ArrayBuffer` a `Fetcher` answers. */
+export function jwksBuffer(jwks: unknown): ArrayBuffer {
+  const bytes = new TextEncoder().encode(JSON.stringify(jwks));
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+}
+
+// A pinned key set never goes to the network: a refetch for an unknown `kid` gets the same keys
+// back, so the token fails as TOKEN_INVALID.
+function pinnedFetcher(jwks: Jwks): Fetcher {
+  return { fetch: async () => jwksBuffer(jwks) };
+}
+
 export function createCognitoIdTokenVerifier(config: IdTokenVerifierConfig, options: IdTokenVerifierOptions = {}): IdTokenVerifier {
-  const jwksCache = new SimpleJwksCache({ fetcher: options.fetcher ?? new BackoffFetcher() });
+  const fetcher = options.fetcher ?? (options.jwks === undefined ? new BackoffFetcher() : pinnedFetcher(options.jwks));
+  const jwksCache = new SimpleJwksCache({ fetcher });
   const verifier = CognitoJwtVerifier.create({ userPoolId: config.userPoolId, clientId: config.clientId, tokenUse: "id" }, { jwksCache });
+  if (options.jwks !== undefined) verifier.cacheJwks(options.jwks);
 
   return {
     async verify(token) {

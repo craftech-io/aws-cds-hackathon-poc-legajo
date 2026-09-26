@@ -1,0 +1,288 @@
+# Contract of the external document reader (ADR-0003, docs/architecture-integrations.md §5).
+#
+# The reader is a product we consume, never something we build: we send it a PDF by a pre-signed
+# URL and it answers with a structured reading. In the proof of concept the reader is a mock
+# (packages/reader-mock) that recognises the synthetic documents and returns their ground truth.
+# The zod mirror of this file is packages/reader-contract/src/schemas.ts; `npm run reader:contract`
+# fails when the zod schemas of the contract, the client or the mock drift from it.
+openapi: 3.1.0
+info:
+  title: Document Reader API
+  version: 1.0.0
+  description: >-
+    Reads a commercial invoice, a packing list or a certificate of origin from a pre-signed HTTPS
+    URL and returns its type, fields, confidence and observations. Every call is signed with AWS
+    Signature V4 (Lambda Function URL with AWS_IAM auth).
+security:
+  - sigv4: []
+paths:
+  /v1/readings:
+    post:
+      operationId: createReading
+      summary: Read a document
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/FaultScope"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReadingRequest"
+      responses:
+        "200":
+          description: The reading of the document (also for a document the reader does not know, with status UNRECOGNIZED).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reading"
+        "400":
+          description: invalid request (body, idempotency key, a source URL the reader does not accept, or a file whose SHA-256 differs from the one sent)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: file larger than 10 MB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: rate limited, Retry-After header
+          headers:
+            Retry-After:
+              $ref: "#/components/headers/RetryAfter"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: temporarily unavailable, Retry-After header
+          headers:
+            Retry-After:
+              $ref: "#/components/headers/RetryAfter"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1/readings/{readingId}:
+    get:
+      operationId: getReading
+      summary: Get a reading the reader returned before
+      parameters:
+        - $ref: "#/components/parameters/ReadingId"
+      responses:
+        "200":
+          description: The reading
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reading"
+        "404":
+          description: unknown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1/health:
+    get:
+      operationId: health
+      summary: Liveness
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+components:
+  securitySchemes:
+    sigv4:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: AWS Signature V4 (Lambda Function URL, AWS_IAM)
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: >-
+        One key per document version. The same key with the same SHA-256 returns the same reading
+        for 48 hours; the same key with another file never returns a reading of another file.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 128
+        pattern: "^[A-Za-z0-9._:-]+$"
+    FaultScope:
+      name: X-Fault-Scope
+      in: header
+      required: false
+      description: >-
+        Test-only: the clock of a QA world whose configured faults apply to this call. A caller
+        sends it only for its own QA worlds; a real reader ignores it.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 128
+    ReadingId:
+      name: readingId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 256
+  headers:
+    RetryAfter:
+      description: Seconds to wait before the next attempt
+      schema:
+        type: integer
+        minimum: 0
+  schemas:
+    CreateReadingRequest:
+      type: object
+      required: [source, sha256]
+      properties:
+        source:
+          type: object
+          required: [url]
+          properties:
+            url:
+              type: string
+              format: uri
+              description: pre-signed HTTPS GET, 5 min
+        sha256:
+          type: string
+          pattern: "^[0-9a-f]{64}$"
+          description: hex SHA-256 of the file
+        hints:
+          $ref: "#/components/schemas/ReadingHints"
+    ReadingHints:
+      type: object
+      properties:
+        expectedDocType:
+          type: string
+          enum: [COMMERCIAL_INVOICE, PACKING_LIST, CERTIFICATE_OF_ORIGIN]
+        relatedReadingIds:
+          type: array
+          items:
+            type: string
+        locale:
+          type: string
+    Reading:
+      type: object
+      required: [readingId, status, readerVersion]
+      properties:
+        readingId:
+          type: string
+        status:
+          type: string
+          enum: [RECOGNIZED, UNRECOGNIZED, ERROR]
+        docType:
+          type: string
+          enum: [COMMERCIAL_INVOICE, PACKING_LIST, CERTIFICATE_OF_ORIGIN]
+        matchedBy:
+          type: string
+          enum: [SHA256, EMBEDDED_ID, NONE]
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        pages:
+          type: integer
+        language:
+          type: string
+        fields:
+          $ref: "#/components/schemas/ReadingFields"
+        observations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReadingObservation"
+        readerVersion:
+          type: string
+    ReadingFields:
+      type: object
+      properties:
+        documentNumber:
+          type: string
+        invoiceNumber:
+          type: string
+          description: invoice referenced (packing list, certificate) or own number (invoice)
+        issueDate:
+          type: string
+          format: date
+        issuerName:
+          type: string
+        buyerName:
+          type: string
+        buyerTaxId:
+          type: string
+        incoterm:
+          type: string
+        currency:
+          type: string
+        totalAmount:
+          type: number
+        grossWeightKg:
+          type: number
+        netWeightKg:
+          type: number
+        packages:
+          type: integer
+        originCountry:
+          type: string
+        signed:
+          type: boolean
+        stamped:
+          type: boolean
+        issuingBody:
+          type: string
+    ReadingObservation:
+      type: object
+      required: [code, severity]
+      properties:
+        code:
+          type: string
+          enum:
+            - GROSS_WEIGHT_MISMATCH
+            - NET_WEIGHT_MISMATCH
+            - INVOICE_NUMBER_MISMATCH
+            - INCOTERM_MISMATCH
+            - BUYER_DATA_MISMATCH
+            - ORIGIN_MISMATCH
+            - PACKAGES_MISMATCH
+            - MISSING_SIGNATURE
+            - MISSING_STAMP
+            - LOW_CONFIDENCE
+        severity:
+          type: string
+          enum: [BLOCKING, WARNING]
+        field:
+          type: string
+        expected:
+          type: string
+        found:
+          type: string
+        againstDocType:
+          type: string
+    Health:
+      type: object
+      required: [status, readerVersion]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        readerVersion:
+          type: string
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          enum: [INVALID_REQUEST, FILE_TOO_LARGE, NOT_FOUND, RATE_LIMITED, UNAVAILABLE]
+        message:
+          type: string

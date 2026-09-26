@@ -1,5 +1,5 @@
-// A titled block of a view, and the bar that jumps between the blocks of a long view (Operación,
-// Gobierno). Every block stays rendered: the bar only scrolls, so what a block shows never depends
+// A titled block of a view, and the bar that jumps between the blocks of a long view (the dossier:
+// documents, timeline, pendings). Every block stays rendered: the bar only scrolls, so what a block shows never depends
 // on having clicked it first.
 import type { ReactNode } from "react";
 

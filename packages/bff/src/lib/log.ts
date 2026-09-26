@@ -1,10 +1,11 @@
 // The only logger of the Lambdas: one JSON line per event with a correlation id that is born at
 // the inbound event and travels through the worker, the Harness turn, the tools and the outbound
-// pipeline. Redaction is not optional (docs/architecture.md §12): phone numbers, emails, CUIT/CUIL
-// and amounts are masked, raw provider events, message bodies and tool results are dropped, and an
-// address only ever appears as a hash. WP-13 moves the patterns to lib/mask.ts (DNI, CBU/CVU,
-// cards, IBAN) so the normalizer and the guardrail share one source.
+// pipeline. Redaction is not optional (docs/architecture.md §12): values are masked with the same
+// masker as the normalizer and G1 (lib/mask.ts: E.164, emails, CUIT/CUIL, DNI, CBU/CVU, cards by
+// Luhn, IBAN), amounts and names are masked, raw provider events, message bodies, session tokens
+// and tool results are dropped, and an address only ever appears as a hash.
 import { randomUUID } from "node:crypto";
+import { LOG_KINDS, MASK_MARKERS, maskText } from "./mask";
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 export type LogFields = Readonly<Record<string, unknown>>;
@@ -25,6 +26,7 @@ export interface LoggerOptions {
   readonly bindings?: LogFields;
   readonly level?: LogLevel;
   readonly sink?: LogSink;
+  /** Stamp of each line; real time (a log line is not business logic). */
   readonly now?: () => Date;
 }
 
@@ -33,9 +35,15 @@ const MAX_DEPTH = 6;
 const MAX_STRING = 2_000;
 const MAX_ARRAY = 50;
 
+/** Markers of a log line: the typed ones of lib/mask.ts plus what only the logger masks. */
 export const MASK = {
-  phone: "[phone]",
-  email: "[email]",
+  phone: MASK_MARKERS.PHONE,
+  email: MASK_MARKERS.EMAIL,
+  cuit: MASK_MARKERS.CUIT,
+  dni: MASK_MARKERS.DNI,
+  cbu: MASK_MARKERS.CBU,
+  card: MASK_MARKERS.CARD,
+  iban: MASK_MARKERS.IBAN,
   document: "[document]",
   amount: "[amount]",
   name: "[name]",
@@ -44,40 +52,48 @@ export const MASK = {
 } as const;
 
 // Keys whose value never reaches a log line, whatever it holds: raw provider payloads, message
-// bodies (they may carry personal data before the masker runs) and full tool results.
+// bodies (they may carry personal data before the masker runs), secrets and full tool results.
 const OMITTED_KEYS = new Set([
   "event", "rawevent", "records", "record", "payload", "toolresult", "toolresults", "output", "body", "text", "html", "transcript",
   "message_body", "mime", "content", "attachments", "sessiontoken", "token", "authorization", "secret", "signature", "tasktoken", "password",
+  "key", "subkey", "overrides", "seedoverrides",
 ]);
 const ADDRESS_KEYS = new Set(["address", "to", "from", "recipient", "sender", "destination", "replyto", "cc", "bcc"]);
-const PHONE_KEYS = new Set(["phone", "phonee164", "phonenumber", "msisdn"]);
-const EMAIL_KEYS = new Set(["email", "emailaddress", "mailfrom"]);
 // "name" is masked too: log a tool or resource under `tool`, `target` or `resource`, never `name`.
 const NAME_KEYS = new Set(["name", "displayname", "firstname", "lastname", "fullname", "contactname"]);
-const DOCUMENT_KEYS = new Set(["document", "documentnumber", "dni", "cuit", "cuil", "cedula"]);
+
+function keyMarkers(): ReadonlyMap<string, string> {
+  const entries: Array<readonly [readonly string[], string]> = [
+    [["phone", "phonee164", "phonenumber", "msisdn"], MASK.phone],
+    [["email", "emailaddress", "mailfrom"], MASK.email],
+    [["cuit", "cuil"], MASK.cuit],
+    [["dni"], MASK.dni],
+    [["cbu", "cvu"], MASK.cbu],
+    [["card", "cardnumber", "pan"], MASK.card],
+    [["iban"], MASK.iban],
+    [["document", "documentnumber", "cedula"], MASK.document],
+  ];
+  return new Map(entries.flatMap(([keys, marker]) => keys.map((key) => [key, marker] as const)));
+}
+const KEY_MARKERS = keyMarkers();
+
 const AMOUNT_KEY = /(amount|balance|total|paid|price|invoicevalue|fob|cif|debt|saldo|monto|importe)/i;
 // Large numbers that are not money: instants, durations, sizes and counters keep their value.
 const SAFE_NUMBER_KEY = /(at|ms|seconds|bytes|exp|ttl|epoch|count|seq|version|status|statuscode|attempt|attempts|size|length|day|days|tokens)$/i;
 
-const EMAIL_PATTERN = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
-const E164_PATTERN = /\+\d[\d\s().-]{6,18}\d/g;
-const CUIT_PATTERN = /(?<![\w-])\d{2}-\d{7,8}-\d(?![\w-])/g;
-// Money as written in Spanish texts ("$ 668.200,00", "$486.000").
-const MONEY_TEXT_PATTERN = /\$\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?/g;
-// Any free-standing run of 7+ digits: DNI, CUIT without dashes, a phone without "+", or an
-// amount above six digits. Runs glued to letters, "-" or "_" are ids and hashes and stay.
-const LONG_DIGITS_PATTERN = /(?<![\w-])\d{7,}(?![\w-])/g;
+// Money as written in Spanish texts ("$ 668.200,00", "$486.000"); runs before the masker so the
+// thousands dots of an amount are never read as a DNI.
+const MONEY_TEXT_PATTERN = /\$\s?[0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?/g;
+// What the typed masker leaves: any free-standing run of 7+ digits (a phone without "+", a
+// document with an unknown prefix, a large amount). Runs glued to letters, "-" or "_" are ids
+// and hashes and stay.
+const LONG_DIGITS_PATTERN = /(?<![\w-])[0-9]{7,}(?![\w-])/g;
 const ISO_INSTANT_PATTERN = /^\d{4}-\d{2}-\d{2}(T[\d:.]+(Z|[+-]\d{2}:\d{2})?)?$/;
 
 export function redactText(value: string): string {
   if (ISO_INSTANT_PATTERN.test(value)) return value;
   const clipped = value.length > MAX_STRING ? `${value.slice(0, MAX_STRING)}…[truncated ${value.length - MAX_STRING}]` : value;
-  return clipped
-    .replace(EMAIL_PATTERN, MASK.email)
-    .replace(E164_PATTERN, MASK.phone)
-    .replace(CUIT_PATTERN, MASK.document)
-    .replace(MONEY_TEXT_PATTERN, MASK.amount)
-    .replace(LONG_DIGITS_PATTERN, MASK.number);
+  return maskText(clipped.replace(MONEY_TEXT_PATTERN, MASK.amount), LOG_KINDS).replace(LONG_DIGITS_PATTERN, MASK.number);
 }
 
 function redactNumber(key: string, value: number): number | string {
@@ -97,15 +113,19 @@ function redactError(error: Error, depth: number): Record<string, unknown> {
   return out;
 }
 
-export function redactValue(key: string, value: unknown, depth = 0): unknown {
-  const lowered = key.toLowerCase();
-  if (value === null || value === undefined) return value;
+function redactByKey(lowered: string, value: unknown): string | undefined {
   if (OMITTED_KEYS.has(lowered)) return MASK.omitted;
-  if (PHONE_KEYS.has(lowered)) return MASK.phone;
-  if (EMAIL_KEYS.has(lowered)) return MASK.email;
+  const marker = KEY_MARKERS.get(lowered);
+  if (marker !== undefined) return marker;
   if (ADDRESS_KEYS.has(lowered)) return typeof value === "string" && value.includes("@") ? MASK.email : MASK.phone;
   if (NAME_KEYS.has(lowered) && typeof value === "string") return MASK.name;
-  if (DOCUMENT_KEYS.has(lowered)) return MASK.document;
+  return undefined;
+}
+
+export function redactValue(key: string, value: unknown, depth = 0): unknown {
+  if (value === null || value === undefined) return value;
+  const byKey = redactByKey(key.toLowerCase(), value);
+  if (byKey !== undefined) return byKey;
   if (typeof value === "string") return redactText(value);
   if (typeof value === "number") return Number.isFinite(value) ? redactNumber(key, value) : String(value);
   if (typeof value === "boolean") return value;

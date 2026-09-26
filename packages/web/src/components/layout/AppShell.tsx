@@ -1,97 +1,92 @@
-// Frame of every authenticated view: sidebar navigation built from the route table and filtered
-// by role, top bar with the principal and the firm, and the "Legajo listo · Powered by Craftech"
-// brand. WP-12 adds the simulated-time bar and the guided tour panel (docs/design-brief.md §6).
-import type { ReactNode } from "react";
+// Frame of every authenticated view (docs/design-brief.md §6): the navigation of the route table
+// filtered by role, the header with the principal, its role and its firm, the account menu, the
+// simulated-time bar that follows the world, the session notice of a judge, and the "Recorrido
+// guiado" panel (open from the start for a judge, §7.1). The panel's content is views/tour, passed
+// in by console-routes.tsx so the shell never imports a view. "Legajo listo · Powered by Craftech".
+import { useState, type ReactNode } from "react";
 import { useFirm } from "../../context/FirmContext";
-import { usePrincipal, useSession } from "../../context/SessionContext";
-import { copy, PRODUCT_NAME } from "../../copy/console";
+import { usePrincipal } from "../../context/SessionContext";
+import { copy } from "../../copy/console";
+import { displayNameOf } from "../../lib/auth-claims";
 import { LegajoWordmark, PoweredByCraftech } from "../brand/Brand";
-import { Link, useRouter } from "../../lib/router";
-import { ROUTES, routeAllows, routeTitle, type ConsoleRoute, type NavGroup } from "../../routes";
-import { Button } from "../Button";
+import { ClockBanner } from "../ClockBanner";
+import { AccountMenu } from "./AccountMenu";
+import { NavMenu } from "./NavMenu";
+import { SessionNotice } from "./SessionNotice";
 
-const GROUP_ORDER: readonly NavGroup[] = ["files", "parties", "demo", "control"];
-
-function isActive(route: ConsoleRoute, path: string): boolean {
-  return path === route.path || path.startsWith(`${route.path}/`);
-}
-
-function NavSection({ group, routes, path }: { readonly group: NavGroup; readonly routes: readonly ConsoleRoute[]; readonly path: string }) {
-  if (routes.length === 0) return null;
+function Principal() {
+  const principal = usePrincipal();
+  const { firmName } = useFirm();
+  const name = displayNameOf(principal);
   return (
-    <div>
-      <p className="px-3 text-xs font-semibold uppercase tracking-widest text-slate">{copy.nav.groups[group]}</p>
-      <ul className="mt-2 space-y-0.5">
-        {routes.map((route) => {
-          const active = isActive(route, path);
-          return (
-            <li key={route.id}>
-              <Link
-                to={route.path}
-                aria-current={active ? "page" : undefined}
-                className={`block rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                  active ? "bg-navy-soft text-white" : "text-mist hover:bg-navy-soft/60 hover:text-white"
-                }`}
-              >
-                {routeTitle(route)}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+    <div className="text-right">
+      {name ? <p className="font-medium text-ink">{name}</p> : null}
+      <p className="text-xs text-slate">
+        {copy.app.roleLabel}: {principal.role ? copy.roles[principal.role] : "—"}
+        {firmName ? ` · ${copy.app.firmLabel}: ${firmName}` : null}
+      </p>
     </div>
   );
 }
 
-export function AppShell({ children }: { readonly children: ReactNode }) {
-  const { path } = useRouter();
-  const { signOut } = useSession();
+function TourPanel({ onClose, children }: { readonly onClose: () => void; readonly children: ReactNode }) {
+  return (
+    <aside aria-label={copy.tour.title} className="w-full shrink-0 border-t border-mist bg-white lg:w-96 lg:border-t-0 lg:border-l">
+      <header className="flex items-center justify-between border-b border-mist px-5 py-3">
+        <h2 className="text-base font-semibold text-navy">{copy.tour.title}</h2>
+        <button type="button" className="rounded-md px-2 py-1 text-sm text-slate hover:bg-mist" onClick={onClose}>
+          {copy.tour.close}
+        </button>
+      </header>
+      <div className="px-5 py-4">{children}</div>
+    </aside>
+  );
+}
+
+interface AppShellProps {
+  /** Content of the guided-tour panel (views/tour). */
+  readonly tour?: ReactNode;
+  readonly children: ReactNode;
+}
+
+export function AppShell({ tour, children }: AppShellProps) {
   const principal = usePrincipal();
-  const { firmId } = useFirm();
-  const visible = ROUTES.filter((route) => routeAllows(route, principal.role));
+  const [tourOpen, setTourOpen] = useState(principal.isJudge);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col md:flex-row">
       <a href="#content" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-white focus:px-3 focus:py-2">
         {copy.app.skipToContent}
       </a>
-      <nav aria-label={PRODUCT_NAME} className="hidden w-60 shrink-0 flex-col bg-navy px-3 py-5 md:flex">
-        <div className="space-y-2 px-3">
-          <p>
-            <LegajoWordmark tone="dark" size="lg" />
-          </p>
-          <p className="text-xs text-cyan">{copy.app.tagline}</p>
-        </div>
-        <div className="mt-8 flex-1 space-y-6">
-          {GROUP_ORDER.map((group) => (
-            <NavSection key={group} group={group} routes={visible.filter((route) => route.group === group)} path={path} />
-          ))}
-        </div>
-        <div className="mt-8 space-y-3 border-t border-navy-soft px-3 pt-4">
-          <p className="text-xs text-mist">{copy.app.syntheticData}</p>
-          <PoweredByCraftech tone="dark" />
-        </div>
-      </nav>
+      <NavMenu />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-mist bg-white px-6 py-3">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-mist bg-white px-4 py-3 md:px-6">
           <div className="flex shrink-0 items-center gap-2 md:hidden">
             <LegajoWordmark tone="light" size="sm" />
           </div>
-          <div className="ml-auto flex items-center gap-4 text-sm">
-            <div className="text-right">
-              <p className="font-medium text-ink">{principal.name ?? principal.email ?? principal.sub}</p>
-              <p className="text-xs text-slate">
-                {copy.app.roleLabel}: {principal.role ? copy.roles[principal.role] : "—"} · {copy.app.firmLabel}: {firmId}
-              </p>
-            </div>
-            <Button variant="secondary" onClick={signOut}>
-              {copy.app.signOut}
-            </Button>
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-3 text-sm">
+            <Principal />
+            {tour ? (
+              <button
+                type="button"
+                aria-pressed={tourOpen}
+                className="rounded-md border border-mist bg-white px-3 py-2 text-sm font-semibold text-navy hover:bg-paper aria-pressed:bg-cyan-soft aria-pressed:text-cyan-deep"
+                onClick={() => setTourOpen((open) => !open)}
+              >
+                {copy.tour.open}
+              </button>
+            ) : null}
+            <AccountMenu />
           </div>
         </header>
-        <main id="content" className="flex-1 px-6 py-6">
-          {children}
-        </main>
+        <ClockBanner />
+        <SessionNotice />
+        <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+          <main id="content" className="min-w-0 flex-1 px-4 py-6 md:px-6">
+            {children}
+          </main>
+          {tour && tourOpen ? <TourPanel onClose={() => setTourOpen(false)}>{tour}</TourPanel> : null}
+        </div>
         <footer className="flex justify-center border-t border-mist px-6 py-3 md:hidden">
           <PoweredByCraftech tone="light" />
         </footer>

@@ -1,6 +1,6 @@
 // One figure with its label: the label and the value are siblings separated by a space, so the
 // figure is found from its label and stays a word of its own in the tile's text (the metrics checks
-// read "fuera de política" and expect its 0 next to it).
+// read "Violaciones de política" and expect its 0 next to it).
 import type { ReactNode } from "react";
 
 export type StatTone = "neutral" | "success" | "warning" | "danger" | "brand";

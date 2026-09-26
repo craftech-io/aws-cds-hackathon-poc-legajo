@@ -1,5 +1,5 @@
 /**
- * Matches `/cases/:id` style patterns against a path. Returns the params on match, `undefined`
+ * Matches `/app/operations/:operationId` style patterns against a path. Returns the params on match, `undefined`
  * otherwise. Trailing slashes are ignored.
  */
 export function matchPath(pattern: string, path: string): Record<string, string> | undefined {

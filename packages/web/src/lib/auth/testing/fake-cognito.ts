@@ -1,8 +1,9 @@
 // Test-only Cognito user pool: the behaviour of the challenges the console handles, with real SRP
 // verification (srp-server.ts) and real TOTP codes (totp.ts). Users are invited (temporary
-// password, FORCE_CHANGE_PASSWORD) or confirmed, with or without TOTP; the pool's MFA is OPTIONAL
-// like infra/auth.ts, or ON to exercise MFA_SETUP. Every request is recorded so a test can assert
-// what crossed the wire.
+// password, FORCE_CHANGE_PASSWORD) or confirmed, with or without TOTP; they sign in with their email
+// (an alias, like infra/auth.ts) or, like a judge, with a username and no email. The pool's MFA is
+// OPTIONAL like infra/auth.ts, or ON to exercise MFA_SETUP. Every request is recorded so a test can
+// assert what crossed the wire.
 import { type AuthResponse, type AuthenticationResult, type CognitoApi, CognitoError, TOTP_MFA } from "../cognito";
 import { missingPasswordRules } from "../credentials";
 import { type ServerSession, type SrpVerifier, createVerifier, startServerSession } from "./srp-server";
@@ -10,8 +11,10 @@ import { randomBase32Secret, totpCode } from "./totp";
 
 export const FAKE_POOL_ID = "us-east-1_FakePool1";
 
+/** A user signs in with `email` (brokers, analysts) or with `username` (judges, who have no email). */
 export interface FakeUserInit {
-  readonly email: string;
+  readonly email?: string;
+  readonly username?: string;
   readonly password: string;
   readonly role?: string;
   readonly status?: "FORCE_CHANGE_PASSWORD" | "CONFIRMED";
@@ -21,7 +24,10 @@ export interface FakeUserInit {
 
 interface FakeUser {
   readonly sub: string;
+  /** Sign-in name: the email, or the username of a user without email. */
   readonly email: string;
+  readonly username: string | undefined;
+  readonly hasEmail: boolean;
   readonly role: string;
   status: "FORCE_CHANGE_PASSWORD" | "CONFIRMED";
   srp: SrpVerifier;
@@ -77,9 +83,13 @@ export class FakeCognito implements CognitoApi {
   async addUser(init: FakeUserInit): Promise<FakeUser> {
     this.counter += 1;
     const sub = `00000000-0000-4000-8000-${String(this.counter).padStart(12, "0")}`;
+    const login = init.email ?? init.username;
+    if (!login) throw new Error("a fake user needs an email or a username");
     const user: FakeUser = {
       sub,
-      email: init.email.toLowerCase(),
+      email: login.toLowerCase(),
+      username: init.username,
+      hasEmail: init.email !== undefined,
       role: init.role ?? "BROKER",
       status: init.status ?? "CONFIRMED",
       srp: await createVerifier(this.poolId, sub, init.password),
@@ -144,7 +154,20 @@ export class FakeCognito implements CognitoApi {
   private tokensFor(user: FakeUser): AuthenticationResult {
     this.counter += 1;
     const now = Math.floor(Date.now() / 1000);
-    const idToken = `${base64Url({ alg: "none" })}.${base64Url({ sub: user.sub, email: user.email, "custom:role": user.role, "custom:firmId": "firm-test", auth_time: now, exp: now + 3600, iat: now, iss: "fake", aud: "fake", token_use: "id" })}.sig`;
+    const claims = {
+      sub: user.sub,
+      "cognito:username": user.username ?? user.sub,
+      ...(user.hasEmail ? { email: user.email } : {}),
+      "custom:role": user.role,
+      "custom:firmId": "firm-test",
+      auth_time: now,
+      exp: now + 3600,
+      iat: now,
+      iss: "fake",
+      aud: "fake",
+      token_use: "id",
+    };
+    const idToken = `${base64Url({ alg: "none" })}.${base64Url(claims)}.sig`;
     const accessToken = `access-${this.counter}`;
     const refreshToken = `refresh-${this.counter}`;
     this.accessTokens.set(accessToken, user.sub);
@@ -278,6 +301,15 @@ export class FakeCognito implements CognitoApi {
   async mfaMethods(accessToken: string): Promise<readonly string[]> {
     this.record("GetUser", { accessToken });
     return this.userOfAccessToken(accessToken).totpEnabled ? [TOTP_MFA] : [];
+  }
+
+  async changePassword(accessToken: string, previousPassword: string, proposedPassword: string): Promise<void> {
+    this.record("ChangePassword", { accessToken, previousPassword, proposedPassword });
+    const user = this.userOfAccessToken(accessToken);
+    if (previousPassword !== user.password) fail("NotAuthorizedException", "Incorrect username or password.");
+    if (missingPasswordRules(proposedPassword).length > 0) fail("InvalidPasswordException", "Password does not conform to policy");
+    user.password = proposedPassword;
+    user.srp = await createVerifier(this.poolId, user.sub, proposedPassword);
   }
 
   async forgotPassword(username: string): Promise<void> {

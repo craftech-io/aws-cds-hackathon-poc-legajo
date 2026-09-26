@@ -52,6 +52,7 @@ describe("Cognito API over fetch", () => {
         RespondToAuthChallenge: { AuthenticationResult: { IdToken: "i", AccessToken: "a", RefreshToken: "r", ExpiresIn: 3600 } },
         VerifySoftwareToken: { Status: "SUCCESS" },
         ConfirmForgotPassword: {},
+        ChangePassword: {},
       },
       true,
     );
@@ -59,7 +60,9 @@ describe("Cognito API over fetch", () => {
     await api.respondToChallenge("SOFTWARE_TOKEN_MFA", { USERNAME: "u", SOFTWARE_TOKEN_MFA_CODE: "123456" }, "s-1");
     await api.verifySoftwareToken({ accessToken: "a" }, "123456");
     await api.confirmForgotPassword("u", "123456", "x");
+    await api.changePassword("a", "old", "new");
     for (const request of sent) expect(request.options?.attempts).toBe(1);
+    expect(bodyOf(sent[3] as Sent)).toEqual({ AccessToken: "a", PreviousPassword: "old", ProposedPassword: "new" });
     expect(bodyOf(sent[0] as Sent)).toMatchObject({ ChallengeName: "SOFTWARE_TOKEN_MFA", Session: "s-1" });
     expect(bodyOf(sent[1] as Sent)).toMatchObject({ AccessToken: "a", UserCode: "123456", FriendlyDeviceName: "Legajo listo" });
   });

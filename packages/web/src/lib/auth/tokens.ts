@@ -62,11 +62,25 @@ export function isExpired(tokens: TokenSet, now = Date.now()): boolean {
   return tokens.expiresAt - EXPIRY_SKEW_MS <= now;
 }
 
+// One refresh per refresh token at a time: a second caller (React's double effects in development,
+// the silent-refresh timer racing the page load) gets the same answer instead of a second request.
+const refreshing = new Map<string, Promise<TokenSet>>();
+
 export async function refreshTokens(cognito: Pick<CognitoApi, "refresh">, current: TokenSet, now: () => number = Date.now): Promise<TokenSet> {
-  if (!current.refreshToken) throw new Error("no refresh token");
-  const tokens = tokenSetOf(await cognito.refresh(current.refreshToken), now(), current.refreshToken);
-  saveTokens(tokens);
-  return tokens;
+  const refreshToken = current.refreshToken;
+  if (!refreshToken) throw new Error("no refresh token");
+  const pending = refreshing.get(refreshToken);
+  if (pending) return pending;
+  const request = cognito
+    .refresh(refreshToken)
+    .then((result) => {
+      const tokens = tokenSetOf(result, now(), refreshToken);
+      saveTokens(tokens);
+      return tokens;
+    })
+    .finally(() => refreshing.delete(refreshToken));
+  refreshing.set(refreshToken, request);
+  return request;
 }
 
 /** Tokens usable right now: stored and fresh, or refreshed if a refresh token exists. */

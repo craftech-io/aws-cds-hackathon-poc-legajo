@@ -19,7 +19,7 @@ Una denegación devuelve `RECIPIENT_NOT_ALLOWED` antes de llamar a SES y se audi
 | Aspecto | Diseño |
 |---|---|
 | API | `SendEmail` (SES v2) con `Content.Simple` (`Subject`, `Body.Text` y `Body.Html`, `Headers` propios), `ConfigurationSetName = aws-cds-hackathon-poc-legajo-email-poc` (o `…-sim-poc` para `SimMail` y `QaDriver`), `EmailTags {operationId, messageId, stage, kind}`; sin `ListManagementOptions` (mensajes transaccionales de una operación) |
-| Dirección de la operación | `op-<número>-<etiqueta>@legajo.demo.craftech.io`, con `etiqueta` = primeros 6 caracteres base32 de `HMAC(K_thread, operationNumber ‖ clockId ‖ worldEpoch)`. Correlaciona el hilo aunque se pierdan los encabezados, no se puede enumerar (`op-4400..4499` ya no alcanza para adivinar), distingue mundos con el mismo número (demo, cada jurado, QA) y deja de resolver después de un "Reiniciar demo" o de una recarga del seed (la época nunca vuelve atrás, `docs/architecture.md` §8). Es la misma forma en el seed, en la fábrica de mundos y en `seed:validate` (`docs/seed-spec.md` §15, invariante 2); `THREAD#<número>-<etiqueta>` es único en `Operations GSI2` entre todos los mundos. En los documentos se abrevia `op-4471@` |
+| Dirección de la operación | `op-<número>-<etiqueta>@legajo.demo.craftech.io`, con `etiqueta` = primeros 6 caracteres, en base32 Crockford en minúsculas, de `HMAC-SHA256(K_thread, "<operationNumber>|<clockId>|<worldEpoch>")` (`packages/shared/src/addresses.ts`). Correlaciona el hilo aunque se pierdan los encabezados, no se puede enumerar (`op-4400..4499` ya no alcanza para adivinar), distingue mundos con el mismo número (demo, cada jurado, QA) y deja de resolver después de un "Reiniciar demo" o de una recarga del seed (la época nunca vuelve atrás, `docs/architecture.md` §8). Es la misma forma en el seed, en la fábrica de mundos y en `seed:validate` (`docs/seed-spec.md` §15, invariante 2); `THREAD#<número>-<etiqueta>` es único en `Operations GSI2` entre todos los mundos. En los documentos se abrevia `op-4471@` |
 | Remitente al proveedor | `"<Estudio> via Legajo listo" <op-<número>-<etiqueta>@legajo.demo.craftech.io>`; `Reply-To` igual |
 | Remitente al estudio | `"Legajo listo" <avisos@legajo.demo.craftech.io>` para escalamientos; el cuerpo dice que se responde desde la consola |
 | Asunto | `[Op 4471] Missing documents: packing list, certificate of origin (Invoice QBT-2026-0917)`; las correcciones: `[Op 4471] Correction needed: packing list gross weight` |
@@ -266,9 +266,11 @@ El cliente (`packages/bff/src/reader/client.ts`) llama con SigV4; timeout 8 s, 3
 | Ruta | Uso |
 |---|---|
 | `GET /v1/operations/{operationNumber}?firm=<firmId>` | Datos maestros: importador (referencia), proveedor (referencia), buque, transportista, régimen, puerto, ETA, factura, incoterm. Lo usa la consola en "Nueva operación" (`create_operation` copia los campos a `Operations`) |
-| `POST /v1/operations/{operationNumber}/eta` | Control del mock (consola "mover ETA", ejecutor de escenarios): actualiza la ETA y publica `CarrierEtaChanged` |
-| `POST /v1/operations/{operationNumber}/customs-status` | Control del mock: publica `CustomsStatusChanged` |
+| `POST /v1/operations/{operationNumber}/eta?firm=<firmId>` | Control del mock (consola "mover ETA", ejecutor de escenarios): actualiza la ETA y publica `CarrierEtaChanged`. Exige `Idempotency-Key` |
+| `POST /v1/operations/{operationNumber}/customs-status?firm=<firmId>` | Control del mock: publica `CustomsStatusChanged`. Exige `Idempotency-Key` |
 | `GET /v1/health` | Salud (la llama `/api/health` del BFF con su rol y `SMK/3`) |
+
+Los `POST` son idempotentes por `Idempotency-Key`: repetir la misma clave con el mismo cuerpo vuelve a publicar el mismo `eventId` sin tocar la fila otra vez (así los reintentos obligatorios son seguros y `FeedEvents` deduplica); la misma clave con otro cuerpo → `409 IDEMPOTENCY_KEY_REUSED`.
 
 Eventos en el bus `Feeds` del stage (`PutEvents`):
 

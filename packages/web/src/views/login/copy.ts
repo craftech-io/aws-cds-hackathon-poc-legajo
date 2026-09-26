@@ -1,5 +1,5 @@
-// Texts of the sign-in screens, the recent-login step-up and the optional TOTP enrolment. Error texts never say
-// whether an email has an account (lib/auth/errors.ts).
+// Texts of the sign-in screens, the recent-login step-up, the optional TOTP enrolment and the password
+// change. Error texts never say whether an account exists (lib/auth/errors.ts).
 import type { AuthFlowErrorCode } from "../../lib/auth/errors";
 import type { PasswordRule } from "../../lib/auth/credentials";
 
@@ -12,8 +12,8 @@ export const loginCopy = {
   },
   credentials: {
     title: "Ingresá a la consola",
-    lead: "Usá el email y la contraseña de tu invitación.",
-    email: "Email",
+    lead: "Usá el email de tu invitación o, si sos jurado, tu usuario (judge-NN).",
+    login: "Email o usuario",
     password: "Contraseña",
     submit: "Ingresar",
     forgot: "Olvidé mi contraseña",
@@ -66,6 +66,7 @@ export const loginCopy = {
   forgot: {
     title: "Restablecé tu contraseña",
     lead: "Escribí el email de tu usuario y te mandamos un código para elegir una contraseña nueva.",
+    email: "Email",
     submit: "Enviar código",
   },
   reset: {
@@ -79,10 +80,10 @@ export const loginCopy = {
   otherUser: "Ingresar con otro usuario",
   working: "Un momento…",
   errors: {
-    INVALID_CREDENTIALS: "El email o la contraseña no son correctos. Si no recordás la contraseña, podés restablecerla.",
+    INVALID_CREDENTIALS: "El usuario o la contraseña no son correctos. Si no recordás la contraseña, podés restablecerla.",
     INVALID_CODE: "El código no es válido o ya venció. Probá con el que muestra ahora.",
     WEAK_PASSWORD: "La contraseña no cumple los requisitos.",
-    SESSION_EXPIRED: "Pasó demasiado tiempo. Empezá de nuevo con tu email y tu contraseña.",
+    SESSION_EXPIRED: "Pasó demasiado tiempo. Empezá de nuevo con tu usuario y tu contraseña.",
     TOO_MANY_ATTEMPTS: "Demasiados intentos. Esperá unos minutos y volvé a probar.",
     UNAVAILABLE: "No pudimos comunicarnos con el servicio de ingreso. Revisá tu conexión y reintentá.",
     UNSUPPORTED: "Tu usuario pide un método de verificación que la consola no admite. Pedile ayuda al despachante.",
@@ -98,6 +99,16 @@ export const loginCopy = {
     done: "Código activado. Desde el próximo ingreso te lo vamos a pedir.",
     unavailable: "No pudimos preparar el código de verificación. Reintentá en unos segundos.",
     retry: "Reintentar",
+  },
+  changePassword: {
+    title: "Cambiar contraseña",
+    lead: "Confirmá la contraseña actual y elegí una nueva. La sesión sigue abierta.",
+    current: "Contraseña actual",
+    field: "Contraseña nueva",
+    same: "La contraseña nueva tiene que ser distinta de la actual.",
+    submit: "Cambiar contraseña",
+    done: "Listo: tu contraseña cambió. La próxima vez ingresá con la nueva.",
+    wrongCurrent: "La contraseña actual no es correcta.",
   },
   close: "Cerrar",
   legal: { privacy: "Privacidad", terms: "Términos" },

@@ -6,8 +6,8 @@ import { SendChannel } from "./enums";
 
 const encoder = new TextEncoder();
 
-function toHex(buffer: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buffer), (byte) => byte.toString(16).padStart(2, "0")).join("");
+function toHex(bytes: ArrayBuffer | Uint8Array): string {
+  return Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function toBytes(value: string | Uint8Array): Uint8Array<ArrayBuffer> {
@@ -25,9 +25,13 @@ export async function sha256Hex(message: string | Uint8Array): Promise<string> {
   return toHex(await subtle().digest("SHA-256", toBytes(message)));
 }
 
-export async function hmacSha256Hex(key: string | Uint8Array, message: string | Uint8Array): Promise<string> {
+export async function hmacSha256(key: string | Uint8Array, message: string | Uint8Array): Promise<Uint8Array> {
   const cryptoKey = await subtle().importKey("raw", toBytes(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  return toHex(await subtle().sign("HMAC", cryptoKey, toBytes(message)));
+  return new Uint8Array(await subtle().sign("HMAC", cryptoKey, toBytes(message)));
+}
+
+export async function hmacSha256Hex(key: string | Uint8Array, message: string | Uint8Array): Promise<string> {
+  return toHex(await hmacSha256(key, message));
 }
 
 // E.164 with a leading "+" and digits only ("+54 9 11 5550-0103" → "+5491155500103").

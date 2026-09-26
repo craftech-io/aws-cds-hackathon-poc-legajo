@@ -2,19 +2,27 @@
 // every feature router starts from (docs/architecture.md §10).
 //
 //   publicProcedure       no principal required (only the health probe)
-//   firmProcedure         verified id token with firm and role; an inactive broker is refused
-//   brokerProcedure       firm + role BROKER or JUDGE (a judge acts as broker in its own judge firm)
-//   recentLoginProcedure  broker + interactive sign-in at most 15 minutes old (approve, reopen)
+//   firmProcedure         verified id token with firm and role; an inactive broker is refused; every
+//                         id of the input is fenced to the principal's firm (403 + AuditLog DENY
+//                         CROSS_FIRM, auth/scope.ts)
+//   brokerProcedure       firm + role BROKER or JUDGE (a judge acts as broker in its own judge firm);
+//                         any other role: 403 + AuditLog DENY ROLE_NOT_ALLOWED
+//   recentLoginProcedure  broker + interactive sign-in at most 15 minutes old, 60 s of skew, real
+//                         clock (approve, reopen)
 //
-// `firmId` and `role` come from the token, never from the input. WP-14 adds the cross-firm fence
-// (`assertFirmScope`: 403 plus `AuditLog DENY CROSS_FIRM`) once the connector exists (WP-07).
+// `firmId` and `role` come from the token (or the broker row), never from the input. The same
+// middlewares run for the Lambda (`createContext`, verified JWT) and for `createCaller` with a
+// principal built on the server (`serverContext`, the `QaDriver`'s console actions).
 import { TRPCError, initTRPC } from "@trpc/server";
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
 import { z } from "zod";
-import type { ConsoleRole } from "@legajo/shared";
+import { APPROVER_ROLES, type ConsoleRole } from "@legajo/shared";
+import { type AuditedRefusal, denialDecision } from "../auth/denials";
 import { AUTH_REASON, AUTH_REFUSAL, AuthError, type AuthRefusal, describeError } from "../auth/errors";
 import { bearerToken } from "../auth/jwt";
-import { type Principal, isSignInFresh, principalFromClaims } from "../auth/principal";
+import { type Principal, isSignInFresh, principalFromClaims, withBrokerRow } from "../auth/principal";
+import type { BrokerMatch } from "../auth/staff";
+import { type FencedId, type FirmOwnership, createFirmOwnership, crossFirmTarget, fencedIdOf, fencedIdsOf } from "../auth/scope";
 import { type Logger, correlationIdFrom } from "../lib/log";
 import { type ContextDeps, defaultDeps } from "./deps";
 import { reasonOf, toTrpcError } from "./errors";
@@ -28,9 +36,18 @@ export interface Context {
   readonly log: Logger;
 }
 
+/** The firm fence, for ids a procedure reaches by other means than its input (a message's operation). */
+export interface FirmScope {
+  /** 403 + `AuditLog DENY CROSS_FIRM` unless `firmId` is the principal's firm. */
+  assertFirm(firmId: string, target?: FencedId): Promise<void>;
+  /** The same check for one id, resolving its owner; an id that does not exist passes. */
+  assertId(id: string): Promise<void>;
+}
+
 export interface FirmContext extends Context {
   readonly principal: Principal;
   readonly authFailure: null;
+  readonly firmScope: FirmScope;
 }
 
 export interface CreateContextOptions {
@@ -50,9 +67,9 @@ function correlationIdOf(event: CreateContextOptions["event"]): string {
 }
 
 /**
- * Builds `createContext` over explicit dependencies (tests, the QA driver). It never throws for a
- * bad token: the failure is kept in the context and `firmProcedure` turns it into the right HTTP
- * status, so public procedures keep working.
+ * Builds `createContext` over explicit dependencies (tests, the local UI server). It never throws
+ * for a bad token: the failure is kept in the context and `firmProcedure` turns it into the right
+ * HTTP status, so public procedures keep working.
  */
 export function createContextFactory(resolveDeps: () => ContextDeps) {
   return async ({ event }: CreateContextOptions): Promise<Context> => {
@@ -72,6 +89,20 @@ export function createContextFactory(resolveDeps: () => ContextDeps) {
 
 /** `createContext(event)` → `{ principal }` over the linked resources of the BFF Lambda. */
 export const createContext = createContextFactory(defaultDeps);
+
+export interface ServerContextInput {
+  /** Built on the server (auth/principal.ts `qaPrincipal`), never from a request. */
+  readonly principal: Principal;
+  readonly deps: ContextDeps;
+  /** The caller's correlation id (the `QaDriver`'s idempotency key); a fresh one when it does not look like one. */
+  readonly correlationId?: string;
+}
+
+/** Context for `createCaller`: the procedures and every middleware run exactly as over HTTP. */
+export function serverContext(input: ServerContextInput): Context {
+  const correlationId = correlationIdFrom(input.correlationId);
+  return { correlationId, principal: input.principal, authFailure: null, deps: input.deps, log: input.deps.loggerFor(correlationId) };
+}
 
 const t = initTRPC.context<Context>().create({
   // Stack traces never travel to the browser, whatever NODE_ENV says inside the Lambda.
@@ -117,32 +148,79 @@ function refuse(log: Logger, path: string, error: AuthError): never {
   throw new TRPCError({ code: TRPC_CODE[AUTH_REFUSAL[error.reason]], message: error.message, cause: error });
 }
 
-export const firmProcedure = baseProcedure.use(async ({ ctx, next, path }) => {
+interface AuditedContext {
+  readonly principal: Principal;
+  readonly deps: ContextDeps;
+  readonly log: Logger;
+  readonly correlationId: string;
+}
+
+// The refusal is written to the firm's audit log first; a log that cannot be written never turns a
+// 403 into a pass or a 500.
+async function refuseAudited(ctx: AuditedContext, path: string, refusal: AuditedRefusal, message: string, target?: FencedId): Promise<never> {
+  try {
+    const decision = denialDecision({ principal: ctx.principal, refusal, path, correlationId: ctx.correlationId, at: ctx.deps.wallClock(), message, ...(target ? { target } : {}) });
+    await ctx.deps.connector.audit.record(decision);
+  } catch (error) {
+    ctx.log.error("console.audit.failed", { path, refusal, ...describeError(error) });
+  }
+  return refuse(ctx.log, path, new AuthError(AUTH_REASON[refusal], message));
+}
+
+const CROSS_FIRM_MESSAGE = "this belongs to another firm";
+
+function firmScopeOf(ctx: AuditedContext, path: string, ownership: FirmOwnership): FirmScope {
+  const assertFirm = async (firmId: string, target?: FencedId): Promise<void> => {
+    if (firmId !== ctx.principal.firmId) await refuseAudited(ctx, path, "CROSS_FIRM", CROSS_FIRM_MESSAGE, target);
+  };
+  return {
+    assertFirm,
+    async assertId(id) {
+      const target = fencedIdOf(id);
+      if (target === undefined) return;
+      const owner = await ownership.firmOf(target);
+      if (owner !== undefined) await assertFirm(owner, target);
+    },
+  };
+}
+
+export const firmProcedure = baseProcedure.use(async ({ ctx, next, path, getRawInput }) => {
   const { principal: claimed, authFailure } = ctx;
   if (!claimed) return refuse(ctx.log, path, authFailure ?? new AuthError(AUTH_REASON.TOKEN_MISSING, "missing bearer token"));
 
   const log = ctx.log.child({ sub: claimed.sub, firmId: claimed.firmId, role: claimed.role });
-  let match;
+  let match: BrokerMatch | undefined;
   try {
-    match = ctx.deps.brokers ? await ctx.deps.brokers.find(claimed.firmId, claimed.sub) : undefined;
+    match = await ctx.deps.brokers.find(claimed.firmId, claimed.sub);
   } catch (error) {
     return refuse(log, path, new AuthError(AUTH_REASON.AUTH_UNAVAILABLE, "could not read the broker directory", { cause: error }));
   }
-  if (match && !match.active) refuse(log, path, new AuthError(AUTH_REASON.BROKER_INACTIVE, "this broker account is no longer active"));
+  let principal: Principal;
+  try {
+    principal = withBrokerRow(claimed, match);
+  } catch (error) {
+    if (error instanceof AuthError) return refuse(log, path, error);
+    throw error;
+  }
 
-  const principal: Principal = match ? { ...claimed, brokerId: match.brokerId } : claimed;
-  const firmContext: FirmContext = { ...ctx, principal, authFailure: null, log };
+  const audited: AuditedContext = { principal, deps: ctx.deps, log, correlationId: ctx.correlationId };
+  const ownership = createFirmOwnership(ctx.deps.connector);
+  // Every id the input names is checked before the procedure reads anything (FL-082).
+  const target = await crossFirmTarget(principal.firmId, fencedIdsOf(await getRawInput()), ownership);
+  if (target) await refuseAudited(audited, path, "CROSS_FIRM", CROSS_FIRM_MESSAGE, target);
+
+  const firmContext: FirmContext = { ...ctx, principal, authFailure: null, log, firmScope: firmScopeOf(audited, path, ownership) };
   return next({ ctx: firmContext });
 });
 
-function enforceRole(ctx: FirmContext, path: string, roles: readonly ConsoleRole[]): void {
+async function enforceRole(ctx: FirmContext, path: string, roles: readonly ConsoleRole[]): Promise<void> {
   if (roles.includes(ctx.principal.role)) return;
-  refuse(ctx.log, path, new AuthError(AUTH_REASON.ROLE_NOT_ALLOWED, `this procedure needs one of: ${roles.join(", ")}`));
+  await refuseAudited(ctx, path, "ROLE_NOT_ALLOWED", `this procedure needs one of: ${roles.join(", ")}`);
 }
 
 /** Firm + role BROKER or JUDGE. */
-export const brokerProcedure = firmProcedure.use(({ ctx, next, path }) => {
-  enforceRole(ctx, path, ["BROKER", "JUDGE"]);
+export const brokerProcedure = firmProcedure.use(async ({ ctx, next, path }) => {
+  await enforceRole(ctx, path, APPROVER_ROLES);
   return next();
 });
 

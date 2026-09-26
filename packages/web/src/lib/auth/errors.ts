@@ -1,11 +1,11 @@
 // What went wrong in a sign-in step, as the screen needs it. Cognito's error types are collapsed
-// into a few codes whose texts never say whether an email has an account: a wrong password, an
-// unknown email and an account that must reset its password all read the same.
+// into a few codes whose texts never say whether an account exists: a wrong password, an unknown
+// email or username and an account that must reset its password all read the same.
 import { CognitoError } from "./cognito";
 import { SrpError } from "./srp";
 
 export type AuthFlowErrorCode =
-  /** Email or password not accepted (never says which, nor whether the account exists). */
+  /** Sign-in name or password not accepted (never says which, nor whether the account exists). */
   | "INVALID_CREDENTIALS"
   /** A TOTP or reset code that is wrong or expired. */
   | "INVALID_CODE"
@@ -21,7 +21,8 @@ export type AuthFlowErrorCode =
   /** A step-up that signed in as somebody else than the current session. */
   | "DIFFERENT_USER";
 
-export type FlowStep = "credentials" | "challenge" | "setup" | "reset";
+/** Where the error happened; `change` is a signed-in user changing its own password. */
+export type FlowStep = "credentials" | "challenge" | "setup" | "reset" | "change";
 
 const THROTTLED = new Set(["LimitExceededException", "TooManyRequestsException", "TooManyFailedAttemptsException"]);
 const BAD_CODE = new Set(["CodeMismatchException", "ExpiredCodeException", "EnableSoftwareTokenMFAException"]);
@@ -52,5 +53,8 @@ export function errorCodeOf(error: unknown, step: FlowStep): AuthFlowErrorCode {
     case "reset":
       if (BAD_CODE.has(type) || REJECTED.has(type)) return "INVALID_CODE";
       return "UNAVAILABLE";
+    case "change":
+      // A wrong current password answers NotAuthorized, like a sign-in with the wrong one.
+      return type === "NotAuthorizedException" ? "INVALID_CREDENTIALS" : "UNAVAILABLE";
   }
 }

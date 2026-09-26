@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   addressHash,
+  hmacSha256,
   hmacSha256Hex,
   isHexHash,
   maskDocument,
@@ -34,6 +35,9 @@ describe("hashing", () => {
     expect(await hmacSha256Hex("Jefe", "what do ya want for nothing?")).toBe(
       "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843",
     );
+    const bytes = await hmacSha256("Jefe", "what do ya want for nothing?");
+    expect(bytes).toHaveLength(32);
+    expect(bytes[0]).toBe(0x5b);
   });
 
   it("addressHash is stable across formatting and keyed by the secret", async () => {

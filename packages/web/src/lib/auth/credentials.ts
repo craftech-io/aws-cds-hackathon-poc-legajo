@@ -33,6 +33,20 @@ export function looksLikeEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
+/**
+ * What a person signs in with: brokers and analysts use the email of their invitation (an alias of
+ * the pool), judges a plain username without email (`judge-01`, infra/auth.ts). Usernames are
+ * lower case, so both are normalised the same way.
+ */
+export const normalizeSignInName = normalizeEmail;
+
+const USERNAME = /^[a-z0-9](?:[a-z0-9._-]{0,62}[a-z0-9])?$/;
+
+export function looksLikeSignInName(value: string): boolean {
+  const normalized = normalizeSignInName(value);
+  return looksLikeEmail(normalized) || USERNAME.test(normalized);
+}
+
 /** A six-digit TOTP code, after removing the spaces people type or paste. */
 export function normalizeTotpCode(code: string): string | undefined {
   const digits = code.replace(/\s+/g, "");
@@ -42,7 +56,7 @@ export function normalizeTotpCode(code: string): string | undefined {
 export const TOTP_ISSUER = "Legajo listo";
 
 /**
- * `otpauth://totp/Al%20D%C3%ADa:<email>?secret=…&issuer=…` (Key Uri Format): what Google
+ * `otpauth://totp/Legajo%20listo:<account>?secret=…&issuer=…` (Key Uri Format): what Google
  * Authenticator, Microsoft Authenticator and 1Password scan. Rendered as a QR code locally; the
  * secret never leaves the page.
  */

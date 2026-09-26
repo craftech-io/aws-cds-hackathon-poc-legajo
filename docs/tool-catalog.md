@@ -17,7 +17,7 @@ Tools expuestas al Harness por AgentCore Gateway (5 targets Lambda, **15 tools**
 | PII | Las salidas enmascaran teléfonos (`+54 9 11 •••• 0101`) y emails (`s•••@sim.legajo…`) salvo que la tool exista para devolverlos; ninguna devuelve CUIT completo; los textos entrantes ya llegan enmascarados por el normalizador (`[CUIT]`, `[CBU]`, …) |
 | Bitácora | Toda tool con efecto escribe `AuditLog` con `decision`, `action`, `ruleIds`, `actor = AGENT`, `refs {operationId, turnId, …}` |
 
-Tipos compartidos (`packages/shared/src/enums.ts`):
+Tipos compartidos (`@legajo/shared`, `packages/shared/src/enums*.ts`):
 
 ```json
 {

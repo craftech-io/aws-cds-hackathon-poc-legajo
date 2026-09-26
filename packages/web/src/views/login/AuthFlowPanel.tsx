@@ -8,14 +8,14 @@ import { CredentialsStep, ForgotConfirmStep, ForgotRequestStep, NewPasswordStep,
 
 interface AuthFlowPanelProps {
   readonly flow: AuthFlowHandle;
-  /** Step-up: the email is the session's and cannot change. */
-  readonly fixedEmail?: string;
+  /** Step-up: the sign-in name is the session's and cannot change. */
+  readonly fixedLogin?: string;
   readonly inDrawer?: boolean;
   /** Shown above the credentials when nothing else is (e.g. "the session expired"). */
   readonly credentialsNotice?: string;
 }
 
-export function AuthFlowPanel({ flow, fixedEmail, inDrawer = false, credentialsNotice }: AuthFlowPanelProps) {
+export function AuthFlowPanel({ flow, fixedLogin, inDrawer = false, credentialsNotice }: AuthFlowPanelProps) {
   const { state, error, busy, dispatch } = flow;
   const common = { busy, dispatch, inDrawer };
   const restart = <LinkButton onClick={() => dispatch({ type: "restart" })}>{state.step === "totp" ? loginCopy.otherUser : loginCopy.back}</LinkButton>;
@@ -27,9 +27,9 @@ export function AuthFlowPanel({ flow, fixedEmail, inDrawer = false, credentialsN
       body = (
         <CredentialsStep
           {...common}
-          {...(fixedEmail !== undefined ? { fixedEmail } : {})}
+          {...(fixedLogin !== undefined ? { fixedLogin } : {})}
           {...(notice !== undefined ? { notice } : {})}
-          {...(fixedEmail === undefined ? { onForgot: () => dispatch({ type: "forgot" }) } : {})}
+          {...(fixedLogin === undefined ? { onForgot: () => dispatch({ type: "forgot" }) } : {})}
         />
       );
       break;

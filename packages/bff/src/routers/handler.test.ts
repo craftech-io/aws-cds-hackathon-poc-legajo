@@ -2,27 +2,25 @@ import type { APIGatewayProxyEventV2, Context as LambdaContext } from "aws-lambd
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { AUTH_REASON } from "../auth/errors";
-import { createBrokerDirectory } from "../auth/staff";
-import { createTestIssuer } from "../auth/testing";
-import { createLogger } from "../lib/log";
-import type { ContextDeps } from "./deps";
+import { createTestIssuer, seedBrokers, testContextDeps } from "../auth/testing";
+import { memoryStores } from "../connector/testing";
 import { createHandler, stripApiPrefix } from "./handler";
 import { appRouter } from "./index";
 import { brokerProcedure, createContextFactory, firmProcedure, recentLoginProcedure, router } from "./trpc";
 
 const issuer = createTestIssuer();
 const lines: string[] = [];
+const BROKER_SUB = "7f1c9d2e-0000-4000-8000-000000000001";
 const INACTIVE_SUB = "7f1c9d2e-0000-4000-8000-00000000dead";
+// Users whose `sub` has no broker row: their role is the token's.
+const UNBOUND_SUB = "7f1c9d2e-0000-4000-8000-00000000beef";
 
-const deps: ContextDeps = {
-  verifier: issuer.verifier(),
-  brokers: createBrokerDirectory({
-    findBySub: async (_firmId, sub) => (sub === INACTIVE_SUB ? { brokerId: "brk-gone", active: false } : { brokerId: "brk-01", active: true }),
-  }),
-  totp: { isTotpEnabled: () => Promise.resolve(false) },
-  wallClock: () => new Date(),
-  loggerFor: (correlationId) => createLogger({ correlationId, sink: (line) => void lines.push(line) }),
-};
+const stores = memoryStores();
+await seedBrokers(stores, [
+  { firmId: "firm-delta", brokerId: "brk-delta-diego", role: "BROKER", sub: BROKER_SUB },
+  { firmId: "firm-delta", brokerId: "brk-delta-gone", role: "BROKER", sub: INACTIVE_SUB, active: false },
+]);
+const deps = testContextDeps({ verifier: issuer.verifier(), stores, lines });
 
 const testRouter = router({
   session: router({
@@ -91,7 +89,7 @@ describe("BFF Lambda handler", () => {
     for (const path of ["/api/session.whoami", "/session.whoami"]) {
       const response = await call(path, { authorization });
       expect(response.status).toBe(200);
-      expect(response.body.result?.data).toEqual({ firmId: "firm-delta", role: "BROKER", brokerId: "brk-01" });
+      expect(response.body.result?.data).toEqual({ firmId: "firm-delta", role: "BROKER", brokerId: "brk-delta-diego" });
       expect(response.headers["cache-control"]).toBe("no-store");
     }
   });
@@ -112,10 +110,12 @@ describe("BFF Lambda handler", () => {
     const inactive = await call("/api/session.whoami", { authorization: `Bearer ${issuer.idToken({ sub: INACTIVE_SUB })}` });
     expect(inactive.status).toBe(403);
     expect(inactive.body.error?.data).toMatchObject({ reason: AUTH_REASON.BROKER_INACTIVE });
-    const analyst = await call("/api/session.brokerOnly", { authorization: `Bearer ${issuer.idToken({ "custom:role": "ANALYST", "cognito:groups": ["ANALYST"] })}` });
+    const analyst = await call("/api/session.brokerOnly", { authorization: `Bearer ${issuer.idToken({ sub: UNBOUND_SUB, "custom:role": "ANALYST", "cognito:groups": ["ANALYST"] })}` });
     expect(analyst.status).toBe(403);
     expect(analyst.body.error?.data).toMatchObject({ reason: AUTH_REASON.ROLE_NOT_ALLOWED });
-    const judge = await call("/api/session.brokerOnly", { authorization: `Bearer ${issuer.idToken({ "custom:role": "JUDGE", "cognito:groups": ["JUDGE"] })}` });
+    const judge = await call("/api/session.brokerOnly", {
+      authorization: `Bearer ${issuer.idToken({ sub: UNBOUND_SUB, "custom:firmId": "firm-judge-01", "custom:role": "JUDGE", "cognito:groups": ["JUDGE"] })}`,
+    });
     expect(judge.status).toBe(200);
     const old = Math.floor(Date.now() / 1000) - 16 * 60;
     const stale = await handler(
@@ -140,7 +140,7 @@ describe("BFF Lambda handler", () => {
     const bff = createHandler(appRouter, createContextFactory(() => deps));
     const health = await bff(functionUrlEvent("/api/health"), lambdaContext);
     expect(health.statusCode).toBe(200);
-    expect(ResponseBody.parse(JSON.parse(health.body ?? "{}")).result?.data).toEqual({ ok: true, service: "bff" });
+    expect(ResponseBody.parse(JSON.parse(health.body ?? "{}")).result?.data).toEqual({ ok: true, service: "bff", checks: {} });
     const unknown = await bff(functionUrlEvent("/api/nothing.here"), lambdaContext);
     expect(unknown.statusCode).toBe(404);
   });

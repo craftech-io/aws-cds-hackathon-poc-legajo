@@ -29,5 +29,8 @@ export const dataCopy = {
     ROLE_NOT_ALLOWED: "Tu rol no puede hacer esta acción.",
     CROSS_FIRM: "Ese dato no pertenece a tu estudio.",
     BROKER_INACTIVE: "Tu usuario ya no está activo en el estudio.",
+    PRINCIPAL_INCOMPLETE: "Tu usuario todavía no tiene un estudio o un rol asignado.",
+    AUTH_UNAVAILABLE: "El servicio de ingreso no respondió. Probá de nuevo en unos segundos.",
+    WORLD_BUSY: "El mundo está ocupado: esperá a que termine lo que está en curso y volvé a intentar.",
   } as Readonly<Record<string, string>>,
 } as const;

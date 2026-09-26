@@ -13,6 +13,7 @@
     "test": "vitest run --root ../.. packages/reader-contract"
   },
   "dependencies": {
+    "@legajo/shared": "*",
     "zod": "4.6.5"
   },
   "devDependencies": {

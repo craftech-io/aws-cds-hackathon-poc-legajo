@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`prefixes > follow docs/seed-spec.md §2 1`] = `
+{
+  "broker": "brk",
+  "contact": "ctc",
+  "docVersion": "dv",
+  "firm": "firm",
+  "importer": "imp",
+  "message": "msg",
+  "observation": "obs",
+  "operation": "op",
+  "supplier": "sup",
+}
+`;

@@ -9,9 +9,9 @@ import { RowCells, TableFrame, TableHead } from "./table-parts";
 export interface RowSelection<Row> {
   readonly selected: ReadonlySet<string>;
   readonly onChange: (next: ReadonlySet<string>) => void;
-  /** Rows that cannot be selected show no checkbox (e.g. a case that is not an approval). */
+  /** Rows that cannot be selected show no checkbox (e.g. an escalation that is already resolved). */
   readonly isSelectable: (row: Row) => boolean;
-  /** Accessible name of each row's checkbox: "Seleccionar 2A". */
+  /** Accessible name of each row's checkbox: "Seleccionar la operación 4471". */
   readonly labelOf: (row: Row) => string;
   readonly allLabel: string;
 }

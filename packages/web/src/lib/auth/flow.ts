@@ -13,22 +13,24 @@
 // needs an interactive sign-in in the last 15 minutes (`auth_time`, ADR-0010), so the console signs
 // the same person in again, in place, and swaps the tokens.
 import { type AuthResponse, type CognitoApi, type Credential, TOTP_MFA } from "./cognito";
-import { missingPasswordRules, normalizeEmail, normalizeTotpCode } from "./credentials";
+import { missingPasswordRules, normalizeEmail, normalizeSignInName, normalizeTotpCode } from "./credentials";
 import { type AuthFlowErrorCode, type FlowStep, errorCodeOf } from "./errors";
 import type { SrpClient } from "./srp";
 import { type TokenSet, tokenSetOf } from "./tokens";
 
-export type FlowMode = { readonly kind: "signIn" } | { readonly kind: "stepUp"; readonly sub: string; readonly email: string };
+/** `login` of a step-up: the sign-in name of the person in session (email, or a judge's username). */
+export type FlowMode = { readonly kind: "signIn" } | { readonly kind: "stepUp"; readonly sub: string; readonly login: string };
 
-/** A pending Cognito challenge: who (USER_ID_FOR_SRP) and the session that answers it. */
+/** A pending Cognito challenge: what was typed, who it is (USER_ID_FOR_SRP) and the session that answers it. */
 export interface ChallengeContext {
-  readonly email: string;
+  readonly login: string;
   readonly username: string;
   readonly session: string;
 }
 
 export interface MfaSetup {
-  readonly email: string;
+  /** Account label of the authenticator app entry (the sign-in name). */
+  readonly account: string;
   /** Base32 secret for the authenticator app. Memory only: never stored, never logged. */
   readonly secret: string;
   /** False when the role needs TOTP, in a step-up, or when Cognito itself demands it. */
@@ -47,7 +49,8 @@ export type AuthFlowState =
   | { readonly step: "done"; readonly tokens: TokenSet; readonly totpVerified: boolean };
 
 export type AuthFlowAction =
-  | { readonly type: "signIn"; readonly email: string; readonly password: string }
+  /** `login`: the invitation email of a broker or analyst, or the username of a judge. */
+  | { readonly type: "signIn"; readonly login: string; readonly password: string }
   | { readonly type: "newPassword"; readonly password: string }
   | { readonly type: "totp"; readonly code: string }
   | { readonly type: "verifyMfaSetup"; readonly code: string }
@@ -90,7 +93,7 @@ export async function advance(state: AuthFlowState, action: AuthFlowAction, deps
   if (action.type === "restart") return { state: INITIAL_STATE };
   switch (state.step) {
     case "credentials":
-      if (action.type === "signIn") return signIn(state, action.email, action.password, deps);
+      if (action.type === "signIn") return signIn(state, action.login, action.password, deps);
       if (action.type === "forgot" && deps.mode.kind === "signIn") return { state: { step: "forgotRequest" } };
       return { state };
     case "newPassword":
@@ -112,17 +115,17 @@ export async function advance(state: AuthFlowState, action: AuthFlowAction, deps
   }
 }
 
-async function signIn(state: AuthFlowState, rawEmail: string, password: string, deps: AuthFlowDeps): Promise<Transition> {
+async function signIn(state: AuthFlowState, rawLogin: string, password: string, deps: AuthFlowDeps): Promise<Transition> {
   // A step-up signs in the person already in session, whatever the form says.
-  const email = deps.mode.kind === "stepUp" ? deps.mode.email : normalizeEmail(rawEmail);
-  if (!email || !password) return stay(state, "INVALID_CREDENTIALS");
+  const login = deps.mode.kind === "stepUp" ? deps.mode.login : normalizeSignInName(rawLogin);
+  if (!login || !password) return stay(state, "INVALID_CREDENTIALS");
   try {
-    const exchange = await deps.srp.start(email, password);
-    const verifier = await deps.cognito.initiateSrp(email, exchange.srpA);
+    const exchange = await deps.srp.start(login, password);
+    const verifier = await deps.cognito.initiateSrp(login, exchange.srpA);
     if (verifier.ChallengeName !== "PASSWORD_VERIFIER" || !verifier.ChallengeParameters) return stay(state, "UNSUPPORTED");
     const responses = await exchange.sign(verifier.ChallengeParameters);
     const answer = await deps.cognito.respondToChallenge("PASSWORD_VERIFIER", responses, verifier.Session);
-    return await onAuthResponse(answer, { email, username: responses.USERNAME ?? email }, false, deps);
+    return await onAuthResponse(answer, { login, username: responses.USERNAME ?? login }, false, deps);
   } catch (error) {
     return stay(state, errorCodeOf(error, "credentials"));
   }
@@ -165,9 +168,9 @@ async function verifyMfaSetup(state: AuthFlowState, setup: MfaSetup, rawCode: st
       const tokens = tokenSetOf(answer.AuthenticationResult, deps.now());
       // MFA_SETUP verified the code; this only makes TOTP the preferred factor. Best effort.
       await deps.cognito.setTotpPreferred(tokens.accessToken).catch(() => undefined);
-      return afterTokens(tokens, setup.email, true, deps);
+      return afterTokens(tokens, setup.account, true, deps);
     }
-    return onAuthResponse(answer, { email: setup.email, username: via.username, session: via.session }, true, deps);
+    return onAuthResponse(answer, { login: setup.account, username: via.username, session: via.session }, true, deps);
   });
 }
 
@@ -183,15 +186,15 @@ async function inChallenge(state: AuthFlowState, step: FlowStep, run: () => Prom
 
 async function onAuthResponse(
   response: AuthResponse,
-  who: { readonly email: string; readonly username: string; readonly session?: string },
+  who: { readonly login: string; readonly username: string; readonly session?: string },
   totpVerified: boolean,
   deps: AuthFlowDeps,
 ): Promise<Transition> {
-  if (response.AuthenticationResult) return afterTokens(tokenSetOf(response.AuthenticationResult, deps.now()), who.email, totpVerified, deps);
+  if (response.AuthenticationResult) return afterTokens(tokenSetOf(response.AuthenticationResult, deps.now()), who.login, totpVerified, deps);
   const session = response.Session;
   if (!session) return restart("UNAVAILABLE");
   const username = response.ChallengeParameters?.USER_ID_FOR_SRP ?? who.username;
-  const challenge: ChallengeContext = { email: who.email, username, session };
+  const challenge: ChallengeContext = { login: who.login, username, session };
   switch (response.ChallengeName) {
     case "NEW_PASSWORD_REQUIRED":
       return { state: { step: "newPassword", challenge } };
@@ -209,7 +212,7 @@ async function onAuthResponse(
       return {
         state: {
           step: "mfaSetup",
-          setup: { email: who.email, secret: association.secretCode, optional: false, via: { kind: "challenge", username, session: association.session ?? session } },
+          setup: { account: who.login, secret: association.secretCode, optional: false, via: { kind: "challenge", username, session: association.session ?? session } },
         },
       };
     }
@@ -230,7 +233,7 @@ function listParam(response: AuthResponse, name: string): string[] {
   }
 }
 
-async function afterTokens(tokens: TokenSet, email: string, totpVerified: boolean, deps: AuthFlowDeps): Promise<Transition> {
+async function afterTokens(tokens: TokenSet, login: string, totpVerified: boolean, deps: AuthFlowDeps): Promise<Transition> {
   if (deps.mode.kind === "stepUp" && deps.subOf(tokens) !== deps.mode.sub) {
     // Somebody else's session must not outlive this screen.
     if (tokens.refreshToken) await deps.cognito.revoke(tokens.refreshToken).catch(() => undefined);
@@ -251,7 +254,7 @@ async function afterTokens(tokens: TokenSet, email: string, totpVerified: boolea
   if (enabled.includes(TOTP_MFA)) return { state: { step: "done", tokens, totpVerified: false } };
   try {
     const association = await deps.cognito.associateSoftwareToken({ accessToken: tokens.accessToken } satisfies Credential);
-    return { state: { step: "mfaSetup", setup: { email, secret: association.secretCode, optional: true, via: { kind: "tokens", tokens } } } };
+    return { state: { step: "mfaSetup", setup: { account: login, secret: association.secretCode, optional: true, via: { kind: "tokens", tokens } } } };
   } catch {
     return { state: { step: "done", tokens, totpVerified: false } };
   }

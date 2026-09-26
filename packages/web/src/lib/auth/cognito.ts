@@ -51,6 +51,8 @@ export interface CognitoApi {
   setTotpPreferred(accessToken: string): Promise<void>;
   /** MFA methods the user has enabled (`SOFTWARE_TOKEN_MFA` once TOTP is on). */
   mfaMethods(accessToken: string): Promise<readonly string[]>;
+  /** The signed-in user changes its own password (never offered to a judge). */
+  changePassword(accessToken: string, previousPassword: string, proposedPassword: string): Promise<void>;
   forgotPassword(username: string): Promise<void>;
   confirmForgotPassword(username: string, code: string, newPassword: string): Promise<void>;
   refresh(refreshToken: string): Promise<AuthenticationResult>;
@@ -132,6 +134,9 @@ export function createCognitoApi(config: CognitoApiConfig): CognitoApi {
     async mfaMethods(accessToken) {
       const user = await call("GetUser", { AccessToken: accessToken }, GetUserResponse, true);
       return user.UserMFASettingList ?? [];
+    },
+    async changePassword(accessToken, previousPassword, proposedPassword) {
+      await call("ChangePassword", { AccessToken: accessToken, PreviousPassword: previousPassword, ProposedPassword: proposedPassword }, Empty, false);
     },
     async forgotPassword(username) {
       await call("ForgotPassword", { ClientId: clientId, Username: username }, z.looseObject({}), false);

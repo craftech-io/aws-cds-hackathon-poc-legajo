@@ -49,6 +49,21 @@ describe("token set in sessionStorage", () => {
     expect(loadTokens()).toEqual(restored);
   });
 
+  it("sends one refresh when two callers restore the session at once", async () => {
+    saveTokens({ ...FRESH, expiresAt: Date.now() - 1 });
+    let calls = 0;
+    const cognito = {
+      refresh: async () => {
+        calls += 1;
+        return { IdToken: "id-3", AccessToken: "access-3", ExpiresIn: 900 };
+      },
+    };
+    const [first, second] = await Promise.all([restoreSession(cognito), restoreSession(cognito)]);
+    expect(calls).toBe(1);
+    expect(first).toEqual(second);
+    expect(first?.expiresAt).toBeGreaterThan(Date.now() + 14 * 60_000);
+  });
+
   it("drops a session whose refresh fails", async () => {
     saveTokens({ ...FRESH, expiresAt: Date.now() - 1 });
     const restored = await restoreSession({ refresh: async () => Promise.reject(new Error("revoked")) });
@@ -74,7 +89,7 @@ describe("token set in sessionStorage", () => {
 
 describe("safeReturnTo", () => {
   it("keeps same-origin paths and refuses the login route and other origins", () => {
-    expect(safeReturnTo("/cases?x=1", "/login")).toBe("/cases?x=1");
+    expect(safeReturnTo("/app/audit?x=1", "/login")).toBe("/app/audit?x=1");
     for (const bad of ["https://evil.example", "//evil.example", "/\\evil.example", "/login", "/login?returnTo=%2F", "", null, undefined]) {
       expect(safeReturnTo(bad, "/login", "/dashboard")).toBe("/dashboard");
     }

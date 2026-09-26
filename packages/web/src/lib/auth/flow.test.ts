@@ -33,16 +33,16 @@ beforeEach(() => {
 describe("sign in with email and password (USER_SRP_AUTH)", () => {
   it("proves the password by SRP: the password itself never crosses the wire", async () => {
     await cognito.addUser({ email: "analyst@example.test", password: PASSWORD, role: "ANALYST", totpSecret: randomBase32Secret() });
-    const challenge = expectStep(await run(INITIAL_STATE, { type: "signIn", email: " Analyst@Example.test ", password: PASSWORD }), "totp");
-    expect(challenge.challenge.email).toBe("analyst@example.test");
+    const challenge = expectStep(await run(INITIAL_STATE, { type: "signIn", login: " Analyst@Example.test ", password: PASSWORD }), "totp");
+    expect(challenge.challenge.login).toBe("analyst@example.test");
     expect(cognito.calls.map((call) => call.operation)).toEqual(["InitiateAuth", "RespondToAuthChallenge"]);
     for (const call of cognito.calls) expect(call.payload).not.toContain(PASSWORD);
   });
 
   it("answers a wrong password and an unknown email with the same error", async () => {
     await cognito.addUser({ email: "someone@example.test", password: PASSWORD });
-    const wrongPassword = await run(INITIAL_STATE, { type: "signIn", email: "someone@example.test", password: "Wrong-Fixture-1!" });
-    const unknownEmail = await run(INITIAL_STATE, { type: "signIn", email: "nobody@example.test", password: PASSWORD });
+    const wrongPassword = await run(INITIAL_STATE, { type: "signIn", login: "someone@example.test", password: "Wrong-Fixture-1!" });
+    const unknownEmail = await run(INITIAL_STATE, { type: "signIn", login: "nobody@example.test", password: PASSWORD });
     expect(wrongPassword).toEqual({ state: INITIAL_STATE, error: "INVALID_CREDENTIALS" });
     expect(unknownEmail).toEqual(wrongPassword);
   });
@@ -50,21 +50,21 @@ describe("sign in with email and password (USER_SRP_AUTH)", () => {
   it("reports an account that must reset its password as a plain rejection", async () => {
     await cognito.addUser({ email: "reset@example.test", password: PASSWORD });
     cognito.failNext = { operation: "InitiateAuth", type: "PasswordResetRequiredException" };
-    expect((await run(INITIAL_STATE, { type: "signIn", email: "reset@example.test", password: PASSWORD })).error).toBe("INVALID_CREDENTIALS");
+    expect((await run(INITIAL_STATE, { type: "signIn", login: "reset@example.test", password: PASSWORD })).error).toBe("INVALID_CREDENTIALS");
   });
 
   it("tells throttling and outages apart from a rejection", async () => {
     cognito.failNext = { operation: "InitiateAuth", type: "TooManyRequestsException" };
-    expect((await run(INITIAL_STATE, { type: "signIn", email: "a@example.test", password: PASSWORD })).error).toBe("TOO_MANY_ATTEMPTS");
+    expect((await run(INITIAL_STATE, { type: "signIn", login: "a@example.test", password: PASSWORD })).error).toBe("TOO_MANY_ATTEMPTS");
     cognito.failNext = { operation: "InitiateAuth" };
-    expect((await run(INITIAL_STATE, { type: "signIn", email: "a@example.test", password: PASSWORD })).error).toBe("UNAVAILABLE");
+    expect((await run(INITIAL_STATE, { type: "signIn", login: "a@example.test", password: PASSWORD })).error).toBe("UNAVAILABLE");
   });
 });
 
 describe("first login after an invitation (NEW_PASSWORD_REQUIRED → optional TOTP)", () => {
   it("offers a BROKER TOTP after the temporary password and enrols when asked", async () => {
     await cognito.addUser({ email: "despachante@example.test", password: TEMPORARY, role: "BROKER", status: "FORCE_CHANGE_PASSWORD" });
-    const newPassword = expectStep(await run(INITIAL_STATE, { type: "signIn", email: "despachante@example.test", password: TEMPORARY }), "newPassword");
+    const newPassword = expectStep(await run(INITIAL_STATE, { type: "signIn", login: "despachante@example.test", password: TEMPORARY }), "newPassword");
 
     const weak = await run(newPassword, { type: "newPassword", password: "short" });
     expect(weak).toEqual({ state: newPassword, error: "WEAK_PASSWORD" });
@@ -79,13 +79,13 @@ describe("first login after an invitation (NEW_PASSWORD_REQUIRED → optional TO
     expect(cognito.user("despachante@example.test").totpEnabled).toBe(true);
 
     // From now on the code is asked on every sign-in.
-    const again = expectStep(await run(INITIAL_STATE, { type: "signIn", email: "despachante@example.test", password: NEW_PASSWORD }), "totp");
+    const again = expectStep(await run(INITIAL_STATE, { type: "signIn", login: "despachante@example.test", password: NEW_PASSWORD }), "totp");
     expectStep(await run(again, { type: "totp", code: await cognito.currentCode("despachante@example.test") }), "done");
   });
 
   it("lets an ANALYST skip TOTP", async () => {
     await cognito.addUser({ email: "analista@example.test", password: TEMPORARY, role: "ANALYST", status: "FORCE_CHANGE_PASSWORD" });
-    const newPassword = expectStep(await run(INITIAL_STATE, { type: "signIn", email: "analista@example.test", password: TEMPORARY }), "newPassword");
+    const newPassword = expectStep(await run(INITIAL_STATE, { type: "signIn", login: "analista@example.test", password: TEMPORARY }), "newPassword");
     const setup = expectStep(await run(newPassword, { type: "newPassword", password: NEW_PASSWORD }), "mfaSetup");
     expect(setup.setup.optional).toBe(true);
     const done = expectStep(await run(setup, { type: "skipMfaSetup" }), "done");
@@ -93,23 +93,24 @@ describe("first login after an invitation (NEW_PASSWORD_REQUIRED → optional TO
     expect(cognito.user("analista@example.test").totpEnabled).toBe(false);
   });
 
-  it("never offers TOTP to a JUDGE", async () => {
-    await cognito.addUser({ email: "judge-01@example.test", password: PASSWORD, role: "JUDGE" });
-    const done = expectStep(await run(INITIAL_STATE, { type: "signIn", email: "judge-01@example.test", password: PASSWORD }), "done");
+  it("signs a JUDGE in with its username (no email) and never offers TOTP", async () => {
+    await cognito.addUser({ username: "judge-01", password: PASSWORD, role: "JUDGE" });
+    const done = expectStep(await run(INITIAL_STATE, { type: "signIn", login: " Judge-01 ", password: PASSWORD }), "done");
     expect(done.totpVerified).toBe(false);
-    expect(cognito.calls.map((call) => call.operation)).not.toContain("AssociateSoftwareToken");
+    expect(JSON.parse(cognito.calls[0]?.payload ?? "{}")).toMatchObject({ username: "judge-01" });
+    expect(cognito.calls.map((call) => call.operation)).toEqual(["InitiateAuth", "RespondToAuthChallenge"]);
   });
 
   it("keeps the step when Cognito rejects the new password", async () => {
     await cognito.addUser({ email: "c@example.test", password: TEMPORARY, status: "FORCE_CHANGE_PASSWORD" });
-    const newPassword = expectStep(await run(INITIAL_STATE, { type: "signIn", email: "c@example.test", password: TEMPORARY }), "newPassword");
+    const newPassword = expectStep(await run(INITIAL_STATE, { type: "signIn", login: "c@example.test", password: TEMPORARY }), "newPassword");
     cognito.failNext = { operation: "RespondToAuthChallenge", type: "InvalidPasswordException" };
     expect(await run(newPassword, { type: "newPassword", password: NEW_PASSWORD })).toEqual({ state: newPassword, error: "WEAK_PASSWORD" });
   });
 
   it("starts over when the challenge session expired", async () => {
     await cognito.addUser({ email: "slow@example.test", password: TEMPORARY, status: "FORCE_CHANGE_PASSWORD" });
-    const newPassword = expectStep(await run(INITIAL_STATE, { type: "signIn", email: "slow@example.test", password: TEMPORARY }), "newPassword");
+    const newPassword = expectStep(await run(INITIAL_STATE, { type: "signIn", login: "slow@example.test", password: TEMPORARY }), "newPassword");
     cognito.expireSessions();
     expect(await run(newPassword, { type: "newPassword", password: NEW_PASSWORD })).toEqual({ state: INITIAL_STATE, error: "SESSION_EXPIRED" });
   });
@@ -118,7 +119,7 @@ describe("first login after an invitation (NEW_PASSWORD_REQUIRED → optional TO
 describe("the TOTP code (SOFTWARE_TOKEN_MFA)", () => {
   it("rejects a wrong or malformed code and accepts the current one", async () => {
     await cognito.addUser({ email: "broker@example.test", password: PASSWORD, role: "BROKER", totpSecret: randomBase32Secret() });
-    const totp = expectStep(await run(INITIAL_STATE, { type: "signIn", email: "broker@example.test", password: PASSWORD }), "totp");
+    const totp = expectStep(await run(INITIAL_STATE, { type: "signIn", login: "broker@example.test", password: PASSWORD }), "totp");
     expect(await run(totp, { type: "totp", code: "12ab" })).toEqual({ state: totp, error: "INVALID_CODE" });
     expect(await run(totp, { type: "totp", code: "000000" })).toEqual({ state: totp, error: "INVALID_CODE" });
     const code = await cognito.currentCode("broker@example.test");
@@ -132,7 +133,7 @@ describe("MFA_SETUP (a pool where Cognito itself requires MFA)", () => {
   it("associates, verifies and finishes the challenge through the session", async () => {
     cognito.mfa = "ON";
     await cognito.addUser({ email: "on@example.test", password: PASSWORD, role: "ANALYST" });
-    const setup = expectStep(await run(INITIAL_STATE, { type: "signIn", email: "on@example.test", password: PASSWORD }), "mfaSetup");
+    const setup = expectStep(await run(INITIAL_STATE, { type: "signIn", login: "on@example.test", password: PASSWORD }), "mfaSetup");
     expect(setup.setup.optional).toBe(false);
     expect(setup.setup.via.kind).toBe("challenge");
     const done = expectStep(await run(setup, { type: "verifyMfaSetup", code: await totpCode(setup.setup.secret) }), "done");
@@ -167,22 +168,22 @@ describe("forgot password (ForgotPassword → ConfirmForgotPassword)", () => {
     const wrong = code === "111111" ? "222222" : "111111";
     expect(await run(confirm, { type: "confirmReset", code: wrong, password: NEW_PASSWORD })).toEqual({ state: confirm, error: "INVALID_CODE" });
     expect(await run(confirm, { type: "confirmReset", code, password: NEW_PASSWORD })).toEqual({ state: { step: "credentials", notice: "passwordReset" } });
-    expect((await run(INITIAL_STATE, { type: "signIn", email: "olvido@example.test", password: PASSWORD })).error).toBe("INVALID_CREDENTIALS");
-    expectStep(await run(INITIAL_STATE, { type: "signIn", email: "olvido@example.test", password: NEW_PASSWORD }), "mfaSetup");
+    expect((await run(INITIAL_STATE, { type: "signIn", login: "olvido@example.test", password: PASSWORD })).error).toBe("INVALID_CREDENTIALS");
+    expectStep(await run(INITIAL_STATE, { type: "signIn", login: "olvido@example.test", password: NEW_PASSWORD }), "mfaSetup");
   });
 
   it("is not offered inside a step-up", async () => {
     const user = await cognito.addUser({ email: "x@example.test", password: PASSWORD });
-    expect((await run(INITIAL_STATE, { type: "forgot" }, { kind: "stepUp", sub: user.sub, email: user.email })).state).toBe(INITIAL_STATE);
+    expect((await run(INITIAL_STATE, { type: "forgot" }, { kind: "stepUp", sub: user.sub, login: user.email })).state).toBe(INITIAL_STATE);
   });
 });
 
 describe("recent-login step-up (a fresh auth_time to approve or reopen)", () => {
   it("signs the same person in again with the code, whatever email the form carries", async () => {
     const user = await cognito.addUser({ email: "ana@example.test", password: PASSWORD, totpSecret: randomBase32Secret() });
-    const mode: FlowMode = { kind: "stepUp", sub: user.sub, email: user.email };
-    const totp = expectStep(await run(INITIAL_STATE, { type: "signIn", email: "intruder@example.test", password: PASSWORD }, mode), "totp");
-    expect(totp.challenge.email).toBe("ana@example.test");
+    const mode: FlowMode = { kind: "stepUp", sub: user.sub, login: user.email };
+    const totp = expectStep(await run(INITIAL_STATE, { type: "signIn", login: "intruder@example.test", password: PASSWORD }, mode), "totp");
+    expect(totp.challenge.login).toBe("ana@example.test");
     const done = expectStep(await run(totp, { type: "totp", code: await cognito.currentCode(user.email) }, mode), "done");
     expect(done.totpVerified).toBe(true);
     expect(subOf(done.tokens)).toBe(user.sub);
@@ -190,18 +191,28 @@ describe("recent-login step-up (a fresh auth_time to approve or reopen)", () => 
 
   it("refuses, and revokes, a sign-in of somebody else", async () => {
     await cognito.addUser({ email: "other@example.test", password: PASSWORD, role: "ANALYST" });
-    const mode: FlowMode = { kind: "stepUp", sub: "not-the-same-sub", email: "other@example.test" };
-    const result = await run(INITIAL_STATE, { type: "signIn", email: "other@example.test", password: PASSWORD }, mode);
+    const mode: FlowMode = { kind: "stepUp", sub: "not-the-same-sub", login: "other@example.test" };
+    const result = await run(INITIAL_STATE, { type: "signIn", login: "other@example.test", password: PASSWORD }, mode);
     expect(result).toEqual({ state: INITIAL_STATE, error: "DIFFERENT_USER" });
     expect(cognito.revoked.size).toBe(1);
   });
 
   it("signs a user without TOTP in again with the password alone, without offering an enrolment", async () => {
     const user = await cognito.addUser({ email: "sin-totp@example.test", password: PASSWORD, role: "BROKER" });
-    const mode: FlowMode = { kind: "stepUp", sub: user.sub, email: user.email };
-    const done = expectStep(await run(INITIAL_STATE, { type: "signIn", email: user.email, password: PASSWORD }, mode), "done");
+    const mode: FlowMode = { kind: "stepUp", sub: user.sub, login: user.email };
+    const done = expectStep(await run(INITIAL_STATE, { type: "signIn", login: user.email, password: PASSWORD }, mode), "done");
     expect(done.totpVerified).toBe(false);
     expect(subOf(done.tokens)).toBe(user.sub);
+  });
+});
+
+describe("recent-login step-up of a judge", () => {
+  it("signs the judge in again by its username, with the password alone", async () => {
+    const user = await cognito.addUser({ username: "judge-01", password: PASSWORD, role: "JUDGE" });
+    const mode: FlowMode = { kind: "stepUp", sub: user.sub, login: "judge-01" };
+    const done = expectStep(await run(INITIAL_STATE, { type: "signIn", login: "", password: PASSWORD }, mode), "done");
+    expect(subOf(done.tokens)).toBe(user.sub);
+    expect(cognito.calls.map((call) => call.operation)).not.toContain("GetUser");
   });
 });
 

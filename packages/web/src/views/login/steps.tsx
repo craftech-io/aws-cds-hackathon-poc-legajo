@@ -1,7 +1,7 @@
 // One component per state of the sign-in machine. They hold what the person types (in memory,
 // cleared when the step changes) and hand it to `dispatch`; the machine decides what comes next.
 import { useState, type FormEvent } from "react";
-import { hasOuterSpaces, looksLikeEmail, missingPasswordRules } from "../../lib/auth/credentials";
+import { hasOuterSpaces, looksLikeEmail, looksLikeSignInName, missingPasswordRules } from "../../lib/auth/credentials";
 import type { AuthFlowAction } from "../../lib/auth/flow";
 import { loginCopy } from "./copy";
 import { CodeField, Field, LinkButton, NoticeNote, PasswordField, PasswordRules, StepHeading, SubmitButton } from "./form-parts";
@@ -19,12 +19,20 @@ function submit(handler: () => void) {
   };
 }
 
-export function CredentialsStep({ busy, dispatch, inDrawer, fixedEmail, notice, onForgot }: StepProps & { readonly fixedEmail?: string; readonly notice?: string; readonly onForgot?: () => void }) {
-  const [email, setEmail] = useState(fixedEmail ?? "");
+interface CredentialsStepProps extends StepProps {
+  /** Step-up: the sign-in name of the session, shown and not editable. */
+  readonly fixedLogin?: string;
+  readonly notice?: string;
+  readonly onForgot?: () => void;
+}
+
+/** Email of the invitation (brokers, analysts) or username (judges, who have no email). */
+export function CredentialsStep({ busy, dispatch, inDrawer, fixedLogin, notice, onForgot }: CredentialsStepProps) {
+  const [login, setLogin] = useState(fixedLogin ?? "");
   const [password, setPassword] = useState("");
   const onSubmit = submit(() => {
-    if (!looksLikeEmail(email) || !password) return;
-    dispatch({ type: "signIn", email, password });
+    if (!looksLikeSignInName(login) || !password) return;
+    dispatch({ type: "signIn", login, password });
     setPassword("");
   });
   return (
@@ -32,15 +40,14 @@ export function CredentialsStep({ busy, dispatch, inDrawer, fixedEmail, notice, 
       {inDrawer ? null : <StepHeading title={loginCopy.credentials.title} lead={loginCopy.credentials.lead} />}
       {notice ? <NoticeNote>{notice}</NoticeNote> : null}
       <Field
-        label={loginCopy.credentials.email}
-        type="email"
+        label={loginCopy.credentials.login}
+        type="text"
         autoComplete="username"
-        inputMode="email"
         autoCapitalize="off"
         spellCheck={false}
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        readOnly={fixedEmail !== undefined}
+        value={login}
+        onChange={(event) => setLogin(event.target.value)}
+        readOnly={fixedLogin !== undefined}
         required
       />
       <PasswordField label={loginCopy.credentials.password} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
@@ -55,7 +62,7 @@ export function CredentialsStep({ busy, dispatch, inDrawer, fixedEmail, notice, 
 }
 
 /** New password + confirmation, checked against the pool's policy before anything is sent. */
-function useNewPassword() {
+export function useNewPassword() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const mismatch = confirm.length > 0 && confirm !== password;
@@ -115,7 +122,7 @@ export function ForgotRequestStep({ busy, dispatch }: StepProps) {
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
       <StepHeading title={loginCopy.forgot.title} lead={loginCopy.forgot.lead} />
-      <Field label={loginCopy.credentials.email} type="email" autoComplete="username" inputMode="email" autoCapitalize="off" spellCheck={false} value={email} onChange={(event) => setEmail(event.target.value)} required />
+      <Field label={loginCopy.forgot.email} type="email" autoComplete="username" inputMode="email" autoCapitalize="off" spellCheck={false} value={email} onChange={(event) => setEmail(event.target.value)} required />
       <SubmitButton busy={busy}>{loginCopy.forgot.submit}</SubmitButton>
     </form>
   );

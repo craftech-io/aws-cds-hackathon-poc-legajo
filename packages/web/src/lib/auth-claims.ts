@@ -1,7 +1,10 @@
 // Reads the principal out of the Cognito id token. The console only decodes the payload: the
 // signature is verified by the BFF on every call, and the JWT is the only source of `firmId` and
-// role (docs/design-brief.md §6). Nothing here trusts user input.
-import { ConsoleRole } from "@legajo/shared";
+// role (docs/design-brief.md §6). The claims are the ones packages/bff/src/auth/principal.ts reads:
+// `custom:firmId` from the invitation, `custom:role` and `custom:isJudge` from the pre-token trigger,
+// the Cognito groups, `cognito:username` (a judge signs in with it: judges have no email) and
+// `auth_time`. Nothing here trusts user input.
+import { ConsoleRole, FirmId } from "@legajo/shared";
 import { z } from "zod";
 
 const IdTokenClaimsSchema = z.looseObject({
@@ -11,10 +14,13 @@ const IdTokenClaimsSchema = z.looseObject({
   exp: z.number().int(),
   iat: z.number().int(),
   token_use: z.literal("id"),
+  auth_time: z.number().int().optional(),
   email: z.string().optional(),
   name: z.string().optional(),
+  "cognito:username": z.string().min(1).optional(),
   "custom:firmId": z.string().min(1).optional(),
   "custom:role": z.string().optional(),
+  "custom:isJudge": z.string().optional(),
   "cognito:groups": z.array(z.string()).optional(),
 });
 
@@ -22,12 +28,18 @@ export type IdTokenClaims = z.infer<typeof IdTokenClaimsSchema>;
 
 export interface Principal {
   readonly sub: string;
+  /** Cognito username: what a judge types to sign in (`judge-01`). */
+  readonly username?: string;
   readonly email?: string;
   readonly name?: string;
-  /** Firm the user belongs to; absent until the invitation assigns one. */
+  /** Firm the user belongs to; absent until the invitation assigns a valid one. */
   readonly firmId?: string;
   readonly role?: ConsoleRole;
   readonly groups: readonly ConsoleRole[];
+  /** A judge acts as a broker inside its own judge firm, without TOTP or password change. */
+  readonly isJudge: boolean;
+  /** Epoch milliseconds of the last interactive sign-in. */
+  readonly authTime?: number;
   /** Epoch milliseconds. */
   readonly expiresAt: number;
 }
@@ -64,20 +76,39 @@ function roleOf(claims: IdTokenClaims, groups: readonly ConsoleRole[]): ConsoleR
   return groups[0];
 }
 
+function optional<K extends string, V>(key: K, value: V | undefined): Partial<Record<K, V>> {
+  return value === undefined ? {} : ({ [key]: value } as Record<K, V>);
+}
+
 export function principalFromClaims(claims: IdTokenClaims): Principal {
   const groups = groupsOf(claims);
-  const principal: Principal = {
+  const role = roleOf(claims, groups);
+  // A firm id that is not `firm-<slug>` is no firm: the console shows the no-access screen.
+  const firm = FirmId.safeParse(claims["custom:firmId"]);
+  return {
     sub: claims.sub,
     groups,
+    isJudge: role === "JUDGE" || claims["custom:isJudge"] === "true",
     expiresAt: claims.exp * 1000,
-    ...(claims.email !== undefined ? { email: claims.email } : {}),
-    ...(claims.name !== undefined ? { name: claims.name } : {}),
-    ...(claims["custom:firmId"] !== undefined ? { firmId: claims["custom:firmId"] } : {}),
+    ...optional("username", claims["cognito:username"]),
+    ...optional("email", claims.email),
+    ...optional("name", claims.name),
+    ...optional("firmId", firm.success ? firm.data : undefined),
+    ...optional("role", role),
+    ...optional("authTime", claims.auth_time === undefined ? undefined : claims.auth_time * 1000),
   };
-  const role = roleOf(claims, groups);
-  return role ? { ...principal, role } : principal;
 }
 
 export function principalFromIdToken(token: string): Principal {
   return principalFromClaims(parseIdTokenClaims(token));
+}
+
+/** What the person typed to sign in: the invitation email of a broker or analyst, the username of a judge. */
+export function signInNameOf(principal: Principal): string | undefined {
+  return principal.email ?? principal.username;
+}
+
+/** How the header names the person: never the Cognito `sub`. */
+export function displayNameOf(principal: Principal): string | undefined {
+  return principal.name ?? principal.email ?? principal.username;
 }

@@ -1,0 +1,18 @@
+{
+  // Playwright specs of the console. Separate program from the Vite app: Node types for the runner,
+  // DOM only for what runs inside page.evaluate and init scripts. Typecheck:
+  //   npx tsc -p packages/web/e2e/tsconfig.json
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@legajo/shared": ["../../shared/src/index.ts"],
+      "@legajo/shared/*": ["../../shared/src/*"]
+    }
+  },
+  "include": ["**/*.ts"],
+  "exclude": []
+}

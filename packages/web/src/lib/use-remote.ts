@@ -1,6 +1,7 @@
 // Data loading for the views without a state library (CLAUDE.md): `useRemote` runs a query while
-// its key is set and aborts it when the key changes or the view unmounts; `useAction` runs one
-// mutation at a time and keeps its outcome. Both hand the views an `ApiError`, never a raw throw.
+// its key is set, aborts it when the key changes or the view unmounts, and can run it again loudly
+// (`reload`, after a mutation) or quietly (`refresh`, the live refresh of the shell); `useAction`
+// runs one mutation at a time and keeps its outcome. Both hand the views an `ApiError`, never a raw throw.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { type ApiError, apiErrorOf } from "./api-error";
 
@@ -14,6 +15,11 @@ export interface Remote<T> {
   readonly state: RemoteState<T>;
   /** Runs the same query again (after a mutation that changed what it shows). */
   reload(): void;
+  /**
+   * Runs the same query again without leaving what is on screen: no loading state, and a failure
+   * keeps the data it already had (the live refresh of the shell, every 3 or 15 s).
+   */
+  refresh(): void;
 }
 
 function previousOf<T>(state: RemoteState<T>): T | undefined {
@@ -33,6 +39,12 @@ export function useRemote<T>(key: string | null, load: (signal: AbortSignal) => 
   });
   const [state, setState] = useState<RemoteState<T>>(key === null ? { status: "idle" } : { status: "loading" });
   const [nonce, setNonce] = useState(0);
+  // Whether the next run is a quiet refresh; read and cleared by the effect it triggers.
+  const quiet = useRef(false);
+  const shown = useRef<RemoteState<T>>(state);
+  useLayoutEffect(() => {
+    shown.current = state;
+  });
 
   useEffect(() => {
     if (key === null) {
@@ -40,16 +52,20 @@ export function useRemote<T>(key: string | null, load: (signal: AbortSignal) => 
       return;
     }
     const controller = new AbortController();
-    setState((current) => {
-      const previous = previousOf(current);
-      return previous === undefined ? { status: "loading" } : { status: "loading", previous };
-    });
+    const keep = quiet.current && shown.current.status === "ready";
+    quiet.current = false;
+    if (!keep) {
+      setState((current) => {
+        const previous = previousOf(current);
+        return previous === undefined ? { status: "loading" } : { status: "loading", previous };
+      });
+    }
     loadRef.current(controller.signal).then(
       (data) => {
         if (!controller.signal.aborted) setState({ status: "ready", data });
       },
       (error: unknown) => {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted || keep) return;
         setState({ status: "error", error: apiErrorOf(error) });
       },
     );
@@ -57,7 +73,11 @@ export function useRemote<T>(key: string | null, load: (signal: AbortSignal) => 
   }, [key, nonce]);
 
   const reload = useCallback(() => setNonce((value) => value + 1), []);
-  return { state, reload };
+  const refresh = useCallback(() => {
+    quiet.current = true;
+    setNonce((value) => value + 1);
+  }, []);
+  return { state, reload, refresh };
 }
 
 /**

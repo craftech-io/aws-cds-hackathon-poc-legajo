@@ -28,9 +28,28 @@ describe("logger", () => {
 
   it("[FL-050] masks E.164 numbers and emails wherever they appear", () => {
     const { logger, last, lines } = capture();
-    logger.info("inbound from +54 9 11 5550-0101 and ops.lead@supplier.example", { phoneE164: "+5491155500101", email: "ops.lead@supplier.example", address: "+5491155500102", to: "op-4471-k2@legajo.demo.craftech.io", note: "llamar al +54 9 11 5550 0102" });
+    logger.info("inbound from +54 9 11 5550-0101 and ops.lead@supplier.sim", { phoneE164: "+5491155500101", email: "ops.lead@supplier.sim", address: "+5491155500102", to: "op-4471-k2@legajo.demo.craftech.io", note: "llamar al +54 9 11 5550 0102" });
     expect(last()).toMatchObject({ message: `inbound from ${MASK.phone} and ${MASK.email}`, phoneE164: MASK.phone, email: MASK.email, address: MASK.phone, to: MASK.email, note: `llamar al ${MASK.phone}` });
     expect(lines[0]).not.toMatch(/5550|ops\.lead|craftech\.io/);
+  });
+
+  it("[FL-050] masks CUIT/CUIL, DNI, CBU/CVU, cards and IBAN with the markers of the normalizer", () => {
+    const { logger, last, lines } = capture();
+    logger.info("importer wrote sensitive data", {
+      note: "Te paso el CUIT 30-71234567-9, mi DNI 12.345.678 y el CBU 0170099220000067797370",
+      card: "4111 1111 1111 1111",
+      detail: "tarjeta 4111-1111-1111-1111, IBAN DE89 3704 0044 0532 0130 00",
+      cvu: "0000003100010000000001",
+      dni: "23456789",
+    });
+    expect(last()).toMatchObject({
+      note: `Te paso el CUIT ${MASK.cuit}, mi DNI ${MASK.dni} y el CBU ${MASK.cbu}`,
+      card: MASK.card,
+      detail: `tarjeta ${MASK.card}, IBAN ${MASK.iban}`,
+      cvu: MASK.cbu,
+      dni: MASK.dni,
+    });
+    expect(lines[0]).not.toMatch(/71234567|345\.678|0170099|4111|3704|0000003100/);
   });
 
   it("[FL-050] masks documents, names and amounts; invoice values are never logged", () => {
@@ -39,8 +58,14 @@ describe("logger", () => {
       displayName: "Nora Quintana", document: "27-14555666-3", cuitInText: "CUIT 27-14555666-3 DNI 1020304050", invoiceValue: { amount: 66_820_000, currency: "USD", amountText: "$ 668.200,00" },
       totalPending: 66_820_000, text: "El valor declarado es $ 668.200,00", summary: "valor $ 668.200,00 informado", operationId: "op-4471",
     });
-    expect(last()).toMatchObject({ displayName: MASK.name, document: MASK.document, cuitInText: `CUIT ${MASK.document} DNI ${MASK.number}`, invoiceValue: MASK.amount, totalPending: MASK.amount, text: MASK.omitted, summary: `valor ${MASK.amount} informado`, operationId: "op-4471" });
+    expect(last()).toMatchObject({ displayName: MASK.name, document: MASK.document, cuitInText: `CUIT ${MASK.cuit} DNI ${MASK.number}`, invoiceValue: MASK.amount, totalPending: MASK.amount, text: MASK.omitted, summary: `valor ${MASK.amount} informado`, operationId: "op-4471" });
     expect(lines[0]).not.toMatch(/668|Quintana|14555666/);
+  });
+
+  it("[FL-050] never logs session tokens, secrets or seed overrides", () => {
+    const { logger, lines } = capture();
+    logger.info("tool call", { sessionToken: "01J7SESSION.01J7TURN.1792000000.c2lnbmF0dXJlLXNpZ25hdHVyZS1zaWduYXR1cmUtc2lnbmF0", subkey: "k", seedOverrides: { demoRecipients: { emails: ["team@corp.sim"] } } });
+    expect(lines[0]).not.toMatch(/SESSION|c2lnbmF0|team@corp/);
   });
 
   it("drops raw provider events and tool results, keeps hashes, ids and instants", () => {
@@ -80,10 +105,12 @@ describe("redaction helpers", () => {
     expect(redactText("2026-09-08T10:00:00-03:00")).toBe("2026-09-08T10:00:00-03:00");
     expect(redactText("doc-op-4471-PACKING_LIST-v2 on 2026-10-14")).toBe("doc-op-4471-PACKING_LIST-v2 on 2026-10-14");
     expect(redactText("factura INV-2026-118, página 3")).toBe("factura INV-2026-118, página 3");
+    expect(redactText("dv-4471-PL-2 weighs 12.480 kg, eta 22/10 08:00")).toBe("dv-4471-PL-2 weighs 12.480 kg, eta 22/10 08:00");
   });
 
   it("masks long free-standing digit runs and formatted money", () => {
     expect(redactText("DNI 1020304050 pagó $486.000")).toBe(`DNI ${MASK.number} pagó ${MASK.amount}`);
+    expect(redactText("total $ 1.234.567,00")).toBe(`total ${MASK.amount}`);
     expect(redactFields({ nested: [{ email: "a@b.co" }], count: 12, price: 0.02 })).toEqual({ nested: [{ email: MASK.email }], count: 12, price: MASK.amount });
   });
 

@@ -1,6 +1,7 @@
 // Session of the console: Cognito tokens, the principal decoded from the id token, the tRPC client
-// that carries it, and the two security prompts of the console (sign in again to approve, or enrol
-// the optional TOTP). React Context + useState only (CLAUDE.md: no state libraries).
+// that carries it, and the security prompts of the console (sign in again to approve, enrol the
+// optional TOTP, change the password; the last two never for a judge). Tokens live only in
+// sessionStorage (lib/auth/tokens.ts). React Context + useState only (CLAUDE.md: no state libraries).
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { type CognitoApi, createCognitoApi } from "../lib/auth/cognito";
 import { type SrpClient, createSrpClient } from "../lib/auth/srp";
@@ -17,8 +18,11 @@ export type SessionState =
   | { readonly status: "anonymous"; readonly reason?: "expired" }
   | { readonly status: "authenticated"; readonly principal: Principal; readonly tokens: TokenSet };
 
-/** `stepUp`: sign in again (BFF `LOGIN_NOT_RECENT`); `enrollTotp`: turn on the optional TOTP. */
-export type SecurityPrompt = "stepUp" | "enrollTotp";
+/**
+ * `stepUp`: sign in again (BFF `LOGIN_NOT_RECENT`); `enrollTotp`: turn on the optional TOTP;
+ * `changePassword`: change the account's own password. Judges only ever get `stepUp`.
+ */
+export type SecurityPrompt = "stepUp" | "enrollTotp" | "changePassword";
 
 export interface AuthServices {
   readonly cognito: CognitoApi;
@@ -123,10 +127,13 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
   }, []);
 
   const closePrompt = useCallback(() => setPrompt(undefined), []);
+  const isJudge = state.status === "authenticated" && state.principal.isJudge;
+  // The console hides TOTP and the password change from a judge; nothing opens them either.
+  const openPrompt = useCallback((next: SecurityPrompt) => setPrompt(isJudge && next !== "stepUp" ? undefined : next), [isJudge]);
 
   const value = useMemo<SessionValue>(
-    () => ({ state, env, auth, trpc, prompt, completeSignIn, signOut, expireSession, openPrompt: setPrompt, closePrompt }),
-    [state, env, auth, trpc, prompt, completeSignIn, signOut, expireSession, closePrompt],
+    () => ({ state, env, auth, trpc, prompt, completeSignIn, signOut, expireSession, openPrompt, closePrompt }),
+    [state, env, auth, trpc, prompt, completeSignIn, signOut, expireSession, openPrompt, closePrompt],
   );
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }

@@ -26,11 +26,11 @@ export function MfaSetupStep({ busy, dispatch, inDrawer, setup }: StepProps & { 
         ))}
       </ol>
       <div className="flex flex-col items-center gap-3 rounded-card border border-mist bg-paper p-4 sm:flex-row sm:items-start">
-        <QrCode value={otpauthUri(setup.secret, setup.email)} label={loginCopy.mfaSetup.qrLabel} />
+        <QrCode value={otpauthUri(setup.secret, setup.account)} label={loginCopy.mfaSetup.qrLabel} />
         <div className="min-w-0 text-center sm:text-left">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate">{loginCopy.mfaSetup.manualKey}</p>
           <p className="mt-1 break-all font-mono text-sm text-navy select-all">{groupSecret(setup.secret)}</p>
-          <p className="mt-2 break-all text-xs text-slate">{setup.email}</p>
+          <p className="mt-2 break-all text-xs text-slate">{setup.account}</p>
         </div>
       </div>
       <CodeField label={loginCopy.mfaSetup.code} value={code} onChange={setCode} />
