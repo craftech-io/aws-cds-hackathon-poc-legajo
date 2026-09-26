@@ -80,7 +80,7 @@ Generada desde las líneas "Prueba" de `docs/flows-catalog.md`; `npm run flows:c
 | FL-033 | Email fuera del horario del proveedor | `policy/hours.test.ts` | `policy.flow.test.ts` | — | `SC-17/4..5` | — | — |
 | FL-034 | Duplicados entrantes (email y WhatsApp) | `channels/email/inbound.test.ts`, `channels/whatsapp/inbound.test.ts`, `worker/idempotency.test.ts` | — | — | `SC-15/1`, `SC-18/3` | — | — |
 | FL-035 | Remitente no registrado en el hilo | `channels/email/inbound.test.ts` | `security.flow.test.ts` | — | `SC-15/2..3`, `SC-15/9` | — | `SC-15/9`: contacto `PENDING_CONFIRMATION` |
-| FL-036 | Veredictos fallidos: suplantación, spam o virus | `channels/email/inbound.test.ts` | `security.flow.test.ts` | — | — | — | Excepción §2.1; fixtures `spoofed.eml`, `spoofed-dual-dkim.eml`, `dmarc-gray.eml` |
+| FL-036 | Veredictos fallidos: suplantación, spam o virus | `channels/email/inbound.test.ts` | `security.flow.test.ts` | — | — | — | Excepción §2.1; fixtures `spoofed.eml`, `spoofed-dual-dkim.eml`, `dmarc-gray.eml`, `multi-from-headers.eml`, `multi-mailbox-from.eml` |
 | FL-037 | Dirección de otra operación o inexistente | `channels/email/inbound.test.ts` | — | — | `SC-15/4..5` | — | — |
 | FL-038 | Inyección de instrucciones en el email o en el PDF | `channels/normalizer.test.ts`, `outbound/verify.test.ts`, `infra/policy-rules.test.ts`, `worker/guardrail-block.test.ts` | `security.flow.test.ts` | — | `SC-15/6..8` | — | Oráculo §4.3; un bloqueo de origen proveedor da 0 salientes y 1 escalamiento |
 | FL-039 | Observación con responsable importador | — | `observations.flow.test.ts` | — | `SC-22/1..3` | — | — |

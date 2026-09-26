@@ -5,19 +5,19 @@
 //   1. idempotency by SES's message id and by the MIME `Message-ID` (`Runtime/IDEMP#EMAIL#…`);
 //   2. the recipient: exactly one thread address that resolves to a live operation, or a discard
 //      before any other work, counted in `ThreadAddressInvalid` without an audit row;
-//   3. spam and virus verdicts (`PASS` or an audited discard); trust is `dmarcVerdict PASS` alone;
+//   3. spam and virus verdicts (`PASS` or an audited discard); trust is `dmarcVerdict PASS` alone, for
+//      a mail with one unambiguous author on which SES and the MIME agree (`senderOf`, `singleAuthor`);
 //   4-9. automatic replies, sender, normalization, attachments, thread and events (inbound-record.ts);
 //   10. if the mail is ours (DMARC, our domains, a valid `X-Legajo-Mail-Id` with an open pending item of
 //       the same `From`), `PROBE#MAIL#<mailId>` with the outcome and the pending item closed, after
 //       the effect was recorded.
-import { addressParser } from "postal-mime";
 import type { Connector } from "../../connector/connector";
 import type { Idempotency } from "../../domain/runtime";
 import { simNowOf } from "../../lib/clock";
 import { sha256Hex } from "../../lib/crypto";
 import type { Logger } from "../../lib/log";
 import { type ChannelEventSink, countMetric } from "../adapter";
-import { parseMessageIds } from "./address";
+import { namesOnly, parseMessageIds, singleAuthor } from "./address";
 import { EMAIL_IDEMPOTENCY_SOURCE, EMAIL_METRICS, INBOUND_REASONS } from "./config";
 import { type RecordedOutcome, recordInboundMail } from "./inbound-record";
 import { parseMime } from "./mime";
@@ -69,11 +69,16 @@ const DISCARD_REASONS: Readonly<Record<Exclude<ThreadResolution["status"], "RESO
   TOMBSTONED: INBOUND_REASONS.tombstoned,
 };
 
+/**
+ * The one author of the mail as SES saw it: a single `From` among the event's headers holding a single
+ * mailbox, which `commonHeaders.from` names alone. `undefined` when there is none, several, or the
+ * headers were truncated: such a mail is never ours and never trusted.
+ */
 function senderOf(received: ReceivedMail): string | undefined {
-  const header = received.mail.commonHeaders.from?.[0];
-  if (header === undefined) return undefined;
-  const [first] = addressParser(header, { flatten: true });
-  return first?.address?.trim().toLowerCase();
+  const { mail } = received;
+  if (mail.headersTruncated) return undefined;
+  const author = singleAuthor(eventHeader(mail, "from"));
+  return author !== undefined && namesOnly(mail.commonHeaders.from ?? [], author) ? author : undefined;
 }
 
 export async function receiveInboundEmail(event: unknown, deps: InboundEmailDeps): Promise<InboundEmailResult> {
@@ -91,7 +96,8 @@ export async function receiveInboundEmail(event: unknown, deps: InboundEmailDeps
   }
 
   // 2. Recipient, before any other work.
-  const own = ownMailRef({ dmarcVerdict: receipt.dmarcVerdict.status, from: senderOf(received), mailIdHeader: eventHeader(mail, MAIL_ID_HEADER)[0] });
+  const sesAuthor = senderOf(received);
+  let own = ownMailRef({ dmarcVerdict: receipt.dmarcVerdict.status, from: sesAuthor, mailIdHeader: eventHeader(mail, MAIL_ID_HEADER)[0] });
   const recipients = receipt.recipients.map((recipient) => recipient.trim().toLowerCase());
   const resolution: ThreadResolution =
     recipients.length === 1 && recipients[0] !== undefined
@@ -136,9 +142,11 @@ export async function receiveInboundEmail(event: unknown, deps: InboundEmailDeps
   // 4-9. The raw MIME, then everything the message becomes.
   const rawKey = deps.store.rawKey(mail.messageId);
   const parsed = await parseMime(await deps.store.readRaw(mail.messageId));
+  // Ours only if the MIME names the same single author SES did.
+  if (own !== undefined && parsed.from !== own.from) own = undefined;
   const recorded = await recordInboundMail(
     { data: deps.data, store: deps.store, events: deps.events, log },
-    { operation, mail: parsed, sesMessageId: mail.messageId, rawKey, dmarcPass: receipt.dmarcVerdict.status === "PASS", simNow, realNow, correlationId: log.correlationId },
+    { operation, mail: parsed, sesMessageId: mail.messageId, rawKey, dmarcPass: receipt.dmarcVerdict.status === "PASS", ...(sesAuthor === undefined ? {} : { sesAuthor }), simNow, realNow, correlationId: log.correlationId },
   );
 
   // 10. The pending mail closes only after its effect is on record.

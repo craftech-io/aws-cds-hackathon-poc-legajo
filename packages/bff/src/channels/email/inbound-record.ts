@@ -4,7 +4,10 @@
 // runs steps 1-3 and 10 around it.
 //
 // Trust is `dmarcVerdict PASS` **and** a `From` that is an ACTIVE contact of **this** operation's
-// supplier; nothing else (not DKIM, not a `d=` read from a header, not a contact found elsewhere).
+// supplier; nothing else (not DKIM, not a `d=` read from a header, not a contact found elsewhere). The
+// `From` counts only when the mail has one unambiguous author and SES's headers name the same one: two
+// `From` headers, two mailboxes or a group in one, or a MIME author SES did not see, is quarantined
+// with `AMBIGUOUS_FROM` whatever the verdict says.
 import { STAGE_DOMAIN, documentsKeys, parseClockId, worldKey } from "@legajo/shared";
 import type { Connector } from "../../connector/connector";
 import type { MessageAttachment, Message } from "../../domain/conversations";
@@ -37,6 +40,8 @@ export interface RecordInput {
   /** Key of the raw MIME in the inbound mail bucket, where the intake reads each PDF again. */
   readonly rawKey: string;
   readonly dmarcPass: boolean;
+  /** The one author SES saw (`senderOf` of inbound.ts); absent when SES's headers were ambiguous. */
+  readonly sesAuthor?: string;
   readonly simNow: string;
   readonly realNow: string;
   readonly correlationId: string;
@@ -103,11 +108,10 @@ async function answeredMessage(deps: RecordDeps, operation: Operation, mail: Par
   return undefined;
 }
 
-async function storeMessage(deps: RecordDeps, input: RecordInput, fields: { status: Message["status"]; trusted: boolean; contact?: SupplierContact; body: NormalizedText; attachments: MessageAttachment[] }): Promise<Message> {
+async function storeMessage(deps: RecordDeps, input: RecordInput, fields: { status: Message["status"]; trusted: boolean; author: string | undefined; contact?: SupplierContact; body: NormalizedText; attachments: MessageAttachment[] }): Promise<Message> {
   const messageId = inboundMessageId(input.sesMessageId);
   const existing = await deps.data.conversations.getMessage(input.operation.operationId, messageId);
   if (existing !== undefined) return existing;
-  const from = input.mail.from === undefined ? undefined : parseReceivedAddress(input.mail.from);
   const subject = normalizeInboundText(input.mail.subject, 998).text;
   return deps.data.conversations.appendMessage({
     messageId,
@@ -118,7 +122,7 @@ async function storeMessage(deps: RecordDeps, input: RecordInput, fields: { stat
     channel: "EMAIL",
     counterpart: "SUPPLIER",
     to: input.operation.threadAddress,
-    from: from?.ok === true ? from.value.address : senderText(input.mail.from),
+    from: fields.author ?? senderText(input.mail.header("from").join(", ")),
     body: fields.body.text,
     status: fields.status,
     author: "SUPPLIER",
@@ -163,13 +167,16 @@ export async function recordInboundMail(deps: RecordDeps, input: RecordInput): P
   const screened = screenAttachments(mail.attachments);
   const body = normalizeEmailBody({ text: mail.text, html: mail.html });
   const contacts = await deps.data.parties.listContacts(operation.supplierId);
-  const from = mail.from === undefined ? undefined : parseReceivedAddress(mail.from);
-  const contact = from?.ok === true ? contacts.find((candidate) => candidate.email === from.value.address) : undefined;
+  // The author counts only when the MIME and SES name the same single one.
+  const author = mail.from !== undefined && mail.from === input.sesAuthor ? mail.from : undefined;
+  const ambiguous = author === undefined && mail.header("from").length > 0;
+  const contact = author === undefined ? undefined : contacts.find((candidate) => candidate.email === author);
   const trusted = input.dmarcPass && contact?.status === "ACTIVE";
 
-  if (isAutomaticMail(mail, mail.from)) {
+  // Discarding as automatic is never a trust decision: either reading of the author may trigger it.
+  if (isAutomaticMail(mail, mail.from ?? input.sesAuthor)) {
     const attachments = screened.map((entry) => attachmentRecord(entry, "REJECTED", { reason: INBOUND_REASONS.autoReply }));
-    const message = await storeMessage(deps, input, { status: "DISCARDED", trusted, body, attachments, ...(contact === undefined ? {} : { contact }) });
+    const message = await storeMessage(deps, input, { status: "DISCARDED", trusted, author, body, attachments, ...(contact === undefined ? {} : { contact }) });
     await audit(deps, input, { decision: "ACTION", action: INBOUND_REASONS.autoReply, messageId: message.messageId });
     return { outcome: "AUTO_REPLY_IGNORED", reason: INBOUND_REASONS.autoReply, messageId: message.messageId, trusted, eventIds: [] };
   }
@@ -188,23 +195,24 @@ export async function recordInboundMail(deps: RecordDeps, input: RecordInput): P
       await deps.store.putQuarantine(key, entry.attachment.bytes);
       attachments.push(attachmentRecord(entry, "QUARANTINED", { s3Key: key }));
     }
-    const message = await storeMessage(deps, input, { status: "QUARANTINED", trusted: false, body, attachments, ...(contact === undefined ? {} : { contact }) });
+    const message = await storeMessage(deps, input, { status: "QUARANTINED", trusted: false, author, body, attachments, ...(contact === undefined ? {} : { contact }) });
+    const reason = ambiguous ? INBOUND_REASONS.ambiguousFrom : INBOUND_REASONS.untrustedSender;
     await audit(deps, input, {
       decision: "DENY",
       action: INBOUND_REASONS.untrustedSender,
       messageId: message.messageId,
-      reason: input.dmarcPass ? "sender is not an ACTIVE contact of the operation's supplier" : "dmarcVerdict is not PASS",
-      detail: { dmarcPass: input.dmarcPass, contactStatus: contact?.status ?? "NONE" },
+      reason: ambiguous ? "From names no single author SES and the MIME agree on" : input.dmarcPass ? "sender is not an ACTIVE contact of the operation's supplier" : "dmarcVerdict is not PASS",
+      detail: { dmarcPass: input.dmarcPass, contactStatus: contact?.status ?? "NONE", ambiguousFrom: ambiguous },
       ...(contact === undefined ? {} : { contactId: contact.contactId }),
     });
     const escalation = channelEvent({ type: "ESCALATE", eventId: derivedEventId("ESCALATE", naturalKey), ...eventBase(input), reason: "UNTRUSTED_SENDER", messageId: message.messageId, ...(contact === undefined ? {} : { contactId: contact.contactId }) });
     await deps.events.enqueue(escalation);
-    return { outcome: "QUARANTINED", reason: INBOUND_REASONS.untrustedSender, messageId: message.messageId, trusted: false, eventIds: [escalation.eventId] };
+    return { outcome: "QUARANTINED", reason, messageId: message.messageId, trusted: false, eventIds: [escalation.eventId] };
   }
 
   const accepted = screened.filter((entry): entry is Extract<ScreenedAttachment, { status: "ACCEPTED" }> => entry.status === "ACCEPTED");
   const attachments = screened.map((entry) => attachmentRecord(entry, entry.status));
-  const message = await storeMessage(deps, input, { status: "RECEIVED", trusted: true, body, attachments, ...(contact === undefined ? {} : { contact }) });
+  const message = await storeMessage(deps, input, { status: "RECEIVED", trusted: true, author, body, attachments, ...(contact === undefined ? {} : { contact }) });
   if (body.truncated) await audit(deps, input, { decision: "ACTION", action: "INBOUND_TRUNCATED", messageId: message.messageId, detail: { originalChars: body.originalChars } });
   const answered = await answeredMessage(deps, operation, mail);
 

@@ -122,6 +122,10 @@ export interface ReceiptOptions {
   readonly sesMessageId: string;
   readonly recipient: string;
   readonly fromHeader?: string;
+  /** Every `From` line of the event's headers, in order, when the mail has more than one (default: `fromHeader`). */
+  readonly fromHeaders?: readonly string[];
+  /** `commonHeaders.from` as SES would give it (default: `[fromHeader]`). */
+  readonly commonFrom?: readonly string[];
   readonly rfcMessageId?: string;
   readonly mailIdHeader?: string | null;
   readonly verdicts?: Partial<Record<"spamVerdict" | "virusVerdict" | "spfVerdict" | "dkimVerdict" | "dmarcVerdict", string>>;
@@ -141,10 +145,11 @@ export function receiptEvent(options: ReceiptOptions): unknown {
   mail.destination = [options.recipient];
   receipt.recipients = [options.recipient];
   const from = options.fromHeader ?? `"Qingdao Bluewave Textiles Co., Ltd." <${QINGDAO}>`;
-  mail.commonHeaders = { ...mail.commonHeaders, from: [from], to: [options.recipient], ...(options.rfcMessageId === undefined ? {} : { messageId: options.rfcMessageId }) };
+  mail.commonHeaders = { ...mail.commonHeaders, from: [...(options.commonFrom ?? [from])], to: [options.recipient], ...(options.rfcMessageId === undefined ? {} : { messageId: options.rfcMessageId }) };
+  const fromLines = (options.fromHeaders ?? [from]).map((value) => ({ name: "From", value }));
   mail.headers = mail.headers
     .filter((header) => header.name !== "X-Legajo-Mail-Id" || options.mailIdHeader !== null)
-    .map((header) => (header.name === "X-Legajo-Mail-Id" && typeof options.mailIdHeader === "string" ? { ...header, value: options.mailIdHeader } : header.name === "From" ? { ...header, value: from } : header));
+    .flatMap((header) => (header.name === "X-Legajo-Mail-Id" && typeof options.mailIdHeader === "string" ? [{ ...header, value: options.mailIdHeader }] : header.name === "From" ? fromLines : [header]));
   for (const [name, status] of Object.entries(options.verdicts ?? {})) receipt[name] = { status };
   return event;
 }

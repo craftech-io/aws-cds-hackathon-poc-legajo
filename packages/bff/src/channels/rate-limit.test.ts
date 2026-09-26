@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { hashOf, memoryStores } from "../connector/testing";
 import { rateKey } from "../connector/keys";
-import { DEFAULT_RATE_LIMIT_PER_HOUR, admitInbound, rateLimitOf, simHourOf } from "./rate-limit";
+import { DEFAULT_RATE_LIMIT_PER_HOUR, admitInbound, completeInbound, rateLimitOf, simHourOf } from "./rate-limit";
 
 const CLOCK = "qa-812-1-sc18-rate";
 const PHONE_HASH = hashOf("+5491155509001");
@@ -14,7 +14,6 @@ function admit(runtime: Parameters<typeof admitInbound>[0], wamid: string, simNo
     addressHash: PHONE_HASH,
     simNow: new Date(simNow),
     limitPerHour: options.limit ?? 3,
-    atReal: AT_REAL,
   });
 }
 
@@ -39,9 +38,19 @@ describe("[FL-094] rate limit per sender and simulated hour", () => {
   it("[FL-094] drops a duplicate delivery (same wamid) before counting it", async () => {
     const { connector } = memoryStores();
     expect((await admit(connector.runtime, "wamid.SIM.dup", "2026-10-15T10:05:00-03:00")).outcome).toBe("ADMITTED");
+    await completeInbound(connector.runtime, { source: "WHATSAPP", id: "wamid.SIM.dup" }, AT_REAL, { outcome: "TURN" });
     expect(await admit(connector.runtime, "wamid.SIM.dup", "2026-10-15T10:06:00-03:00")).toEqual({ outcome: "DUPLICATE" });
     const next = await admit(connector.runtime, "wamid.SIM.next", "2026-10-15T10:07:00-03:00");
     expect(next).toMatchObject({ outcome: "ADMITTED", count: 2 });
+  });
+
+  it("[FL-034] admits again a delivery whose processing never completed: only a completed one is a duplicate", async () => {
+    const { connector } = memoryStores();
+    expect((await admit(connector.runtime, "wamid.SIM.failed", "2026-10-15T10:05:00-03:00")).outcome).toBe("ADMITTED");
+    expect(await connector.runtime.getIdempotency("WHATSAPP", "wamid.SIM.failed")).toBeUndefined();
+    expect(await admit(connector.runtime, "wamid.SIM.failed", "2026-10-15T10:06:00-03:00")).toMatchObject({ outcome: "ADMITTED", count: 2 });
+    await completeInbound(connector.runtime, { source: "WHATSAPP", id: "wamid.SIM.failed" }, AT_REAL, { outcome: "TURN" });
+    expect(await admit(connector.runtime, "wamid.SIM.failed", "2026-10-15T10:07:00-03:00")).toEqual({ outcome: "DUPLICATE" });
   });
 
   it("[FL-094] starts a new counter in a new simulated hour", async () => {

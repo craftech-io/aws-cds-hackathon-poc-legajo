@@ -50,6 +50,7 @@ export const INBOUND_REASONS = {
   threadAddressUnknown: "THREAD_ADDRESS_UNKNOWN",
   tombstoned: "TOMBSTONED",
   untrustedSender: "UNTRUSTED_SENDER",
+  ambiguousFrom: "AMBIGUOUS_FROM",
   autoReply: "AUTO_REPLY_IGNORED",
   spamVerdict: "SPAM_VERDICT",
   virusVerdict: "VIRUS_VERDICT",

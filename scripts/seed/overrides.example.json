@@ -1,6 +1,6 @@
 {
   "demoRecipients": {
-    "emails": ["demo-recipient-1@sim.legajo.demo.craftech.io"],
+    "emails": [],
     "phones": ["+5491155500199"]
   },
   "firmMailboxCc": {

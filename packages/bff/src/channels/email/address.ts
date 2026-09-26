@@ -8,6 +8,7 @@
 // registry stores (`EmailAddress` of domain/common.ts), so a parsed address compares by string
 // equality. A received `From` is lower-cased first (`parseReceivedAddress`); a recipient is never
 // rewritten: an upper-case domain is refused, not fixed.
+import { addressParser } from "postal-mime";
 import { ChannelError, isReservedDomain } from "@legajo/shared";
 
 export type AddressProblem =
@@ -75,6 +76,42 @@ export function parseAddress(raw: string): AddressParse {
 /** The address of a received `From` or `To`: surrounding spaces trimmed and lower-cased, then parsed strictly. */
 export function parseReceivedAddress(raw: string): AddressParse {
   return parseAddress(raw.trim().toLowerCase());
+}
+
+// ---- The author of a received mail ---------------------------------------------------------------
+
+/** `addr`, `"Name" <addr>` or `Name <addr>` (an unquoted name without specials, so no second mailbox hides in it). */
+const MAILBOX = /^(?:"(?:[^"\\\r\n]|\\.)*"|[^"<>@,;:\\()[\]]*)\s*<([^<>\s]+)>$/;
+const ADDRESS_LIKE = /[^\s<>"@,;:()[\]]+@[^\s<>"@,;:()[\]]+/g;
+
+/**
+ * The one author of a received mail, from every value of its `From` header: exactly one header that
+ * holds exactly one mailbox (no group, no second address), strictly parsed and lower-cased; postal-mime
+ * has to read the same single mailbox. Anything else is `undefined`. `dmarcVerdict` speaks for one
+ * RFC5322.From only (RFC 7489 §6.6.1 leaves several to the receiver), so an ambiguous author is never
+ * trusted, whichever of its mailboxes SES evaluated.
+ */
+export function singleAuthor(fromValues: readonly string[]): string | undefined {
+  if (fromValues.length !== 1) return undefined;
+  const value = (fromValues[0] ?? "").trim();
+  const angle = MAILBOX.exec(value);
+  const parsed = parseReceivedAddress(angle === null ? value : (angle[1] ?? ""));
+  if (!parsed.ok) return undefined;
+  const entries = addressParser(value);
+  const [entry] = entries;
+  if (entries.length !== 1 || entry === undefined || entry.group !== undefined || entry.address.trim().toLowerCase() !== parsed.value.address) return undefined;
+  return parsed.value.address;
+}
+
+/**
+ * Whether SES's `commonHeaders.from` names exactly `author` and nobody else: one value, and every
+ * address-shaped token in it is that address (SES may decode the display name, so it is not parsed
+ * as a mailbox list here).
+ */
+export function namesOnly(commonFrom: readonly string[], author: string): boolean {
+  if (commonFrom.length !== 1) return false;
+  const found = new Set([...(commonFrom[0] ?? "").matchAll(ADDRESS_LIKE)].map((match) => match[0].toLowerCase()));
+  return found.size === 1 && found.has(author);
 }
 
 /** Exact domain comparison; a look-alike suffix (`sim.legajo….attacker.example`) never matches. */

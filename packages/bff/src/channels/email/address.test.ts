@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ChannelError } from "@legajo/shared";
-import { assertHeaderValue, formatMailbox, hasDomain, isReserved, parseAddress, parseMessageIds, parseReceivedAddress, sesMessageIdOf, sesRfcMessageId } from "./address";
+import { assertHeaderValue, formatMailbox, hasDomain, isReserved, namesOnly, parseAddress, parseMessageIds, parseReceivedAddress, sesMessageIdOf, sesRfcMessageId, singleAuthor } from "./address";
 
 const ok = (raw: string) => {
   const parsed = parseAddress(raw);
@@ -102,5 +102,41 @@ describe("message ids", () => {
     expect(sesMessageIdOf(rfc)).toBe("0100019a2b3c4d5e-6f708192-a3b4-45c6-97d8-e9fa0b1c2d3e-000000");
     expect(sesMessageIdOf("<abc@email.amazonses.com.attacker.example>")).toBeUndefined();
     expect(sesMessageIdOf("<reply-1@sim.legajo.demo.craftech.io>")).toBeUndefined();
+  });
+});
+
+describe("[FL-036] the one author of a received mail", () => {
+  const CONTACT = "supplier-qingdao@sim.legajo.demo.craftech.io";
+  const NAMED = `"Qingdao Bluewave Textiles Co., Ltd." <${CONTACT}>`;
+
+  it("[FL-036] reads one From with one mailbox, bare, quoted, unquoted or encoded, lower-cased", () => {
+    expect(singleAuthor([CONTACT])).toBe(CONTACT);
+    expect(singleAuthor([NAMED])).toBe(CONTACT);
+    expect(singleAuthor([`Qingdao Bluewave <${CONTACT.toUpperCase()}>`])).toBe(CONTACT);
+    expect(singleAuthor([`=?UTF-8?B?UWluZ2Rhbw==?= <${CONTACT}>`])).toBe(CONTACT);
+    expect(singleAuthor([`"${CONTACT}" <${CONTACT}>`])).toBe(CONTACT);
+  });
+
+  it("[FL-036] refuses two From headers, two mailboxes, a group or a second address hidden without a comma", () => {
+    const attacker = "<me@mail.attacker.example.net>";
+    expect(singleAuthor([])).toBeUndefined();
+    expect(singleAuthor([NAMED, attacker])).toBeUndefined();
+    expect(singleAuthor([attacker, NAMED])).toBeUndefined();
+    expect(singleAuthor([`${NAMED}, ${attacker}`])).toBeUndefined();
+    expect(singleAuthor([`${attacker}, ${NAMED}`])).toBeUndefined();
+    expect(singleAuthor([`Suppliers: ${CONTACT};`])).toBeUndefined();
+    expect(singleAuthor([`<${CONTACT}> ${attacker}`])).toBeUndefined();
+    expect(singleAuthor([`${CONTACT} me@mail.attacker.example.net`])).toBeUndefined();
+    expect(singleAuthor([`Qingdao, Ltd. <${CONTACT}>`])).toBeUndefined();
+    expect(singleAuthor(["undisclosed-recipients:;"])).toBeUndefined();
+  });
+
+  it("[FL-036] SES's commonHeaders.from has to name that author alone", () => {
+    expect(namesOnly([NAMED], CONTACT)).toBe(true);
+    expect(namesOnly(["Qingdao Bluewave Textiles Co., Ltd. <SUPPLIER-QINGDAO@sim.legajo.demo.craftech.io>"], CONTACT)).toBe(true);
+    expect(namesOnly([NAMED, "<me@mail.attacker.example.net>"], CONTACT)).toBe(false);
+    expect(namesOnly([`${NAMED}, <me@mail.attacker.example.net>`], CONTACT)).toBe(false);
+    expect(namesOnly(["<me@mail.attacker.example.net>"], CONTACT)).toBe(false);
+    expect(namesOnly([], CONTACT)).toBe(false);
   });
 });

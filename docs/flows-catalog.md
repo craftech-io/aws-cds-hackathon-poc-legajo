@@ -253,8 +253,8 @@ Convenciones:
 
 ### FL-034 · Duplicados entrantes (email y WhatsApp)
 - Actores: canal · Canal: email, WhatsApp · Disparador: el mismo `Message-ID` o el mismo `wamid` dos veces.
-- Pasos: idempotencia (`Runtime/IDEMP#`) + deduplicación FIFO.
-- Estado esperado: un `Message IN`, un intake, un turno.
+- Pasos: idempotencia (`Runtime/IDEMP#`) + deduplicación FIFO. La marca `IDEMP#` del `Message-ID` o del `wamid` se escribe **después** de que el efecto quedó registrado: una entrega cuyo procesamiento falló a mitad (descarga de media, escritura o encolado) vuelve y corre de nuevo, y todo lo que escribe está derivado de ese id, así que no se duplica.
+- Estado esperado: un `Message IN`, un intake, un turno; también cuando el primer intento falló.
 - Reglas: idempotencia.
 - Prueba: U `channels/email/inbound.test.ts`, `channels/whatsapp/inbound.test.ts`, `worker/idempotency.test.ts` · SR `SC-15/1`, `SC-18/3`.
 
@@ -268,9 +268,9 @@ Convenciones:
 ### FL-036 · Veredictos fallidos: suplantación, spam o virus
 - Actores: tercero · Canal: email · Disparador: `From` de un contacto registrado con `dmarcVerdict` distinto de `PASS` (`FAIL`, `GRAY`, `PROCESSING_FAILED`), incluido el caso de doble firma: una firma DKIM válida del dominio del atacante (`dkimVerdict PASS`, `spfVerdict PASS`) y otra falsa con `d=` alineado al `From`; o `spamVerdict`/`virusVerdict FAIL`.
 - Pasos: la confianza exige `dmarcVerdict PASS` y nada más (no se leen `d=` de los encabezados ni se usa `dkimVerdict`); suplantación → cuarentena como FL-035; spam o virus → descarte auditado.
-- Estado esperado: ningún intake ni turno; en el caso de doble firma, cuarentena y `UNTRUSTED_SENDER`.
+- Estado esperado: ningún intake ni turno; en el caso de doble firma, cuarentena y `UNTRUSTED_SENDER`; con dos `From` o dos buzones en un `From` (uno el contacto `ACTIVE`), cuarentena con `AMBIGUOUS_FROM` aunque `dmarcVerdict` sea `PASS`, y el pendiente del contacto no se cierra.
 - Reglas: veredictos SES; DMARC `p=reject` publicado para `legajo.demo.craftech.io` y `sim.legajo.demo.craftech.io`.
-- Prueba: U `channels/email/inbound.test.ts` · LF `security.flow.test.ts`. Notas: Excepción §2.1; fixtures `spoofed.eml`, `spoofed-dual-dkim.eml`, `dmarc-gray.eml`.
+- Prueba: U `channels/email/inbound.test.ts` · LF `security.flow.test.ts`. Notas: Excepción §2.1; fixtures `spoofed.eml`, `spoofed-dual-dkim.eml`, `dmarc-gray.eml`, `multi-from-headers.eml`, `multi-mailbox-from.eml`.
 
 ### FL-037 · Dirección de otra operación o inexistente
 - Actores: proveedor de otra operación · Canal: email · Disparador: email del contacto de Qingdao a `op-4476@` (operación de otro proveedor), a `op-9999@` o a una dirección con etiqueta inválida.

@@ -71,7 +71,9 @@ describe("seed conforms to the domain", () => {
   it("ships an overrides example with the shape of the SeedOverrides secret and no real address", () => {
     const example = parseSeedOverrides(readFileSync(join(SEED_ROOT, "overrides.example.json"), "utf8"));
     expect(Object.keys(example).sort()).toEqual(["demoRecipients", "firmMailboxCc", "importerPhones", "operatorEmail"]);
-    for (const email of [...example.demoRecipients.emails, example.operatorEmail ?? ""]) expect(email).toMatch(/@sim\.legajo\.demo\.craftech\.io$/);
+    // Demo recipients are team mailboxes outside our domains (the deploy refuses our own): the example has none.
+    expect(example.demoRecipients.emails).toEqual([]);
+    for (const email of [...Object.values(example.firmMailboxCc).flat(), example.operatorEmail ?? ""]) expect(email).toMatch(/@sim\.legajo\.demo\.craftech\.io$/);
     for (const phone of [...example.demoRecipients.phones, ...Object.values(example.importerPhones)]) expect(phone).toMatch(/^\+5491155500[12]\d{2}$/);
   });
 });

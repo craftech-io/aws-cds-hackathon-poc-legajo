@@ -192,6 +192,54 @@ describe("[FL-036] trust is dmarcVerdict PASS and nothing else", () => {
   });
 });
 
+describe("[FL-035][FL-036] a From that does not name exactly one author", () => {
+  const ATTACKER = "<me@mail.attacker.example.net>";
+  const NAMED = `"Qingdao Bluewave Textiles Co., Ltd." <${QINGDAO}>`;
+  const MAIL_ID = "01JQ7ZK8X4M2N6P9R3T5V7W9Y1";
+
+  async function expectQuarantined(sesMessageId: string, raw: Uint8Array, options: Parameters<typeof receive>[2]) {
+    await seedPending(world, { mailId: MAIL_ID, from: QINGDAO });
+    const result = await receive(sesMessageId, raw, { verdicts: { dmarcVerdict: "PASS", dkimVerdict: "PASS", spfVerdict: "PASS" }, mailIdHeader: `${MAIL_ID}; clock=GLOBAL#firm-delta`, ...options });
+    expect(result).toMatchObject({ outcome: "QUARANTINED", reason: "AMBIGUOUS_FROM", operationId: "op-4471" });
+    const [message] = await messages();
+    expect(message).toMatchObject({ trusted: false, status: "QUARANTINED" });
+    expect(message?.contactId).toBeUndefined();
+    expect(message?.attachments.map((attachment) => attachment.status)).toEqual(["QUARANTINED"]);
+    expect(world.sink.events.map((event) => [event.type, event.type === "ESCALATE" ? event.reason : undefined])).toEqual([["ESCALATE", "UNTRUSTED_SENDER"]]);
+    expect((await trail()).map((row) => [row.decision, row.action, row.reason])).toContainEqual(["DENY", "UNTRUSTED_SENDER", "From names no single author SES and the MIME agree on"]);
+    // Never provably ours: the pending item of the contact stays open and no probe is written.
+    expect(await pending(MAIL_ID)).toBeDefined();
+    expect(await probe(MAIL_ID)).toBeUndefined();
+  }
+
+  it.each([
+    ["the attacker's From first", [ATTACKER, NAMED]],
+    ["the contact's From first", [NAMED, ATTACKER]],
+  ])("[FL-036] multi-from-headers.eml with DMARC PASS (%s in SES's headers) ends in quarantine", async (_label, fromHeaders) => {
+    await expectQuarantined("ses-multi-from", fixture("multi-from-headers.eml"), { fromHeaders, commonFrom: [...fromHeaders] });
+  });
+
+  it("[FL-036] multi-from-headers.eml ends in quarantine even when SES's headers show only the contact", async () => {
+    await expectQuarantined("ses-multi-from-hidden", fixture("multi-from-headers.eml"), { fromHeader: NAMED });
+  });
+
+  it.each([
+    ["one entry", [`${NAMED}, ${ATTACKER}`]],
+    ["one entry per mailbox", [NAMED, ATTACKER]],
+    ["only the contact", [NAMED]],
+  ])("[FL-036] multi-mailbox-from.eml with DMARC PASS (commonHeaders.from with %s) ends in quarantine", async (_label, commonFrom) => {
+    await expectQuarantined("ses-multi-mailbox", fixture("multi-mailbox-from.eml"), { fromHeader: `${NAMED}, ${ATTACKER}`, commonFrom });
+  });
+
+  it("[FL-036] a group as From, or a MIME author SES did not see, ends in quarantine", async () => {
+    const group = mime({ from: `Suppliers: ${QINGDAO};`, messageId: "<group-from@mail.attacker.example.net>", pdfs: 1 });
+    await expectQuarantined("ses-group-from", group, { fromHeader: `Suppliers: ${QINGDAO};` });
+    world = await emailWorld();
+    const disagreeing = mime({ from: QINGDAO, messageId: "<disagreeing-from@mail.attacker.example.net>", pdfs: 1 });
+    await expectQuarantined("ses-disagreeing-from", disagreeing, { fromHeader: ATTACKER });
+  });
+});
+
 describe("[FL-037] an address of another operation, of none, or of a past epoch", () => {
   it("[FL-037] discards a tag that does not resolve (THREAD_ADDRESS_INVALID) and closes our own mail's pending item", async () => {
     await seedPending(world, { mailId: "qa0123456789abcdef0123456789abcdef0123aaaa", from: INJECTOR, to: "op-4471-zzzzzz@legajo.demo.craftech.io" });

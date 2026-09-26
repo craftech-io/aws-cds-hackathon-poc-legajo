@@ -171,6 +171,32 @@ describe("[FL-034] duplicates", () => {
     expect(await inbound(world)).toHaveLength(1);
     expect(world.events).toHaveLength(1);
   });
+
+  it("[FL-034] a text whose turn could not be enqueued is not a duplicate: the redelivery writes it once and enqueues the turn", async () => {
+    const world = await waWorld();
+    let failures = 1;
+    const events = { enqueue: async (event: WaWorld["events"][number]) => (failures-- > 0 ? Promise.reject(new Error("SQS unavailable")) : void world.events.push(event)) };
+    const deps = { ...world.deps, events };
+    const event = liveEvent("sns-text.json", { TEXT: "¿Cómo sigue lo de los documentos?" });
+    await expect(processWhatsAppEvent(event, deps)).rejects.toThrow("SQS unavailable");
+    expect(only(await processWhatsAppEvent(event, deps))).toMatchObject({ outcome: "TURN", operationId: "op-4471" });
+    expect(await inbound(world)).toHaveLength(1);
+    expect(world.events.map((queued) => queued.eventId)).toEqual([turnEventId("IMPORTER_MESSAGE", LIVE_WAMID)]);
+    expect(only(await processWhatsAppEvent(event, deps)).outcome).toBe("DUPLICATE");
+  });
+
+  it("[FL-034] a PDF whose download failed is not a duplicate: the redelivery accepts it into the timeline", async () => {
+    const world = await waWorld();
+    const key = "sim/msg-01JAB3C4D5E6F7G8H9J0KMNPQR/1.pdf";
+    world.media.objects.set(key, { sizeBytes: 480_000, contentType: "application/pdf" });
+    vi.spyOn(world.deps.transport, "fetchMedia").mockRejectedValueOnce(new Error("media download timed out"));
+    const event = simEvent({ type: "document", mediaRef: `sim-media:${key}`, filename: "packing-list.pdf" });
+    await expect(processWhatsAppEvent(event, world.deps)).rejects.toThrow("media download timed out");
+    expect(await inbound(world)).toEqual([]);
+    expect(only(await processWhatsAppEvent(event, world.deps))).toMatchObject({ outcome: "DOCUMENT", operationId: "op-4471" });
+    expect((await inbound(world))[0]?.attachments).toMatchObject([{ status: "ACCEPTED", s3Key: key }]);
+    expect((await world.stores.connector.world.listPending(CLOCK)).scans).toMatchObject([{ objectKey: key, operationId: "op-4471" }]);
+  });
 });
 
 describe("[FL-093] a number without an importer", () => {

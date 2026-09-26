@@ -321,6 +321,11 @@ describe("demo recipients from SeedOverrides", () => {
     expect(message).toMatch(/reserved domain/);
     expect(message).not.toContain("secret.person");
   });
+
+  it("accepts the committed overrides example that docs/architecture.md §15 step 3 loads as the secret", () => {
+    expect(() => demoRecipientEmails(read("scripts/seed/overrides.example.json"))).not.toThrow();
+    expect(demoRecipientEmails(read("scripts/seed/overrides.example.json"))).toEqual([]);
+  });
 });
 
 describe("functions", () => {

@@ -3,11 +3,11 @@
 // step 7): only `application/pdf` whose bytes really start with `%PDF-`, at most 10 MB each and at
 // most 5 per message go to intake; everything else is recorded as rejected with its reason and never
 // stored. The PDF itself is never interpreted here (ADR-0003): type, magic bytes, size and a SHA-256.
-import PostalMime, { type Address, type Attachment, type Email } from "postal-mime";
+import PostalMime, { type Attachment, type Email } from "postal-mime";
 import { ChannelError } from "@legajo/shared";
 import { sha256Hex } from "../../lib/crypto";
 import { MAX_ATTACHMENTS_PER_MESSAGE, MAX_ATTACHMENT_BYTES, MAX_RAW_MAIL_BYTES, PDF_CONTENT_TYPE } from "./config";
-import { parseMessageIds } from "./address";
+import { parseMessageIds, singleAuthor } from "./address";
 
 export interface MailAttachment {
   /** Position among the parsed attachments; the intake re-reads the same MIME by this index. */
@@ -21,7 +21,11 @@ export interface MailAttachment {
 export interface ParsedMail {
   readonly messageId: string | undefined;
   readonly subject: string;
-  /** Address of `From` as written (the caller normalizes and parses it strictly). */
+  /**
+   * The one author (`singleAuthor` of address.ts): exactly one `From` header with exactly one mailbox,
+   * strictly parsed and lower-cased; `undefined` for none, several or one that does not parse. The raw
+   * values stay in `header("from")`.
+   */
   readonly from: string | undefined;
   readonly inReplyTo: readonly string[];
   readonly references: readonly string[];
@@ -30,12 +34,6 @@ export interface ParsedMail {
   readonly attachments: readonly MailAttachment[];
   /** Every value of a header, by lower-case name. */
   header(name: string): readonly string[];
-}
-
-function mailboxAddress(address: Address | undefined): string | undefined {
-  if (address === undefined) return undefined;
-  if (address.address !== undefined) return address.address;
-  return address.group[0]?.address;
 }
 
 function bytesOf(content: Attachment["content"]): Uint8Array {
@@ -56,7 +54,7 @@ export async function parseMime(raw: Uint8Array): Promise<ParsedMail> {
   return {
     messageId: parseMessageIds(email.messageId)[0],
     subject: email.subject ?? "",
-    from: mailboxAddress(email.from),
+    from: singleAuthor(headers.get("from") ?? []),
     inReplyTo: parseMessageIds(email.inReplyTo),
     references: parseMessageIds(email.references),
     text: email.text,
