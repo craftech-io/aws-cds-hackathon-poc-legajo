@@ -74,7 +74,7 @@ describe("WhatsApp templates (docs/architecture-integrations.md §4.3)", () => {
   it("render the story's first request with the upload link", () => {
     const rendered = renderTemplate("legajo_docs_pendientes", examples("legajo_docs_pendientes"), "tok_4471");
     expect(rendered.body).toBe(
-      "Hola, te escribimos del estudio Estudio Delta. Operación 4471, buque Austral Aurora, arribo estimado 22/10. Faltan: certificado de origen y packing list. ¿Cómo seguimos?",
+      "Hola, te escribimos desde Estudio Delta. Operación 4471, buque Austral Aurora, arribo estimado 22/10. Faltan: certificado de origen y packing list. ¿Cómo seguimos?",
     );
     expect(rendered.buttons[0]).toEqual({ type: "URL", action: "UPLOAD", text: "Subir documentos", url: `${UPLOAD_LINK_BASE_URL}tok_4471` });
     expect(rendered.buttons.map((button) => button.text)).toEqual(["Subir documentos", "Los manda el proveedor", "Tengo una duda", "No recibir avisos"]);

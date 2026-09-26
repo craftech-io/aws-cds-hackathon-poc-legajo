@@ -35,6 +35,17 @@ Tipos compartidos (`@legajo/shared`, `packages/shared/src/enums*.ts`):
 }
 ```
 
+Vocabulario fijo fuera de los enums (`@legajo/shared`). Estos módulos solo fijan los strings para que schemas, Cedar, bitácora, seed, consola y tests usen los mismos; la fuente es el documento de la derecha, que se cambia primero:
+
+| Módulo | Qué fija | Fuente |
+|---|---|---|
+| `rules.ts` | Ids de regla que cita una decisión: `CP-*` en el orden del motor, `CED-*` (con `CED-PERMIT-<TARGET>` y `CED-SESSION-<TARGET>` por target), `LAM-*`, y `RESP-MATRIX`, `G1`, `G2`; `PolicyResult` | `docs/design-brief.md` §5.5-5.7 |
+| `tools.ts` | Los 5 targets y sus 15 tools; nombre de acción en el Gateway y en Cedar `<target>___<tool>` | Este catálogo; `docs/architecture.md` §9.2 |
+| `clock-ids.ts` | `clockId` (`GLOBAL#<firmId>`, `JUDGE#<firmId>`, `qa-<runId>-<escenario>`, `sim-<batchId>`), su alcance (`GLOBAL`, `JUDGE`, `QA`, `SIM`), los estudios de tipo QA (`firm-qa`, `firm-sim`, `firm-judge-test`) y los relojes fijos `GLOBAL#firm-qa` y `JUDGE#firm-judge-test` | `docs/architecture.md` §8; ADR-0005 y ADR-0007 |
+| `addresses.ts` | Dominios del stage (`legajo.demo.craftech.io`, `sim.legajo.demo.craftech.io`, `simulator.amazonses.com`), `avisos@`, los prefijos `qainject-` (inyector) y `qa-` (partes QA), los dominios reservados que el cerco rechaza y la dirección de operación con su etiqueta HMAC de 6 caracteres | `docs/architecture-integrations.md` §1; `docs/seed-spec.md` §2 |
+| `document-keys.ts` | Claves de objeto de `Documents`, `Uploads`, `Media` y `Seed` (prefijo `qa/<runId>/` en mundos QA), la referencia `sim-media:<clave>` del simulador y los nombres de plantilla de mundo | `docs/architecture.md` §6; `docs/architecture-integrations.md` §4.2 |
+| `ids.ts` | Ids con prefijo de las entidades | `docs/seed-spec.md` §2 |
+
 ---
 
 ## Target `operations` (`ToolOperations`)
@@ -140,7 +151,7 @@ Determinista · EUM Social `SendWhatsAppMessage` o transporte simulado · invoca
  "output": {"ok": "boolean", "messageId": "string", "status": "SENT | DEFERRED", "deferredUntilText": "string", "windowState": "OPEN | TEMPLATE_REQUIRED", "templateUsed": "string", "policyResult": "PolicyResult", "guardrail": "Guardrail", "error": "Error"}}
 ```
 
-Reglas: destinatario = teléfono registrado del contacto del importador de la sesión (`LAM-RECIPIENT`); `text` fuera de la ventana → `TEMPLATE_REQUIRED` sin enviar; parámetros de plantilla que no están en los resultados del turno → `GROUNDING_FAIL`; cada botón se convierte en un nonce (`Runtime/NONCE#`, 7 días, ligado a `phoneHash` y `operationId`) y el título lo pone el código (`copy/es-AR.ts`); `UPLOAD` genera el link de carga si no hay uno vigente. `DEFERRED` crea `Operations/TIMER#DEFERRED_SEND#<id>` (y su schedule solo si el mundo está `RUNNING`).
+Reglas: destinatario = teléfono registrado del contacto del importador de la sesión (`LAM-RECIPIENT`); `kind REMINDER` solo en sesiones con disparador `MILESTONE` o `FOLLOWUP_DUE` (`LAM-TRIGGER`, leído de la sesión; si no, `FORBIDDEN` sin enviar): un recordatorio nunca reemplaza un acuse o una respuesta que la ventana no deja salir (`docs/design-brief.md` §5.7, "Acuse de una carga por link"); `text` fuera de la ventana → `TEMPLATE_REQUIRED` sin enviar; parámetros de plantilla que no están en los resultados del turno → `GROUNDING_FAIL`; cada botón se convierte en un nonce (`Runtime/NONCE#`, 7 días, ligado a `phoneHash` y `operationId`) y el título lo pone el código (`copy/es-AR.ts`); `UPLOAD` genera el link de carga si no hay uno vigente. `DEFERRED` crea `Operations/TIMER#DEFERRED_SEND#<id>` (y su schedule solo si el mundo está `RUNNING`).
 
 ### `send_email`
 Determinista · SES v2 `SendEmail` · invocan: `harness`, `worker`.

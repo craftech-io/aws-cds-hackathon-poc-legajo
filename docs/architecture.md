@@ -193,7 +193,20 @@ Nombres lógicos de bucket de 16 caracteres o menos (cerca del rol de CI, §16).
 | `HEALTH_PROBE` | `QaDriver` (`SMK/3`) | Llama `GET /v1/health` del lector con el rol del worker y escribe `Runtime/PROBE#<id>` |
 | `POISON` | `QaDriver`, solo relojes `qa-*` | Falla a propósito: antes de relanzar el error llama `ChangeMessageVisibility` a 0 sobre su propio mensaje para que el segundo intento sea inmediato y el evento llegue a la DLQ en minutos (sin ese permiso tardaría 2 × 720 s ≈ 24 min, más que el tope de `dlq.find`); en el último intento sigue el camino de **evento perdido** de abajo, como cualquier otro tipo (FL-098) |
 
-Idempotencia doble: `MessageDeduplicationId = eventId` (ventana de 5 minutos de SQS) y `Runtime/IDEMP#<tipo>#<eventId>` con `attribute_not_exists` (7 días). Un `ThrottlingException` de Bedrock dentro del turno se reintenta con backoff exponencial y jitter (hasta 3 veces, dentro del timeout); agotado, el evento vuelve a la cola.
+Idempotencia doble: `MessageDeduplicationId = eventId` (ventana de 5 minutos de SQS) y `Runtime/IDEMP#<tipo>#<eventId>` con `attribute_not_exists` (7 días). Por eso el `eventId` de un evento que nace de algo externo se **deriva** de ese algo y una reentrega produce el mismo id; solo lo que no tiene clave natural lleva uno nuevo.
+
+**Formato del `eventId`.** `evt_` + 26 caracteres base32 Crockford en mayúsculas (`^evt_[0-9A-HJKMNP-TV-Z]{26}$`), en dos variantes que comparten la forma: **nuevo** = `evt_<ULID>` (reloj real, como los eventos de `PlatformMock`) y **derivado** = `evt_` + cada uno de los primeros 26 bytes de `SHA-256("<tipo>#<clave natural>")` módulo 32 en base32 Crockford. Los eventos que inyecta el `QaDriver` usan su propio formato, `qa-<40 hex>` derivado de la clave del paso (`docs/tool-catalog.md`, `dlq.find`), para que `dlq.*` nunca toque un evento real. El `id` del `<event>` del sobre del turno es el `eventId` de su `AGENT_TURN` (`docs/design-brief.md` §5.2).
+
+| Tipo | `eventId` |
+|---|---|
+| `INTAKE_DOCUMENT` | Derivado de la clave del objeto en `Uploads` o `Media`, o de `Message-ID` + índice del adjunto |
+| `AGENT_TURN` | Derivado de `<TurnTrigger>#<clave>`: el `wamid` (o el id del simulador) en `IMPORTER_MESSAGE` y `CONTACT_CONFIRMED`, el `Message-ID` en `SUPPLIER_EMAIL`, el `eventId` del evento que lo encoló en `DOCUMENT_READ`, `ETA_CHANGED` y `EMAIL_BOUNCED`, el token del link + la clave del último objeto del grupo en `UPLOAD_COMPLETED`, el `eventId` del `TIMER` en `MILESTONE` y `FOLLOWUP_DUE`; nuevo en `BROKER_RELEASED` (acción de consola) |
+| `TIMER` | Derivado de `<clave del TIMER#>#<dueAtSim>` (un temporizador reprogramado es otro evento) |
+| `ETA_CHANGED`, `DISPATCH_STATUS` | El `detail.eventId` del feed tal cual (`evt_<ULID>` de `PlatformMock`) |
+| `EMAIL_EVENT` | Derivado de `<messageId de SES>#<eventType>#<destinatario>` |
+| `ESCALATE` | Derivado del `Message-ID` (`UNTRUSTED_SENDER`) o del `wamid` (`OPTED_OUT`) |
+| `OUTBOUND_SEND` | Nuevo (una acción de la consola o la aprobación) |
+| `HEALTH_PROBE`, `POISON` | `qa-<40 hex>` (solo `QaDriver`) | Un `ThrottlingException` de Bedrock dentro del turno se reintenta con backoff exponencial y jitter (hasta 3 veces, dentro del timeout); agotado, el evento vuelve a la cola.
 
 **Quiescencia.** `Runtime/OPSTATE#<operationId>` guarda el conjunto `inFlight` (string set de `eventId`) y `Runtime/WORLDSTATE#<clockId>` el mismo conjunto para todo el mundo (`<operationId>#<eventId>`): cada productor hace `ADD` en los dos antes de `SendMessage` y el worker hace `DELETE` en los dos al terminar el evento (un `AGENT_TURN` sale del conjunto recién cuando termina el turno, así que un turno en curso cuenta como pendiente). Las dos operaciones son idempotentes: un duplicado que SQS descarta no deja el conjunto desbalanceado.
 

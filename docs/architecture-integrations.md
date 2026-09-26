@@ -145,16 +145,16 @@ Pasar a `live` no cambia normalizador, identidad, política, tools ni textos: ca
 
 ### 4.3 Plantillas `UTILITY` (`es_AR`)
 
-Textos en `packages/bff/src/copy/es-AR.ts` y `Reference/TEMPLATE#WHATSAPP`; ninguna empieza ni termina con un parámetro; botones de respuesta ≤ 25 caracteres.
+Textos en `packages/bff/src/copy/templates.ts` y `Reference/TEMPLATE#WHATSAPP`; ninguna empieza ni termina con un parámetro; botones de respuesta ≤ 25 caracteres. El parámetro `firmName` (`{{1}}` de `legajo_docs_pendientes`, `{{2}}` de `legajo_escalado`) es el nombre completo del estudio tal como está registrado ("Estudio Delta"), así que ningún cuerpo le antepone "estudio": se lee "te escribimos desde Estudio Delta", nunca "del estudio Estudio Delta".
 
 | Nombre | Cuerpo | Botones |
 |---|---|---|
-| `legajo_docs_pendientes` | "Hola, te escribimos del estudio {{1}}. Operación {{2}}, buque {{3}}, arribo estimado {{4}}. Faltan: {{5}}. ¿Cómo seguimos?" | URL "Subir documentos" (`https://legajo.demo.craftech.io/u/{{1}}`) · "Los manda el proveedor" · "Tengo una duda" · "No recibir avisos" |
+| `legajo_docs_pendientes` | "Hola, te escribimos desde {{1}}. Operación {{2}}, buque {{3}}, arribo estimado {{4}}. Faltan: {{5}}. ¿Cómo seguimos?" | URL "Subir documentos" (`https://legajo.demo.craftech.io/u/{{1}}`) · "Los manda el proveedor" · "Tengo una duda" · "No recibir avisos" |
 | `legajo_recordatorio` | "Operación {{1}}: siguen faltando {{2}}. El plazo es el {{3}}. Podés subirlos o avisarnos." | URL "Subir documentos" · "Los manda el proveedor" · "Tengo una duda" |
 | `legajo_observacion_proveedor` | "Operación {{1}}: el proveedor tiene que corregir {{2}}. Ya se lo pedimos; no tenés que hacer nada por ahora." | "Tengo una duda" |
 | `legajo_contacto_proveedor` | "Operación {{1}}: no pudimos entregar el correo a tu proveedor ({{2}}). ¿Nos pasás otro contacto?" | "Te paso otro contacto" · "Hablar con el estudio" |
 | `legajo_nuevo_plazo` | "Operación {{1}}: el arribo estimado cambió al {{2}}. El nuevo plazo para la documentación es el {{3}}." | "Tengo una duda" |
-| `legajo_escalado` | "Operación {{1}}: una persona del estudio {{2}} va a seguir con vos por este chat." | — |
+| `legajo_escalado` | "Operación {{1}}: una persona de {{2}} va a seguir con vos por este chat." | — |
 | `legajo_aprobado` | "Operación {{1}}: el estudio aprobó el legajo. Te vamos a avisar las novedades del despacho por acá." | — |
 | `despacho_estado` | "Operación {{1}}: {{2}}. {{3}} Ante cualquier duda, consultá con el estudio." | "Hablar con el estudio" |
 

@@ -2,7 +2,8 @@
 // writes them to `Reference/TEMPLATE#WHATSAPP`, `scripts/channels/whatsapp-templates.ts` registers
 // them with Meta, and the WhatsApp render fills them; the simulated transport renders them exactly as
 // the live one would. Meta rules the tests enforce: no body starts or ends with a parameter, no two
-// parameters touch, buttons are ≤ 25 characters, parameters carry no line breaks or tabs.
+// parameters touch, buttons are ≤ 25 characters, parameters carry no line breaks or tabs. `firmName`
+// is the firm's full registered name ("Estudio Delta"), so no body puts "estudio" in front of it.
 import { STAGE_DOMAIN, WhatsAppTemplateName, type MessageKind } from "@legajo/shared";
 import { BUTTON_LABELS } from "./buttons";
 import { fillPlaceholders } from "./helpers";
@@ -46,7 +47,7 @@ export const TEMPLATES: Readonly<Record<WhatsAppTemplateName, TemplateDefinition
   legajo_docs_pendientes: template(
     "legajo_docs_pendientes",
     "DOCS_REQUEST",
-    "Hola, te escribimos del estudio {{1}}. Operación {{2}}, buque {{3}}, arribo estimado {{4}}. Faltan: {{5}}. ¿Cómo seguimos?",
+    "Hola, te escribimos desde {{1}}. Operación {{2}}, buque {{3}}, arribo estimado {{4}}. Faltan: {{5}}. ¿Cómo seguimos?",
     [
       { name: "firmName", example: "Estudio Delta" },
       operationNumber,
@@ -87,7 +88,7 @@ export const TEMPLATES: Readonly<Record<WhatsAppTemplateName, TemplateDefinition
   legajo_escalado: template(
     "legajo_escalado",
     "ESCALATION_NOTICE",
-    "Operación {{1}}: una persona del estudio {{2}} va a seguir con vos por este chat.",
+    "Operación {{1}}: una persona de {{2}} va a seguir con vos por este chat.",
     [operationNumber, { name: "firmName", example: "Estudio Delta" }],
   ),
   legajo_aprobado: template(

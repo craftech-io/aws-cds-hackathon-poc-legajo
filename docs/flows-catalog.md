@@ -75,11 +75,11 @@ Convenciones:
 - Prueba: U `milestones/fire.test.ts` · SR `SC-01/7`.
 
 ### FL-009 · Carga por link: PDF reconocido
-- Actores: importador · Canal: link de carga · Disparador: botón URL "Subir documentos".
-- Pasos: 1) `/u/<token>` muestra operación y faltantes. 2) El importador sube el certificado de origen (POST prefirmado). 3) `DocumentIntake` valida y encola `INTAKE_DOCUMENT`. 4) Lector `RECOGNIZED` sin observaciones. 5) "Listo" → turno `UPLOAD_COMPLETED`: `send_whatsapp REPLY` "Recibimos el certificado; falta el packing list".
-- Estado esperado: `DOC#CERTIFICATE_OF_ORIGIN VALID`, versión con `source.channel = UPLOAD_LINK`; `Uploads` objeto; `AuditLog` de acceso al link.
-- Reglas: `LAM-ATTACHMENT`, token ligado a operación e importador.
-- Prueba: U `public-web/upload.test.ts`, `intake/intake.test.ts` · UI `public-upload.spec.ts` · SR `SC-07/1..3`.
+- Actores: importador · Canal: link de carga · Disparador: botón URL "Subir documentos" con (a) la ventana de 24 h abierta (el importador escribió en el hilo) o (b) cerrada.
+- Pasos: 1) `/u/<token>` muestra operación y faltantes. 2) El importador sube el certificado de origen (POST prefirmado). 3) `DocumentIntake` valida y encola `INTAKE_DOCUMENT`. 4) Lector `RECOGNIZED` sin observaciones. 5) "Listo" → la página confirma la recepción → turno `UPLOAD_COMPLETED`: (a) `send_whatsapp REPLY` "Recibimos el certificado; falta el packing list"; (b) ningún WhatsApp: la carga no abre la ventana, el `REPLY` vuelve `TEMPLATE_REQUIRED` y un `REMINDER` en ese turno es `FORBIDDEN` (`LAM-TRIGGER`); el faltante lo dice el próximo hito de seguimiento (`docs/design-brief.md` §5.7, "Acuse de una carga por link").
+- Estado esperado: `DOC#CERTIFICATE_OF_ORIGIN VALID`, versión con `source.channel = UPLOAD_LINK`; `Uploads` objeto; `AuditLog` de acceso al link; (a) un `REPLY`; (b) ningún `Message OUT` `WHATSAPP` del turno y ningún `REMINDER` antes del próximo hito.
+- Reglas: `LAM-ATTACHMENT`, token ligado a operación e importador, `CP-WA-24H`, `LAM-TRIGGER`.
+- Prueba: U `public-web/upload.test.ts`, `intake/intake.test.ts`, `agent-tools/messaging/send-whatsapp.test.ts` · UI `public-upload.spec.ts` · SR `SC-07/1..3`.
 
 ### FL-010 · Carga por link rechazada
 - Actores: importador · Canal: link de carga · Disparador: (a) token vencido, (b) token de otra operación usado para otra clave, (c) archivo no PDF, (d) > 10 MB.
@@ -391,8 +391,8 @@ Convenciones:
 ### FL-053 · ¿Qué significa el canal?
 - Actores: importador, agente · Canal: WhatsApp · Disparador: "¿Qué significa canal naranja?".
 - Pasos: `get_dispatch_status` / glosario → explicación genérica, sin recomendaciones.
-- Estado esperado: `REPLY` fundado en `genericExplanation`.
-- Reglas: G1 (asesoramiento), G2.
+- Estado esperado: `REPLY` fundado en `genericExplanation`; sale aunque el legajo esté `APPROVED`, porque responde a un mensaje del importador.
+- Reglas: G1 (asesoramiento), G2, `CP-APPROVED-SCOPE` (admite el `REPLY` a un mensaje del importador).
 - Prueba: LF `questions.flow.test.ts` · SR `SC-14/5`. Notas: Oráculo §4.3.
 
 ### FL-054 · Cifra o fecha no fundada
@@ -406,9 +406,9 @@ Convenciones:
 
 ### FL-055 · Ventana de 24 h
 - Actores: agente, estudio · Canal: WhatsApp · Disparador: (a) texto libre dentro de la ventana; (b) texto libre 25 h después del último mensaje del importador.
-- Pasos: (a) sale; (b) `TEMPLATE_REQUIRED` → el agente usa `legajo_recordatorio`.
+- Pasos: (a) sale; (b) en un turno de hito o de seguimiento, `TEMPLATE_REQUIRED` → el agente usa `legajo_recordatorio`. En cualquier otro turno un `REMINDER` por WhatsApp es `FORBIDDEN` (`LAM-TRIGGER`): lo que la ventana no deja decir espera al próximo hito (FL-009 b).
 - Estado esperado: (b) ningún texto libre enviado; plantilla enviada.
-- Reglas: `CP-WA-24H`.
+- Reglas: `CP-WA-24H`, `LAM-TRIGGER`.
 - Prueba: U `policy/window.test.ts` · LF `policy.flow.test.ts` · SR `SC-11/1..2`.
 
 ### FL-056 · Fuera de horario o feriado en Argentina
@@ -427,7 +427,7 @@ Convenciones:
 
 ### FL-058 · Legajo aprobado: alcance de mensajes
 - Actores: agente · Canal: todos · Disparador: evento sobre una operación `APPROVED` (por ejemplo, un email tardío del proveedor).
-- Pasos: el agente no puede pedir nada: `DENY CP-APPROVED-SCOPE`; solo `APPROVAL_NOTICE` y `DISPATCH_STATUS` al importador.
+- Pasos: el agente no puede pedir nada: `DENY CP-APPROVED-SCOPE`; al importador solo `APPROVAL_NOTICE`, `DISPATCH_STATUS`, `OPT_OUT_CONFIRMATION` y el `REPLY` a un mensaje suyo (FL-053); al proveedor nada.
 - Estado esperado: ningún `REMINDER`/`CORRECTION_REQUEST` tras la aprobación.
 - Reglas: `CP-APPROVED-SCOPE`.
 - Prueba: U `policy/engine.test.ts` · SR `SC-14/6`. Notas: `supplier.sendNow`.

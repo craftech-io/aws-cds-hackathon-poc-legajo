@@ -78,7 +78,7 @@ Cada pedido de corrección de una misma observación. Al segundo intento fallido
 _Avoid_: reintento (es técnico), vuelta
 
 **Aprobación** (`Approval`):
-Decisión humana del despachante que pasa el legajo a `APPROVED`. Siempre humana: no existe tool del agente que apruebe.
+Decisión humana del despachante que pasa el legajo a `APPROVED`. Siempre humana: no existe tool del agente que apruebe. Con el legajo aprobado el agente ya no pide nada a nadie: al importador solo le avisa la aprobación y el estado del despacho, le confirma una baja y le responde si escribe; al proveedor no le escribe (`CP-APPROVED-SCOPE`).
 _Avoid_: validación, visto bueno, cierre
 
 **Reapertura** (`Reopen`):
@@ -115,7 +115,7 @@ Todo lo que tiene que pasar en una hora simulada: hito, envío diferido por hora
 _Avoid_: job, cron, tarea programada
 
 **Reloj de demo** (`DemoClock`, `clockId`):
-Tiempo simulado de un mundo de datos. Por defecto está **en pausa** (`PAUSED`): la hora solo se mueve con los controles ("Avanzar al próximo evento", "+1 h", "+1 día"), que disparan en orden los temporizadores vencidos. **Reloj en vivo** (`RUNNING`) lo hace correr en tiempo real (`ahora simulado = ahora real + offset`) durante 30 minutos. Cada operación pertenece a un reloj (`GLOBAL` para la demo de un estudio, `JUDGE` para el mundo de un jurado, `qa-<runId>-<escenario>` para el ejecutor de escenarios). Toda regla de negocio lee el reloj de la operación, nunca `Date.now()`.
+Tiempo simulado de un mundo de datos. Por defecto está **en pausa** (`PAUSED`): la hora solo se mueve con los controles ("Avanzar al próximo evento", "+1 h", "+1 día"), que disparan en orden los temporizadores vencidos. **Reloj en vivo** (`RUNNING`) lo hace correr en tiempo real (`ahora simulado = ahora real + offset`) durante 30 minutos. Cada operación pertenece a un reloj (`GLOBAL` para la demo de un estudio, `JUDGE` para el mundo de un jurado, `qa-<runId>-<escenario>` para el ejecutor de escenarios, `sim-<batchId>` para el lote de métricas). Toda regla de negocio lee el reloj de la operación, nunca `Date.now()`.
 _Avoid_: tiempo falso, mock de fecha
 
 **Mundo ocupado** (`WORLD_BUSY`):
@@ -153,11 +153,11 @@ Permiso del importador, registrado por el estudio, para que el agente escriba di
 _Avoid_: permiso (suelto), delegación
 
 **Ventana de 24 h** (`serviceWindow`):
-Período de 24 h desde el último mensaje del importador en el que WhatsApp admite texto libre. Fuera de la ventana solo salen **plantillas** aprobadas.
+Período de 24 h desde el último mensaje del importador en el que WhatsApp admite texto libre. Fuera de la ventana solo salen **plantillas** aprobadas. La abre solo un mensaje del importador (texto, botón de respuesta o adjunto); abrir o usar el **link de carga** no la abre.
 _Avoid_: sesión (es otra cosa), conversación abierta
 
 **Plantilla** (`Template`):
-Mensaje de WhatsApp preaprobado por Meta, categoría `UTILITY`, en `es_AR`, con parámetros y botones (p. ej. `legajo_docs_pendientes`). En modo `simulated` se renderizan igual que en `live`.
+Mensaje de WhatsApp preaprobado por Meta, categoría `UTILITY`, en `es_AR`, con parámetros y botones (p. ej. `legajo_docs_pendientes`). En modo `simulated` se renderizan igual que en `live`. El nombre del estudio va como parámetro con su nombre completo registrado ("te escribimos desde Estudio Delta"): ningún cuerpo le antepone "estudio".
 _Avoid_: template (en UI), mensaje predefinido
 
 **Dirección de la operación** (`threadAddress`):
@@ -183,7 +183,7 @@ El Harness de AgentCore que decide qué hacer ante cada evento de una operación
 _Avoid_: bot, asistente virtual, IA
 
 **Turno** (`Turn`):
-Una invocación del Harness para una operación, disparada por un **evento** (`TurnTrigger`: `IMPORTER_MESSAGE`, `SUPPLIER_EMAIL`, `DOCUMENT_READ`, `MILESTONE`, `ETA_CHANGED`, `EMAIL_BOUNCED`, `CONTACT_CONFIRMED`, `UPLOAD_COMPLETED`, `BROKER_RELEASED`, `FOLLOWUP_DUE`). Los turnos de una operación corren de a uno, en orden.
+Una invocación del Harness para una operación, disparada por un **evento** (`TurnTrigger`: `IMPORTER_MESSAGE`, `SUPPLIER_EMAIL`, `DOCUMENT_READ`, `MILESTONE`, `ETA_CHANGED`, `EMAIL_BOUNCED`, `CONTACT_CONFIRMED`, `UPLOAD_COMPLETED`, `BROKER_RELEASED`, `FOLLOWUP_DUE`). Los turnos de una operación corren de a uno, en orden. Cada evento lleva un `eventId` (`evt_…`) que sale de su origen (el `wamid`, el `Message-ID`, el temporizador) para que una reentrega se procese una sola vez.
 _Avoid_: ejecución, request, conversación
 
 **Checklist** (`Checklist`):
@@ -209,7 +209,7 @@ Web del estudio detrás de login propio sobre Cognito: operaciones, detalle del 
 _Avoid_: backoffice, panel, dashboard (es una vista)
 
 **Link de carga** (`UploadLink`):
-Link seguro de un solo destinatario y vencimiento corto que el importador recibe por WhatsApp para subir PDFs de una operación (`/u/<token>`). Cada archivo sube a S3 con una URL prefirmada de 5 minutos.
+Link seguro de un solo destinatario y vencimiento corto que el importador recibe por WhatsApp para subir PDFs de una operación (`/u/<token>`). Cada archivo sube a S3 con una URL prefirmada de 5 minutos. La página misma confirma la recepción; el acuse por WhatsApp sale solo si la **ventana de 24 h** ya estaba abierta, y nunca como recordatorio.
 _Avoid_: link de upload, formulario
 
 **Simulador de teléfono** (`PhoneSimulator`):
@@ -282,5 +282,5 @@ _Avoid_: precio, facturación
 
 - "Despacho" se usó para la operación y para el trámite aduanero: se resolvió que **operación** es la importación y **estado del despacho** son los eventos de aduana posteriores a la aprobación.
 - "Aprobar" se usó para documentos y para el legajo: se resolvió que el lector deja un documento **válido** y el despachante **aprueba** el legajo; un documento con observación se **dispensa**, no se aprueba.
-- "Recordatorio" se usó para el hito y para el mensaje: el **hito** es el momento programado; el **recordatorio** es un mensaje de tipo `REMINDER` que un hito puede o no producir.
+- "Recordatorio" se usó para el hito y para el mensaje: el **hito** es el momento programado; el **recordatorio** es un mensaje de tipo `REMINDER` que un hito puede o no producir. Por WhatsApp solo lo produce un turno de hito o de seguimiento: no sirve de acuse ni de respuesta cuando la ventana está cerrada.
 - "Cliente" puede ser el estudio (cliente de Craftech) o el importador (cliente del estudio): en documentos y UI se dice **estudio** e **importador**, nunca "cliente".

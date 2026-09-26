@@ -94,7 +94,7 @@ Cierre de la ola 0: operador aplica el bootstrap y carga secretos (`docs/archite
 ### Ola 1 · Cimientos (paralela)
 
 **WP-05 · `packages/shared`** — typescript-dev · WP-01
-Objetivo: enums, ids y tipos únicos. Archivos: `packages/shared/src/**`. Aceptación: exporta como zod + tipos todo lo de `docs/tool-catalog.md` "Tipos compartidos", `DossierStatus`, `EscalationReason`, `TurnTrigger`, `TimerKind`, `ClockMode`, `ObservationCode`, `SupplierBehaviour`, `ChannelMode`, `Caller`, ids con prefijo. Tests: `enums.test.ts` (snapshots), `ids.test.ts`.
+Objetivo: enums, ids y tipos únicos. Archivos: `packages/shared/src/**`. Aceptación: exporta como zod + tipos todo lo de `docs/tool-catalog.md` "Tipos compartidos", `DossierStatus`, `EscalationReason`, `TurnTrigger`, `TimerKind`, `ClockMode`, `ObservationCode`, `SupplierBehaviour`, `ChannelMode`, `Caller`, ids con prefijo, `EventId` (`evt_` + 26 base32 Crockford o `qa-<40 hex>`, con el derivado de `docs/architecture.md` §7) y el vocabulario fijo de `docs/tool-catalog.md` (`rules.ts`, `tools.ts`, `clock-ids.ts`, `addresses.ts`, `document-keys.ts`). Tests: `enums.test.ts` (snapshots), `ids.test.ts`.
 
 **WP-06 · Storage: tablas, buckets y escaneo** — devops · WP-02
 Objetivo: tablas y buckets de `docs/architecture.md` §5-§6 (salvo las tablas de los mocks, que son de WP-21). Archivos: `infra/storage.ts`, `infra/storage-tables.ts`, `infra/storage-buckets.ts`, `infra/storage-keys.ts`, `infra/storage-keys.test.ts`, `infra/malware.ts`. Aceptación: claves, GSIs y TTL (`expiresAt`, también en `Parties`) exactamente como §5; bucket de correo con nombre fijo `aws-cds-hackathon-poc-leg-inbound-mail-776805327629`; buckets ≤ 16 caracteres de nombre lógico, privados, TLS obligatorio, lifecycle (incluido `qa/`); CORS de `Uploads` y `Media`; GuardDuty Malware Protection for S3 sobre `Uploads` y `Media` (o, si el provider pinneado no lo modela, el riesgo residual declarado en `docs/architecture.md` §13). Tests: `storage-keys.test.ts` (incluye CORS); `qa` compara `describe-table` con §5 tras el deploy.
@@ -264,7 +264,7 @@ Una ola se declara `aceptada` solo cuando cumple la regla de entrada del plan pa
 | Ola | Estado | Qué falta para aceptarla |
 |---|---|---|
 | Ola 0 | `no aceptada` | Primer deploy de `poc` por CI con el smoke interino en verde (`sst-env.d.ts` sigue sin recursos). |
-| Ola 1 | `no aceptada` | Deploy por CI y smoke interino en verde; depende de la ola 0. |
+| Ola 1 | `no aceptada` | Deploy por CI y smoke interino en verde; depende de la ola 0. Falta además el schema `EventId` de WP-05 con su derivación (`docs/architecture.md` §7), que el formato cerrado de los ids de evento dejó pendiente. |
 | Ola 2 | `no iniciada` | Ningún commit: faltan seed (`scripts/seed/generate/**`), política, canales, agente, tools y cola. |
 | Ola 3 | `no iniciada` | Ningún commit: faltan salida, intake, reloj, turnos y worker, entradas, `SimMail` y el `infra/bff.ts` real (sigue el stub de WP-02, sin `QaDriver`, `Bff`, `PublicWeb`, `PolicyAudit` ni `WorldJanitor`). |
 | Ola 4 | `no aceptada` | Arrancó sin las olas 2 y 3; le faltan el loader del seed, routers y los scripts de WhatsApp. |
