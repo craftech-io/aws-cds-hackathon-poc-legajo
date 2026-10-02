@@ -127,7 +127,7 @@ export const CAPABILITIES: Readonly<Record<CapabilityName, Capability>> = {
   MAIL_STATUS: {
     actions: [],
     tables: { Runtime: "write" },
-    fence: "Runtime PutItem/UpdateItem of MAILSTATUS#, RL#MAILBAD# and MAILBREAKER; subkey lead-email of SessionTokenKey; never Leads",
+    fence: "Runtime PutItem/UpdateItem of MAILSTATUS#, RL#MAILBAD#, RL#MAILCOMPLAINT# and MAILBREAKER; subkey lead-email of SessionTokenKey; never Leads",
   },
   GUEST_CLEANUP: {
     actions: ["cognito-idp:ListUsers", "cognito-idp:AdminDeleteUser", "s3:DeleteObject", "s3:ListBucket"],
@@ -251,7 +251,7 @@ export const LAMBDA_CAPABILITIES = {
     tables: { Leads: "write", Runtime: "write" },
     actions: ["cognito-idp:ListUsers", "cognito-idp:AdminGetUser", "cognito-idp:AdminListGroupsForUser", "cognito-idp:AdminDeleteUser"],
     fence:
-      "Leads GetItem, UpdateItem and DeleteItem of SIGNUP# only (never writes a lead); Runtime GetItem of MAILSTATUS# and MAILBREAKER, UpdateItem of RL#; the app's user pool ARN, AdminDeleteUser only of UNCONFIRMED users without groups (fenced in code); no InvokeFunction of LeadNotice; invoked asynchronously only by Bff, no retries, reserved concurrency 2",
+      "Leads GetItem, UpdateItem and DeleteItem of SIGNUP# only (never writes a lead); Runtime never linked whole: name-only RuntimeKeys plus GetItem/UpdateItem with dynamodb:LeadingKeys MAILSTATUS#*, MAILBREAKER, RL#START#* (leads-spec.ts RUNTIME_KEY_FENCES); the app's user pool ARN, AdminDeleteUser only of UNCONFIRMED users without groups (fenced in code); no InvokeFunction of LeadNotice; invoked asynchronously only by Bff, no retries, reserved concurrency 2",
   },
   WorldJanitor: {
     capabilities: ["WORLDS", "LEADS", "SIGNUP_ADMIN", "LEAD_NOTICE", "GUEST_CLEANUP"],
@@ -268,7 +268,7 @@ export const LAMBDA_CAPABILITIES = {
   AuthCustomMessage: {
     capabilities: [],
     tables: { Runtime: "write" },
-    fence: "Runtime UpdateItem of RL#MAIL…, GetItem of MAILSTATUS# and MAILBREAKER; subkeys rate and lead-email of SessionTokenKey; no Leads; invoked only by cognito-idp.amazonaws.com with the pool as SourceArn",
+    fence: "Runtime never linked whole: name-only RuntimeKeys plus GetItem/UpdateItem with dynamodb:LeadingKeys MAILSTATUS#*, MAILBREAKER, RL#MAIL#* (leads-spec.ts RUNTIME_KEY_FENCES); subkeys rate and lead-email of SessionTokenKey; no Leads; invoked only by cognito-idp.amazonaws.com with the pool as SourceArn",
   },
   LeadNotice: {
     capabilities: [],

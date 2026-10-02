@@ -7,7 +7,8 @@
 //   SignupDispatch  the Cognito calls of the signup, off the BFF's response path: classifies the email
 //                   and calls SignUp (with the ticket PreSignUp checks), ForgotPassword or nothing.
 //                   Invoked asynchronously only by Bff, no retries, reserved concurrency 2. It reads and
-//                   writes only `SIGNUP#` and never writes a lead nor invokes LeadNotice (§1.4).
+//                   writes only `SIGNUP#` and never writes a lead nor invokes LeadNotice (§1.4). Runtime
+//                   only by `RuntimeKeys` plus its key-fenced statement (MAILSTATUS#, MAILBREAKER, RL#START#).
 //   LeadNotice      the internal notice of a new lead: profile LEAD_NOTICE of the SES client, From
 //                   `avisos@`, recipients only from the secret `LeadNoticeTo` and only `*@craftech.io`
 //                   (IAM `ses:Recipients`); no Runtime, no Conversations. Invoked by Bff and WorldJanitor.
@@ -39,6 +40,7 @@ import {
   guestObjectStatementsFor,
   leadsStatement,
   qaSignupMailStatements,
+  runtimeKeysStatement,
   signupRuntimeStatement,
   type GuestObjectBucket,
   type IamStatement,
@@ -50,7 +52,7 @@ import {
 import { emailLinks, inboundMailLinks } from "./messaging-email";
 import { LeadNoticeTo, OriginVerifyKey, SessionTokenKey } from "./secrets";
 import { documentsBucket, inboundMailBucket, mediaBucket, uploadsBucket } from "./storage-buckets";
-import { Runtime, leadsTable } from "./storage-tables";
+import { Runtime, RuntimeKeys, leadsTable } from "./storage-tables";
 
 type PermissionStatement = Parameters<typeof sst.aws.permission>[0];
 
@@ -129,7 +131,7 @@ function leadsFunction(fn: LeadsFunction, link: unknown[], permissions: Permissi
   });
 }
 
-const signupDispatchLinks: Record<(typeof SIGNUP_DISPATCH_LINKS)[number], unknown> = { Leads, Runtime, SessionTokenKey, Auth };
+const signupDispatchLinks: Record<(typeof SIGNUP_DISPATCH_LINKS)[number], unknown> = { Leads, RuntimeKeys, SessionTokenKey, Auth };
 const leadNoticeLinks: Record<(typeof LEAD_NOTICE_LINKS)[number], unknown> = {
   Leads,
   LeadNoticeTo,
@@ -139,7 +141,7 @@ const leadNoticeLinks: Record<(typeof LEAD_NOTICE_LINKS)[number], unknown> = {
 export const signupDispatch = leadsFunction(
   "SignupDispatch",
   Object.values(signupDispatchLinks),
-  [...leadsPermissions("SignupDispatch"), ...cognitoPermissions("SignupDispatch")],
+  [...leadsPermissions("SignupDispatch"), ...cognitoPermissions("SignupDispatch"), asPermission(runtimeKeysStatement("SignupDispatch", Runtime.arn))],
 );
 
 export const leadNotice = leadsFunction("LeadNotice", Object.values(leadNoticeLinks), leadsPermissions("LeadNotice"));

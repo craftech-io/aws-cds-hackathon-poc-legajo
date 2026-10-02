@@ -67,11 +67,13 @@ describe("SignupDispatch (ADR-0015 §1.1 and §1.2)", () => {
     expect(architecture).toContain("Invocación asíncrona solo del rol de `Bff`; sin reintentos asíncronos; concurrencia reservada 2");
   });
 
-  it("links the table's name, Runtime, the master key and the pool, and calls Cognito only as §14 says", () => {
-    expect([...SIGNUP_DISPATCH_LINKS]).toEqual(["Leads", "Runtime", "SessionTokenKey", "Auth"]);
+  it("links the table's name, Runtime's name only, the master key and the pool, and calls Cognito only as §14 says", () => {
+    expect([...SIGNUP_DISPATCH_LINKS]).toEqual(["Leads", "RuntimeKeys", "SessionTokenKey", "Auth"]);
+    expect(leadsModule).toContain("{ Leads, RuntimeKeys, SessionTokenKey, Auth }");
+    expect(leadsModule).toContain('asPermission(runtimeKeysStatement("SignupDispatch", Runtime.arn))');
     expect(cognitoActions("SignupDispatch")).toEqual(["cognito-idp:AdminDeleteUser", "cognito-idp:AdminGetUser", "cognito-idp:AdminListGroupsForUser", "cognito-idp:ListUsers"]);
     expect(cognitoStatement("SignupDispatch", POOL)?.resources).toEqual([POOL]);
-    expect(leadsModule).toContain('[...leadsPermissions("SignupDispatch"), ...cognitoPermissions("SignupDispatch")]');
+    expect(leadsModule).toContain('[...leadsPermissions("SignupDispatch"), ...cognitoPermissions("SignupDispatch"), asPermission(runtimeKeysStatement("SignupDispatch", Runtime.arn))]');
   });
 
   it("uses the reserved concurrency of docs/architecture.md §12 for both functions, and builds them from the spec", () => {

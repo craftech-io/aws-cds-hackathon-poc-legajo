@@ -62,7 +62,7 @@ export function StepCard({ step, lang, clock, progress, busy, running, gloss, on
           </p>
         </section>
       ) : null}
-      <button type="button" className="self-start text-sm font-semibold text-cyan-deep underline" onClick={() => onGoTo(step)}>
+      <button type="button" className="inline-flex min-h-11 items-center self-start rounded-md px-2 text-sm font-semibold text-cyan-deep underline hover:bg-paper" onClick={() => onGoTo(step)}>
         {texts.goTo(texts.views[step.view])}
       </button>
     </article>

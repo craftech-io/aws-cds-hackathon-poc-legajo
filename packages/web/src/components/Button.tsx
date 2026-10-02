@@ -10,7 +10,7 @@ interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "cla
   readonly children: ReactNode;
 }
 
-const CONSOLE = "rounded-md px-4 py-2 text-sm transition-colors";
+const CONSOLE = "min-h-11 rounded-md px-4 py-2 text-sm transition-colors";
 /** Public variants: at least 44 px tall (touch targets, landing-spec §5.1), pill-shaped, a soft press. */
 const PUBLIC = "min-h-11 rounded-pill px-5 py-2.5 text-base transition-[transform,background-color,color,border-color] duration-150 active:scale-98";
 

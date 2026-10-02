@@ -68,6 +68,7 @@ What each group of statements is for:
 | `NoResourceLevelDeploy`, `NoResourceLevelRuntime` | Listings and reads with no resource-level permission |
 | `CloudFrontCreatesAndReads` | CloudFront creates and the account-wide reads of policies have no resource-level permission |
 | `EdgeOriginAccessControls` | Origin access controls carry no tag and an opaque id: no fence by resource exists. SST's lazy Router (4.17.1) configures OAC per request inside its function and creates no OAC resource, so these actions are a reserve for the provider; ADR-0015 §9 keeps them |
+| `EdgeWafManagedRuleReferences` | Not `"*"`, but over any account: `CreateWebACL` and `UpdateWebACL` also authorize the managed rule set a web ACL references, and the IP reputation list is owned by AWS, not by this account. Only those two actions, only `managedruleset/*`; the web ACL itself stays fenced by `EdgeWebAclOfThisApp` |
 | `EdgeWafManagedRuleReads` | `DescribeManagedRuleGroup` and `ListAvailableManagedRuleGroups` read AWS's managed rule groups (the IP reputation list), which have no resource of the account |
 | `DecryptPassphraseThroughSsm` | KMS through SSM only, of this account (`kms:ViaService`, `kms:CallerAccount`) |
 | `CloudControlTransport` | The Cloud Control API authorizes by the type, not the resource; region condition |

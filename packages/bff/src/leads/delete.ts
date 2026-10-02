@@ -5,12 +5,12 @@
 //     reason, sub}`, with every S3 object of the world; it releases the slot by `SLOT#GUEST#<nn>`),
 //     and the account's lease `GUESTWORLD#<sub>` is deleted here either way
 //   2 every Cognito user of the email (`AdminDeleteUser`)
-//   3 the lead, the pending sign-ups of the email, `MAILSTATUS#` and the counters of that hash
+//   3 the lead, the pending sign-ups of the email, `MAILSTATUS#` and the counters of its mailbox
 //   4 `DELETED#<leadId>` with when and why, without any personal data
 //
 // It returns only the `leadId`; the email never leaves the caller.
 import type { TableClient } from "../connector/index";
-import { type SecretKey, leadEmailHash } from "../lib/crypto";
+import { type SecretKey, leadEmailHash, mailboxQuotaHash } from "../lib/crypto";
 import { MAIL_BASES } from "../auth-triggers/custom-message";
 import { RUNTIME_TABLE, forgetWindowed } from "../signup/counters";
 import { mailStatusKey } from "../channels/email/mail-status";
@@ -60,8 +60,9 @@ export async function deleteLead(deps: LeadDeleteDeps, email: string, reason: "R
   }
   for (const signup of await deps.signups.listPending(now)) if (signup.emailHash === emailHash) await deps.signups.delete(signup.signupId);
   await deps.client.delete(RUNTIME_TABLE, mailStatusKey(emailHash));
-  await forgetEmailCounters(deps.client, emailHash, now);
-  await forgetWindowed(deps.client, MAIL_BASES.recipient(emailHash), ["DAY"], now);
+  const mailboxHash = mailboxQuotaHash(deps.leadEmailKey, email);
+  await forgetEmailCounters(deps.client, mailboxHash, now);
+  await forgetWindowed(deps.client, MAIL_BASES.recipient(mailboxHash), ["DAY"], now);
   if (lead === undefined) return { users: users.length, worldsDestroyed };
   await deps.leads.delete(emailHash);
   await deps.leads.putTombstone({ leadId: lead.leadId, deletedAt: now.toISOString(), reason }, now);

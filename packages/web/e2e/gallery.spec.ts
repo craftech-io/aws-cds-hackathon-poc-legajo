@@ -2,7 +2,8 @@
 // docs/test-plan.md §3: a capture opens in a modal dialog that walks with its buttons, the arrow keys
 // and a swipe, says "n de N" and the label of the capture's state, keeps the page from scrolling, and
 // closes with Escape, the close button or a click outside the picture, giving the focus back to the
-// thumbnail that opened it. On a desktop, "Ampliar" on a step of the tour opens its console capture.
+// thumbnail that opened it. No control and no caption ever covers the picture. On a desktop,
+// "Ampliar" on a step of the tour opens its console capture.
 import { readFileSync } from "node:fs";
 import { type Page, type TestInfo, expect, test } from "@playwright/test";
 import { LANDING_COPY, type LandingCopy } from "../src/views/landing/copy.ts";
@@ -101,5 +102,26 @@ test.describe("[FL-128] galería con zoom y rótulo de origen", () => {
     await enlarge.focus();
     await page.keyboard.press("Enter");
     await expect(page.getByRole("dialog")).toContainText(copy.media.items[step.capture].caption);
+  });
+
+  test("[FL-128] never lays a control or the caption over the picture it shows", async ({ page }, info) => {
+    await openGallery(page, info);
+    await page.locator("#gallery figure button").first().click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    const picture = dialog.locator("img");
+    await expect(picture).toBeVisible();
+    await expect.poll(() => picture.evaluate((image) => (image as HTMLImageElement).complete)).toBe(true);
+    const overlaps = await dialog.evaluate((root) => {
+      const image = root.querySelector("img")?.getBoundingClientRect();
+      if (!image) return ["no picture"];
+      const covers = (box: DOMRect) => box.width > 0 && box.height > 0 && box.left < image.right - 1 && box.right > image.left + 1 && box.top < image.bottom - 1 && box.bottom > image.top + 1;
+      const pieces = [...root.querySelectorAll("button"), ...root.querySelectorAll("[data-lightbox-caption], [data-lightbox-toolbar]")];
+      return pieces.filter((piece) => covers(piece.getBoundingClientRect())).map((piece) => piece.getAttribute("aria-label") ?? piece.textContent?.trim().slice(0, 30) ?? piece.tagName);
+    });
+    expect(overlaps).toEqual([]);
+    const box = await picture.boundingBox();
+    const viewport = page.viewportSize();
+    expect((box?.y ?? -1) >= 0 && (box?.y ?? 0) + (box?.height ?? 0) <= (viewport?.height ?? 0), "the picture starts and ends inside the screen").toBe(true);
   });
 });

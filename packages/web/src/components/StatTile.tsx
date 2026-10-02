@@ -55,12 +55,12 @@ interface GoalTileProps {
  */
 export function GoalTile({ value, valueText, kind, kindLabel, kindIcon, title, note }: GoalTileProps) {
   return (
-    <div className="flex flex-col gap-3 rounded-panel border border-rule bg-white p-5 shadow-card sm:p-6">
+    <div className="flex w-full flex-col gap-3 rounded-panel border border-rule bg-white p-5 shadow-card sm:p-6">
       <p className={`inline-flex w-fit items-center gap-1.5 rounded-pill px-2.5 py-1 text-xs font-semibold ${kind === "goal" ? "bg-manifest-deep text-signal-ink" : "bg-manifest-deep text-glass-ink"}`}>
         {kindIcon}
         {kindLabel}
       </p>
-      <p className="min-w-[5ch] font-display text-counter font-semibold tabular-nums text-ink">
+      <p data-goal-value="" className="flex h-[1em] min-w-[5ch] items-center font-display text-counter font-semibold tabular-nums text-ink">
         <span aria-hidden="true">{value}</span>
         <span className="sr-only">{valueText}</span>
       </p>

@@ -262,6 +262,18 @@ describe("AWS WAF of the edge (ADR-0015 §3.3 and §9)", () => {
     expect(reads).toContain('Resource: "*"');
   });
 
+  it("lets CreateWebACL/UpdateWebACL reference AWS's managed rule sets, and nothing else of them", () => {
+    const references = statement("EdgeWafManagedRuleReferences");
+    expect(references).toContain("- wafv2:CreateWebACL");
+    expect(references).toContain("- wafv2:UpdateWebACL");
+    expect(references.match(/- wafv2:/g)).toHaveLength(2);
+    expect(references).toContain('Resource: !Sub "arn:${AWS::Partition}:wafv2:us-east-1:*:global/managedruleset/*"');
+    expect(references).not.toMatch(/webacl|rulegroup\/|ipset|regexpatternset/);
+    const readme = read("infra/bootstrap/README.md");
+    expect(readme.slice(readme.indexOf("### Statements over every resource"), readme.indexOf("## Apply"))).toContain("`EdgeWafManagedRuleReferences`");
+    for (const doc of ["docs/architecture.md", "docs/adr/0015-alta-publica-de-invitados-y-leads.md"]) expect(read(doc), doc).toContain("`arn:aws:wafv2:us-east-1:*:global/managedruleset/*`");
+  });
+
   it("associates the web ACL through the distribution, never with wafv2:AssociateWebACL", () => {
     expect(template).not.toContain("wafv2:AssociateWebACL");
     expect(template).not.toMatch(/wafv2:(Put|Delete)LoggingConfiguration|wafv2:CreateRuleGroup|wafv2:CreateIPSet/);

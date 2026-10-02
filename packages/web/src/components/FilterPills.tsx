@@ -30,8 +30,8 @@ const BUTTON: Readonly<Record<FilterPillsVariant, { readonly on: string; readonl
     off: "rounded-full border border-mist bg-white px-3 py-1 text-sm font-medium text-navy hover:bg-paper",
   },
   segmented: {
-    on: "rounded bg-navy px-3 py-1.5 text-sm font-medium text-white",
-    off: "rounded px-3 py-1.5 text-sm font-medium text-navy hover:bg-mist",
+    on: "min-h-11 rounded bg-navy px-3 py-1.5 text-sm font-medium text-white",
+    off: "min-h-11 rounded px-3 py-1.5 text-sm font-medium text-navy hover:bg-mist",
   },
 };
 

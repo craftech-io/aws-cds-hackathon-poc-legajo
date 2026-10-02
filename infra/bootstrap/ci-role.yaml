@@ -670,6 +670,15 @@ Resources:
               - wafv2:UntagResource
               - wafv2:UpdateWebACL
             Resource: !Sub "arn:${AWS::Partition}:wafv2:us-east-1:${AWS::AccountId}:global/webacl/${AppName}-${DeployStage}-*/*"
+          # CreateWebACL/UpdateWebACL also authorize every rule set the web ACL references (Service
+          # Authorization Reference: ipset, managedruleset, regexpatternset, rulegroup, webacl). The
+          # IP reputation rule references an AWS managed rule set, owned by AWS, not by this account.
+          - Sid: EdgeWafManagedRuleReferences
+            Effect: Allow
+            Action:
+              - wafv2:CreateWebACL
+              - wafv2:UpdateWebACL
+            Resource: !Sub "arn:${AWS::Partition}:wafv2:us-east-1:*:global/managedruleset/*"
           - Sid: EdgeWafManagedRuleReads
             Effect: Allow
             Action:

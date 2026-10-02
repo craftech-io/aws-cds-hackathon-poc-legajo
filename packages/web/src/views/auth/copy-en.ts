@@ -44,10 +44,10 @@ export const AUTH_EN: AuthCopy = {
     honeypot: "Do not fill in this field",
     errors: {
       email: "Enter a valid email.",
-      password: "The password does not meet the rules above.",
+      password: "The password does not meet the rules below.",
       tooLong: (max: number) => `Use at most ${max} characters.`,
       consentTerms: "To create the account you need to accept the terms and the privacy policy.",
-      summary: (count: number) => `Check ${count} field(s) before continuing.`,
+      summary: (count: number) => `Check ${count} ${count === 1 ? "field" : "fields"} before continuing.`,
       generic: "We could not send the form. Try again in a few minutes.",
       staleTexts: "The legal texts changed while you had the page open. Reload it to read the current ones and send again.",
       reload: "Reload the page",

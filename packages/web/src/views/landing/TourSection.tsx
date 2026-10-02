@@ -3,8 +3,10 @@
 // the right whose visual changes with the step in the middle of the screen (one IntersectionObserver;
 // a View Transition where it exists, a CSS cross-fade otherwise), with the route line filling as it
 // scrolls. From 768 px, stacked cards, visual above text. Below, a swipeable carousel with scroll-snap,
-// previous and next buttons and "Paso 3 de 8". With reduced motion or paused animations the visual
-// cuts straight to the next step and every sequence is in its final state.
+// previous and next buttons and "Paso 3 de 8". Neither the stage nor a carousel step ever cuts or
+// scrolls its visual: FitToSlot scales it to the stage's box (centred) or to 56 % of the viewport's
+// height. With reduced motion or paused animations the visual cuts straight to the next step and every
+// sequence is in its final state.
 import { type KeyboardEvent, type RefObject, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { SectionShell } from "../../components/Section";
@@ -13,10 +15,14 @@ import { useLandingCopy } from "./lang";
 import { useInView, useMediaQuery } from "./motion/hooks";
 import { useMotion } from "./motion/MotionContext";
 import { TOUR_STEPS, type TourStep, clampStep, routeProgress, stepAnchor } from "./tour-steps";
+import { FitToSlot } from "./FitToSlot";
 import { StepText, VisualFooter } from "./TourParts";
 import { StepVisual } from "./TourVisuals";
 
 type ViewTransitionDocument = Document & { startViewTransition?: (callback: () => void) => { readonly ready: Promise<void>; readonly finished: Promise<void> } };
+
+/** Share of the viewport's height a carousel step's visual may take (docs/landing-spec.md §4.3). */
+const CAROUSEL_VISUAL_SHARE = { viewportShare: 0.56 } as const;
 
 /** Which step's article sits in the middle band of `root` (the viewport, or the carousel). */
 function useActiveStep(items: RefObject<(HTMLElement | null)[]>, options: IntersectionObserverInit, enabled = true): number {
@@ -109,11 +115,12 @@ function StickyTour() {
             data-tour-stage=""
             key={hasViewTransitions() ? "stage" : step.id}
             role="group"
-            tabIndex={0}
             aria-label={tour.steps[step.id].title}
-            className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${animate && !hasViewTransitions() ? "animate-stage-in" : ""}`}
+            className={`min-h-0 flex-1 overflow-hidden ${animate && !hasViewTransitions() ? "animate-stage-in" : ""}`}
           >
-            <StepVisual key={step.id} id={step.id} play={animate} />
+            <FitToSlot key={step.id} limit="box">
+              <StepVisual id={step.id} play={animate} />
+            </FitToSlot>
           </div>
           <VisualFooter step={step} />
         </div>
@@ -173,7 +180,7 @@ function CarouselTour() {
         aria-label={tour.stepsLabel}
         tabIndex={0}
         onKeyDown={onKeyDown}
-        className="relative flex max-w-full snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none]"
+        className="relative flex max-w-full snap-x snap-mandatory items-start gap-4 overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none]"
       >
         {TOUR_STEPS.map((step, index) => (
           <article
@@ -186,8 +193,10 @@ function CarouselTour() {
             aria-labelledby={`${stepAnchor(step.id)}-title`}
             className="w-full shrink-0 snap-center"
           >
-            <div role="group" tabIndex={0} aria-label={tour.steps[step.id].title} className="relative max-h-[56vh] overflow-y-auto overscroll-contain">
-              <StepVisual id={step.id} play={animate && index === active} compact />
+            <div role="group" aria-label={tour.steps[step.id].title} className="pt-1">
+              <FitToSlot limit={CAROUSEL_VISUAL_SHARE}>
+                <StepVisual id={step.id} play={animate && index === active} compact />
+              </FitToSlot>
             </div>
             <VisualFooter step={step} />
             <div className="mt-4">

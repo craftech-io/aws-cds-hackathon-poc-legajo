@@ -65,10 +65,10 @@ export function Footer() {
           <p>{footer.rights}</p>
         </div>
         <nav aria-label={footer.legal} className="flex flex-wrap items-center gap-x-5">
-          <a href="/legal/privacy.html" className="inline-flex min-h-11 items-center hover:text-foam hover:underline">
+          <a href="/legal/privacy.html" className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-foam hover:underline">
             {footer.privacy}
           </a>
-          <a href="/legal/terms.html" className="inline-flex min-h-11 items-center hover:text-foam hover:underline">
+          <a href="/legal/terms.html" className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-foam hover:underline">
             {footer.terms}
           </a>
           <a href={SALES_MAILTO} className="inline-flex min-h-11 items-center hover:text-foam hover:underline">

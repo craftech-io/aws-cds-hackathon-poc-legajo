@@ -43,6 +43,19 @@ describe("lib/resource", () => {
     expect(tableName("Operations")).toBe("changed");
   });
 
+  it("reads Runtime through its name-only link when the function may not hold the table whole", () => {
+    expect(() => tableName("Runtime")).toThrow(expect.objectContaining({ code: "UNAVAILABLE", table: "Runtime" }));
+    resetResourceCache();
+    linked.RuntimeKeys = { name: "aws-cds-hackathon-poc-legajo-poc-RuntimeTable-abc" };
+    expect(tableName("Runtime")).toBe("aws-cds-hackathon-poc-legajo-poc-RuntimeTable-abc");
+    resetResourceCache();
+    // A function that links the table whole keeps reading its own link.
+    linked.Runtime = { name: "whole-runtime" };
+    expect(tableName("Runtime")).toBe("whole-runtime");
+    delete linked.Runtime;
+    delete linked.RuntimeKeys;
+  });
+
   it("fails as UNAVAILABLE when a resource is not linked or has an unexpected shape", () => {
     expect(() => bucketName("Documents")).toThrow(expect.objectContaining({ code: "UNAVAILABLE", table: "Documents" }));
     expect(() => readLinked("Broken", z.object({ name: z.string().min(1) }))).toThrow(expect.objectContaining({ code: "UNAVAILABLE" }));

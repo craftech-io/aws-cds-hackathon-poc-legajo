@@ -13,7 +13,8 @@
 // concurrency:
 //   AuthPreSignUp      HMAC of the signup ticket (subkey `signup-ticket`), no table
 //   AuthCustomMessage  the account emails es/en with the quotas, bounce state and breaker of ADR-0015
-//                      §3.2 (Runtime `RL#MAIL…`, `MAILSTATUS#`, `MAILBREAKER`), never Leads
+//                      §3.2 (Runtime `RL#MAIL…`, `MAILSTATUS#`, `MAILBREAKER`, only by key through
+//                      `RuntimeKeys`: never the whole table), never Leads
 //   AuthPreToken       V2_0: firmId, role, isGuest and worldLease from Firms/BROKER#; no admin scope
 //                      for a GUEST (no password change, no TOTP, no attribute change)
 //
@@ -49,6 +50,7 @@ import {
 } from "./auth-spec";
 import { appDomain } from "./dns";
 import { lateLinks, links, type LinkList } from "./late-links";
+import { RUNTIME_KEYS_LINK, runtimeKeysStatement } from "./leads-spec";
 import { configurationSetName } from "./messaging-email-spec";
 import { SessionTokenKey } from "./secrets";
 
@@ -82,8 +84,20 @@ const tableLinks = (tables: readonly string[]): LinkList => lateLinks("auth", "s
 /** What each trigger links (docs/architecture.md §14): exactly its row, no more. */
 const TRIGGER_LINKS: Readonly<Record<TriggerKey, () => LinkList>> = {
   preSignUp: () => links([SessionTokenKey]),
-  customMessage: () => links([SessionTokenKey], tableLinks(["Runtime"])),
+  customMessage: () => links([SessionTokenKey], tableLinks([RUNTIME_KEYS_LINK])),
   preTokenGeneration: () => tableLinks(["Firms"]),
+};
+
+type TriggerPermission = Parameters<typeof sst.aws.permission>[0];
+
+/** AuthCustomMessage reaches `Runtime` only by key (leads-spec.ts `RUNTIME_KEY_FENCES`), never linked whole. */
+const TRIGGER_PERMISSIONS: Readonly<Partial<Record<TriggerKey, () => $util.Output<TriggerPermission[]>>>> = {
+  customMessage: () =>
+    $util.output(import("./storage-tables")).apply((module) => {
+      const statement = runtimeKeysStatement("AuthCustomMessage", module.Runtime.arn);
+      // `output` unwraps the table ARN inside the statement, so the permission carries plain strings.
+      return $util.output([{ actions: statement.actions, resources: statement.resources, conditions: statement.conditions ?? [] }]);
+    }),
 };
 
 function trigger(key: TriggerKey): sst.aws.Function {
@@ -92,6 +106,7 @@ function trigger(key: TriggerKey): sst.aws.Function {
     description: spec.description,
     handler: spec.handler,
     link: TRIGGER_LINKS[key](),
+    permissions: TRIGGER_PERMISSIONS[key]?.() ?? [],
     timeout: `${spec.timeoutSeconds} seconds` as const,
     memory: `${spec.memoryMb} MB` as const,
   });

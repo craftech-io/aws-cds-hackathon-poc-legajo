@@ -12,8 +12,8 @@ import { createLogger } from "../lib/log";
 import { LEADS_TABLE, signupKey } from "../leads/lead";
 import { runDispatch } from "./dispatch";
 import { type TestAccess, cognitoWrites, fakeMx, testAccessDeps } from "./testing";
-import { startSignup, validForm } from "./testing-flows";
-import { signupStart } from "./service";
+import { drainDispatch, startSignup, validForm } from "./testing-flows";
+import { signupResend, signupStart } from "./service";
 import { SignupStartInput } from "@legajo/shared/signup";
 
 const NOW = new Date("2026-10-14T13:30:00.000Z");
@@ -171,5 +171,77 @@ describe("[FL-101] idempotent by dispatchSeq, never retried by Lambda", () => {
 
   it("refuses an event that is not a dispatch event", async () => {
     await expect(runDispatch(access, { kind: "WAITLIST", signupId: "x" }, log())).rejects.toThrow();
+  });
+});
+
+describe("[FL-101] a resend whose START never ran is the sign-up's START", () => {
+  const LATER = new Date(NOW.getTime() + 61_000);
+  let at: Date;
+
+  beforeEach(() => {
+    at = NOW;
+    access = testAccessDeps(stores, { now: () => at, mx: fakeMx(["sin-correo.example-fict.com"]) });
+  });
+
+  async function begin(overrides: Parameters<typeof validForm>[1] = {}): Promise<string> {
+    const answer = await signupStart(access, SignupStartInput.parse(validForm(access, overrides)), { ipHash: "ip-a", log: log() });
+    expect(answer.status).toBe("CODE_SENT");
+    return answer.status === "CODE_SENT" ? answer.signupId : "";
+  }
+
+  async function resendLater(signupId: string): Promise<void> {
+    at = LATER;
+    expect(await signupResend(access, signupId, { ipHash: "ip-a", log: log() })).toMatchObject({ status: "CODE_SENT" });
+  }
+
+  it("a START still queued when the visitor resends is dropped as stale; the resend creates the user and sends the code", async () => {
+    const signupId = await begin();
+    await resendLater(signupId);
+    const [startEvent, resendEvent] = access.invoker.invoked.map((call) => call.payload);
+    expect(await runDispatch(access, startEvent, log())).toEqual({ outcome: "STALE" });
+    expect(await runDispatch(access, resendEvent, log())).toEqual({ outcome: "DONE", branch: "NEW" });
+    const signup = await stored(signupId);
+    expect(signup).toMatchObject({ branch: "NEW", dispatchedSeq: 2, accountUsername: signup?.username });
+    expect(signup?.passwordSealed).toBeUndefined();
+    expect(cognitoWrites(access.cognito.calls)).toEqual(["signUp"]);
+    expect(access.cognito.users.get(String(signup?.username))).toMatchObject({ status: "UNCONFIRMED", email: EMAIL, password: "Quince-Caballos-7" });
+    expect(access.cognito.codes).toEqual([expect.objectContaining({ kind: "SIGNUP", username: signup?.username })]);
+    expect(leadsWritten()).toBe(0);
+  });
+
+  it("a START whose invoke failed: the resend creates the user and sends the code", async () => {
+    const invoke = access.invoker.invoke.bind(access.invoker);
+    let failures = 1;
+    access.invoker.invoke = async (target, payload) => {
+      if (failures-- > 0) throw Object.assign(new Error("unavailable"), { name: "ServiceException" });
+      await invoke(target, payload);
+    };
+    const signupId = await begin();
+    expect(await stored(signupId)).toMatchObject({ branch: "FAILED" });
+    expect(access.invoker.invoked).toHaveLength(0);
+    await resendLater(signupId);
+    await drainDispatch(access, log());
+    const signup = await stored(signupId);
+    expect(signup).toMatchObject({ branch: "NEW", dispatchedSeq: 2 });
+    expect(signup?.passwordSealed).toBeUndefined();
+    expect(access.cognito.codes).toEqual([expect.objectContaining({ kind: "SIGNUP", username: signup?.username })]);
+  });
+
+  it("keeps every suppression of START: a never-dispatched sign-up to a domain without MX stays SUPPRESSED", async () => {
+    const signupId = await begin({ email: "ana@sin-correo.example-fict.com" });
+    await resendLater(signupId);
+    await drainDispatch(access, log());
+    expect(await stored(signupId)).toMatchObject({ branch: "SUPPRESSED", dispatchedSeq: 2 });
+    expect(access.cognito.calls).toEqual([]);
+    expect(metrics()).toContainEqual(expect.objectContaining({ metric: "SignupRejected", reason: "NO_MX" }));
+  });
+
+  it("a resend after a START that ran only resends the code, never signs up again", async () => {
+    const signupId = await begin();
+    await drainDispatch(access, log());
+    await resendLater(signupId);
+    await drainDispatch(access, log());
+    expect(cognitoWrites(access.cognito.calls)).toEqual(["signUp", "resendCode"]);
+    expect(await stored(signupId)).toMatchObject({ branch: "NEW", dispatchedSeq: 2 });
   });
 });

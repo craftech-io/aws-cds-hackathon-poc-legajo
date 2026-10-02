@@ -48,10 +48,10 @@ export const AUTH_ES = {
     honeypot: "No completes este campo",
     errors: {
       email: "Escribí un email válido.",
-      password: "La contraseña no cumple las reglas de arriba.",
+      password: "La contraseña no cumple las reglas de abajo.",
       tooLong: (max: number) => `Usá como máximo ${max} caracteres.`,
       consentTerms: "Para crear la cuenta tenés que aceptar los términos y la política de privacidad.",
-      summary: (count: number) => `Revisá ${count} campo(s) antes de seguir.`,
+      summary: (count: number) => `Revisá ${count} ${count === 1 ? "campo" : "campos"} antes de seguir.`,
       generic: "No pudimos enviar el formulario. Probá de nuevo en unos minutos.",
       staleTexts: "Los textos legales cambiaron mientras tenías la página abierta. Recargala para leer los vigentes y volvé a enviar.",
       reload: "Recargar la página",

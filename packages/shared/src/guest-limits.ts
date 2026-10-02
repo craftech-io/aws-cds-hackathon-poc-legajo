@@ -74,9 +74,12 @@ export type AccountEmailLimit = keyof typeof ACCOUNT_EMAIL_LIMITS;
 export const MAIL_BREAKER = {
   /** Hourly buckets summed: the last 24 hours. */
   lookbackHours: 24,
-  /** Bounces plus complaints that open it, whatever the volume. */
-  badCount: 10,
-  /** …or this share of the account emails sent, once at least `minSent` went out. */
+  /**
+   * Complaints that open it, whatever the volume. Bounces never count here: a code to a non-existent
+   * mailbox of a real domain bounces for anyone who asks, and ten of them must not stop the product.
+   */
+  complaintCount: 10,
+  /** …or bounces plus complaints above this share of the account emails sent, once at least `minSent` went out. */
   badRate: 0.03,
   minSent: 100,
 } as const;

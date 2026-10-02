@@ -24,9 +24,9 @@ function ImpactTile({ tile }: { readonly tile: Tile }) {
   const text = impact.tiles[tile.id];
   const final = text.value(target);
   return (
-    <li ref={ref} data-reveal="">
+    <li ref={ref} data-reveal="" data-goal-tile={tile.id} className="flex">
       <GoalTile
-        value={tile.count === undefined ? <span className="inline-flex items-center gap-3 text-h2"><Icon name="clock" className="h-8 w-8 text-glass-ink" />{final}</span> : text.value(value)}
+        value={tile.count === undefined ? <span className="inline-flex items-center gap-2 text-h3 leading-none"><Icon name="clock" className="h-6 w-6 shrink-0 text-glass-ink" />{final}</span> : text.value(value)}
         valueText={final}
         kind={tile.kind}
         kindLabel={tile.kind === "goal" ? impact.labels.goal : impact.labels.guarantee}

@@ -6,7 +6,7 @@ import { STORY, SUPPLIER_THREAD, type EmailView } from "./conversations";
 import { Icon } from "./icons";
 import { useLandingCopy } from "./lang";
 
-function EmailCard({ email }: { readonly email: EmailView }) {
+function EmailCard({ email, compact }: { readonly email: EmailView; readonly compact: boolean }) {
   const copy = useLandingCopy();
   const outgoing = email.direction === "out";
   return (
@@ -23,9 +23,11 @@ function EmailCard({ email }: { readonly email: EmailView }) {
         </p>
         <p>{copy.email.when(email.at.ar, email.at.supplier)}</p>
       </div>
-      <pre lang="en" className="whitespace-pre-wrap px-4 py-3 font-sans text-xs leading-relaxed text-ink">
-        {email.body}
-      </pre>
+      <div className="px-4 py-3">
+        <pre lang="en" className={`whitespace-pre-wrap font-sans text-xs leading-relaxed text-ink ${compact ? "line-clamp-4" : ""}`}>
+          {email.body}
+        </pre>
+      </div>
       <div className="flex flex-wrap items-center gap-2 px-4 pb-3 text-xs text-ink-muted">
         <span className={`rounded-pill px-2.5 py-0.5 font-semibold ${email.source === "agent" ? "bg-manifest-deep text-signal-ink" : "bg-manifest-deep text-glass-ink"}`}>
           {email.source === "agent" ? copy.email.agent : copy.email.simulator}
@@ -41,13 +43,13 @@ function EmailCard({ email }: { readonly email: EmailView }) {
   );
 }
 
-/** The emails of `ids`, in the thread's order. */
-export function EmailThread({ ids }: { readonly ids: readonly EmailView["id"][] }) {
+/** The emails of `ids`, in the thread's order; `compact` keeps the first lines of each body (the carousel). */
+export function EmailThread({ ids, compact = false }: { readonly ids: readonly EmailView["id"][]; readonly compact?: boolean }) {
   const { email } = useLandingCopy();
   return (
     <ol aria-label={`${email.threadLabel} · ${STORY.supplierName}`} className="space-y-3">
       {SUPPLIER_THREAD.filter((item) => ids.includes(item.id)).map((item) => (
-        <EmailCard key={item.id} email={item} />
+        <EmailCard key={item.id} email={item} compact={compact} />
       ))}
     </ol>
   );

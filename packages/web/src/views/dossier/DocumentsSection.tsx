@@ -11,7 +11,7 @@ import { Callout } from "../../components/Callout";
 import { Section } from "../../components/Section";
 import { type Column, Table } from "../../components/Table";
 import { useSession } from "../../context/SessionContext";
-import { formatSimDateTime } from "../../lib/format";
+import { formatReaderValue, formatSimDateTime } from "../../lib/format";
 import { useAction } from "../../lib/use-remote";
 import { fetchDocumentUrl } from "./api";
 import { dossierCopy } from "./copy";
@@ -71,7 +71,7 @@ function ObservationItem({ observation, onWaive }: { readonly observation: Obser
         <Badge tone={observation.severity === "BLOCKING" ? "danger" : "neutral"}>{severityLabel[observation.severity]}</Badge>
         <Badge tone={observationStatusTone[observation.status]}>{observationStatusLabel[observation.status]}</Badge>
       </p>
-      {observation.expected !== undefined && observation.found !== undefined ? <p className="text-slate">{text.expectedFound(observation.expected, observation.found)}</p> : null}
+      {observation.expected !== undefined && observation.found !== undefined ? <p className="text-slate">{text.expectedFound(formatReaderValue(observation.expected), formatReaderValue(observation.found))}</p> : null}
       <p className="flex flex-wrap items-center gap-2 text-slate">
         <span>
           {text.responsible}: {observation.responsibleParty ? partyLabel[observation.responsibleParty] : text.noResponsible}

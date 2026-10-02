@@ -203,6 +203,7 @@ export {
 
 export {
   addressHash,
+  canonicalMailbox,
   hmacSha256,
   hmacSha256Hex,
   isHexHash,

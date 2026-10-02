@@ -13,7 +13,7 @@ function NavSection({ group, routes, path }: { readonly group: NavGroup; readonl
   if (routes.length === 0) return null;
   return (
     <div className="flex shrink-0 items-center gap-2 md:block">
-      <p className="hidden px-3 text-xs font-semibold uppercase tracking-widest text-slate md:block">{copy.nav.groups[group]}</p>
+      <p className="hidden px-3 text-xs font-semibold uppercase tracking-widest text-mist md:block">{copy.nav.groups[group]}</p>
       <ul className="flex gap-1 md:mt-2 md:block md:space-y-0.5">
         {routes.map((route) => {
           const active = navActive(route, path);
@@ -22,7 +22,7 @@ function NavSection({ group, routes, path }: { readonly group: NavGroup; readonl
               <Link
                 to={route.path}
                 aria-current={active ? "page" : undefined}
-                className={`block whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                className={`flex min-h-11 items-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   active ? "bg-navy-soft text-white" : "text-mist hover:bg-navy-soft/60 hover:text-white"
                 }`}
               >

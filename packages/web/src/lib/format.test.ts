@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AR_TIME_ZONE, formatDateTime, formatDayMonth, formatNumber, formatSimDateTime, formatTime, minutesBetween, wallClockOf } from "./format";
+import { AR_TIME_ZONE, formatDateTime, formatDayMonth, formatNumber, formatReaderValue, formatSimDateTime, formatTime, minutesBetween, wallClockOf } from "./format";
 
 describe("simulated time as the shell shows it (Argentina)", () => {
   it("reads the story's start and the supplier's deferred email in Argentine time", () => {
@@ -37,5 +37,19 @@ describe("numbers and elapsed minutes", () => {
   it("counts whole minutes and never goes negative", () => {
     expect(minutesBetween(0, 125_000)).toBe(2);
     expect(minutesBetween(10_000, 0)).toBe(0);
+  });
+});
+
+describe("formatReaderValue", () => {
+  it("writes the reader's numbers in es-AR notation, with their unit", () => {
+    expect(formatReaderValue("12,840 kg")).toBe("12.840 kg");
+    expect(formatReaderValue("12,480 kg")).toBe("12.480 kg");
+    expect(formatReaderValue("12840")).toBe("12.840");
+    expect(formatReaderValue("1,234.5 kg")).toBe("1.234,5 kg");
+    expect(formatReaderValue("245")).toBe("245");
+  });
+
+  it("leaves words, names and codes as the reader wrote them", () => {
+    for (const raw of ["not signed", "Republic of Korea", "GEP-24-0981", "FOB", "12,84"]) expect(formatReaderValue(raw)).toBe(raw);
   });
 });

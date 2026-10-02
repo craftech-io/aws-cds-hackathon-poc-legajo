@@ -7,8 +7,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { LAMBDA_CAPABILITIES, expectedActions, expectedTables, type LambdaName } from "./iam-capabilities";
-import { LEADS_ACCESS, LEADS_ROLES, LEAD_WRITE_ACTIONS, leadsStatement } from "./leads-spec";
-import { FENCED_TABLES, storageFor } from "./storage-keys";
+import { LEADS_ACCESS, LEADS_ROLES, LEAD_WRITE_ACTIONS, RUNTIME_KEY_FENCES, RUNTIME_KEYS_LINK, SIGNUP_DISPATCH_LINKS, leadsStatement, runtimeKeysStatement } from "./leads-spec";
+import { FENCED_TABLES, KEY_FENCED_TABLES, storageFor } from "./storage-keys";
 
 const read = (path: string): string => readFileSync(resolve(process.cwd(), path), "utf8");
 const LAMBDAS = Object.keys(LAMBDA_CAPABILITIES) as LambdaName[];
@@ -65,5 +65,46 @@ describe("[FL-121] the lead data never leaves Leads", () => {
     expect([...LEADS_ACCESS.QaDriver.actions].sort()).toEqual(["dynamodb:DeleteItem", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query"]);
     expect(LAMBDA_CAPABILITIES.QaDriver.capabilities).toContain("QA_SIGNUP");
     expect(read("docs/architecture.md")).toContain("DynamoDB `Leads` (`GetItem`, `Query`, `DeleteItem`, `PutItem`)");
+  });
+});
+
+describe("Runtime of the signup's dispatcher and of the Cognito trigger, by key only (docs/architecture.md §14)", () => {
+  const RUNTIME = "arn:aws:dynamodb:us-east-1:776805327629:table/aws-cds-hackathon-poc-legajo-poc-RuntimeTable-abc";
+  const glob = (pattern: string) => new RegExp(`^${pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*")}$`);
+  const reaches = (keys: readonly string[], pk: string) => keys.some((key) => glob(key).test(pk));
+
+  it.each(["SignupDispatch", "AuthCustomMessage"] as const)("%s never links Runtime whole: name-only link plus a key-fenced statement", (fn) => {
+    expect(Object.keys(KEY_FENCED_TABLES)).toContain(fn);
+    expect(storageFor(fn).tables as string[]).not.toContain("Runtime");
+    expect(storageFor(fn).fencedTables as string[]).toContain("Runtime");
+    const statement = runtimeKeysStatement(fn, RUNTIME);
+    expect(statement.actions).toEqual(["dynamodb:GetItem", "dynamodb:UpdateItem"]);
+    expect(statement.resources).toEqual([RUNTIME]);
+    expect(statement.conditions).toEqual([{ test: "ForAllValues:StringLike", variable: "dynamodb:LeadingKeys", values: [...(RUNTIME_KEY_FENCES[fn].leadingKeys ?? [])] }]);
+    for (const pk of ["LINK#tok123", "SLOT#GUEST#41", "GUESTWORLD#sub-1", "PENDING#mail-1", "MAIL#x", "SESSION#1", "QUOTA#GUEST#x", "CLOCK#c1"]) expect(reaches(statement.conditions?.[0]?.values ?? [], pk), `${fn} ${pk}`).toBe(false);
+    for (const pk of ["MAILSTATUS#abc", "MAILBREAKER"]) expect(reaches(statement.conditions?.[0]?.values ?? [], pk), `${fn} ${pk}`).toBe(true);
+  });
+
+  it("each role reaches only its own counters", () => {
+    const dispatch = RUNTIME_KEY_FENCES.SignupDispatch.leadingKeys ?? [];
+    const trigger = RUNTIME_KEY_FENCES.AuthCustomMessage.leadingKeys ?? [];
+    expect(reaches(dispatch, "RL#START#EMAIL#h#2026-10-14")).toBe(true);
+    expect(reaches(dispatch, "RL#MAIL#RCPT#h#2026-10-14")).toBe(false);
+    expect(reaches(trigger, "RL#MAIL#RCPT#h#2026-10-14")).toBe(true);
+    expect(reaches(trigger, "RL#START#IP#h#2026-10-14T13")).toBe(false);
+  });
+
+  it("links RuntimeKeys, never Runtime, in both modules", () => {
+    expect([...SIGNUP_DISPATCH_LINKS]).toContain(RUNTIME_KEYS_LINK);
+    expect([...SIGNUP_DISPATCH_LINKS]).not.toContain("Runtime");
+    const auth = read("infra/auth.ts");
+    expect(auth).toContain("tableLinks([RUNTIME_KEYS_LINK])");
+    expect(auth).not.toContain('tableLinks(["Runtime"])');
+    expect(read("infra/storage-tables.ts")).toContain('new sst.Linkable("RuntimeKeys", { properties: { name: Runtime.name } })');
+    for (const row of ["| `SignupDispatch` |", "| `AuthCustomMessage` |"]) {
+      const line = read("docs/architecture.md").split("\n").find((entry) => entry.startsWith(row)) ?? "";
+      expect(line, row).toContain("`RuntimeKeys`");
+      expect(line, row).toContain("`MAILSTATUS#*`, `MAILBREAKER`");
+    }
   });
 });

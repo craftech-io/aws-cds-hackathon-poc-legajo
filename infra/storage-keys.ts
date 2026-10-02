@@ -44,6 +44,16 @@ export type FencedTable = (typeof FENCED_TABLES)[number];
 /** Tables of this module a Lambda links whole (`Resource.<Name>`, `dynamodb:*` on the table). */
 export type LinkedTable = Exclude<StorageTable, FencedTable>;
 
+/**
+ * Linked tables some Lambdas still must not hold whole: each of these roles reaches the table through
+ * a name-only Linkable (`RuntimeKeys`, `Resource.RuntimeKeys.name`) plus one statement fenced by
+ * `dynamodb:LeadingKeys` (infra/leads-spec.ts `RUNTIME_KEY_FENCES`). The Cognito trigger and the
+ * asynchronous dispatcher of the signup touch only the bounce state, the breaker and their counters,
+ * never the upload links, leases or pending rows of the demo.
+ */
+export const KEY_FENCED_TABLES = { SignupDispatch: ["Runtime"], AuthCustomMessage: ["Runtime"] } as const satisfies Partial<Record<LambdaName, readonly LinkedTable[]>>;
+export type KeyFencedRole = keyof typeof KEY_FENCED_TABLES;
+
 /** Component name of a fenced table: `Resource.<Name>` belongs to its name-only Linkable. */
 export const fencedTableComponent = (name: FencedTable): string => `${name}Data`;
 
@@ -359,7 +369,7 @@ export interface StorageNeeds {
   /** Tables of this module to link. */
   readonly tables: LinkedTable[];
   /** Tables of this module reached only through a name-only Linkable and a fenced statement. */
-  readonly fencedTables: FencedTable[];
+  readonly fencedTables: StorageTable[];
   /** Tables of the mocks (infra/mocks.ts) the caller links on its own. */
   readonly mockTables: MockTable[];
   readonly buckets: BucketName[];
@@ -371,9 +381,11 @@ const isFencedTable = (name: TableName): name is FencedTable => (FENCED_TABLES a
 /** What a function links from storage, exactly as iam-capabilities.ts declares it. */
 export function storageFor(fn: LambdaName): StorageNeeds {
   const tables = (Object.keys(expectedTables(fn)) as TableName[]).sort();
+  const keyFenced: readonly TableName[] = (KEY_FENCED_TABLES as Partial<Record<LambdaName, readonly LinkedTable[]>>)[fn] ?? [];
+  const fenced = (name: TableName): name is StorageTable => isFencedTable(name) || keyFenced.includes(name);
   return {
-    tables: tables.filter((name): name is LinkedTable => !isMockTable(name) && !isFencedTable(name)),
-    fencedTables: tables.filter(isFencedTable),
+    tables: tables.filter((name): name is LinkedTable => !isMockTable(name) && !fenced(name)),
+    fencedTables: tables.filter(fenced),
     mockTables: tables.filter(isMockTable),
     buckets: expectedBuckets(fn),
   };

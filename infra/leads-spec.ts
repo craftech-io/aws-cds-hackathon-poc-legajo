@@ -13,7 +13,7 @@
 
 import { CI_DEPLOY_STAGE } from "./ci-spec";
 import { LAMBDA_CAPABILITIES, expectedActions, resolveCapabilities, type BucketName, type LambdaName } from "./iam-capabilities";
-import { inboundMailRoutes } from "./storage-keys";
+import { inboundMailRoutes, type KeyFencedRole } from "./storage-keys";
 
 /** `Resource.Leads.name`: the name-only Linkable of the table (component `LeadsData`, storage-tables.ts). */
 export const LEADS_LINK = "Leads";
@@ -98,6 +98,28 @@ export function signupRuntimeStatement<R>(runtimeArn: R): IamStatement<R> {
     actions: [...SIGNUP_RUNTIME_ACTIONS],
     resources: [runtimeArn],
     conditions: [{ test: "ForAllValues:StringLike", variable: "dynamodb:LeadingKeys", values: [...SIGNUP_RUNTIME_KEYS] }],
+  };
+}
+
+/** `Resource.RuntimeKeys.name`: `Runtime`'s name without permissions, for the key-fenced roles (storage-keys.ts). */
+export const RUNTIME_KEYS_LINK = "RuntimeKeys";
+
+/**
+ * What the key-fenced roles may do on `Runtime` instead of linking it whole (`dynamodb:*`):
+ * SignupDispatch reads the bounce state and the breaker and counts the sign-ups per mailbox and domain
+ * (`RL#START#`); AuthCustomMessage reads the same two and counts the account emails (`RL#MAIL#`).
+ */
+export const RUNTIME_KEY_FENCES: Readonly<Record<KeyFencedRole, LeadsAccess>> = {
+  SignupDispatch: { actions: ["dynamodb:GetItem", "dynamodb:UpdateItem"], leadingKeys: ["MAILSTATUS#*", "MAILBREAKER", "RL#START#*"] },
+  AuthCustomMessage: { actions: ["dynamodb:GetItem", "dynamodb:UpdateItem"], leadingKeys: ["MAILSTATUS#*", "MAILBREAKER", "RL#MAIL#*"] },
+};
+
+export function runtimeKeysStatement<R>(fn: KeyFencedRole, runtimeArn: R): IamStatement<R> {
+  const fence = RUNTIME_KEY_FENCES[fn];
+  return {
+    actions: [...fence.actions],
+    resources: [runtimeArn],
+    conditions: [{ test: "ForAllValues:StringLike", variable: "dynamodb:LeadingKeys", values: [...(fence.leadingKeys ?? [])] }],
   };
 }
 
@@ -219,5 +241,5 @@ export const SIGNUP_GRANT_STATEMENTS: Readonly<Record<SignupGrantRole, readonly 
 
 /** What LeadNotice links: the table's name, the recipients' secret and its own SES sender. */
 export const LEAD_NOTICE_LINKS = [LEADS_LINK, "LeadNoticeTo", "EmailSenderLeadNotice"] as const;
-/** What SignupDispatch links: the table's name, Runtime (rate limits, bounce state, breaker), the key and the pool. */
-export const SIGNUP_DISPATCH_LINKS = [LEADS_LINK, "Runtime", "SessionTokenKey", "Auth"] as const;
+/** What SignupDispatch links: the table's name, Runtime's name (key-fenced: rate limits, bounce state, breaker), the key and the pool. */
+export const SIGNUP_DISPATCH_LINKS = [LEADS_LINK, RUNTIME_KEYS_LINK, "SessionTokenKey", "Auth"] as const;

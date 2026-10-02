@@ -12,10 +12,10 @@
 //   custom:worldLease  a GUEST's: the lease of the world its broker row was written for; the BFF
 //                      refuses a token whose lease is no longer the row's (403 `GUEST_WORLD_GONE`)
 //
-// A guest's access token also loses the `aws.cognito.signin.user.admin` scope: guest accounts must
-// not change their password, MFA or attributes with it (ADR-0014 §7, ADR-0015 §1), so Cognito itself
-// refuses ChangePassword, AssociateSoftwareToken, SetUserMFAPreference, UpdateUserAttributes and
-// DeleteUser with it. SRP sign-in, refresh and RevokeToken do not need that scope.
+// A guest's access token, and every refused one, also loses the `aws.cognito.signin.user.admin` scope:
+// guest accounts must not change their password, MFA or attributes with it (ADR-0014 §7, ADR-0015 §1),
+// so Cognito itself refuses ChangePassword, AssociateSoftwareToken, SetUserMFAPreference,
+// UpdateUserAttributes and DeleteUser with it. SRP sign-in, refresh and RevokeToken do not need it.
 //
 // The groups are copied back unchanged: a V2_0 response that leaves `groupOverrideDetails` empty
 // suppresses them. An account that cannot be resolved (no valid firm, no console role, an inactive
@@ -81,10 +81,14 @@ export type PreTokenDecision =
 /**
  * No tenant and no groups in either token: the account has no access. Role and guest flag are
  * simply not stamped; only claims the pool really issues are suppressed (`custom:firmId` is a pool
- * attribute), and empty group overrides clear `cognito:groups` in the id and access tokens.
+ * attribute), and empty group overrides clear `cognito:groups` in the id and access tokens. The
+ * access token also loses the account scope: a refused guest (ambiguous, inactive or misplaced row)
+ * or a self-service account left without its group must not reach Cognito's account API either, and
+ * a token with no access needs none of it.
  */
 const REFUSED_DETAILS: ClaimsAndScopeOverrideDetails = {
   idTokenGeneration: { claimsToSuppress: [STAMPED_CLAIMS.firmId] },
+  accessTokenGeneration: { scopesToSuppress: [ACCOUNT_ADMIN_SCOPE] },
   groupOverrideDetails: { groupsToOverride: [] },
 };
 

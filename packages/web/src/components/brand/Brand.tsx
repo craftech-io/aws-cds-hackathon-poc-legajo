@@ -33,7 +33,7 @@ export function PoweredByCraftech({ tone, className = "" }: { readonly tone: Bra
       href={CRAFTECH_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-2 text-xs transition-opacity hover:opacity-80 ${tone === "dark" ? "text-mist" : "text-slate"} ${className}`}
+      className={`inline-flex min-h-11 items-center gap-2 text-xs transition-opacity hover:opacity-80 ${tone === "dark" ? "text-mist" : "text-slate"} ${className}`}
     >
       <span>Powered by</span>
       <BrandImage src={BRAND_ASSETS.craftech[tone]} alt="Craftech" className="h-5 w-auto" fallback={fallback} />

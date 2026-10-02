@@ -8,7 +8,7 @@ import { useMemo, useRef } from "react";
 import { buttonClass } from "../../components/Button";
 import { useSession } from "../../context/SessionContext";
 import { useRouter } from "../../lib/router";
-import { STORY, conversation, heroMessages } from "./conversations";
+import { HERO_ANCHOR, STORY, conversation, heroMessages } from "./conversations";
 import { SignInLink } from "./Header";
 import { Icon } from "./icons";
 import { useLandingCopy } from "./lang";
@@ -39,7 +39,7 @@ function HeroConversation() {
 
   return (
     <div ref={figure} data-hero-visual="" className="flex flex-col items-center gap-4">
-      <WhatsAppPhone conversation={conversation("request")} messages={shown} firmName={STORY.firmName} caption={hero.phoneCaption} size="hero" pending={pending} animate={animate} decorative />
+      <WhatsAppPhone conversation={conversation("request")} messages={shown} firmName={STORY.firmName} caption={hero.phoneCaption} size="hero" pending={pending} animate={animate} {...(frame.done ? { anchor: HERO_ANCHOR } : {})} decorative />
       <div className="sr-only" lang="es-AR">
         <p>{hero.phoneLabel}</p>
         <ol>

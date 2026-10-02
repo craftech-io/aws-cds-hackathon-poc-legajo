@@ -106,9 +106,13 @@ export async function handleTestRoute(request: IncomingMessage, response: Server
     return true;
   }
   if (route === "users" && request.method === "POST") {
-    // A public guest that already verified its email (the sign-up itself is auth.spec.ts's).
+    // A public guest that already verified its email (the sign-up itself is auth.spec.ts's), for the
+    // specs of the welcome mechanics: its world is the mechanics-only one (guest-world.ts), so READY,
+    // the console opening and EXPIRED stay testable before WP-31. A guest that signs up through /signup
+    // gets the honest FAILED instead.
     const { email, password } = await jsonBody(request, NewGuest);
     const user = await deps.access.pool.addConfirmed({ username: `usr-${randomUUID().replaceAll("-", "").slice(0, 26)}`, email, password, groups: ["GUEST"] });
+    deps.worlds.control.mechanicsOnly.add(user.sub);
     json(response, 201, { username: user.username });
     return true;
   }

@@ -81,7 +81,11 @@ export async function ageSignup(request: APIRequestContext, serverUrl: string, e
   await request.post(`${serverUrl}${TEST_PREFIX}signup-age`, { data: { email, seconds } });
 }
 
-/** A public guest that already verified its email, without a world. */
+/**
+ * A public guest that already verified its email, without a world. Its world, once asked for, is the
+ * mechanics-only one (a firm with no operation, tests/ui-server/auth/guest-world.ts): only for specs of
+ * the welcome mechanics, never for captures. A guest that signs up through /signup gets FAILED until WP-31.
+ */
 export async function createVerifiedGuest(request: APIRequestContext, serverUrl: string, email: string, password: string): Promise<void> {
   const answer = await request.post(`${serverUrl}${TEST_PREFIX}users`, { data: { email, password } });
   if (!answer.ok()) throw new Error(`could not create the test guest (${answer.status()})`);

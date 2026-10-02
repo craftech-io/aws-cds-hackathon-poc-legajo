@@ -3,19 +3,24 @@
 // else `ClientMetadata.lang`) from auth-triggers/messages/, and keeps the account emails from becoming
 // a way to mail third parties or to hurt the account's SES reputation:
 //
-//   per recipient 5 a day · per domain 60 an hour · 400 a day in total (guest-limits.ts)
+//   per recipient 5 a day · per domain 60 an hour · 400 a day in total (guest-limits.ts); the
+//   recipient is its canonical mailbox (`mailboxQuotaHash`), so `+tag` and Gmail dot variants share it
 //   never to a recipient with `Runtime/MAILSTATUS#` BOUNCED or COMPLAINED
-//   nothing but operator invitations while `Runtime/MAILBREAKER` is open
+//   nothing but operator invitations and staff recovery while `Runtime/MAILBREAKER` is open (staff:
+//   CONFIRMED, with an operator-set `custom:firmId` outside the guest firms; quotas and bounce status
+//   still apply to them)
 //
 // "Cutting" = the trigger fails and Cognito sends nothing. `CustomMessage_SignUp` only counts and cuts
 // only for a bounce status or the breaker (`SignupDispatch` already checked the quotas before
 // `SignUp`); `CustomMessage_AdminCreateUser` counts and never cuts. It never reads or writes `Leads`.
+import { FirmId } from "@legajo/shared";
 import { z } from "zod";
 import { ACCOUNT_EMAIL_LIMITS } from "@legajo/shared/guest-limits";
+import { isGuestFirm } from "../auth/principal";
 import { countMetric } from "../channels/adapter";
 import { MAIL_TOTAL_BASE, isBreakerOpen, readMailStatus } from "../channels/email/mail-status";
 import { type TableClient, tableClient } from "../connector/index";
-import { type SecretKey, leadEmailHash } from "../lib/crypto";
+import { type SecretKey, leadEmailHash, mailboxQuotaHash } from "../lib/crypto";
 import { createLogger, type Logger } from "../lib/log";
 import { subkey } from "../lib/secrets";
 import { consumeWindowed, countWindowed } from "../signup/counters";
@@ -40,7 +45,7 @@ export const ACCOUNT_MAIL_METRICS = { blocked: "AccountMailBlocked" } as const;
 
 /** Account email counters of `Runtime` (`RL#MAIL#…`); the total is the one the breaker reads. */
 export const MAIL_BASES = {
-  recipient: (emailHash: string) => `RL#MAIL#RCPT#${emailHash}`,
+  recipient: (mailboxHash: string) => `RL#MAIL#RCPT#${mailboxHash}`,
   domain: (domainHash: string) => `RL#MAIL#DOMAIN#${domainHash}`,
   total: MAIL_TOTAL_BASE,
 } as const;
@@ -75,15 +80,15 @@ function kindOf(event: CustomMessageEvent, base: AccountEmailKind): AccountEmail
   return base === "FORGOT_PASSWORD" && event.request.clientMetadata?.intent === "signup-existing" ? "EXISTING_ACCOUNT" : base;
 }
 
-async function count(deps: CustomMessageDeps, emailHash: string, domainHash: string, policy: Policy, now: Date): Promise<MailCut | undefined> {
+async function count(deps: CustomMessageDeps, mailboxHash: string, domainHash: string, policy: Policy, now: Date): Promise<MailCut | undefined> {
   if (policy !== "CAPPED") {
-    await countWindowed(deps.client, MAIL_BASES.recipient(emailHash), "DAY", now);
+    await countWindowed(deps.client, MAIL_BASES.recipient(mailboxHash), "DAY", now);
     await countWindowed(deps.client, MAIL_BASES.domain(domainHash), "HOUR", now);
     await countWindowed(deps.client, MAIL_BASES.total, "DAY", now);
     return undefined;
   }
   const groups = [
-    { base: MAIL_BASES.recipient(emailHash), limits: ACCOUNT_EMAIL_LIMITS.perRecipient, cut: "RECIPIENT_QUOTA" as const },
+    { base: MAIL_BASES.recipient(mailboxHash), limits: ACCOUNT_EMAIL_LIMITS.perRecipient, cut: "RECIPIENT_QUOTA" as const },
     { base: MAIL_BASES.domain(domainHash), limits: ACCOUNT_EMAIL_LIMITS.perDomain, cut: "DOMAIN_QUOTA" as const },
     { base: MAIL_BASES.total, limits: ACCOUNT_EMAIL_LIMITS.total, cut: "TOTAL_QUOTA" as const },
   ];
@@ -92,6 +97,18 @@ async function count(deps: CustomMessageDeps, emailHash: string, domainHash: str
     if (!outcome.ok) return group.cut;
   }
   return undefined;
+}
+
+/**
+ * A staff member's own password recovery: `custom:firmId` is set only by the operator's invitation
+ * (no app client may write it), so a confirmed account with a firm outside the guest firms is a BROKER
+ * or ANALYST, whom the breaker must not lock out of the console.
+ */
+function isStaffRecovery(event: CustomMessageEvent): boolean {
+  if (event.triggerSource !== "CustomMessage_ForgotPassword" || event.request.clientMetadata?.intent === "signup-existing") return false;
+  const attributes = event.request.userAttributes;
+  const firm = FirmId.safeParse(attributes["custom:firmId"]);
+  return attributes["cognito:user_status"] === "CONFIRMED" && firm.success && !isGuestFirm(firm.data);
 }
 
 /** `undefined`: send; otherwise why Cognito must send nothing. */
@@ -105,9 +122,9 @@ export async function decideMail(deps: CustomMessageDeps, event: CustomMessageEv
   const domainHash = hashDomain(deps.rateKey(), email);
   if (source.policy !== "NEVER_CUT") {
     if ((await readMailStatus(deps.client, emailHash)) !== undefined) return "MAIL_STATUS";
-    if (await isBreakerOpen(deps.client)) return "BREAKER_OPEN";
+    if (!isStaffRecovery(event) && (await isBreakerOpen(deps.client))) return "BREAKER_OPEN";
   }
-  return count(deps, emailHash, domainHash, source.policy, now);
+  return count(deps, mailboxQuotaHash(deps.leadEmailKey(), email), domainHash, source.policy, now);
 }
 
 export type CustomMessageHandler = (event: unknown) => Promise<unknown>;

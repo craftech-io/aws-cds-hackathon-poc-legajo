@@ -10,13 +10,15 @@
 //           and acts: SignUp with the ticket | delete the UNCONFIRMED user and SignUp | ForgotPassword
 //           (`intent signup-existing`) | nothing
 //         4 records the branch (only while `dispatchSeq` is still its own)
-// RESEND  by the recorded branch: ResendConfirmationCode | ForgotPassword | nothing; a sign-up whose
+// RESEND  a sign-up whose START never ran (dropped as stale by this resend, or never invoked) still
+//         has its sealed password: the resend runs exactly as START, with every suppression. Else by
+//         the recorded branch: ResendConfirmationCode | ForgotPassword | nothing; a sign-up whose
 //         dispatch failed is classified again (it has no password any more: only codes are resent).
 import { z } from "zod";
 import { SignupId, type SignupBranch, type SignupRejectReason } from "@legajo/shared/signup";
 import { countMetric } from "../channels/adapter";
 import { isBreakerOpen, readMailStatus } from "../channels/email/mail-status";
-import { type SecretKey, hmacSha256Hex, openSealed } from "../lib/crypto";
+import { type SecretKey, hmacSha256Hex, mailboxQuotaHash, openSealed } from "../lib/crypto";
 import type { Logger } from "../lib/log";
 import type { PendingSignup } from "../leads/lead";
 import { checkMx, domainOf, domainSuppression, formSuppression } from "./bot-checks";
@@ -71,7 +73,7 @@ async function suppressionOf(deps: DispatchDeps, signup: PendingSignup, log: Log
   if (mx.status === "UNKNOWN") countMetric(log, SIGNUP_METRICS.mxUnknown);
   if ((await readMailStatus(deps.client, signup.emailHash)) !== undefined) return "MAIL_STATUS";
   if (await isBreakerOpen(deps.client)) return "BREAKER_OPEN";
-  const quota = await gateEmail(deps.client, signup.emailHash, domainHash(deps.keys.rate, signup.email), deps.now());
+  const quota = await gateEmail(deps.client, mailboxQuotaHash(deps.keys.leadEmail, signup.email), domainHash(deps.keys.rate, signup.email), deps.now());
   return quota === "OK" ? undefined : quota;
 }
 
@@ -145,9 +147,11 @@ export async function runDispatch(deps: DispatchDeps, raw: unknown, log: Logger)
   } catch {
     password = undefined;
   }
+  // No dispatch took its first step yet (the password is still sealed): this event is the sign-up's START.
+  const neverDispatched = signup.dispatchedSeq === undefined || claim.sealed !== undefined;
   let decided: { branch: SignupBranch; accountUsername?: string; reason?: SignupRejectReason };
   try {
-    decided = event.kind === "START" ? await start(deps, signup, password, log) : await resend(deps, signup, log);
+    decided = event.kind === "START" || neverDispatched ? await start(deps, signup, password, log) : await resend(deps, signup, log);
   } catch (error) {
     countMetric(log, SIGNUP_METRICS.dispatchFailed, { kind: event.kind, error: error instanceof Error ? error.name : "unknown" });
     decided = { branch: "FAILED" };

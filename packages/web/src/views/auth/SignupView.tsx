@@ -193,10 +193,10 @@ function SignupScreen() {
       {submitted && shown.length > 0 ? (
         <div ref={summary} tabIndex={-1} role="alert" className="rounded-card border-l-4 border-danger bg-danger-soft px-3 py-2 text-sm text-ink">
           <p className="font-semibold">{copy.signup.errors.summary(shown.length)}</p>
-          <ul className="mt-1 list-disc pl-5">
+          <ul className="mt-1 flex flex-col gap-1">
             {shown.map((field) => (
               <li key={field}>
-                <a href={`#${IDS[field]}`} className="underline underline-offset-2">
+                <a href={`#${IDS[field]}`} className="inline-flex min-h-11 items-center underline underline-offset-2">
                   {fieldLabel(copy, field)}
                 </a>
               </li>

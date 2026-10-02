@@ -95,6 +95,34 @@ describe("local UI server", () => {
     expect((await cognito("InitiateAuth", { AuthFlow: "REFRESH_TOKEN_AUTH", ClientId: POOL.clientId, AuthParameters: { REFRESH_TOKEN: result.RefreshToken } })).body.__type).toBe("NotAuthorizedException");
   });
 
+  const signIn = async (username: string): Promise<string> => {
+    const srp = await createSrpClient(POOL.userPoolId).start(username, PASSWORD);
+    const challenge = await cognito("InitiateAuth", { AuthFlow: "USER_SRP_AUTH", ClientId: POOL.clientId, AuthParameters: { USERNAME: username, SRP_A: srp.srpA } });
+    const responses = await srp.sign(challenge.body.ChallengeParameters as Record<string, string>);
+    const signedIn = await cognito("RespondToAuthChallenge", { ChallengeName: "PASSWORD_VERIFIER", ClientId: POOL.clientId, ChallengeResponses: responses });
+    return (signedIn.body.AuthenticationResult as { IdToken: string }).IdToken;
+  };
+
+  const worldOf = async (idToken: string): Promise<Record<string, unknown>> => {
+    const headers = { "x-legajo-auth": `Bearer ${idToken}`, "content-type": "application/json" };
+    const ensured = (await (await fetch(`${origin}/api/account.ensureWorld`, { method: "POST", headers, body: "{}" })).json()) as { result: { data: unknown } };
+    expect(ensured.result.data).toEqual({ state: "CREATING" });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    return ((await (await fetch(`${origin}/api/account.world`, { headers })).json()) as { result: { data: Record<string, unknown> } }).result.data;
+  };
+
+  it("[FL-105] never answers READY with an empty world: without the world factory a signed-up guest's world is FAILED", async () => {
+    app.worlds.control.createDelayMs = 0;
+    const guest = await app.access.pool.addConfirmed({ username: "usr-01j9zq0000000000000000aa01", email: "qa-signup-uiapp-w1@sim.legajo.demo.craftech.io", password: PASSWORD, groups: ["GUEST"] });
+    expect(await worldOf(await signIn(guest.username))).toEqual({ state: "FAILED" });
+    expect(app.stores.client.dump("Firms").some((row) => row.cognitoSub === guest.sub)).toBe(false);
+
+    // The fixture guest of the welcome-mechanics specs gets the mechanics-only world (firm, clock, broker).
+    const created = await fetch(`${origin}/__test/users`, { method: "POST", body: JSON.stringify({ email: "qa-signup-uiapp-w2@sim.legajo.demo.craftech.io", password: PASSWORD }) });
+    const { username } = (await created.json()) as { username: string };
+    expect(await worldOf(await signIn(username))).toMatchObject({ state: "READY", firmId: expect.stringMatching(/^firm-guest-\d{2}$/) });
+  });
+
   it("[FL-106] answers a wrong password and an unknown user alike", async () => {
     const tries = await Promise.all(
       ["guest-41", "nadie-por-aca"].map(async (login) => {

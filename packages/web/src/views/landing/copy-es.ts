@@ -98,10 +98,10 @@ export const es = {
       delegate: { channel: "WhatsApp · política de contacto", title: "«Los manda el proveedor»", text: "El importador delega con un toque y confirma el contacto registrado. Del otro lado son las 21:00: el email espera hasta las 09:00 del proveedor, y el agente se lo avisa al importador." },
       supplier: { channel: "Email · en inglés", title: "Lo que recibe el proveedor", text: "Un pedido claro, en inglés, desde la dirección de la operación. El proveedor contesta en el mismo hilo con los PDFs adjuntos." },
       reader: { channel: "Lector documental", title: "Lo que encuentra el lector", text: "Cada PDF va al lector documental por su contrato. El certificado es válido; el packing list declara 12.480 kg de peso bruto y la factura, 12.840 kg." },
-      owner: { channel: "Email · WhatsApp", title: "Quién corrige", text: "La corrección es del proveedor: el agente se la pide en el mismo hilo. Al importador le dice solo lo que le toca: «no tenés que hacer nada». Con la versión 2, el legajo queda listo para revisión." },
+      owner: { channel: "Email · WhatsApp", title: "Quién corrige", text: "La corrección es del proveedor: el agente se la pide en el mismo hilo. Al importador le dice solo lo que le toca: «no tenés que hacer nada»." },
       eta: { channel: "Transportista · hitos", title: "La ETA se adelanta dos días", text: "El transportista informa un arribo nuevo. El código reprograma los hitos pendientes, sin pasar por el modelo, y el agente comunica el nuevo plazo." },
       escalation: { channel: "Guardrail · escalamiento", title: "Lo que no le toca al agente, va al despachante", text: "«¿Qué posición arancelaria va?» es asesoramiento aduanero. Un guardrail lo detiene antes del modelo, el importador recibe una respuesta fija y el despachante, un aviso de escalamiento con el contexto." },
-      approval: { channel: "Consola del estudio", title: "La aprobación es siempre humana", text: "Con los tres documentos válidos, el despachante revisa lecturas y observaciones y aprueba con un ingreso reciente. Ninguna herramienta del agente puede aprobar." },
+      approval: { channel: "Consola del estudio", title: "La aprobación es siempre humana", text: "Llega la versión 2 del packing list y el legajo queda listo para revisión. Con los tres documentos válidos, el despachante revisa lecturas y observaciones y aprueba con un ingreso reciente. Ninguna herramienta del agente puede aprobar." },
     } satisfies Readonly<Record<TourStepId, StepText>>,
     eta: {
       before: "Antes",

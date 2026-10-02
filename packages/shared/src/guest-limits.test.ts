@@ -68,7 +68,7 @@ describe("sign-up limits of ADR-0015 §3.2", () => {
   });
 
   it("the reputation breaker", () => {
-    expect(ADR).toContain(`llegan a **${MAIL_BREAKER.badCount}**`);
+    expect(ADR).toContain(`las quejas llegan a **${MAIL_BREAKER.complaintCount}**`);
     expect(ADR).toContain(`superan el **${MAIL_BREAKER.badRate * 100} %** con al menos ${MAIL_BREAKER.minSent} emails`);
     expect(ADR).toContain(`últimas ${MAIL_BREAKER.lookbackHours} h`);
   });

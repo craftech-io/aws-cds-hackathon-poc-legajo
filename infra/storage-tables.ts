@@ -46,6 +46,13 @@ export const Reference = table("Reference");
 export const Runtime = table("Runtime");
 export const LegajoMetrics = table("LegajoMetrics");
 
+/**
+ * `Resource.RuntimeKeys.name`: `Runtime`'s name with no permission, for the roles that reach it only
+ * through a statement fenced by key (storage-keys.ts `KEY_FENCED_TABLES`, leads-spec.ts
+ * `RUNTIME_KEY_FENCES`): SignupDispatch and AuthCustomMessage.
+ */
+export const RuntimeKeys = new sst.Linkable("RuntimeKeys", { properties: { name: Runtime.name } });
+
 /** Leads of the public signup; never in `tables` (nobody links it whole), see infra/leads.ts. */
 export const leadsTable = table("Leads", fencedTableComponent("Leads"));
 

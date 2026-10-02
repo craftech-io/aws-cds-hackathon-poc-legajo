@@ -11,9 +11,10 @@
 import { type DocType, STAGE_DOMAIN, type WaButtonAction, type WhatsAppTemplateName, maskEmail } from "@legajo/shared";
 import { BUTTON_LABELS } from "@legajo/bff/copy/buttons";
 import { DISPATCH_GLOSSARY } from "@legajo/bff/copy/dispatch-glossary";
-import { supplierEmailEn } from "@legajo/bff/copy/en";
+import { labelsEn, supplierEmailEn } from "@legajo/bff/copy/en";
 import { BUTTON_GLOSS, DISPATCH_GLOSS, glossTemplate, importerGloss } from "@legajo/bff/copy/en-gloss";
 import { docTypeOfEsAR, importerEsAR, missingDocumentsEsAR } from "@legajo/bff/copy/es-AR";
+import { joinList } from "@legajo/bff/copy/helpers";
 import { firmEsAR } from "@legajo/bff/copy/es-AR-firm";
 import { OBSERVATION_LABELS } from "@legajo/bff/copy/observation-labels";
 import { TEMPLATES, renderTemplate } from "@legajo/bff/copy/templates";
@@ -77,13 +78,17 @@ function button(action: WaButtonAction, kind: "template" | "interactive", url = 
   return { text: BUTTON_LABELS[action][kind], gloss: BUTTON_GLOSS[action], url };
 }
 
-export function templateMessage(name: WhatsAppTemplateName, params: readonly string[], time: string): WaMessageView {
+/**
+ * A template as the importer reads it. `glossParams` are the English values of the parameters that are
+ * words (a document, a field, a customs status): the gloss never carries a Spanish parameter.
+ */
+export function templateMessage(name: WhatsAppTemplateName, params: readonly string[], time: string, glossParams: readonly string[] = params): WaMessageView {
   const hasUrl = TEMPLATES[name].buttons.some((candidate) => candidate.type === "URL");
   const rendered = renderTemplate(name, params, hasUrl ? EXAMPLE_UPLOAD_TOKEN : undefined);
   return {
     from: "firm",
     text: rendered.body,
-    gloss: glossTemplate(name, params),
+    gloss: glossTemplate(name, glossParams),
     time,
     source: "template",
     buttons: rendered.buttons.map((item) => ({ ...button(item.action, "template", item.type === "URL"), text: item.text })),
@@ -106,10 +111,19 @@ function firmText(source: "fixed" | "agent", text: string, gloss: string, time: 
 
 /** "el peso bruto del packing list": what the supplier has to correct, as the template names it. */
 export const CORRECTION_TARGET = `${OBSERVATION_LABELS.GROSS_WEIGHT_MISMATCH.esField} ${docTypeOfEsAR.PACKING_LIST}`;
+/** The same target in the English gloss: "the gross weight of the packing list". */
+export const CORRECTION_TARGET_EN = `the ${OBSERVATION_LABELS.GROSS_WEIGHT_MISMATCH.enSubject} of the ${labelsEn.docType.PACKING_LIST}`;
+/** What is missing, in the English gloss of the first request. */
+const MISSING_EN = joinList(
+  STORY.missing.map((docType) => labelsEn.docType[docType]),
+  "and",
+);
 
 const MASKED_SUPPLIER = maskEmail(STORY.supplierAddress);
 const NARANJA = DISPATCH_GLOSSARY["CANAL_ASIGNADO#NARANJA"];
 const LIBERADO = DISPATCH_GLOSSARY.LIBERADO;
+const NARANJA_EN = DISPATCH_GLOSS["CANAL_ASIGNADO#NARANJA"];
+const LIBERADO_EN = DISPATCH_GLOSS.LIBERADO;
 
 /** What the model writes in these turns, as an example; a real turn writes its own words. */
 const AGENT_EXAMPLES = {
@@ -127,7 +141,15 @@ const CONVERSATIONS: Readonly<Record<ConversationId, ConversationView>> = {
   request: {
     id: "request",
     day: "15/10",
-    messages: [templateMessage("legajo_docs_pendientes", [STORY.firmName, STORY.operationNumber, STORY.vessel, STORY.etaText, missingDocumentsEsAR(STORY.missing)], "10:00")],
+    messages: [
+      templateMessage("legajo_docs_pendientes", [STORY.firmName, STORY.operationNumber, STORY.vessel, STORY.etaText, missingDocumentsEsAR(STORY.missing)], "10:00", [
+        STORY.firmName,
+        STORY.operationNumber,
+        STORY.vessel,
+        STORY.etaText,
+        MISSING_EN,
+      ]),
+    ],
   },
   delegate: {
     id: "delegate",
@@ -146,10 +168,9 @@ const CONVERSATIONS: Readonly<Record<ConversationId, ConversationView>> = {
   noAction: {
     id: "noAction",
     day: "16/10",
-    messages: [
-      templateMessage("legajo_observacion_proveedor", [STORY.operationNumber, CORRECTION_TARGET], "09:00"),
-      firmText("agent", AGENT_EXAMPLES.arrived.es, AGENT_EXAMPLES.arrived.en, "09:00"),
-    ],
+    // Only the correction notice: the corrected packing list arrives after the ETA change (step 6),
+    // so the importer is never told the file is complete and then given a new deadline for it.
+    messages: [templateMessage("legajo_observacion_proveedor", [STORY.operationNumber, CORRECTION_TARGET], "09:00", [STORY.operationNumber, CORRECTION_TARGET_EN])],
   },
   question: {
     id: "question",
@@ -169,9 +190,10 @@ const CONVERSATIONS: Readonly<Record<ConversationId, ConversationView>> = {
     id: "approval",
     day: "16/10",
     messages: [
+      firmText("agent", AGENT_EXAMPLES.arrived.es, AGENT_EXAMPLES.arrived.en, "10:50"),
       templateMessage("legajo_aprobado", [STORY.operationNumber], "11:00"),
-      templateMessage("despacho_estado", [STORY.operationNumber, NARANJA.statusText, NARANJA.explanation], "11:10"),
-      templateMessage("despacho_estado", [STORY.operationNumber, LIBERADO.statusText, LIBERADO.explanation], "11:20"),
+      templateMessage("despacho_estado", [STORY.operationNumber, NARANJA.statusText, NARANJA.explanation], "11:10", [STORY.operationNumber, NARANJA_EN.statusText, NARANJA_EN.explanation]),
+      templateMessage("despacho_estado", [STORY.operationNumber, LIBERADO.statusText, LIBERADO.explanation], "11:20", [STORY.operationNumber, LIBERADO_EN.statusText, LIBERADO_EN.explanation]),
     ],
   },
 };
@@ -180,13 +202,16 @@ export function conversation(id: ConversationId): ConversationView {
   return CONVERSATIONS[id];
 }
 
-/** The English gloss of the two dispatch statuses of the story, for a test that compares them. */
-export const DISPATCH_STORY_GLOSS = { naranja: DISPATCH_GLOSS["CANAL_ASIGNADO#NARANJA"], liberado: DISPATCH_GLOSS.LIBERADO } as const;
-
 /** The hero's script: the first request and the delegation to the supplier, in that order (§4.4). */
 export function heroMessages(): readonly WaMessageView[] {
   return [...CONVERSATIONS.request.messages, ...CONVERSATIONS.delegate.messages];
 }
+
+/** At rest the hero's phone opens at the firm's question (the fixed text), not cut at the newest message. */
+export const HERO_ANCHOR = Math.max(
+  0,
+  heroMessages().findIndex((message) => message.source === "fixed"),
+);
 
 /**
  * The escalation email the broker receives for the tariff question of step 7, as `firmEsAR` writes it

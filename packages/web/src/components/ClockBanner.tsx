@@ -56,7 +56,7 @@ export function ClockBanner() {
     body = error ? (
       <p className="flex flex-wrap items-center gap-3 text-sm">
         <span>{copy.clock.unavailable}</span>
-        <button type="button" className="font-semibold text-cyan underline" onClick={refresh}>
+        <button type="button" className="inline-flex min-h-11 items-center font-semibold text-cyan underline" onClick={refresh}>
           {copy.clock.retry}
         </button>
       </p>

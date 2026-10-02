@@ -115,7 +115,7 @@ export default function View() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <FilterPills label={texts.lang} options={LANG_OPTIONS} value={lang} onChange={changeLang} variant="segmented" />
-        <button type="button" className="text-xs font-semibold text-slate underline" onClick={restart}>
+        <button type="button" className="inline-flex min-h-11 items-center rounded-md px-2 text-sm font-semibold text-slate underline hover:bg-mist" onClick={restart}>
           {texts.restart}
         </button>
       </div>
@@ -129,7 +129,7 @@ export default function View() {
                 aria-current={position === index ? "step" : undefined}
                 aria-label={`${candidate.number}. ${candidate.title[lang]}`}
                 title={candidate.title[lang]}
-                className={`size-8 rounded-full text-xs font-semibold ${position === index ? "bg-navy text-white" : isStepDone(candidate, progress) ? "bg-success-soft text-success" : "bg-mist text-navy"}`}
+                className={`size-11 rounded-full text-sm font-semibold ${position === index ? "bg-navy text-white" : isStepDone(candidate, progress) ? "bg-success-soft text-success" : "bg-mist text-navy"}`}
                 onClick={() => setSelected(position)}
               >
                 {candidate.number}

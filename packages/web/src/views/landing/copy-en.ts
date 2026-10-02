@@ -71,10 +71,10 @@ export const en: LandingCopy = {
       delegate: { channel: "WhatsApp · contact policy", title: '"The supplier will send them"', text: "The importer delegates with one tap and confirms the registered contact. It is 9 p.m. on the other side: the email waits until 9 a.m. supplier time, and the agent tells the importer." },
       supplier: { channel: "Email · in English", title: "What the supplier receives", text: "A clear request, in English, from the operation's address. The supplier replies in the same thread with the PDFs attached." },
       reader: { channel: "Document reader", title: "What the reader finds", text: "Every PDF goes to the document reader through its contract. The certificate is valid; the packing list states 12,480 kg gross weight and the invoice, 12,840 kg." },
-      owner: { channel: "Email · WhatsApp", title: "Who must fix it", text: 'The fix belongs to the supplier: the agent asks for it in the same thread. The importer only hears what concerns them: "nothing for you to do". With version 2, the file is ready for review.' },
+      owner: { channel: "Email · WhatsApp", title: "Who must fix it", text: 'The fix belongs to the supplier: the agent asks for it in the same thread. The importer only hears what concerns them: "nothing for you to do".' },
       eta: { channel: "Carrier · milestones", title: "The ETA moves two days earlier", text: "The carrier reports a new arrival. The code reschedules the pending milestones, without the model, and the agent communicates the new deadline." },
       escalation: { channel: "Guardrail · escalation", title: "What is not the agent's call goes to the broker", text: '"Which tariff heading applies?" is customs advice. A guardrail stops it before the model, the importer gets a fixed answer and the broker gets an escalation notice with the context.' },
-      approval: { channel: "Firm console", title: "Approval is always human", text: "With all three documents valid, the broker reviews readings and findings and approves after a recent sign-in. No agent tool can approve." },
+      approval: { channel: "Firm console", title: "Approval is always human", text: "Version 2 of the packing list arrives and the file is ready for review. With all three documents valid, the broker reviews readings and findings and approves after a recent sign-in. No agent tool can approve." },
     },
     eta: {
       before: "Before",

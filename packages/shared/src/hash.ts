@@ -48,6 +48,24 @@ export function normalizeEmail(raw: string): string {
   return email;
 }
 
+const GMAIL_DOMAINS = new Set(["gmail.com", "googlemail.com"]);
+
+/**
+ * The mailbox an address delivers to, for per-mailbox quotas only (never for identity, delivery or a
+ * lead): the `+tag` of the local part goes for every domain, and for Gmail the dots too, with
+ * googlemail.com read as gmail.com. `ana+1@x` and `ana@x`, `a.na@gmail.com` and `ana@googlemail.com`
+ * share one key, so a sub-address never opens a fresh quota on one inbox.
+ */
+export function canonicalMailbox(raw: string): string {
+  const email = normalizeEmail(raw);
+  const at = email.lastIndexOf("@");
+  const domain = email.slice(at + 1);
+  const local = email.slice(0, at);
+  const plus = local.indexOf("+");
+  const untagged = plus > 0 ? local.slice(0, plus) : local;
+  return GMAIL_DOMAINS.has(domain) ? `${untagged.replaceAll(".", "")}@gmail.com` : `${untagged}@${domain}`;
+}
+
 export function normalizeAddress(channel: SendChannel, raw: string): string {
   return channel === "EMAIL" ? normalizeEmail(raw) : normalizePhone(raw);
 }

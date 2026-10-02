@@ -63,6 +63,19 @@ describe("[FL-112] per email and per domain (decided by SignupDispatch)", () => 
     await times(domain - used, async () => gateEmail(client, `mail-${Math.random()}`, "dom-a", NOW));
     expect(await gateEmail(client, "mail-z", "dom-a", NOW)).toBe("DOMAIN_QUOTA");
   });
+
+  it.each([
+    ["sub-addresses", ["ana+1@despachos-del-sur.com.ar", "ana+2@despachos-del-sur.com.ar", "Ana+x@Despachos-Del-Sur.com.ar"], "ana+4@despachos-del-sur.com.ar"],
+    ["Gmail dot and googlemail variants", ["v.ictim@gmail.com", "vi.ctim+a@gmail.com", "victim@googlemail.com"], "v.i.c.t.i.m+z@gmail.com"],
+  ])("%s of one inbox share its cap: the next one is SUPPRESSED, Cognito mails nothing more", async (_label, variants, next) => {
+    const access = testAccessDeps(memoryStores(), { now: () => NOW });
+    expect(variants).toHaveLength(limitOf(SIGNUP_RATE_LIMITS.startPerEmail, "DAY"));
+    for (const [index, email] of variants.entries()) await startSignup(access, { email }, `ip-${index}`);
+    expect(access.cognito.codes).toHaveLength(variants.length);
+    const { signupId } = await startSignup(access, { email: next }, "ip-last");
+    expect(await access.signups.get(signupId, NOW)).toMatchObject({ branch: "SUPPRESSED", email: next });
+    expect(access.cognito.codes).toHaveLength(variants.length);
+  });
 });
 
 describe("[FL-102] signup.confirm per viewer IP and per sign-up", () => {

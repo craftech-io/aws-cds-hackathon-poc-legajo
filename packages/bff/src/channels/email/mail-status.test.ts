@@ -1,7 +1,7 @@
 // FL-114, ADR-0015 §3.2: a permanent bounce or a complaint of an account email marks the recipient in
 // `Runtime/MAILSTATUS#<emailHash>` whether a lead exists or not, counts in the hour, and opens the
-// reputation breaker when the last 24 hours cross the threshold of guest-limits.ts. `Leads` is never
-// touched; only the operator closes the breaker.
+// reputation breaker when the last 24 hours cross the threshold of guest-limits.ts (complaints by count,
+// bounces only by rate). `Leads` is never touched; only the operator closes the breaker.
 import { beforeEach, describe, expect, it } from "vitest";
 import { MAIL_BREAKER } from "@legajo/shared/guest-limits";
 import type { MemoryStores } from "../../connector/index";
@@ -43,10 +43,10 @@ describe("[FL-114] bounce state of a recipient", () => {
 });
 
 describe("[FL-114] the reputation breaker", () => {
-  it("opens at the count of bad events of 24 hours, once, with the alarm's metric", async () => {
-    for (let index = 0; index < MAIL_BREAKER.badCount - 1; index += 1) {
+  it("opens at the count of complaints of 24 hours, once, with the alarm's metric", async () => {
+    for (let index = 0; index < MAIL_BREAKER.complaintCount - 1; index += 1) {
       now = new Date(now.getTime() + 3_600_000);
-      expect((await markMailStatus(deps(), { kind: "BOUNCE", recipients: [`r${index}@despachos-del-sur.com.ar`] })).breakerOpened).toBe(false);
+      expect((await markMailStatus(deps(), { kind: "COMPLAINT", recipients: [`r${index}@despachos-del-sur.com.ar`] })).breakerOpened).toBe(false);
     }
     expect(await isBreakerOpen(stores.client)).toBe(false);
     expect((await markMailStatus(deps(), { kind: "COMPLAINT", recipients: ["last@despachos-del-sur.com.ar"] })).breakerOpened).toBe(true);
@@ -55,23 +55,35 @@ describe("[FL-114] the reputation breaker", () => {
     expect(lines.filter((line) => line.includes('"metric":"AccountMailBreakerOpen"'))).toHaveLength(1);
   });
 
+  it("never opens on a count of bounces: ten codes to non-existent mailboxes of a real domain do not stop the product", async () => {
+    // Fresh sign-ups to random addresses at a real domain: each code bounces (550 5.1.1).
+    for (let index = 0; index < MAIL_BREAKER.complaintCount * 3; index += 1) await countWindowed(stores.client, MAIL_TOTAL_BASE, "DAY", now);
+    for (let index = 0; index < MAIL_BREAKER.complaintCount * 2; index += 1) {
+      expect((await markMailStatus(deps(), { kind: "BOUNCE", recipients: [`nadie${index}@gmail.com`] })).breakerOpened).toBe(false);
+    }
+    expect(await isBreakerOpen(stores.client)).toBe(false);
+  });
+
   it("opens past the bad rate once enough emails went out, not before", async () => {
-    for (let index = 0; index < MAIL_BREAKER.minSent; index += 1) await countWindowed(stores.client, MAIL_TOTAL_BASE, "DAY", now);
     const rateBad = Math.floor(MAIL_BREAKER.minSent * MAIL_BREAKER.badRate) + 1;
-    for (let index = 0; index < rateBad; index += 1) await markMailStatus(deps(), { kind: "BOUNCE", recipients: [`r${index}@despachos-del-sur.com.ar`] });
-    expect(rateBad).toBeLessThan(MAIL_BREAKER.badCount);
+    for (let index = 0; index < rateBad; index += 1) await markMailStatus(deps(), { kind: "BOUNCE", recipients: [`early${index}@despachos-del-sur.com.ar`] });
+    expect(await isBreakerOpen(stores.client)).toBe(false);
+    for (let index = 0; index < MAIL_BREAKER.minSent; index += 1) await countWindowed(stores.client, MAIL_TOTAL_BASE, "DAY", now);
+    await markMailStatus(deps(), { kind: "BOUNCE", recipients: ["r0@despachos-del-sur.com.ar"] });
+    expect(rateBad).toBeLessThan(MAIL_BREAKER.complaintCount);
     expect(await isBreakerOpen(stores.client)).toBe(true);
   });
 
-  it("bad events older than 24 hours do not count", async () => {
-    for (let index = 0; index < MAIL_BREAKER.badCount - 1; index += 1) await markMailStatus(deps(), { kind: "BOUNCE", recipients: [`old${index}@despachos-del-sur.com.ar`] });
+  it("complaints older than 24 hours do not count", async () => {
+    for (let index = 0; index < MAIL_BREAKER.complaintCount - 1; index += 1) await markMailStatus(deps(), { kind: "COMPLAINT", recipients: [`old${index}@despachos-del-sur.com.ar`] });
     now = new Date(now.getTime() + 25 * 3_600_000);
-    await markMailStatus(deps(), { kind: "BOUNCE", recipients: ["new@despachos-del-sur.com.ar"] });
+    await markMailStatus(deps(), { kind: "COMPLAINT", recipients: ["new@despachos-del-sur.com.ar"] });
     expect(await isBreakerOpen(stores.client)).toBe(false);
   });
 
   it("only the operator closes it", async () => {
-    for (let index = 0; index < MAIL_BREAKER.badCount; index += 1) await markMailStatus(deps(), { kind: "BOUNCE", recipients: [`r${index}@despachos-del-sur.com.ar`] });
+    for (let index = 0; index < MAIL_BREAKER.complaintCount; index += 1) await markMailStatus(deps(), { kind: "COMPLAINT", recipients: [`r${index}@despachos-del-sur.com.ar`] });
+    expect(await isBreakerOpen(stores.client)).toBe(true);
     expect(await closeBreaker(stores.client, now)).toEqual({ state: "CLOSED", closedAt: now.toISOString() });
     expect(await isBreakerOpen(stores.client)).toBe(false);
     expect(stores.client.dump(RUNTIME_TABLE).some((row) => row.PK === "MAILBREAKER")).toBe(true);

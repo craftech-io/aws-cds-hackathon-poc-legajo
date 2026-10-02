@@ -56,8 +56,32 @@ export function readLinked<T>(logicalName: string, schema: z.ZodType<T>): T {
   return parsed.data;
 }
 
-/** Physical DynamoDB table name of a logical table (`Resource.<Table>.name`). */
+/**
+ * Name-only links of a table, for the roles that may not hold it whole (infra/storage-keys.ts
+ * `KEY_FENCED_TABLES`): `SignupDispatch` and `AuthCustomMessage` get `Resource.RuntimeKeys` plus a
+ * statement fenced by key, never `Resource.Runtime`.
+ */
+export const KEY_FENCED_LINKS: Readonly<Partial<Record<TableName, string>>> = { Runtime: "RuntimeKeys" };
+
+const linkedHere = new Map<string, boolean>();
+
+function isLinked(logicalName: string): boolean {
+  let known = linkedHere.get(logicalName);
+  if (known === undefined) {
+    try {
+      known = Reflect.get(Resource, logicalName) !== undefined;
+    } catch {
+      known = false;
+    }
+    linkedHere.set(logicalName, known);
+  }
+  return known;
+}
+
+/** Physical DynamoDB table name of a logical table (`Resource.<Table>.name`, or its name-only link). */
 export function tableName(table: TableName): string {
+  const fenced = KEY_FENCED_LINKS[table];
+  if (fenced !== undefined && !isLinked(table) && isLinked(fenced)) return readLinked(fenced, NamedResource).name;
   return readLinked(table, NamedResource).name;
 }
 
@@ -82,4 +106,5 @@ export function currentStage(): string {
 /** Test seam: forget cached links (used by vitest between cases). */
 export function resetResourceCache(): void {
   cache.clear();
+  linkedHere.clear();
 }

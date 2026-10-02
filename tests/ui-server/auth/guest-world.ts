@@ -1,11 +1,18 @@
 // Stand-in of `account.ensureWorld` and `account.world` for the local UI server (docs/build-plan.md
 // WP-49: the real procedures arrive with WP-31; until then the UI server answers them). Same contract
 // (packages/shared/src/signup.ts) and the same observable behaviour of ADR-0015 §4: one lease per
-// account, `CREATING` answered at once and the world ready a moment later, `CAPACITY` without creating
-// anything when the public slots are full (a switch the specs flip), `EXPIRED` after the world was
-// destroyed, whose broker row goes first so the owner's tokens are refused (`GUEST_WORLD_GONE`). The
-// world itself is a firm, its paused clock and the guest's broker row bound to the `sub` and the lease:
-// enough for the console to open; the seeded template comes with WP-31. Nothing here ships in a Lambda.
+// account, `CREATING` answered at once, `CAPACITY` without creating anything when the public slots are
+// full (a switch the specs flip), `EXPIRED` after the world was destroyed, whose broker row goes first
+// so the owner's tokens are refused (`GUEST_WORLD_GONE`).
+//
+// The world factory (WP-31) does not exist yet, so a world is never built: the lease answers `CREATING`
+// and, a moment later, `account.world` answers `FAILED`, the honest state the stage gives today
+// (`WorldJanitor` cannot run `GUEST_CREATE`) and that /welcome shows as "No pudimos preparar tu mundo"
+// (docs/landing-spec.md §8.0 and §8.5). Never a `READY` world without the seeded content /welcome
+// promises. A spec that only checks the welcome mechanics (READY, the console opening, EXPIRED) flips
+// `mechanicsOnly` for its own account: that world is a firm, its paused clock and the guest's broker row
+// bound to the `sub` and the lease, with no operation, never used for captures. Nothing here ships in a
+// Lambda.
 import { randomUUID } from "node:crypto";
 import type { MemoryStores } from "@legajo/bff/connector/index";
 import { guestBootstrapProcedure, router } from "@legajo/bff/routers/trpc";
@@ -16,7 +23,7 @@ const START_SIM = "2026-10-14T13:30:00.000Z";
 const FIRST_PUBLIC_SLOT = 31;
 
 interface WorldRecord {
-  state: "CREATING" | "READY" | "FAILED_CAPACITY" | "DESTROYED";
+  state: "CREATING" | "READY" | "FAILED" | "FAILED_CAPACITY" | "DESTROYED";
   readonly leaseId: string;
   readonly nn: number;
   readonly since: string;
@@ -27,7 +34,12 @@ export interface GuestWorldControl {
   capacityFull: boolean;
   /** The same, for these accounts (`sub`) only: specs running side by side do not see each other's switch. */
   readonly fullFor: Set<string>;
-  /** How long a world takes to be ready after `ensureWorld`. */
+  /**
+   * Accounts (`sub`) whose world is the mechanics-only one (firm, clock and broker row, no operation),
+   * for the specs of the welcome mechanics; every other account gets `FAILED` until WP-31.
+   */
+  readonly mechanicsOnly: Set<string>;
+  /** How long a world takes to be ready (or to fail) after `ensureWorld`. */
   createDelayMs: number;
   /** Calls of `account.ensureWorld` so far (a spec asserts there is one per visit). */
   ensureCalls: number;
@@ -86,6 +98,7 @@ async function createWorld(stores: MemoryStores, sub: string, nn: number, leaseI
 function stateOf(record: WorldRecord | undefined): GuestWorldState {
   if (record === undefined) return "NONE";
   if (record.state === "FAILED_CAPACITY") return "CAPACITY";
+  if (record.state === "FAILED") return "FAILED";
   if (record.state === "DESTROYED") return "EXPIRED";
   return record.state;
 }
@@ -99,6 +112,7 @@ function guestWorldRouter(stores: MemoryStores, control: GuestWorldControl, reco
       const current = records.get(sub);
       if (current?.state === "READY") return { state: "READY", firmId: firmIdOf(current.nn), clockId: `GUEST#${firmIdOf(current.nn)}` };
       if (current?.state === "CREATING") return { state: "CREATING" };
+      // FAILED, EXPIRED or CAPACITY: a new lease, as the BFF retries.
       const since = now().toISOString();
       if (control.capacityFull || control.fullFor.has(sub)) {
         records.set(sub, { state: "FAILED_CAPACITY", leaseId: randomUUID(), nn: 0, since });
@@ -107,7 +121,13 @@ function guestWorldRouter(stores: MemoryStores, control: GuestWorldControl, reco
       const record: WorldRecord = { state: "CREATING", leaseId: randomUUID(), nn: nextSlot, since };
       nextSlot += 1;
       records.set(sub, record);
+      const mechanicsOnly = control.mechanicsOnly.has(sub);
       setTimeout(() => {
+        if (!mechanicsOnly) {
+          // No world factory yet (WP-31): the world is not built, and the state says so.
+          if (records.get(sub) === record) record.state = "FAILED";
+          return;
+        }
         void createWorld(stores, sub, record.nn, record.leaseId, now().toISOString()).then(() => {
           if (records.get(sub) === record) record.state = "READY";
         });
@@ -123,7 +143,7 @@ function guestWorldRouter(stores: MemoryStores, control: GuestWorldControl, reco
 }
 
 export function createGuestWorlds(stores: MemoryStores, now: () => Date): GuestWorlds {
-  const control: GuestWorldControl = { capacityFull: false, fullFor: new Set(), createDelayMs: 1_500, ensureCalls: 0 };
+  const control: GuestWorldControl = { capacityFull: false, fullFor: new Set(), mechanicsOnly: new Set(), createDelayMs: 1_500, ensureCalls: 0 };
   const records = new Map<string, WorldRecord>();
   return {
     control,

@@ -7,7 +7,7 @@
 // signature in a log, a phone hash) says nothing about the others. The thread tag of an operation
 // address is computed by `computeThreadTag` of @legajo/shared with the `thread` subkey.
 import { createCipheriv, createDecipheriv, createHash, createHmac, hkdfSync, randomBytes, timingSafeEqual } from "node:crypto";
-import { normalizeEmail, normalizePhone } from "@legajo/shared";
+import { canonicalMailbox, normalizeEmail, normalizePhone } from "@legajo/shared";
 
 export type SecretKey = string | Uint8Array;
 
@@ -91,6 +91,15 @@ export function emailHash(emailHashKey: SecretKey, rawEmail: string): string {
 /** `emailHash` of `Leads/EMAIL#` and `Runtime/MAILSTATUS#` (key: `lead-email` subkey, never `email-hash`). */
 export function leadEmailHash(leadEmailKey: SecretKey, rawEmail: string): string {
   return hmacSha256Hex(leadEmailKey, normalizeEmail(rawEmail));
+}
+
+/**
+ * Key of the per-mailbox quotas (`RL#START#EMAIL#`, `RL#MAIL#RCPT#`; `lead-email` subkey, so
+ * `leads:delete` forgets them): the HMAC of the canonical mailbox, never of the address as typed, so
+ * sub-addresses and Gmail dot variants of one inbox share their cap. Never a lead's or a status's key.
+ */
+export function mailboxQuotaHash(leadEmailKey: SecretKey, rawEmail: string): string {
+  return hmacSha256Hex(leadEmailKey, `mailbox|${canonicalMailbox(rawEmail)}`);
 }
 
 const SEAL_VERSION = "v1";

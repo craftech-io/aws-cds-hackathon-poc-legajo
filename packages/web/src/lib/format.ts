@@ -91,6 +91,23 @@ export function minutesBetween(fromMs: number, toMs: number): number {
   return Math.max(0, Math.floor((toMs - fromMs) / 60_000));
 }
 
+/** A number the document reader writes the way the exporter's documents print it: "12,840", "12,840.5". */
+const READER_NUMBER = /^(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?(?:\s+([A-Za-z%]+))?$/;
+
+/**
+ * A value of a reader observation as the console shows it: a number (with its unit, if any) in es-AR
+ * notation, since "12,840 kg" reads as twelve kilos in Argentina; anything else ("not signed", a name)
+ * as the reader wrote it.
+ */
+export function formatReaderValue(raw: string): string {
+  const match = READER_NUMBER.exec(raw.trim());
+  if (!match) return raw;
+  const [, whole = "", fraction, unit] = match;
+  const value = Number(`${whole.replace(/,/g, "")}${fraction === undefined ? "" : `.${fraction}`}`);
+  const number = formatNumber(value, fraction?.length ?? 0);
+  return unit === undefined ? number : `${number} ${unit}`;
+}
+
 /** es-AR grouping and decimal comma: 12480 → "12.480", 12480.5 → "12.480,5". */
 export function formatNumber(value: number, fractionDigits = 0): string {
   const fixed = Math.abs(value).toFixed(fractionDigits);

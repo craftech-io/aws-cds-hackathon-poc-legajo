@@ -64,13 +64,23 @@ describe("[FL-105] a public guest's token", () => {
     expect(guestFromClaims(claimsOf(details, { "custom:firmId": "firm-guest-07" }))).not.toHaveProperty("firmId");
   });
 
-  it("an inactive row or two rows of one guest give a token with no access", async () => {
+  it("an inactive row or two rows of one guest give a token with no access and no account scope", async () => {
     await seedBrokers(stores, [{ firmId: "firm-guest-41", brokerId: "brk-guest-41", role: "GUEST", sub: SUB, active: false }]);
-    expect((await stamp()).groupOverrideDetails).toEqual({ groupsToOverride: [] });
+    const inactive = await stamp();
+    expect(inactive.groupOverrideDetails).toEqual({ groupsToOverride: [] });
+    expect(inactive.accessTokenGeneration).toEqual({ scopesToSuppress: [ACCOUNT_ADMIN_SCOPE] });
     await seedBrokers(stores, [
       { firmId: "firm-guest-41", brokerId: "brk-guest-41", role: "GUEST", sub: SUB },
       { firmId: "firm-guest-42", brokerId: "brk-guest-42", role: "GUEST", sub: SUB },
     ]);
-    expect((await stamp()).groupOverrideDetails).toEqual({ groupsToOverride: [] });
+    const ambiguous = await stamp();
+    expect(ambiguous.groupOverrideDetails).toEqual({ groupsToOverride: [] });
+    expect(ambiguous.accessTokenGeneration).toEqual({ scopesToSuppress: [ACCOUNT_ADMIN_SCOPE] });
+  });
+
+  it("a confirmed account whose GUEST group was never added keeps no account scope either", async () => {
+    const details = await stamp({}, []);
+    expect(details.groupOverrideDetails).toEqual({ groupsToOverride: [] });
+    expect(details.accessTokenGeneration).toEqual({ scopesToSuppress: [ACCOUNT_ADMIN_SCOPE] });
   });
 });

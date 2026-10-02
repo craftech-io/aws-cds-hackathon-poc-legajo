@@ -1,6 +1,6 @@
 // A picture of the landing from the manifest (docs/landing-spec.md §5.3 and §6): a `<picture>` with
-// AVIF and WebP by width and the PNG as the fallback (G-3), the phone-sized capture below 768 px when
-// there is one, sized up front from the manifest (no layout shift), lazy below the fold. Its caption
+// AVIF and WebP by width and the PNG as the fallback (G-3), sized up front from the manifest (no layout
+// shift), lazy below the fold; the viewer picks the phone capture on a phone (bestEntry). Its caption
 // carries the label of its state (G-4): none for a capture of `poc`, "Entorno local, agente guionado"
 // for a local capture, "Animación con los componentes y textos del producto" for a render's frame,
 // "Imagen provisoria" for a placeholder.
@@ -22,25 +22,20 @@ function srcSet(variants: ReadonlyArray<{ readonly src: string; readonly w: numb
   return variants.map((variant) => `${variant.src} ${variant.w}w`).join(", ");
 }
 
-const PHONE_MEDIA = "(max-width: 767px)";
-
 interface PictureProps {
   readonly entry: ManifestEntry;
-  /** The phone-sized capture of the same id, for screens under 768 px. */
-  readonly mobile?: ManifestEntry;
   readonly alt: string;
   readonly sizes: string;
   readonly className: string;
   /** The viewer shows the picture now: no lazy loading. */
   readonly eager?: boolean;
+  /** Lays the `<picture>` box out of the way, so the image sizes against its container (the viewer). */
+  readonly unboxed?: boolean;
 }
 
-export function Picture({ entry, mobile, alt, sizes, className, eager = false }: PictureProps) {
-  const art = mobile && mobile !== entry ? mobile : undefined;
+export function Picture({ entry, alt, sizes, className, eager = false, unboxed = false }: PictureProps) {
   return (
-    <picture>
-      {art && art.sources.avif.length > 0 ? <source media={PHONE_MEDIA} type="image/avif" srcSet={srcSet(art.sources.avif)} sizes={sizes} /> : null}
-      {art && art.sources.webp.length > 0 ? <source media={PHONE_MEDIA} type="image/webp" srcSet={srcSet(art.sources.webp)} sizes={sizes} /> : null}
+    <picture className={unboxed ? "contents" : undefined}>
       {entry.sources.avif.length > 0 ? <source type="image/avif" srcSet={srcSet(entry.sources.avif)} sizes={sizes} /> : null}
       {entry.sources.webp.length > 0 ? <source type="image/webp" srcSet={srcSet(entry.sources.webp)} sizes={sizes} /> : null}
       <img src={entry.sources.png.src} alt={alt} width={entry.sources.png.w} height={entry.sources.png.h} loading={eager ? "eager" : "lazy"} decoding="async" draggable={false} className={className} />
@@ -48,7 +43,11 @@ export function Picture({ entry, mobile, alt, sizes, className, eager = false }:
   );
 }
 
-/** A capture of the gallery: the picture as a button that opens the viewer, with its caption and state label. */
+/**
+ * A capture of the gallery: the picture as a button that opens the viewer, with its caption and state
+ * label. The thumbnail is the desktop capture at every width: cropped to a tile, a phone capture shows
+ * only the console's header and clock bar, the same on every tile. The viewer opens the phone capture.
+ */
 export function MediaFigure({ media, id }: { readonly media: MediaState; readonly id: MediaId }) {
   const copy = useLandingCopy();
   const gallery = useGallery();
@@ -57,6 +56,7 @@ export function MediaFigure({ media, id }: { readonly media: MediaState; readonl
   const mobile = entryOf(media.manifest, id, "mobile");
   const entry = desktop ?? mobile;
   if (!entry) return null;
+  // A capture that only exists for the phone (the upload page) keeps its own crop.
   const text = copy.media.items[id];
   const note = stateNote(entry, copy.gallery);
   return (
@@ -67,14 +67,14 @@ export function MediaFigure({ media, id }: { readonly media: MediaState; readonl
         aria-label={copy.zoom.open(text.alt)}
         className="relative block overflow-hidden rounded-panel border border-rule bg-white shadow-card cursor-zoom-in"
       >
-        <Picture entry={entry} {...(mobile ? { mobile } : {})} alt={text.alt} sizes="(min-width: 1440px) 25vw, (min-width: 768px) 33vw, (min-width: 390px) 50vw, 100vw" className="block aspect-16/10 h-auto w-full object-cover object-top transition-transform duration-300 group-hover:scale-102" />
+        <Picture entry={entry} alt={text.alt} sizes="(min-width: 1440px) 25vw, (min-width: 768px) 33vw, (min-width: 390px) 50vw, 100vw" className="block aspect-16/10 h-auto w-full object-cover object-top transition-transform duration-300 group-hover:scale-102" />
         <span aria-hidden="true" className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-harbor-950/80 text-foam opacity-0 transition-opacity group-hover:opacity-100">
           <Icon name="enlarge" className="h-4 w-4" />
         </span>
       </button>
       <figcaption className="mt-2 text-sm text-ink-muted">
         {text.caption}
-        {note ? <span className="ml-2 inline-flex rounded-pill bg-white px-2 py-0.5 text-xs font-semibold text-ink">{note}</span> : null}
+        {note ? <span className="mt-1.5 block w-fit rounded-pill border border-rule px-2 py-0.5 text-xs font-medium text-ink-muted">{note}</span> : null}
       </figcaption>
     </figure>
   );

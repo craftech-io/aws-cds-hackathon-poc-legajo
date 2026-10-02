@@ -34,7 +34,7 @@ function TourPanel({ onClose, children }: { readonly onClose: () => void; readon
     <aside aria-label={copy.tour.title} className="w-full shrink-0 border-t border-mist bg-white lg:w-96 lg:border-t-0 lg:border-l">
       <header className="flex items-center justify-between border-b border-mist px-5 py-3">
         <h2 className="text-base font-semibold text-navy">{copy.tour.title}</h2>
-        <button type="button" className="rounded-md px-2 py-1 text-sm text-slate hover:bg-mist" onClick={onClose}>
+        <button type="button" className="inline-flex min-h-11 items-center rounded-md px-3 text-sm text-slate hover:bg-mist" onClick={onClose}>
           {copy.tour.close}
         </button>
       </header>
@@ -70,7 +70,7 @@ export function AppShell({ tour, children }: AppShellProps) {
               <button
                 type="button"
                 aria-pressed={tourOpen}
-                className="rounded-md border border-mist bg-white px-3 py-2 text-sm font-semibold text-navy hover:bg-paper aria-pressed:bg-cyan-soft aria-pressed:text-cyan-deep"
+                className="inline-flex min-h-11 items-center rounded-md border border-mist bg-white px-3 py-2 text-sm font-semibold text-navy hover:bg-paper aria-pressed:bg-cyan-soft aria-pressed:text-navy-deep"
                 onClick={() => setTourOpen((open) => !open)}
               >
                 {copy.tour.open}

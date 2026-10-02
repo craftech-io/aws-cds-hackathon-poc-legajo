@@ -75,3 +75,16 @@ describe("[FL-120] access texts in Spanish and English", () => {
     }
   });
 });
+
+describe("[FL-120] the sign-up error summary reads well", () => {
+  it("[FL-120] counts fields with a real plural and points to the rules where they are (below the field)", () => {
+    expect(AUTH_COPY.es.signup.errors.summary(1)).toBe("Revisá 1 campo antes de seguir.");
+    expect(AUTH_COPY.es.signup.errors.summary(3)).toBe("Revisá 3 campos antes de seguir.");
+    expect(AUTH_COPY.en.signup.errors.summary(1)).toBe("Check 1 field before continuing.");
+    expect(AUTH_COPY.en.signup.errors.summary(3)).toBe("Check 3 fields before continuing.");
+    for (const lang of ["es", "en"] as const) {
+      expect(AUTH_COPY[lang].signup.errors.summary(2)).not.toMatch(/\(s\)/);
+      expect(AUTH_COPY[lang].signup.errors.password).not.toMatch(/arriba|above/);
+    }
+  });
+});

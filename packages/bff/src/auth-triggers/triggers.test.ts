@@ -45,8 +45,10 @@ interface TriggerResult {
   readonly response: { readonly claimsAndScopeOverrideDetails: ClaimsAndScopeOverrideDetails };
 }
 
+// A refused token also loses the account scope, so a refused guest cannot reach Cognito's account API.
 const REFUSED = {
   idTokenGeneration: { claimsToSuppress: ["custom:firmId"] },
+  accessTokenGeneration: { scopesToSuppress: [ACCOUNT_ADMIN_SCOPE] },
   groupOverrideDetails: { groupsToOverride: [] },
 };
 
@@ -119,6 +121,7 @@ describe("Cognito pre token generation (V2_0)", () => {
     ["no console group and no broker row", { sub: GUEST, groups: ["Admins"] }, "NO_ROLE"],
     ["a guest whose broker row is outside a guest firm", { sub: MISPLACED_GUEST, firmId: "firm-delta", groups: ["GUEST"] }, "GUEST_OUTSIDE_GUEST_FIRM"],
     ["no sub", { sub: "" }, "NO_SUB"],
+    ["a confirmed self-service account whose GUEST group was never added", { sub: GUEST, firmId: "", groups: [] }, "NO_FIRM"],
   ])("issues a token without tenant, role or groups for %s", async (_label, input, refusal) => {
     const result = await run(cognitoEvent(input));
     expect(result.response.claimsAndScopeOverrideDetails).toEqual(REFUSED);

@@ -8,7 +8,7 @@ import { usePrincipal, useSession } from "../../context/SessionContext";
 import { copy } from "../../copy/console";
 import { UsageIndicator } from "./UsageIndicator";
 
-const ITEM_CLASS = "block w-full rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-paper";
+const ITEM_CLASS = "flex min-h-11 w-full items-center rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-paper";
 
 export function AccountMenu() {
   const principal = usePrincipal();
@@ -44,7 +44,7 @@ export function AccountMenu() {
         type="button"
         aria-expanded={open}
         aria-controls={menuId}
-        className="rounded-md border border-mist bg-white px-3 py-2 text-sm font-semibold text-navy hover:bg-paper"
+        className="inline-flex min-h-11 items-center rounded-md border border-mist bg-white px-3 py-2 text-sm font-semibold text-navy hover:bg-paper"
         onClick={() => setOpen((value) => !value)}
       >
         {copy.account.menu}

@@ -5,11 +5,15 @@
 //
 //   Runtime/MAILSTATUS#<emailHash>   {status BOUNCED | COMPLAINED, at, count}, lead or not (24 months)
 //   Runtime/RL#MAILBAD#<hour>         bounces plus complaints of the hour
-//   Runtime/MAILBREAKER               OPEN once the last 24 hours cross the threshold of guest-limits.ts
+//   Runtime/RL#MAILCOMPLAINT#<hour>   complaints of the hour
+//   Runtime/MAILBREAKER               OPEN once the last 24 hours cross the threshold of guest-limits.ts:
+//                                     10 complaints whatever the volume, or bounces plus complaints
+//                                     above 3 % of at least 100 account emails (bounces alone never
+//                                     open it on a count: anyone can make a code bounce)
 //
 // `SignupDispatch` suppresses a recipient with a status, `AuthCustomMessage` refuses to mail it, and
-// both stop (but for operator invitations) while the breaker is open. Only the operator closes it
-// (`npm run signup:breaker -- --close`). This module never reads or writes `Leads`.
+// both stop while the breaker is open, but for operator invitations and staff recovery. Only the
+// operator closes it (`npm run signup:breaker -- --close`). This module never reads or writes `Leads`.
 import { z } from "zod";
 import { MAIL_BREAKER, MAIL_STATUS_TTL_SECONDS } from "@legajo/shared/guest-limits";
 import type { Key, TableClient } from "../../connector/index";
@@ -22,6 +26,8 @@ import { countMetric } from "../adapter";
 export const MAIL_TOTAL_BASE = "RL#MAIL#TOTAL";
 /** `RL#MAILBAD#<hour>`: permanent bounces and complaints of account emails. */
 export const MAIL_BAD_BASE = "RL#MAILBAD";
+/** `RL#MAILCOMPLAINT#<hour>`: complaints alone (the absolute rule of the breaker). */
+export const MAIL_COMPLAINT_BASE = "RL#MAILCOMPLAINT";
 
 export const MAIL_STATUS_METRICS = { breakerOpen: "AccountMailBreakerOpen", statusMarked: "AccountMailStatusMarked" } as const;
 
@@ -55,19 +61,25 @@ export async function isBreakerOpen(client: TableClient): Promise<boolean> {
   return (await readBreaker(client)).state === "OPEN";
 }
 
-/** Bounces plus complaints, and account emails sent, over the last 24 hours. */
-export async function mailHealth(client: TableClient, now: Date): Promise<{ readonly bad: number; readonly sent: number }> {
+export interface MailHealth {
+  readonly bad: number;
+  readonly complaints: number;
+  readonly sent: number;
+}
+
+/** Bounces plus complaints, complaints alone, and account emails sent, over the last 24 hours. */
+export async function mailHealth(client: TableClient, now: Date): Promise<MailHealth> {
   const hours = Array.from({ length: MAIL_BREAKER.lookbackHours }, (_, index) => new Date(now.getTime() - index * 3_600_000));
-  const badRows = await Promise.all(hours.map((at) => client.get(RUNTIME_TABLE, counterKey(MAIL_BAD_BASE, "HOUR", at))));
+  const hourly = (base: string) => Promise.all(hours.map((at) => client.get(RUNTIME_TABLE, counterKey(base, "HOUR", at))));
   const days = [now, new Date(now.getTime() - 86_400_000)];
   const sentRows = await Promise.all(days.map((at) => client.get(RUNTIME_TABLE, counterKey(MAIL_TOTAL_BASE, "DAY", at))));
   const sum = (rows: ReadonlyArray<Record<string, unknown> | undefined>) => rows.reduce((total, row) => total + (typeof row?.count === "number" ? row.count : 0), 0);
-  return { bad: sum(badRows), sent: sum(sentRows) };
+  return { bad: sum(await hourly(MAIL_BAD_BASE)), complaints: sum(await hourly(MAIL_COMPLAINT_BASE)), sent: sum(sentRows) };
 }
 
 /** Whether the last 24 hours open the breaker, and why (never an address). */
-export function breakerReason(health: { readonly bad: number; readonly sent: number }): string | undefined {
-  if (health.bad >= MAIL_BREAKER.badCount) return `${health.bad} bounces or complaints in ${MAIL_BREAKER.lookbackHours} h`;
+export function breakerReason(health: MailHealth): string | undefined {
+  if (health.complaints >= MAIL_BREAKER.complaintCount) return `${health.complaints} complaints in ${MAIL_BREAKER.lookbackHours} h`;
   if (health.sent >= MAIL_BREAKER.minSent && health.bad / health.sent > MAIL_BREAKER.badRate) return `bounce and complaint rate above ${MAIL_BREAKER.badRate * 100} %`;
   return undefined;
 }
@@ -112,6 +124,7 @@ export async function markMailStatus(deps: MailStatusDeps, input: AccountMailEve
     const kept = current?.status === "COMPLAINED" ? "COMPLAINED" : status;
     await deps.client.update(RUNTIME_TABLE, key, { set: { entity: "MailStatus", status: kept, at: now.toISOString(), expiresAt: Math.floor(now.getTime() / 1000) + MAIL_STATUS_TTL_SECONDS }, add: { count: 1 } }, now.toISOString(), { upsert: true });
     await countWindowed(deps.client, MAIL_BAD_BASE, "HOUR", now);
+    if (status === "COMPLAINED") await countWindowed(deps.client, MAIL_COMPLAINT_BASE, "HOUR", now);
     marked += 1;
   }
   countMetric(deps.log, MAIL_STATUS_METRICS.statusMarked, { kind: event.kind, count: marked });

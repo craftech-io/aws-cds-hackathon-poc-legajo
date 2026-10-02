@@ -90,7 +90,11 @@ describe("triggers", () => {
 
   it("link exactly what their §14 rows say: never Leads", () => {
     expect(auth).toContain("preSignUp: () => links([SessionTokenKey]),");
-    expect(auth).toContain('customMessage: () => links([SessionTokenKey], tableLinks(["Runtime"])),');
+    // Runtime only by name (`RuntimeKeys`) plus its key-fenced statement: never the whole table.
+    expect(auth).toContain("customMessage: () => links([SessionTokenKey], tableLinks([RUNTIME_KEYS_LINK])),");
+    expect(auth).toContain('runtimeKeysStatement("AuthCustomMessage", module.Runtime.arn)');
+    expect(auth).toContain("permissions: TRIGGER_PERMISSIONS[key]?.() ?? [],");
+    expect(auth).not.toMatch(/tableLinks\(\["Runtime"\]\)/);
     expect(auth).toContain('preTokenGeneration: () => tableLinks(["Firms"]),');
     expect(auth).not.toMatch(/Leads|leadsTable/);
     expect(Object.keys(expectedTables("AuthPreSignUp"))).toEqual([]);

@@ -153,7 +153,8 @@ describe("story drawn with the product's texts [FL-089]", () => {
     const params = [STORY.firmName, STORY.operationNumber, STORY.vessel, STORY.etaText, missingDocumentsEsAR(STORY.missing)];
     const rendered = renderTemplate("legajo_docs_pendientes", params, "ejemplo");
     const [first] = conversation("request").messages;
-    expect(first).toMatchObject({ from: "firm", source: "template", text: rendered.body, gloss: glossTemplate("legajo_docs_pendientes", params) });
+    const glossParams = [STORY.firmName, STORY.operationNumber, STORY.vessel, STORY.etaText, "certificate of origin and packing list"];
+    expect(first).toMatchObject({ from: "firm", source: "template", text: rendered.body, gloss: glossTemplate("legajo_docs_pendientes", glossParams) });
     expect(first?.buttons.map((button) => button.text)).toEqual(TEMPLATES.legajo_docs_pendientes.buttons.map((button) => button.text));
   });
 

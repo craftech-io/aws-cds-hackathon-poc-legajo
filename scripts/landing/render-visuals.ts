@@ -61,9 +61,10 @@ async function uploadPages(browser: Browser, server: LocalServer, terms: readonl
   shots.push(["upload-page", await page.screenshot({ type: "png", animations: "disabled", caret: "hide" })]);
   await page.getByRole("button", { name: uploadPageEsAR.doneButton }).click();
   await page.getByRole("heading", { name: uploadPageEsAR.confirmationHeading }).waitFor();
-  await page.setViewportSize({ width: PHONE.width, height: UPLOAD_DONE_HEIGHT });
   assertCleanFrame("upload-done", await page.locator("body").innerText(), terms);
-  shots.push(["upload-done", await page.screenshot({ type: "png", animations: "disabled", caret: "hide" })]);
+  // A clip of the same viewport, never a resize: right after setViewportSize Chrome can return the
+  // old size's compositor tiles, and the frame comes out with the page tiled (header repeated).
+  shots.push(["upload-done", await page.screenshot({ type: "png", animations: "disabled", caret: "hide", clip: { x: 0, y: 0, width: PHONE.width, height: UPLOAD_DONE_HEIGHT } })]);
   if (escaped.length > 0) throw new Error(`the upload page tried to leave the machine (${escaped.join(", ")})`);
   await context.close();
   for (const [id, png] of shots) await capture(id, "mobile", png, commit);
