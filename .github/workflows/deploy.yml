@@ -76,6 +76,8 @@ jobs:
           npm test
 
       - name: Seed, flows, tour, ownership, tool schemas, channel modes and reader contract
+        env:
+          FORBIDDEN_TERMS: ${{ secrets.FORBIDDEN_TERMS }}
         run: |
           run_if() { if [ -f "$1" ]; then npm run "$2"; else echo "::notice::$2 skipped: $1 is not in the repository yet."; fi; }
           run_if scripts/seed/validate.ts seed:validate
