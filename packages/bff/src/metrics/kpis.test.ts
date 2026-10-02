@@ -63,7 +63,7 @@ describe("[FL-085] metrics with labels", () => {
     expect(rowsOfTab(all, tabSelector("WORLD", "GLOBAL#firm-delta")).map((item) => item.operationId)).toEqual(["op-4471", "op-4472"]);
     expect(rowsOfTab(all, tabSelector("BATCH_REAL")).map((item) => item.operationId)).toEqual(["op-7001"]);
     expect(rowsOfTab(all, tabSelector("BATCH_SCRIPTED")).map((item) => item.operationId)).toEqual(["op-7002"]);
-    expect(rowsOfTab(all, tabSelector("WORLD", "JUDGE#firm-judge-01"))).toEqual([]);
+    expect(rowsOfTab(all, tabSelector("WORLD", "GUEST#firm-guest-01"))).toEqual([]);
   });
 
   it("[FL-085] gives each KPI its N, source and label", () => {

@@ -93,7 +93,7 @@ async function handleS3(request: IncomingMessage, response: ServerResponse, obje
 export async function createUiApp(options: UiAppOptions): Promise<UiApp> {
   const now = options.now ?? (() => new Date());
   const stores = createMemoryStores({ now });
-  await seedConsoleWorld(stores, { judgeWorld: true });
+  await seedConsoleWorld(stores, { guestWorld: true });
   const objects = new ObjectStore();
   const bff = createHandler(appRouter, createContextFactory(() => contextDeps(options, stores, now)));
   const publicWeb = createPublicWebHandler({

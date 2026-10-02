@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EntityName, ZonedInstant, clockTtlSeconds, entryAt, isExpired, utcInstant, worldOfClock } from "./common";
 import { parseDocVersionId, isBlocking } from "./documents";
-import { matrixDefault } from "./firms";
+import { Firm, matrixDefault } from "./firms";
 import { canTransitionDossier } from "./operations";
 import { isUsableContact } from "./parties";
 import { ENTITIES, checkEntityItem, entitiesOf } from "./registry";
@@ -24,16 +24,33 @@ describe("instants", () => {
 });
 
 describe("worlds", () => {
-  it("stamps QA and judge worlds and lets only qa-* worlds expire", () => {
+  it("stamps QA and guest worlds and lets only qa-* worlds expire", () => {
     expect(worldOfClock("qa-812-1-sc16")).toBe("qa");
     expect(worldOfClock("GLOBAL#firm-qa")).toBe("qa");
-    expect(worldOfClock("JUDGE#firm-judge-test")).toBe("qa");
-    expect(worldOfClock("JUDGE#firm-judge-01")).toBe("judge");
+    expect(worldOfClock("GUEST#firm-guest-test")).toBe("qa");
+    expect(worldOfClock("GUEST#firm-guest-01")).toBe("guest");
     expect(worldOfClock("GLOBAL#firm-delta")).toBeUndefined();
     expect(worldOfClock("sim-0001")).toBeUndefined();
     expect(clockTtlSeconds("qa-812-1-sc16")).toBe(48 * 3600);
     expect(clockTtlSeconds("GLOBAL#firm-qa")).toBeUndefined();
-    expect(clockTtlSeconds("JUDGE#firm-judge-01")).toBeUndefined();
+    expect(clockTtlSeconds("GUEST#firm-guest-01")).toBeUndefined();
+  });
+
+  it("tells a reserved guest firm from a public one", () => {
+    const firm = {
+      createdAt: "2026-09-25T12:00:00.000Z",
+      updatedAt: "2026-09-25T12:00:00.000Z",
+      version: 1,
+      firmId: "firm-guest-31",
+      name: "Estudio Delta",
+      kind: "GUEST",
+      mailboxAddress: "estudio-g31@sim.legajo.demo.craftech.io",
+      businessHours: { timezone: "America/Argentina/Buenos_Aires", from: "09:00", to: "18:00", weekdays: ["MON", "TUE", "WED", "THU", "FRI"] },
+      clockId: "GUEST#firm-guest-31",
+    };
+    expect(Firm.parse({ ...firm, guestKind: "PUBLIC" }).guestKind).toBe("PUBLIC");
+    expect(Firm.parse({ ...firm, firmId: "firm-guest-01", guestKind: "RESERVED" }).guestKind).toBe("RESERVED");
+    expect(Firm.safeParse({ ...firm, guestKind: "TRIAL" }).success).toBe(false);
   });
 
   it("finds the state of a history at a past simulated instant", () => {
@@ -85,7 +102,7 @@ describe("dossier rules", () => {
 describe("ids and keys", () => {
   it("parses document version ids of demo and cloned operations", () => {
     expect(parseDocVersionId("dv-4471-PL-2")).toEqual({ operationId: "op-4471", docType: "PACKING_LIST", versionNo: 2 });
-    expect(parseDocVersionId("dv-4471-j03-CO-1")).toEqual({ operationId: "op-4471-j03", docType: "CERTIFICATE_OF_ORIGIN", versionNo: 1 });
+    expect(parseDocVersionId("dv-4471-g03-CO-1")).toEqual({ operationId: "op-4471-g03", docType: "CERTIFICATE_OF_ORIGIN", versionNo: 1 });
     expect(parseDocVersionId("dv-4471-XX-1")).toBeUndefined();
     expect(parseDocVersionId("dv-4471-PL-0")).toBeUndefined();
   });

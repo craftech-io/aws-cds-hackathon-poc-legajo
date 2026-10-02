@@ -1,8 +1,10 @@
 // What a picture of the landing may never show (docs/design-brief.md §9, docs/test-plan.md §7): a
-// term of the operator's external forbidden list, a token or a key. The capture and render scripts
-// check the whole page's text before they write a frame, and fail without writing it. Like
-// `lint:forbidden`, a problem names the kind of leak and the line, never the matched text or term.
+// term of the operator's external forbidden list, a token, a key or a word of the neutral list
+// (ADR-0014 §2). The capture and render scripts check the whole page's text before they write a
+// frame, and fail without writing it. Like `lint:forbidden`, a problem names the kind of leak and the
+// line, never the matched text or term; a neutral word is public, so it is named.
 import { type ForbiddenTerm, findTerms, listFromEnv } from "../lint/forbidden-terms";
+import { findNeutralHits } from "../lint/neutral-words";
 
 const LEAKS: ReadonlyArray<readonly [string, RegExp]> = [
   ["a JSON web token", /\beyJ[\w-]{8,}\.[\w-]{8,}/],
@@ -10,13 +12,14 @@ const LEAKS: ReadonlyArray<readonly [string, RegExp]> = [
   ["an upload link with its token", /\/u\/[A-Za-z0-9_-]{43}(?![A-Za-z0-9_-])/],
 ];
 
-/** Problems of a frame's text: leaks by kind and line, forbidden terms by their position in the list. */
+/** Problems of a frame's text: leaks by kind and line, forbidden terms by their position in the list, neutral words by name. */
 export function frameProblems(text: string, terms: readonly ForbiddenTerm[]): string[] {
   const problems: string[] = [];
   text.split("\n").forEach((line, index) => {
     for (const [what, pattern] of LEAKS) if (pattern.test(line)) problems.push(`${what} on line ${index + 1}`);
   });
   for (const finding of findTerms("frame", text, terms)) problems.push(`term #${finding.term} of the forbidden list on line ${finding.line}`);
+  for (const hit of findNeutralHits(text)) problems.push(`the neutral word "${hit.word}" on line ${hit.line}`);
   return problems;
 }
 

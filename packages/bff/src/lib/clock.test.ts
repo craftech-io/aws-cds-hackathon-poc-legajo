@@ -77,7 +77,7 @@ describe("worldClock", () => {
   const realClock = fixedClock(new Date(REAL));
 
   it("reads the world's state on every call, so another writer's move is seen", async () => {
-    let stored: WorldClockInput = { ...paused, world: "judge", settings: { rateLimitPerHour: 20 } } as WorldClockInput;
+    let stored: WorldClockInput = { ...paused, world: "guest", settings: { rateLimitPerHour: 20 } } as WorldClockInput;
     const clock = worldClock("GLOBAL#firm-delta", { readClock: async () => stored, realClock });
     expect((await clock.now()).toISOString()).toBe(START_SIM);
     stored = { ...stored, ...moveTo(stored, new Date("2026-10-15T13:00:00.000Z"), REAL) };
@@ -93,7 +93,7 @@ describe("worldClock", () => {
 
   it("fails on an unknown world, a mismatched item and an invalid clock id", async () => {
     await expect(worldClock("qa-812-1-sc16", { readClock: async () => undefined, realClock }).now()).rejects.toMatchObject({ code: "NOT_FOUND" });
-    await expect(worldClock("JUDGE#firm-judge-01", { readClock: async () => paused, realClock }).now()).rejects.toBeInstanceOf(ConnectorError);
+    await expect(worldClock("GUEST#firm-guest-01", { readClock: async () => paused, realClock }).now()).rejects.toBeInstanceOf(ConnectorError);
     expect(() => worldClock("tomorrow", { readClock: async () => paused })).toThrow();
   });
 });

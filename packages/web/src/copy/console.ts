@@ -20,7 +20,7 @@ export const copy = {
   roles: {
     BROKER: "Despachante",
     ANALYST: "Analista",
-    JUDGE: "Jurado",
+    GUEST: "Invitado",
   },
   account: {
     menu: "Mi cuenta",
@@ -128,8 +128,10 @@ export const copy = {
   session: {
     preparing: "Preparando tu mundo de demo (~10 s)…",
     otherSession: (minutes: number) =>
-      minutes < 1 ? "Otra sesión usó este mundo hace menos de un minuto: usá otra cuenta de jurado." : `Otra sesión usó este mundo hace ${minutes} min: usá otra cuenta de jurado.`,
-    otherSessionEn: "This world is in use by another session: please use another judge account.",
+      minutes < 1
+        ? "Otra sesión usó este mundo hace menos de un minuto: si compartís la cuenta, usá otra cuenta de invitado."
+        : `Otra sesión usó este mundo hace ${minutes} min: si compartís la cuenta, usá otra cuenta de invitado.`,
+    otherSessionEn: "This world is in use by another session: please use another guest account.",
   },
   scope: {
     label: "Alcance",

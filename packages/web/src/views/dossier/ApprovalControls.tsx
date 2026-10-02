@@ -1,5 +1,5 @@
-// "Aprobar legajo" and "Reabrir legajo" (FL-073, FL-075, ADR-0010). Only a BROKER, or a JUDGE in its own
-// judge firm, sees them; an analyst never does, and the BFF refuses a direct call anyway. Approving is
+// "Aprobar legajo" and "Reabrir legajo" (FL-073, FL-075, ADR-0010). Only a BROKER, or a GUEST in its own
+// guest firm, sees them; an analyst never does, and the BFF refuses a direct call anyway. Approving is
 // open once the dossier is ready for review. Both need a sign-in at most 15 minutes old: when it is
 // older, the console asks for the password in the shell's own prompt without leaving the view, and
 // opens the decision as soon as the prompt closes with a fresh sign-in.

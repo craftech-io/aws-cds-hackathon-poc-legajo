@@ -21,7 +21,7 @@ exports[`enum snapshots > core enums 1`] = `
   ],
   "ConsoleRole": [
     "BROKER",
-    "JUDGE",
+    "GUEST",
     "ANALYST",
   ],
   "ErrorCode": [
@@ -40,8 +40,12 @@ exports[`enum snapshots > core enums 1`] = `
   ],
   "FirmKind": [
     "DEMO",
-    "JUDGE",
+    "GUEST",
     "QA",
+  ],
+  "GuestKind": [
+    "RESERVED",
+    "PUBLIC",
   ],
   "Language": [
     "es",
@@ -85,7 +89,7 @@ exports[`enum snapshots > core enums 1`] = `
   ],
   "World": [
     "qa",
-    "judge",
+    "guest",
   ],
 }
 `;
@@ -398,7 +402,7 @@ exports[`enum snapshots > tools, rules, callers, clocks, keys and flows 1`] = `
   ],
   "ClockScope": [
     "GLOBAL",
-    "JUDGE",
+    "GUEST",
     "QA",
     "SIM",
   ],
@@ -430,6 +434,8 @@ exports[`enum snapshots > tools, rules, callers, clocks, keys and flows 1`] = `
     "I",
     "J",
     "K",
+    "L",
+    "M",
   ],
   "FlowLevel": [
     "U",
@@ -524,7 +530,7 @@ exports[`enum snapshots > tools, rules, callers, clocks, keys and flows 1`] = `
     "demo-firm-delta",
     "demo-firm-norte",
     "qa-min",
-    "judge",
+    "guest",
     "models",
   ],
 }

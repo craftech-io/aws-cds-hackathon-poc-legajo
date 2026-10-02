@@ -2,15 +2,15 @@
 // operator invites. Runs inside `sst shell` (the pool id and the `Firms` table arrive through the
 // linked resources) and writes nothing unless every flag parsed.
 //
-//   npm run console:invite -- --stage poc --judge <n>                 judge-NN of firm-judge-NN
-//   npm run console:invite -- --stage poc --judge-test                judge-test of firm-judge-test
+//   npm run console:invite -- --stage poc --guest <n>                 guest-NN of firm-guest-NN
+//   npm run console:invite -- --stage poc --guest-test                guest-test of firm-guest-test
 //   npm run console:invite -- --stage poc --email <address> --firm <firmId> --broker <brokerId>
-//   add --reset-password to give an existing judge account a new password
+//   add --reset-password to give an existing guest account a new password
 //
-// Judges get no email: a permanent password (generated, or JUDGE_TEST_PASSWORD for `judge-test`, the
-// CI secret `SC-24` and `SC-25` sign in with), MFA off, group JUDGE and `custom:firmId`. Their broker
+// Guests get no email: a permanent password (generated, or GUEST_TEST_PASSWORD for `guest-test`, the
+// CI secret `SC-24` and `SC-25` sign in with), MFA off, group GUEST and `custom:firmId`. Their broker
 // row and world are created by their first sign-in. A generated password is never printed: it is
-// appended to `judge-credentials.local.json` (git-ignored, mode 0600) for the operator to hand over
+// appended to `guest-credentials.local.json` (git-ignored, mode 0600) for the operator to hand over
 // through a private channel. A broker or analyst gets Cognito's invitation email with a temporary
 // password, the group of its broker row, and the row is bound to the new user's `sub` (the seed keeps
 // that binding across reloads).
@@ -20,8 +20,8 @@ import { resolve } from "node:path";
 import { BrokerId, FirmId, type ConsoleRole } from "@legajo/shared";
 import { parseFlags } from "../channels/cli-args";
 
-export const CREDENTIALS_FILE = "judge-credentials.local.json";
-export const JUDGE_TEST_PASSWORD_ENV = "JUDGE_TEST_PASSWORD";
+export const CREDENTIALS_FILE = "guest-credentials.local.json";
+export const GUEST_TEST_PASSWORD_ENV = "GUEST_TEST_PASSWORD";
 export const STAGE = "poc";
 
 /** Cognito's policy of the pool (infra/auth-email.ts `PASSWORD_POLICY`): 12+ with every class. */
@@ -29,13 +29,13 @@ export const PASSWORD_LENGTH = 20;
 const CLASSES = ["ABCDEFGHJKLMNPQRSTUVWXYZ", "abcdefghijkmnopqrstuvwxyz", "23456789", "!#%+-=?@^_"] as const;
 
 export type InvitePlan =
-  | { readonly kind: "JUDGE"; readonly username: string; readonly firmId: string; readonly password: "GENERATE" | "FROM_ENV"; readonly resetPassword: boolean }
+  | { readonly kind: "GUEST"; readonly username: string; readonly firmId: string; readonly password: "GENERATE" | "FROM_ENV"; readonly resetPassword: boolean }
   | { readonly kind: "BROKER"; readonly username: string; readonly email: string; readonly firmId: string; readonly brokerId: string };
 
 export interface InviteArgs {
   stage?: string;
-  judge?: string;
-  judgeTest?: boolean;
+  guest?: string;
+  guestTest?: boolean;
   email?: string;
   firm?: string;
   broker?: string;
@@ -46,8 +46,8 @@ export function parseInviteArgs(argv: readonly string[]): InviteArgs {
   const args: InviteArgs = {};
   parseFlags(argv, {
     "--stage": (value) => void (args.stage = value()),
-    "--judge": (value) => void (args.judge = value()),
-    "--judge-test": () => void (args.judgeTest = true),
+    "--guest": (value) => void (args.guest = value()),
+    "--guest-test": () => void (args.guestTest = true),
     "--email": (value) => void (args.email = value()),
     "--firm": (value) => void (args.firm = value()),
     "--broker": (value) => void (args.broker = value()),
@@ -65,21 +65,21 @@ const EMAIL = /^[a-z0-9._%+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+$/;
 
 export function planInvite(args: InviteArgs): InvitePlan {
   if (args.stage !== STAGE) throw new RangeError(`--stage ${STAGE} is required (the only stage)`);
-  const judge = args.judge !== undefined || args.judgeTest === true;
+  const guest = args.guest !== undefined || args.guestTest === true;
   const broker = args.email !== undefined || args.firm !== undefined || args.broker !== undefined;
-  if (judge === broker || (args.judge !== undefined && args.judgeTest === true)) throw new RangeError("choose one of --judge <n>, --judge-test, or --email with --firm and --broker");
-  if (args.judgeTest) return { kind: "JUDGE", username: "judge-test", firmId: "firm-judge-test", password: "FROM_ENV", resetPassword: args.resetPassword === true };
-  if (args.judge !== undefined) {
-    const number = Number(args.judge);
-    if (!Number.isInteger(number) || number < 1 || number > 99) throw new RangeError("--judge takes a number from 1 to 99");
+  if (guest === broker || (args.guest !== undefined && args.guestTest === true)) throw new RangeError("choose one of --guest <n>, --guest-test, or --email with --firm and --broker");
+  if (args.guestTest) return { kind: "GUEST", username: "guest-test", firmId: "firm-guest-test", password: "FROM_ENV", resetPassword: args.resetPassword === true };
+  if (args.guest !== undefined) {
+    const number = Number(args.guest);
+    if (!Number.isInteger(number) || number < 1 || number > 99) throw new RangeError("--guest takes a number from 1 to 99");
     const nn = String(number).padStart(2, "0");
-    return { kind: "JUDGE", username: `judge-${nn}`, firmId: `firm-judge-${nn}`, password: "GENERATE", resetPassword: args.resetPassword === true };
+    return { kind: "GUEST", username: `guest-${nn}`, firmId: `firm-guest-${nn}`, password: "GENERATE", resetPassword: args.resetPassword === true };
   }
-  if (args.resetPassword) throw new RangeError("--reset-password only applies to judge accounts");
+  if (args.resetPassword) throw new RangeError("--reset-password only applies to guest accounts");
   const email = (args.email ?? "").trim().toLowerCase();
   if (!EMAIL.test(email)) throw new RangeError("--email needs an address");
   const firmId = FirmId.parse(args.firm);
-  if (firmId.startsWith("firm-judge-")) throw new RangeError("judge firms get judge accounts (--judge)");
+  if (firmId.startsWith("firm-guest-")) throw new RangeError("guest firms get guest accounts (--guest)");
   return { kind: "BROKER", username: brokerUsername(email), email, firmId, brokerId: BrokerId.parse(args.broker) };
 }
 
@@ -103,7 +103,7 @@ export interface InviteDeps {
   addToGroup(username: string, group: ConsoleRole): Promise<void>;
   brokerRole(firmId: string, brokerId: string): Promise<ConsoleRole>;
   bindBroker(firmId: string, brokerId: string, sub: string): Promise<void>;
-  judgeTestPassword(): string | undefined;
+  guestTestPassword(): string | undefined;
   /** Keeps a generated password for the operator; never printed. */
   saveCredential(username: string, firmId: string, password: string): void;
   report(line: string): void;
@@ -112,7 +112,7 @@ export interface InviteDeps {
 export async function runInvite(plan: InvitePlan, deps: InviteDeps): Promise<void> {
   if (plan.kind === "BROKER") {
     const role = await deps.brokerRole(plan.firmId, plan.brokerId);
-    if (role === "JUDGE") throw new RangeError("a JUDGE broker row is not invited by email");
+    if (role === "GUEST") throw new RangeError("a GUEST broker row is not invited by email");
     const existing = await deps.findUser(plan.username);
     const { sub } = existing ?? (await deps.createUser({ username: plan.username, firmId: plan.firmId, email: plan.email }));
     await deps.addToGroup(plan.username, role);
@@ -123,15 +123,15 @@ export async function runInvite(plan: InvitePlan, deps: InviteDeps): Promise<voi
   const existing = await deps.findUser(plan.username);
   if (existing === undefined) await deps.createUser({ username: plan.username, firmId: plan.firmId });
   if (existing === undefined || plan.resetPassword) {
-    const password = plan.password === "FROM_ENV" ? deps.judgeTestPassword() : generatePassword();
-    if (!password) throw new RangeError(`${JUDGE_TEST_PASSWORD_ENV} is required for judge-test`);
+    const password = plan.password === "FROM_ENV" ? deps.guestTestPassword() : generatePassword();
+    if (!password) throw new RangeError(`${GUEST_TEST_PASSWORD_ENV} is required for guest-test`);
     await deps.setPermanentPassword(plan.username, password);
     if (plan.password === "GENERATE") deps.saveCredential(plan.username, plan.firmId, password);
   }
   await deps.disableMfa(plan.username);
-  await deps.addToGroup(plan.username, "JUDGE");
+  await deps.addToGroup(plan.username, "GUEST");
   const passwordNote = existing !== undefined && !plan.resetPassword ? "password unchanged" : plan.password === "GENERATE" ? `password in ${CREDENTIALS_FILE}` : "password from the environment";
-  deps.report(`${existing ? "kept" : "created"} ${plan.username} (JUDGE of ${plan.firmId}; ${passwordNote})`);
+  deps.report(`${existing ? "kept" : "created"} ${plan.username} (GUEST of ${plan.firmId}; ${passwordNote})`);
 }
 
 /** Appends to the git-ignored credentials file, readable by the operator only. */

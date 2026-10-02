@@ -1,6 +1,6 @@
 // Session of the console: Cognito tokens, the principal decoded from the id token, the tRPC client
 // that carries it, and the security prompts of the console (sign in again to approve, enrol the
-// optional TOTP, change the password; the last two never for a judge). Tokens live only in
+// optional TOTP, change the password; the last two never for a guest). Tokens live only in
 // sessionStorage (lib/auth/tokens.ts). React Context + useState only (CLAUDE.md: no state libraries).
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { type CognitoApi, createCognitoApi } from "../lib/auth/cognito";
@@ -20,7 +20,7 @@ export type SessionState =
 
 /**
  * `stepUp`: sign in again (BFF `LOGIN_NOT_RECENT`); `enrollTotp`: turn on the optional TOTP;
- * `changePassword`: change the account's own password. Judges only ever get `stepUp`.
+ * `changePassword`: change the account's own password. Guests only ever get `stepUp`.
  */
 export type SecurityPrompt = "stepUp" | "enrollTotp" | "changePassword";
 
@@ -127,9 +127,9 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
   }, []);
 
   const closePrompt = useCallback(() => setPrompt(undefined), []);
-  const isJudge = state.status === "authenticated" && state.principal.isJudge;
-  // The console hides TOTP and the password change from a judge; nothing opens them either.
-  const openPrompt = useCallback((next: SecurityPrompt) => setPrompt(isJudge && next !== "stepUp" ? undefined : next), [isJudge]);
+  const isGuest = state.status === "authenticated" && state.principal.isGuest;
+  // The console hides TOTP and the password change from a guest; nothing opens them either.
+  const openPrompt = useCallback((next: SecurityPrompt) => setPrompt(isGuest && next !== "stepUp" ? undefined : next), [isGuest]);
 
   const value = useMemo<SessionValue>(
     () => ({ state, env, auth, trpc, prompt, completeSignIn, signOut, expireSession, openPrompt, closePrompt }),

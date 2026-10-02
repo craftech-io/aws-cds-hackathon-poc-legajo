@@ -19,7 +19,7 @@ const NOW = Date.parse("2026-10-15T13:05:00Z");
 
 function snapshot(overrides: Partial<ClockSnapshot> = {}): ClockSnapshot {
   return ClockSnapshot.parse({
-    clockId: "JUDGE#firm-judge-01",
+    clockId: "GUEST#firm-guest-01",
     mode: "PAUSED",
     simNow: "2026-10-14T10:30:00-03:00",
     busy: false,

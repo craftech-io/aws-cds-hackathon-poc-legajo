@@ -55,7 +55,7 @@ describe("runSuite (docs/test-plan.md §4.4)", () => {
     const started: string[] = [];
     const track = (id: string, extra: Partial<ScenarioDef> = {}) =>
       scenario(id, { ...extra, steps: [{ n: 1, title: "t", flows: [], run: async (ctx) => void started.push(`${id}:${ctx.previous.map((row) => row.scenario).sort().join(",")}`) }] });
-    const scenarios = [track("SC-25", { lane: "judge" }), track("SC-24", { lane: "judge" }), track("SC-20", { last: true }), track("SC-01")];
+    const scenarios = [track("SC-25", { lane: "guest" }), track("SC-24", { lane: "guest" }), track("SC-20", { last: true }), track("SC-01")];
     const { lanes, last } = lanesOf(scenarios);
     expect(lanes.map((lane) => lane.map((row) => row.id))).toEqual([["SC-25", "SC-24"], ["SC-01"]]);
     expect(last.map((row) => row.id)).toEqual(["SC-20"]);

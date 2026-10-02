@@ -1,7 +1,7 @@
-// The principal of a console request `{sub, brokerId, firmId, role, isJudge, authTime}`
+// The principal of a console request `{sub, brokerId, firmId, role, isGuest, authTime}`
 // (docs/architecture.md §10). Every field comes from the verified id token or from the broker row
 // the token's `sub` is bound to, never from the request input: `custom:firmId` is set by the
-// invitation and is not writable by the web client (infra/auth.ts); role and `isJudge` are stamped
+// invitation and is not writable by the web client (infra/auth.ts); role and `isGuest` are stamped
 // by the pre-token trigger from `Firms/BROKER#` (auth-triggers/pre-token.ts), which resolves them
 // with the same `resolveAccess` as the BFF.
 import { ConsoleRole, FirmId, QaConsoleRole } from "@legajo/shared";
@@ -18,8 +18,8 @@ export interface Principal {
   readonly firmId: FirmId;
   readonly role: ConsoleRole;
   readonly groups: readonly ConsoleRole[];
-  /** Judge accounts act as brokers inside their own judge firm, without TOTP or password change. */
-  readonly isJudge: boolean;
+  /** Guest accounts act as brokers inside their own guest firm, without TOTP or password change. */
+  readonly isGuest: boolean;
   /** Epoch seconds of the last interactive sign-in (`auth_time`). */
   readonly authTime: number;
   /** Broker behind the user, once the broker directory has matched the `sub`. */
@@ -41,12 +41,12 @@ export function consoleRolesOf(groupNames: readonly string[] | undefined): Conso
     .sort((a, b) => ROLE_PRECEDENCE.indexOf(a) - ROLE_PRECEDENCE.indexOf(b));
 }
 
-// `firm-judge-01..NN` and `firm-judge-test` (docs/seed-spec.md §2).
-const JUDGE_FIRM = /^firm-judge-[a-z0-9]+$/;
+// `firm-guest-01..NN` and `firm-guest-test` (docs/seed-spec.md §2).
+const GUEST_FIRM = /^firm-guest-[a-z0-9]+$/;
 
-/** A judge acts as a broker only inside its own judge firm, never in a demo or QA firm of the operator. */
-export function isJudgeFirm(firmId: string): boolean {
-  return JUDGE_FIRM.test(firmId);
+/** A guest acts as a broker only inside its own guest firm, never in a demo or QA firm of the operator. */
+export function isGuestFirm(firmId: string): boolean {
+  return GUEST_FIRM.test(firmId);
 }
 
 export interface AccessInput {
@@ -56,25 +56,25 @@ export interface AccessInput {
   readonly role?: unknown;
   /** Cognito groups of the user; the highest-precedence console group is the role when none is stamped. */
   readonly groups?: readonly string[];
-  /** `custom:isJudge` as the token carries it. */
-  readonly isJudgeClaim?: unknown;
+  /** `custom:isGuest` as the token carries it. */
+  readonly isGuestClaim?: unknown;
 }
 
 export interface Access {
   readonly firmId: FirmId;
   readonly role: ConsoleRole;
   readonly groups: readonly ConsoleRole[];
-  readonly isJudge: boolean;
+  readonly isGuest: boolean;
 }
 
-export type AccessRefusal = "NO_FIRM" | "NO_ROLE" | "JUDGE_OUTSIDE_JUDGE_FIRM";
+export type AccessRefusal = "NO_FIRM" | "NO_ROLE" | "GUEST_OUTSIDE_GUEST_FIRM";
 
 export type AccessResolution = { readonly ok: true; readonly access: Access } | { readonly ok: false; readonly refusal: AccessRefusal };
 
 /**
- * Firm, role and `isJudge` of a user: the explicit role wins, otherwise the highest-precedence
+ * Firm, role and `isGuest` of a user: the explicit role wins, otherwise the highest-precedence
  * group (the console draws its menu the same way, packages/web/src/lib/auth-claims.ts). An account
- * that would be a judge outside a judge firm is refused: a misplaced invitation must not give broker
+ * that would be a guest outside a guest firm is refused: a misplaced invitation must not give broker
  * powers over another firm's demo.
  */
 export function resolveAccess(input: AccessInput): AccessResolution {
@@ -84,15 +84,15 @@ export function resolveAccess(input: AccessInput): AccessResolution {
   const explicit = ConsoleRole.safeParse(input.role);
   const role = explicit.success ? explicit.data : groups[0];
   if (role === undefined) return { ok: false, refusal: "NO_ROLE" };
-  const isJudge = role === "JUDGE" || input.isJudgeClaim === "true";
-  if (isJudge && !isJudgeFirm(firmId.data)) return { ok: false, refusal: "JUDGE_OUTSIDE_JUDGE_FIRM" };
-  return { ok: true, access: { firmId: firmId.data, role, groups, isJudge } };
+  const isGuest = role === "GUEST" || input.isGuestClaim === "true";
+  if (isGuest && !isGuestFirm(firmId.data)) return { ok: false, refusal: "GUEST_OUTSIDE_GUEST_FIRM" };
+  return { ok: true, access: { firmId: firmId.data, role, groups, isGuest } };
 }
 
 const REFUSAL_MESSAGE: Readonly<Record<AccessRefusal, string>> = {
   NO_FIRM: "the token carries no firm",
   NO_ROLE: "the token carries no console role",
-  JUDGE_OUTSIDE_JUDGE_FIRM: "a judge account only works inside its own judge firm",
+  GUEST_OUTSIDE_GUEST_FIRM: "a guest account only works inside its own guest firm",
 };
 
 function requireAccess(input: AccessInput): Access {
@@ -106,7 +106,7 @@ export function principalFromClaims(claims: IdTokenClaims): Principal {
     firmId: claims["custom:firmId"],
     role: claims["custom:role"],
     groups: claims["cognito:groups"],
-    isJudgeClaim: claims["custom:isJudge"],
+    isGuestClaim: claims["custom:isGuest"],
   });
   const originJti = claims.origin_jti;
   return { sub: claims.sub, username: claims["cognito:username"], authTime: claims.auth_time, ...access, ...(originJti === undefined ? {} : { originJti }) };
@@ -115,12 +115,13 @@ export function principalFromClaims(claims: IdTokenClaims): Principal {
 /**
  * The principal once the broker directory matched its `sub` (routers/trpc.ts `firmProcedure`): the
  * row gives the `brokerId` that signs the audit log and, being fresher than a token that lives 15
- * minutes, the role and the `active` switch.
+ * minutes, the role and the `active` switch. The guest flag of the token travels with it, so a guest
+ * whose row says `BROKER` keeps `isGuest` and the fence of its own guest firm.
  */
 export function withBrokerRow(principal: Principal, match: BrokerMatch | undefined): Principal {
   if (match === undefined) return principal;
   if (!match.active) throw new AuthError(AUTH_REASON.BROKER_INACTIVE, "this broker account is no longer active");
-  const access = requireAccess({ firmId: principal.firmId, role: match.role, groups: principal.groups });
+  const access = requireAccess({ firmId: principal.firmId, role: match.role, groups: principal.groups, isGuestClaim: principal.isGuest ? "true" : undefined });
   return { ...principal, ...access, brokerId: match.brokerId };
 }
 
@@ -165,7 +166,7 @@ export function qaPrincipal(input: QaPrincipalInput): Principal {
     firmId: QA_PRINCIPAL.firmId,
     role,
     groups: [role],
-    isJudge: false,
+    isGuest: false,
     authTime: Math.floor(authTime.getTime() / 1000),
     brokerId: QA_PRINCIPAL.brokerIds[role],
   };

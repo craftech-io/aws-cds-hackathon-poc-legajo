@@ -39,7 +39,7 @@ describe("console routes (docs/design-brief.md §6)", () => {
 
   it("opens every view to the three console roles and none without a role", () => {
     for (const candidate of ROUTES) {
-      for (const role of ["BROKER", "ANALYST", "JUDGE"] as const) expect(routeAllows(candidate, role)).toBe(true);
+      for (const role of ["BROKER", "ANALYST", "GUEST"] as const) expect(routeAllows(candidate, role)).toBe(true);
       expect(routeAllows(candidate, undefined)).toBe(false);
     }
   });

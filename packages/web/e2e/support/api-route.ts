@@ -22,7 +22,7 @@ export interface ApiCall {
   readonly authorization: string | undefined;
 }
 
-/** The world of a judge or of Estudio Delta at the start of the story: 14/10 10:30, paused, quiet. */
+/** The world of a guest or of Estudio Delta at the start of the story: 14/10 10:30, paused, quiet. */
 export const CLOCK_AT_START = {
   clockId: "GLOBAL#firm-delta",
   mode: "PAUSED",

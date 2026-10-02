@@ -1,5 +1,5 @@
 // The account menu of the header: change the password and turn on the verification code for
-// brokers and analysts, sign out for everyone. A judge sees only "Cerrar sesión": its password is
+// brokers and analysts, sign out for everyone. A guest sees only "Cerrar sesión": its password is
 // permanent and it never gets TOTP (docs/design-brief.md §7.1; the BFF refuses both as well).
 import { useEffect, useId, useRef, useState } from "react";
 import { usePrincipal, useSession } from "../../context/SessionContext";
@@ -48,7 +48,7 @@ export function AccountMenu() {
       </button>
       {open ? (
         <div id={menuId} className="absolute right-0 z-30 mt-2 w-60 rounded-card border border-mist bg-white p-1.5 shadow-card">
-          {principal.isJudge ? null : (
+          {principal.isGuest ? null : (
             <>
               <button type="button" className={ITEM_CLASS} onClick={choose(() => openPrompt("changePassword"))}>
                 {copy.account.changePassword}

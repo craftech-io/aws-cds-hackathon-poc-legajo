@@ -11,6 +11,8 @@
 //      file that exists but only declares the flow with `it.todo("[FL-xxx:pending] …")`: the tag
 //      goes on a test only when it drives the flow's own procedure and asserts its expected state,
 //      never on a read that finds state seeded straight through the connector.
+//   4. Every flow has its QA case `tests/cases/FL-xxx.md` whose first line is `# FL-xxx · <title>`
+//      with the catalog's title (docs/test-plan.md §8); a missing case or another title fails.
 //
 //   npm run flows:check [-- --write] [-- --strict]
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -19,6 +21,7 @@ import { fileURLToPath } from "node:url";
 
 export const CATALOG_FILE = "docs/flows-catalog.md";
 export const TEST_PLAN_FILE = "docs/test-plan.md";
+export const CASES_DIR = "tests/cases";
 export const MATRIX_START = "<!-- MATRIX:START -->";
 export const MATRIX_END = "<!-- MATRIX:END -->";
 
@@ -100,7 +103,7 @@ export function resolveTestPath(level: Level, cited: string): string {
   if (level === "LF") return cited.startsWith("tests/") ? cited : `tests/flows/${cited}`;
   if (cited.endsWith(".spec.ts")) return `packages/web/e2e/${cited}`;
   if (/^(infra|scripts|tests)\//.test(cited)) return cited;
-  for (const pkg of ["platform-mock", "reader-mock"]) if (cited.startsWith(`${pkg}/`)) return `packages/${pkg}/src/${cited.slice(pkg.length + 1)}`;
+  for (const pkg of ["platform-mock", "reader-mock", "shared"]) if (cited.startsWith(`${pkg}/`)) return `packages/${pkg}/src/${cited.slice(pkg.length + 1)}`;
   if (cited.startsWith("views/")) return `packages/web/src/${cited}`;
   return `packages/bff/src/${cited}`;
 }
@@ -155,6 +158,22 @@ export function checkCitations(flows: readonly Flow[], files: FileAccess): Citat
   return { errors, pending };
 }
 
+/** Flows without their case in `tests/cases/`, or whose case's heading does not carry the catalog's title. */
+export function checkCases(flows: readonly Flow[], files: Pick<FileAccess, "exists" | "read">): string[] {
+  const errors: string[] = [];
+  for (const flow of flows) {
+    const path = `${CASES_DIR}/${flow.id}.md`;
+    if (!files.exists(path)) {
+      errors.push(`${flow.id}: ${path} does not exist`);
+      continue;
+    }
+    const heading = files.read(path).split("\n", 1)[0]?.trim();
+    const expected = `# ${flow.id} · ${flow.title}`;
+    if (heading !== expected) errors.push(`${flow.id}: ${path} starts with "${heading ?? ""}", expected "${expected}"`);
+  }
+  return errors;
+}
+
 function diskAccess(cwd: string): FileAccess {
   return {
     exists: (path) => existsSync(join(cwd, path)),
@@ -185,8 +204,10 @@ function main(): void {
     }
   }
 
-  const citations = checkCitations(flows, diskAccess(cwd));
+  const files = diskAccess(cwd);
+  const citations = checkCitations(flows, files);
   errors.push(...citations.errors);
+  errors.push(...checkCases(flows, files));
   if (strict) errors.push(...citations.pending.map((item) => `pending (not in the repository yet): ${item}`));
 
   if (errors.length > 0) {
@@ -195,7 +216,7 @@ function main(): void {
     process.exit(1);
   }
   const note = citations.pending.length > 0 ? `; ${citations.pending.length} cited test(s) or step(s) not written yet` : "";
-  console.log(`flows:check: ${flows.length} flow(s), matrix in step${note}.`);
+  console.log(`flows:check: ${flows.length} flow(s), each with its case, matrix in step${note}.`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -55,7 +55,7 @@ export async function sendFactsOf(input: FactsInput): Promise<SendFacts> {
   const toImporter = message.channel === "WHATSAPP" && message.counterpart === "IMPORTER";
   const toSupplier = message.channel === "EMAIL" && message.counterpart === "SUPPLIER";
   const [importer, consent, authorization, contact, supplier, holidays, history] = await Promise.all([
-    // The WhatsApp fence is re-judged against the importer's registered phone.
+    // The WhatsApp fence is re-checked against the importer's registered phone.
     toImporter ? data.parties.findImporter(operation.importerId) : undefined,
     toImporter ? data.parties.getConsent(operation.importerId) : undefined,
     toSupplier ? data.parties.getAuthorization(operation.importerId, operation.supplierId) : undefined,

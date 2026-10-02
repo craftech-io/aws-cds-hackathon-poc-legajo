@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { memoryStores } from "../connector/testing";
 import { AUTH_REASON } from "./errors";
 import { IdTokenClaims } from "./jwt";
-import { QA_PRINCIPAL, consoleRolesOf, isJudgeFirm, isSignInFresh, principalFromClaims, qaPrincipal, resolveAccess, withBrokerRow } from "./principal";
+import { QA_PRINCIPAL, consoleRolesOf, isGuestFirm, isSignInFresh, principalFromClaims, qaPrincipal, resolveAccess, withBrokerRow } from "./principal";
 import { brokerLookupOf, createBrokerDirectory } from "./staff";
 import { seedBrokers } from "./testing";
 
@@ -29,19 +29,19 @@ const incomplete = expect.objectContaining({ reason: AUTH_REASON.PRINCIPAL_INCOM
 describe("principal", () => {
   it("takes firm and role from the token, the highest-precedence group when no role is stamped", () => {
     const principal = principalFromClaims(claims());
-    expect(principal).toMatchObject({ firmId: "firm-delta", role: "BROKER", groups: ["BROKER", "ANALYST"], isJudge: false, authTime: NOW });
+    expect(principal).toMatchObject({ firmId: "firm-delta", role: "BROKER", groups: ["BROKER", "ANALYST"], isGuest: false, authTime: NOW });
     expect(principal.brokerId).toBeUndefined();
     expect(principalFromClaims(claims({ "custom:role": "ANALYST" })).role).toBe("ANALYST");
-    expect(consoleRolesOf(["Admins", "JUDGE"])).toEqual(["JUDGE"]);
+    expect(consoleRolesOf(["Admins", "GUEST"])).toEqual(["GUEST"]);
   });
 
-  it("marks judge accounts, only inside a judge firm", () => {
-    expect(principalFromClaims(claims({ "cognito:groups": ["JUDGE"], "custom:firmId": "firm-judge-03" })).isJudge).toBe(true);
-    expect(principalFromClaims(claims({ "custom:isJudge": "true", "custom:firmId": "firm-judge-test" })).isJudge).toBe(true);
-    expect(() => principalFromClaims(claims({ "cognito:groups": ["JUDGE"] }))).toThrowError(incomplete);
-    expect(() => principalFromClaims(claims({ "custom:isJudge": "true" }))).toThrowError(incomplete);
-    expect(isJudgeFirm("firm-judge-01")).toBe(true);
-    expect(isJudgeFirm("firm-delta")).toBe(false);
+  it("marks guest accounts, only inside a guest firm", () => {
+    expect(principalFromClaims(claims({ "cognito:groups": ["GUEST"], "custom:firmId": "firm-guest-03" })).isGuest).toBe(true);
+    expect(principalFromClaims(claims({ "custom:isGuest": "true", "custom:firmId": "firm-guest-test" })).isGuest).toBe(true);
+    expect(() => principalFromClaims(claims({ "cognito:groups": ["GUEST"] }))).toThrowError(incomplete);
+    expect(() => principalFromClaims(claims({ "custom:isGuest": "true" }))).toThrowError(incomplete);
+    expect(isGuestFirm("firm-guest-01")).toBe(true);
+    expect(isGuestFirm("firm-delta")).toBe(false);
   });
 
   it("refuses a token without a firm or without a role", () => {
@@ -56,7 +56,16 @@ describe("principal", () => {
     expect(withBrokerRow(principal, undefined)).toBe(principal);
     expect(withBrokerRow(principal, { brokerId: "brk-delta-diego", role: "ANALYST", active: true })).toMatchObject({ brokerId: "brk-delta-diego", role: "ANALYST", firmId: "firm-delta" });
     expect(() => withBrokerRow(principal, { brokerId: "brk-delta-diego", role: "BROKER", active: false })).toThrowError(expect.objectContaining({ reason: AUTH_REASON.BROKER_INACTIVE }));
-    expect(() => withBrokerRow(principal, { brokerId: "brk-delta-diego", role: "JUDGE", active: true })).toThrowError(incomplete);
+    expect(() => withBrokerRow(principal, { brokerId: "brk-delta-diego", role: "GUEST", active: true })).toThrowError(incomplete);
+  });
+
+  it("keeps a guest a guest when its broker row says BROKER, inside the fence of its own guest firm", () => {
+    const guest = principalFromClaims(claims({ "cognito:groups": ["GUEST"], "custom:isGuest": "true", "custom:firmId": "firm-guest-03" }));
+    const row = { brokerId: "brk-guest-03", role: "BROKER", active: true } as const;
+    expect(withBrokerRow(guest, row)).toMatchObject({ brokerId: "brk-guest-03", role: "BROKER", firmId: "firm-guest-03", isGuest: true });
+    expect(() => withBrokerRow({ ...guest, firmId: "firm-delta" }, row)).toThrowError(incomplete);
+    const broker = principalFromClaims(claims());
+    expect(withBrokerRow(broker, { brokerId: "brk-delta-diego", role: "BROKER", active: true }).isGuest).toBe(false);
   });
 
   it("keeps the recent-login window at 15 minutes with 60 s of skew", () => {
@@ -75,12 +84,12 @@ describe("principal", () => {
       firmId: "firm-qa",
       role: "BROKER",
       groups: ["BROKER"],
-      isJudge: false,
+      isGuest: false,
       authTime: NOW,
       brokerId: "brk-qa-runner",
     });
     expect(qaPrincipal({ role: "ANALYST", now, authTime: new Date((NOW - 3600) * 1000) })).toMatchObject({ brokerId: "brk-qa-analyst", authTime: NOW - 3600 });
-    expect(() => qaPrincipal({ role: "JUDGE" as never, now })).toThrow();
+    expect(() => qaPrincipal({ role: "GUEST" as never, now })).toThrow();
   });
 });
 

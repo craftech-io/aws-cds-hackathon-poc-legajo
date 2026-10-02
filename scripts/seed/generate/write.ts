@@ -3,7 +3,7 @@
 // every file and the result of the validation that ran over what was written.
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { APP, BATCH_INPUTS_FILE, GENERATOR_VERSION, QA_FIXTURE_FILE, SEED, SEED_REAL_NOW, SEED_TABLES, START_AT_SIM, type SeedPaths } from "../lib/constants";
+import { BATCH_INPUTS_FILE, GENERATOR_VERSION, PRODUCT, QA_FIXTURE_FILE, SEED, SEED_REAL_NOW, SEED_TABLES, START_AT_SIM, type SeedPaths } from "../lib/constants";
 import { sha256Hex, stableJsonLines, stableStringify } from "../lib/json";
 import { batchCounts } from "./metrics";
 import type { SeedBundle } from "./seed";
@@ -56,7 +56,7 @@ export interface ValidationSummary {
 export function writeManifest(bundle: SeedBundle, written: WrittenSeed, validation: ValidationSummary, paths: SeedPaths): void {
   const readings = bundle.pdfs.filter((pdf) => pdf.version !== undefined).length;
   const manifest = {
-    app: APP,
+    product: PRODUCT,
     generatorVersion: GENERATOR_VERSION,
     seed: SEED,
     clock: { generatedAt: SEED_REAL_NOW, startAtSim: START_AT_SIM },

@@ -15,7 +15,7 @@
 // What the engine imposes (docs/architecture.md §16):
 //   - a statement may not exceed 10,000 characters once each action is qualified with the Gateway, so
 //     the permit and the session forbid are one policy per target;
-//   - automated reasoning judges the whole engine: a forbid created while no permit covers its action is
+//   - automated reasoning checks the whole engine: a forbid created while no permit covers its action is
 //     "Overly Restrictive", so permits are created first and every forbid depends on all of them
 //     (`creationPlan`, applied by infra/policy.ts);
 //   - each statement is validated against the Gateway's tool schemas, so every field it cites must be
@@ -124,7 +124,7 @@ const ALL_TOOLS: readonly GatewayToolName[] = GATEWAY_TARGETS.flatMap((target) =
 /**
  * The Cedar policies, permits first. Every statement is scoped to the Gateway ARN (so the engine
  * validates it against that Gateway's schemas) and every forbid names the Harness principal: it is the
- * only principal a permit allows, so the scope changes no decision, and the analyzer does not judge
+ * only principal a permit allows, so the scope changes no decision, and the analyzer does not check
  * principal types that no permit covers.
  */
 export function cedarPolicies(inputs: CedarPolicyInputs, options: CedarPolicyOptions = {}): CedarPolicyDefinition[] {

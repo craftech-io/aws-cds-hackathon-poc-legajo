@@ -51,7 +51,7 @@ export interface CognitoApi {
   setTotpPreferred(accessToken: string): Promise<void>;
   /** MFA methods the user has enabled (`SOFTWARE_TOKEN_MFA` once TOTP is on). */
   mfaMethods(accessToken: string): Promise<readonly string[]>;
-  /** The signed-in user changes its own password (never offered to a judge). */
+  /** The signed-in user changes its own password (never offered to a guest). */
   changePassword(accessToken: string, previousPassword: string, proposedPassword: string): Promise<void>;
   forgotPassword(username: string): Promise<void>;
   confirmForgotPassword(username: string, code: string, newPassword: string): Promise<void>;

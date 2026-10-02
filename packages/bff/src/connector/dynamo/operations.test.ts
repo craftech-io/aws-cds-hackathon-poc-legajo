@@ -32,10 +32,10 @@ describe("operations: creation, thread and dossier", () => {
     expect((await parties.getAddressClaim(hashOf(operation.threadAddress)))?.ownerType).toBe("OPERATION");
 
     // The same thread address in another world is a collision: nothing of the second operation is written.
-    const clone = operationFixture({ operationId: "op-4471-j01", clockId: "JUDGE#firm-judge-01", firmId: "firm-judge-01" });
+    const clone = operationFixture({ operationId: "op-4471-g01", clockId: "GUEST#firm-guest-01", firmId: "firm-guest-01" });
     await expect(operations.createOperation({ ...clone, threadClaimHash: hashOf(clone.threadAddress) })).rejects.toMatchObject({ code: "CONFLICT" });
-    expect(await operations.findOperation("op-4471-j01")).toBeUndefined();
-    expect(await documents.listDocuments("op-4471-j01")).toEqual([]);
+    expect(await operations.findOperation("op-4471-g01")).toBeUndefined();
+    expect(await documents.listDocuments("op-4471-g01")).toEqual([]);
     await expect(operations.createOperation({ ...operationFixture(), operationId: "op-4472", threadAddress: "op-4472-k7p2q9@legajo.demo.craftech.io" })).rejects.toMatchObject({ code: "VALIDATION" });
   });
 

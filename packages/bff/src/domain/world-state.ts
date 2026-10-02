@@ -23,14 +23,14 @@ export const ClockSettings = z.object({
 });
 export type ClockSettings = z.output<typeof ClockSettings>;
 
-/** A session that acted on a judge world before the current one took over. */
+/** A session that acted on a guest world before the current one took over. */
 export const PreviousSession = z.object({
   originJti: z.string().min(1).max(128),
   lastActiveAtReal: ZonedInstant,
 });
 export type PreviousSession = z.infer<typeof PreviousSession>;
 
-/** Last console session that acted on a judge world (`lastSession`, docs/architecture.md §10). */
+/** Last console session that acted on a guest world (`lastSession`, docs/architecture.md §10). */
 export const LastSession = z.object({
   originJti: z.string().min(1).max(128),
   authTime: z.number().int().nonnegative(),

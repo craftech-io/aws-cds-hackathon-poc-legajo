@@ -8,7 +8,7 @@
 // without touching this file:
 //
 //   firm, operation, importer, supplier   equal to the scope's own
-//   docVersion `dv-<op>-…`, observation   embed the scope's operation key (`4471`, `4471-j03`)
+//   docVersion `dv-<op>-…`, observation   embed the scope's operation key (`4471`, `4471-g03`)
 //   `obs-<op>-…`
 //   contact `ctc-…`                        a contact of the scope's supplier (registry lookup)
 //   message `msg-…`                        a message of the scope's operation (conversation lookup)
@@ -107,7 +107,7 @@ function join(path: string, segment: string): string {
 
 const DOC_SHORTS = Object.values(DOC_TYPE_SHORT);
 
-/** `dv-4471-PL-1` or `obs-4471-PL-…` of the operation `op-4471` (and not of its clone `op-4471-j03`). */
+/** `dv-4471-PL-1` or `obs-4471-PL-…` of the operation `op-4471` (and not of its clone `op-4471-g03`). */
 export function embedsOperation(id: string, kind: "docVersion" | "observation", operationId: string): boolean {
   const prefix = `${ID_SPEC[kind].prefix}-${operationKey(operationId)}-`;
   if (!id.startsWith(prefix)) return false;
@@ -115,7 +115,7 @@ export function embedsOperation(id: string, kind: "docVersion" | "observation", 
   return DOC_SHORTS.some((short) => rest.startsWith(`${short}-`));
 }
 
-/** Registry reads the scope needs for the ids it cannot judge by their shape. */
+/** Registry reads the scope needs for the ids it cannot guest by their shape. */
 export interface ScopeLookups {
   isContactOfSupplier(supplierId: string, contactId: string): Promise<boolean>;
   isMessageOfOperation(operationId: string, messageId: string): Promise<boolean>;

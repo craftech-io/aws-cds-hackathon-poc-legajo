@@ -13,7 +13,7 @@ import {
 import { authConfig } from "@legajo/bff/auth/config";
 import { connector } from "@legajo/bff/connector/index";
 import { awsClientConfig } from "@legajo/bff/lib/clients";
-import { JUDGE_TEST_PASSWORD_ENV, type InviteDeps } from "./invite";
+import { GUEST_TEST_PASSWORD_ENV, type InviteDeps } from "./invite";
 
 const COGNITO_TIMEOUTS = { requestTimeoutMs: 5_000, connectionTimeoutMs: 2_000, maxAttempts: 4 };
 
@@ -47,7 +47,7 @@ export function cognitoInviteDeps(options: Pick<InviteDeps, "saveCredential">): 
           UserPoolId,
           Username: username,
           UserAttributes: attributes,
-          // Judges get no message at all; brokers get the branded invitation with a temporary password.
+          // Guests get no message at all; brokers get the branded invitation with a temporary password.
           ...(email === undefined ? { MessageAction: "SUPPRESS" as const } : { DesiredDeliveryMediums: ["EMAIL" as const] }),
         }),
       );
@@ -74,7 +74,7 @@ export function cognitoInviteDeps(options: Pick<InviteDeps, "saveCredential">): 
       await firms.setBrokerCognitoSub(firmId, brokerId, sub);
     },
 
-    judgeTestPassword: () => process.env[JUDGE_TEST_PASSWORD_ENV],
+    guestTestPassword: () => process.env[GUEST_TEST_PASSWORD_ENV],
     saveCredential: options.saveCredential,
     report: (line) => process.stdout.write(`console:invite: ${line}\n`),
   };

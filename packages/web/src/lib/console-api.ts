@@ -26,10 +26,10 @@ export async function moveClock(trpc: ConsoleClient, move: ClockMove, force = fa
   return parsed.success ? parsed.data : undefined;
 }
 
-/** `account.session`: the user's firm and, for a judge, another session that used the same world. */
+/** `account.session`: the user's firm and, for a guest, another session that used the same world. */
 export const AccountSession = z.looseObject({
   firm: z.looseObject({ name: z.string().min(1) }).nullish(),
-  /** Another sign-in (another `origin_jti`) acted on this judge world in the last 2 real hours. */
+  /** Another sign-in (another `origin_jti`) acted on this guest world in the last 2 real hours. */
   otherSession: z.looseObject({ lastActiveAtReal: IsoInstant }).nullish(),
 });
 export type AccountSession = z.infer<typeof AccountSession>;

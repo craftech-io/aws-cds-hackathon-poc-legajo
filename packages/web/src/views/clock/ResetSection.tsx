@@ -1,4 +1,4 @@
-// "Reiniciar la demo de este mundo" (FL-087, `clock.reset`): only a broker or a judge, once every 10
+// "Reiniciar la demo de este mundo" (FL-087, `clock.reset`): only a broker or a guest, once every 10
 // real minutes per world, and always after an explicit confirmation, because it throws away everything
 // that happened in the world. It is not gated by the busy world: a reset is the way out of a stuck one.
 import { useId, useState } from "react";

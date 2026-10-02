@@ -27,16 +27,22 @@ for (const flow of flows) {
   }
 }
 
+// The public-surface scenario is cited by FL-101 … FL-132 ahead of its file (docs/test-plan.md §2.2).
+const SCENARIOS_AHEAD = ["SC-26"];
+
 describe("scenarios against the flow catalog", () => {
   it("every cited step exists and declares its flow (SC-23 waits for P-01)", () => {
     const missing: string[] = [];
     for (const [key, ids] of cited) {
       const [scenarioId = "", n = "0"] = key.split("/");
+      if (SCENARIOS_AHEAD.includes(scenarioId)) continue;
       const step = SCENARIOS.find((scenario) => scenario.id === scenarioId)?.steps.find((candidate) => candidate.n === Number(n));
       for (const id of ids) if (step === undefined || !step.flows.includes(id)) missing.push(`${key} ${id}`);
     }
     expect(missing).toEqual([]);
   });
+
+  it.todo("[WP-37:pending] SC-26 declares every step FL-101 … FL-132 cite, with the qa-signup-<runId>-* mailboxes and lead.purge");
 
   it("no step declares a flow the catalog does not cite for it", () => {
     const extra: string[] = [];
@@ -56,7 +62,7 @@ describe("scenarios against the flow catalog", () => {
     expect([...full].sort()).toEqual(expected);
     expect(full.indexOf("SC-25")).toBeLessThan(full.indexOf("SC-24"));
     expect(SCENARIOS.filter((scenario) => scenario.last).map((scenario) => scenario.id)).toEqual(["SC-20"]);
-    expect(SCENARIOS.filter((scenario) => scenario.lane === "judge").map((scenario) => scenario.id)).toEqual(["SC-25", "SC-24"]);
+    expect(SCENARIOS.filter((scenario) => scenario.lane === "guest").map((scenario) => scenario.id)).toEqual(["SC-25", "SC-24"]);
     expect(new Set(SCENARIOS.map((scenario) => scenario.slug)).size).toBe(SCENARIOS.length);
     expect(namedScenarios(["LOAD"]).map((scenario) => scenario.id)).toEqual(["LOAD"]);
     expect(() => namedScenarios(["SC-99"])).toThrow(RangeError);

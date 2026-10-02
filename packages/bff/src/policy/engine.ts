@@ -8,7 +8,7 @@
 // Two evaluations share the rules:
 //   evaluate      a send decided now (the send tools, the milestone fallback, the firm's messages,
 //                 `deferred_send`, `fence.probe`); a fact it needs and does not get fails closed
-//   evaluateAsOf  a send that already went out, judged at its own instant from the dated histories
+//   evaluateAsOf  a send that already went out, decided at its own instant from the dated histories
 //                 (as-of.ts: `PolicyAudit` and the seed invariants)
 import { CONTACT_POLICY_RULES, type ContactPolicyRuleId } from "@legajo/shared";
 import { toZonedIso } from "../services/business-hours";
@@ -86,7 +86,7 @@ function firstAllowedInstant(ctx: PolicyContext, from: Date): Date {
 }
 
 export interface EvaluateOptions {
-  /** Judge every rule instead of stopping at the first denial (`PolicyAudit` reports every breach). */
+  /** Guest every rule instead of stopping at the first denial (`PolicyAudit` reports every breach). */
   readonly exhaustive?: boolean;
 }
 

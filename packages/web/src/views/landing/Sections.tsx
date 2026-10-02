@@ -1,6 +1,6 @@
 // The content sections of the landing: the problem, what is real and what is simulated
-// (docs/design-brief.md §7.2), what does not depend on the model, the console, the judges' entry and
-// the demo video. Each one reads its texts from copy in the page's language.
+// (docs/design-brief.md §7.2), what does not depend on the model, the console and the demo video,
+// plus the sign-in button. Each one reads its texts from copy in the page's language.
 import type { ReactNode } from "react";
 import { useSession } from "../../context/SessionContext";
 import { Link } from "../../lib/router";
@@ -30,8 +30,8 @@ export function LandingSection({ id, eyebrow, title, lead, tone = "light", child
   );
 }
 
-/** The judges' entry: the login, or the console for a visitor already signed in. */
-export function JudgesButton({ onDark = false }: { readonly onDark?: boolean }) {
+/** "Ingresar": the login, or the console for a visitor already signed in. */
+export function SignInButton({ onDark = false }: { readonly onDark?: boolean }) {
   const { cta } = useLandingCopy();
   const { state } = useSession();
   const signedIn = state.status === "authenticated";
@@ -40,7 +40,7 @@ export function JudgesButton({ onDark = false }: { readonly onDark?: boolean }) 
       to={signedIn ? CONSOLE_HOME : LOGIN_PATH}
       className={`inline-flex items-center justify-center rounded-md px-5 py-3 text-sm font-semibold transition-colors ${onDark ? "bg-cyan text-navy-deep hover:bg-white" : "bg-navy text-white hover:bg-navy-soft"}`}
     >
-      {signedIn ? cta.goToConsole : cta.judges} →
+      {signedIn ? cta.goToConsole : cta.signIn} →
     </Link>
   );
 }
@@ -120,25 +120,6 @@ export function ConsoleSection({ media }: { readonly media: MediaState }) {
           </div>
         </>
       ) : null}
-    </LandingSection>
-  );
-}
-
-export function JudgesSection() {
-  const { judges } = useLandingCopy();
-  return (
-    <LandingSection id="judges" eyebrow={judges.eyebrow} title={judges.title} lead={judges.lead} tone="white">
-      <div className="flex flex-col gap-8 rounded-card bg-navy p-8 text-white sm:p-10 lg:flex-row lg:items-center lg:justify-between">
-        <ol className="max-w-2xl list-decimal space-y-2 pl-5 text-mist">
-          {judges.steps.map((step) => (
-            <li key={step}>{step}</li>
-          ))}
-        </ol>
-        <div className="flex flex-col gap-3 lg:max-w-xs">
-          <JudgesButton onDark />
-          <p className="text-xs text-cyan-soft">{judges.credentials}</p>
-        </div>
-      </div>
     </LandingSection>
   );
 }

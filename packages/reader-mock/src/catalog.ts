@@ -54,7 +54,7 @@ export const FaultConfig = z.object({
 export type FaultConfig = z.infer<typeof FaultConfig>;
 export type FaultConfigInput = z.input<typeof FaultConfig>;
 
-/** Only the clocks of the scenario runner carry faults (never GLOBAL#* nor JUDGE#*). */
+/** Only the clocks of the scenario runner carry faults (never GLOBAL#* nor GUEST#*). */
 export const FaultClockId = z.string().refine((value) => parseClockId(value)?.scope === "QA", "faults apply only to qa-* clocks");
 
 export const FaultItem = FaultConfig.extend({

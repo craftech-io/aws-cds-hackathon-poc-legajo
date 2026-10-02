@@ -2,7 +2,7 @@
 // and simulated day. The contact is the importer's registered phone (WhatsApp) or the supplier's
 // contact (email), across every operation; the day is the contact's own local day (Buenos Aires for
 // the importer, the supplier's zone for the supplier). What counts is what already went out before
-// the judged send; an acknowledgement or a reply never counts. A second one is deferred to the next
+// the decided send; an acknowledgement or a reply never counts. A second one is deferred to the next
 // business opening of the contact's side after that day.
 import { addCalendarDays, formatDate } from "@legajo/shared";
 import { type BusinessHours, ARGENTINA_TIME_ZONE, argentinaBusinessHours, localDateOf, nextBusinessOpening, toZonedIso, zonedInstant } from "../services/business-hours";
@@ -31,7 +31,7 @@ function supplierSide(hours: BusinessHours, contactId: string): ContactSide {
   return { hours, isSameContact: (entry) => entry.counterpart === "SUPPLIER" && entry.channel === "EMAIL" && entry.contactId === contactId };
 }
 
-/** Went out before the judged send: earlier simulated instant, then earlier real instant, then id. */
+/** Went out before the decided send: earlier simulated instant, then earlier real instant, then id. */
 function isBefore(entry: HistoryMessage, at: Date, ctx: PolicyContext): boolean {
   const sim = Date.parse(entry.sentAtSim) - at.getTime();
   if (sim !== 0) return sim < 0;

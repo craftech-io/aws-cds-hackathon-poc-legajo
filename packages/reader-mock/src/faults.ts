@@ -1,7 +1,7 @@
 // Faults per world (docs/architecture-integrations.md §5, point 4). The client sends
 // `X-Fault-Scope: <clockId>` only for operations of a `qa-*` clock; the mock applies a fault only
 // when that header names a `qa-*` clock that has a `CONFIG/FAULTS#<clockId>` row, so a scenario run
-// never slows down or breaks the demo of a firm or a judge, whatever the header says.
+// never slows down or breaks the demo of a firm or a guest, whatever the header says.
 import { parseClockId } from "@legajo/shared";
 import { isLive, type CatalogStore, type FaultMode } from "./catalog";
 

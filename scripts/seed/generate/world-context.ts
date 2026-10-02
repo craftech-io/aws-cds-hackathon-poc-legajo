@@ -1,11 +1,11 @@
 // Who is who in each world of the seed (docs/seed-spec.md §3, §14): the demo worlds of Delta and Norte
-// with the parties of §5-§6, the curated `judge` template with the placeholders the world factory
-// replaces for each judge (`00` → `nn`), the fixed QA world `GLOBAL#firm-qa` of the `qa-min` template
+// with the parties of §5-§6, the curated `guest` template with the placeholders the world factory
+// replaces for each guest (`00` → `nn`), the fixed QA world `GLOBAL#firm-qa` of the `qa-min` template
 // (clones with parties of their own) and the `models` the world factory clones from.
 import type { WorldTemplateName } from "@legajo/shared";
-import { DELTA_CLOCK, JUDGE_TEMPLATE_CLOCK, JUDGE_TEMPLATE_FIRM, JUDGE_TEMPLATE_TAG, NORTE_CLOCK, QA_CLOCK } from "../lib/constants";
+import { DELTA_CLOCK, GUEST_TEMPLATE_CLOCK, GUEST_TEMPLATE_FIRM, GUEST_TEMPLATE_TAG, NORTE_CLOCK, QA_CLOCK } from "../lib/constants";
 import { BROKERS, FIRMS, demoPhone, importerSpec, supplierSpec, type BrokerSpec, type FirmSpec, type ImporterSpec, type SupplierSpec } from "./catalog-parties";
-import { JUDGE_OPERATIONS, OPERATIONS, operationSpec, type OperationSpec } from "./catalog-operations";
+import { GUEST_OPERATIONS, OPERATIONS, operationSpec, type OperationSpec } from "./catalog-operations";
 
 export interface WorldImporter {
   readonly spec: ImporterSpec;
@@ -42,7 +42,7 @@ export interface WorldContext {
   readonly importers: readonly WorldImporter[];
   readonly suppliers: readonly WorldSupplier[];
   readonly authorizations: readonly { readonly importerId: string; readonly supplierId: string }[];
-  /** The world owns its firm's rows (demo and judge worlds); a QA world lives in a shared firm. */
+  /** The world owns its firm's rows (demo and guest worlds); a QA world lives in a shared firm. */
   readonly ownsFirm: boolean;
   /** Milestones, messages and decisions: every world but `models`, which only carries what a clone copies. */
   readonly withTimeline: boolean;
@@ -60,7 +60,7 @@ function uniqueBy<T>(items: readonly T[], key: (item: T) => string): T[] {
   return [...seen.values()];
 }
 
-/** A world whose parties keep the ids of the seed (demo worlds, judge template, models). */
+/** A world whose parties keep the ids of the seed (demo worlds, guest template, models). */
 function identityWorld(input: {
   template: WorldTemplateName;
   firm: FirmSpec;
@@ -103,19 +103,19 @@ export function norteWorld(): WorldContext {
 const SIM = "sim.legajo.demo.craftech.io";
 const SES_SIMULATOR = "simulator.amazonses.com";
 
-/** Judge `nn` mailbox of a supplier: `j<nn>-<code>@sim…`, or its own address at the SES mailbox simulator. */
-function judgeMailbox(supplier: SupplierSpec): { contactEmail: string; altContact?: string } {
+/** Guest `nn` mailbox of a supplier: `j<nn>-<code>@sim…`, or its own address at the SES mailbox simulator. */
+function guestMailbox(supplier: SupplierSpec): { contactEmail: string; altContact?: string } {
   const simulated = supplier.contactEmail.endsWith(`@${SES_SIMULATOR}`);
-  const contactEmail = simulated ? `${supplier.contactEmail.split("@")[0] ?? ""}+${JUDGE_TEMPLATE_TAG}@${SES_SIMULATOR}` : `${JUDGE_TEMPLATE_TAG}-${supplier.code}@${SIM}`;
-  return { contactEmail, ...(supplier.altContact === undefined ? {} : { altContact: `${JUDGE_TEMPLATE_TAG}-${supplier.code}-ops@${SIM}` }) };
+  const contactEmail = simulated ? `${supplier.contactEmail.split("@")[0] ?? ""}+${GUEST_TEMPLATE_TAG}@${SES_SIMULATOR}` : `${GUEST_TEMPLATE_TAG}-${supplier.code}@${SIM}`;
+  return { contactEmail, ...(supplier.altContact === undefined ? {} : { altContact: `${GUEST_TEMPLATE_TAG}-${supplier.code}-ops@${SIM}` }) };
 }
 
-/** The curated judge world with the `00` placeholders (firm, clock, broker, phones, mailboxes). */
-export function judgeWorld(): WorldContext {
-  const firm: FirmSpec = { firmId: JUDGE_TEMPLATE_FIRM, name: "Estudio Delta", kind: "JUDGE", mailboxAddress: `estudio-${JUDGE_TEMPLATE_TAG}@${SIM}`, clockId: JUDGE_TEMPLATE_CLOCK, turnCaps: { perHour: 200, perDay: 1000 } };
-  const judge: BrokerSpec = { brokerId: "brk-judge-00", firmId: JUDGE_TEMPLATE_FIRM, name: "Jurado", role: "JUDGE" };
-  const models = JUDGE_OPERATIONS.map((number) => ({ ...operationSpec(number), firmId: JUDGE_TEMPLATE_FIRM }));
-  return identityWorld({ template: "judge", firm, clockId: JUDGE_TEMPLATE_CLOCK, brokers: [judge], models, phoneOf: (importer) => `+54911555100${importer.phoneSuffix}`, mailboxOf: judgeMailbox, ownsFirm: true, withTimeline: true });
+/** The curated guest world with the `00` placeholders (firm, clock, broker, phones, mailboxes). */
+export function guestWorld(): WorldContext {
+  const firm: FirmSpec = { firmId: GUEST_TEMPLATE_FIRM, name: "Estudio Delta", kind: "GUEST", mailboxAddress: `estudio-${GUEST_TEMPLATE_TAG}@${SIM}`, clockId: GUEST_TEMPLATE_CLOCK, turnCaps: { perHour: 200, perDay: 1000 } };
+  const guest: BrokerSpec = { brokerId: "brk-guest-00", firmId: GUEST_TEMPLATE_FIRM, name: "Invitado", role: "GUEST" };
+  const models = GUEST_OPERATIONS.map((number) => ({ ...operationSpec(number), firmId: GUEST_TEMPLATE_FIRM }));
+  return identityWorld({ template: "guest", firm, clockId: GUEST_TEMPLATE_CLOCK, brokers: [guest], models, phoneOf: (importer) => `+54911555100${importer.phoneSuffix}`, mailboxOf: guestMailbox, ownsFirm: true, withTimeline: true });
 }
 
 /** Operations of `GLOBAL#firm-qa` (numbers 7990-7994, kept out of the QA leases): key, number, model. */

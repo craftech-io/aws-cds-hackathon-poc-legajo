@@ -1,7 +1,7 @@
 {
   "altContacts": [
     {
-      "email": "j00-konkan-ops@sim.legajo.demo.craftech.io",
+      "email": "g00-konkan-ops@sim.legajo.demo.craftech.io",
       "supplierId": "sup-konkan"
     }
   ],
@@ -31,10 +31,10 @@
         "actor": "AGENT",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-12T10:00:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "DEFER",
-        "decisionId": "01M4R35N40XWTHSCY7TVMCT54Y",
+        "decisionId": "01M4R35N40BY0K6XA2GSCDW8T5",
         "detail": {
           "kind": "DOCS_REQUEST",
           "nextAllowedAt": "2026-10-13T09:00:00-03:00"
@@ -87,7 +87,7 @@
             "ruleId": "CP-HOURS-AR"
           }
         ],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "month": "2026-10",
         "operationId": "op-4478",
         "refs": {
@@ -102,17 +102,17 @@
         "ts": "2026-10-12T13:00:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "SEND_WHATSAPP",
         "actor": "SYSTEM",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T09:00:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ALLOW",
-        "decisionId": "01M4TJ4GG0AJ9SR5K5NW1QWH03",
+        "decisionId": "01M4TJ4GG0PZYX618NG3EM6R3D",
         "detail": {
           "kind": "DOCS_REQUEST"
         },
@@ -189,12 +189,12 @@
             "ruleId": "CP-NO-FOREIGN-LINKS"
           }
         ],
-        "firmId": "firm-judge-00",
-        "messageId": "msg-01M4TJ4GG0J296CEZEHHVECZ0Z",
+        "firmId": "firm-guest-00",
+        "messageId": "msg-01M4TJ4GG0DTD5PJTHB7W7KRWF",
         "month": "2026-10",
         "operationId": "op-4478",
         "refs": {
-          "messageId": "msg-01M4TJ4GG0J296CEZEHHVECZ0Z",
+          "messageId": "msg-01M4TJ4GG0DTD5PJTHB7W7KRWF",
           "operationId": "op-4478"
         },
         "ruleIds": [
@@ -215,19 +215,19 @@
         "ts": "2026-10-13T12:00:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "SEND_WHATSAPP",
         "actor": "AGENT",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T09:06:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ALLOW",
-        "decisionId": "01M4TJFG205FKRFPS6AMEBH7DE",
+        "decisionId": "01M4TJFG20EP57XVCNVQT3GG6F",
         "detail": {
-          "answers": "msg-01M4TJDNF0BBTWS5TBG2NC8D2N",
+          "answers": "msg-01M4TJDNF0EWC98J9WMDGS7B7T",
           "kind": "CONTACT_CONFIRMATION"
         },
         "entity": "Decision",
@@ -303,12 +303,12 @@
             "ruleId": "CP-NO-FOREIGN-LINKS"
           }
         ],
-        "firmId": "firm-judge-00",
-        "messageId": "msg-01M4TJFG203M71BR5YQH11GNXT",
+        "firmId": "firm-guest-00",
+        "messageId": "msg-01M4TJFG20RVPN6DDQR9331Z3M",
         "month": "2026-10",
         "operationId": "op-4478",
         "refs": {
-          "messageId": "msg-01M4TJFG203M71BR5YQH11GNXT",
+          "messageId": "msg-01M4TJFG20RVPN6DDQR9331Z3M",
           "operationId": "op-4478"
         },
         "ruleIds": [
@@ -327,20 +327,20 @@
         "ts": "2026-10-13T12:06:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "CONTACT_CONFIRMED",
         "actor": "IMPORTER",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T09:15:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ACTION",
-        "decisionId": "01M4TJZZD0PANDED0XSW9WZ9AD",
+        "decisionId": "01M4TJZZD0Y35F9VCBR4WWQYVT",
         "entity": "Decision",
         "evaluated": [],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "month": "2026-10",
         "operationId": "op-4478",
         "refs": {
@@ -352,17 +352,17 @@
         "ts": "2026-10-13T12:15:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "SEND_EMAIL",
         "actor": "AGENT",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T09:20:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ALLOW",
-        "decisionId": "01M4TK94C01NM955AXS332TR8G",
+        "decisionId": "01M4TK94C0X29VE6TYTBMXNZKK",
         "detail": {
           "kind": "DOCS_REQUEST"
         },
@@ -439,13 +439,13 @@
             "ruleId": "CP-NO-FOREIGN-LINKS"
           }
         ],
-        "firmId": "firm-judge-00",
-        "messageId": "msg-01M4TK94C02AZ25878QMW0YVJ5",
+        "firmId": "firm-guest-00",
+        "messageId": "msg-01M4TK94C09Y9Q65MGQWF50AKZ",
         "month": "2026-10",
         "operationId": "op-4478",
         "refs": {
           "contactId": "ctc-ligurmare-1",
-          "messageId": "msg-01M4TK94C02AZ25878QMW0YVJ5",
+          "messageId": "msg-01M4TK94C09Y9Q65MGQWF50AKZ",
           "operationId": "op-4478"
         },
         "ruleIds": [
@@ -465,19 +465,19 @@
         "ts": "2026-10-13T12:20:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "SEND_WHATSAPP",
         "actor": "AGENT",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T09:21:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ALLOW",
-        "decisionId": "01M4TKAYZ06V3WD398T2C57GYW",
+        "decisionId": "01M4TKAYZ03HK4C2TVJEKC7R40",
         "detail": {
-          "answers": "msg-01M4TJZZD0GW18GFJ9ZESQP5VD",
+          "answers": "msg-01M4TJZZD0NT9XVZ3XZ35S8PTY",
           "kind": "REPLY"
         },
         "entity": "Decision",
@@ -553,12 +553,12 @@
             "ruleId": "CP-NO-FOREIGN-LINKS"
           }
         ],
-        "firmId": "firm-judge-00",
-        "messageId": "msg-01M4TKAYZ0Y4TVKCWPBC357BPR",
+        "firmId": "firm-guest-00",
+        "messageId": "msg-01M4TKAYZ062NTAPAZT5AG35SR",
         "month": "2026-10",
         "operationId": "op-4478",
         "refs": {
-          "messageId": "msg-01M4TKAYZ0Y4TVKCWPBC357BPR",
+          "messageId": "msg-01M4TKAYZ062NTAPAZT5AG35SR",
           "operationId": "op-4478"
         },
         "ruleIds": [
@@ -577,17 +577,17 @@
         "ts": "2026-10-13T12:21:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "SEND_EMAIL",
         "actor": "AGENT",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-14T10:00:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ALLOW",
-        "decisionId": "01M4X7Z34058ABHJHVZPRG5BVJ",
+        "decisionId": "01M4X7Z3402BDKX5QVD4AE7RY2",
         "detail": {
           "kind": "REMINDER"
         },
@@ -664,13 +664,13 @@
             "ruleId": "CP-NO-FOREIGN-LINKS"
           }
         ],
-        "firmId": "firm-judge-00",
-        "messageId": "msg-01M4X7Z340053VHGK9DZ6DN816",
+        "firmId": "firm-guest-00",
+        "messageId": "msg-01M4X7Z340VD577E0RC078S87K",
         "month": "2026-10",
         "operationId": "op-4478",
         "refs": {
           "contactId": "ctc-ligurmare-1",
-          "messageId": "msg-01M4X7Z340053VHGK9DZ6DN816",
+          "messageId": "msg-01M4X7Z340VD577E0RC078S87K",
           "operationId": "op-4478"
         },
         "ruleIds": [
@@ -690,17 +690,17 @@
         "ts": "2026-10-14T13:00:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "SEND_WHATSAPP",
         "actor": "AGENT",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-09T10:00:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ALLOW",
-        "decisionId": "01M4GBZG406YK5PHG4DJMK755B",
+        "decisionId": "01M4GBZG40W64C37V1N4HMCY50",
         "detail": {
           "kind": "DOCS_REQUEST"
         },
@@ -777,12 +777,12 @@
             "ruleId": "CP-NO-FOREIGN-LINKS"
           }
         ],
-        "firmId": "firm-judge-00",
-        "messageId": "msg-01M4GBZG40HBJJJAGQAC2JGSCC",
+        "firmId": "firm-guest-00",
+        "messageId": "msg-01M4GBZG404BCD35BK9W9ADQCH",
         "month": "2026-10",
         "operationId": "op-4487",
         "refs": {
-          "messageId": "msg-01M4GBZG40HBJJJAGQAC2JGSCC",
+          "messageId": "msg-01M4GBZG404BCD35BK9W9ADQCH",
           "operationId": "op-4487"
         },
         "ruleIds": [
@@ -803,20 +803,20 @@
         "ts": "2026-10-09T13:00:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "READY_FOR_REVIEW",
         "actor": "AGENT",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-09T15:45:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ACTION",
-        "decisionId": "01M4GZQ6Z0PSWMGV2CQ42D04VF",
+        "decisionId": "01M4GZQ6Z0HMCDN2EN63KWFJ6J",
         "entity": "Decision",
         "evaluated": [],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "month": "2026-10",
         "operationId": "op-4487",
         "refs": {
@@ -827,24 +827,24 @@
         "ts": "2026-10-09T18:45:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "DOSSIER_APPROVED",
-        "actor": "BROKER:brk-judge-00",
+        "actor": "BROKER:brk-guest-00",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T11:00:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ACTION",
-        "decisionId": "01M4TS07R0NRGM15NDGYRV6AY7",
+        "decisionId": "01M4TS07R0KV72J5QXBPHGN8XN",
         "entity": "Decision",
         "evaluated": [],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "month": "2026-10",
         "operationId": "op-4487",
         "refs": {
-          "brokerId": "brk-judge-00",
+          "brokerId": "brk-guest-00",
           "operationId": "op-4487"
         },
         "ruleIds": [],
@@ -852,17 +852,17 @@
         "ts": "2026-10-13T14:00:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "SEND_WHATSAPP",
-        "actor": "BROKER:brk-judge-00",
+        "actor": "BROKER:brk-guest-00",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T11:00:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ALLOW",
-        "decisionId": "01M4TS07R08GN672MGW97QK7G7",
+        "decisionId": "01M4TS07R0BX4GJ199NQ8VJXQR",
         "detail": {
           "kind": "APPROVAL_NOTICE"
         },
@@ -939,12 +939,12 @@
             "ruleId": "CP-NO-FOREIGN-LINKS"
           }
         ],
-        "firmId": "firm-judge-00",
-        "messageId": "msg-01M4TS07R036HA2X9JN6GGEF95",
+        "firmId": "firm-guest-00",
+        "messageId": "msg-01M4TS07R0TGWWVS9MBV40V5JR",
         "month": "2026-10",
         "operationId": "op-4487",
         "refs": {
-          "messageId": "msg-01M4TS07R036HA2X9JN6GGEF95",
+          "messageId": "msg-01M4TS07R0TGWWVS9MBV40V5JR",
           "operationId": "op-4487"
         },
         "ruleIds": [
@@ -963,20 +963,20 @@
         "ts": "2026-10-13T14:00:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "RESPONSIBLE_ASSIGNED",
         "actor": "AGENT",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T11:04:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ACTION",
-        "decisionId": "01M4TS7J40Z966QBQC3ZSN5GVV",
+        "decisionId": "01M4TS7J40BE5YPC48W7JY8H5S",
         "entity": "Decision",
         "evaluated": [],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "month": "2026-10",
         "operationId": "op-4488",
         "refs": {
@@ -990,17 +990,17 @@
         "ts": "2026-10-13T14:04:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "SEND_EMAIL",
         "actor": "AGENT",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T11:04:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "DENY",
-        "decisionId": "01M4TS7J40FHZCE6NF4R3AJ3DT",
+        "decisionId": "01M4TS7J40Z12SYP73Q75Y0KG5",
         "detail": {
           "kind": "CORRECTION_REQUEST"
         },
@@ -1037,7 +1037,7 @@
             "ruleId": "CP-SUPPLIER-AUTH"
           }
         ],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "month": "2026-10",
         "operationId": "op-4488",
         "refs": {
@@ -1051,20 +1051,20 @@
         "ts": "2026-10-13T14:04:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "ESCALATED",
         "actor": "AGENT",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T11:04:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ACTION",
-        "decisionId": "01M4TS7J40WJRMCBS4PNEKM5MK",
+        "decisionId": "01M4TS7J40NP1TGWBXSVW05ZBH",
         "entity": "Decision",
         "evaluated": [],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "month": "2026-10",
         "operationId": "op-4488",
         "reason": "OTHER",
@@ -1077,19 +1077,19 @@
         "ts": "2026-10-13T14:04:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "SEND_WHATSAPP",
         "actor": "AGENT",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T11:05:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ALLOW",
-        "decisionId": "01M4TS9CQ06QFH2M7RCVKD1AWS",
+        "decisionId": "01M4TS9CQ0TW66RDVHBP9Z2F73",
         "detail": {
-          "answers": "msg-01M4TS3WY0S8SA0H5AWBMWCZ62",
+          "answers": "msg-01M4TS3WY0YMB7M47X0C0KSMGF",
           "kind": "REPLY"
         },
         "entity": "Decision",
@@ -1165,12 +1165,12 @@
             "ruleId": "CP-NO-FOREIGN-LINKS"
           }
         ],
-        "firmId": "firm-judge-00",
-        "messageId": "msg-01M4TS9CQ05KKXZ4ZB9769M400",
+        "firmId": "firm-guest-00",
+        "messageId": "msg-01M4TS9CQ05MBEXSK5KXZSYHK6",
         "month": "2026-10",
         "operationId": "op-4488",
         "refs": {
-          "messageId": "msg-01M4TS9CQ05KKXZ4ZB9769M400",
+          "messageId": "msg-01M4TS9CQ05MBEXSK5KXZSYHK6",
           "operationId": "op-4488"
         },
         "ruleIds": [
@@ -1189,24 +1189,24 @@
         "ts": "2026-10-13T14:05:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "ESCALATION_RESOLVED",
-        "actor": "BROKER:brk-judge-00",
+        "actor": "BROKER:brk-guest-00",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T12:30:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ACTION",
-        "decisionId": "01M4TY5160XKY6E7JE44FYR07Q",
+        "decisionId": "01M4TY5160ZJ7738G6AT8Z5JRJ",
         "entity": "Decision",
         "evaluated": [],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "month": "2026-10",
         "operationId": "op-4488",
         "refs": {
-          "brokerId": "brk-judge-00",
+          "brokerId": "brk-guest-00",
           "escalationId": "esc-other-1",
           "operationId": "op-4488"
         },
@@ -1215,20 +1215,20 @@
         "ts": "2026-10-13T15:30:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "READY_FOR_REVIEW",
         "actor": "AGENT",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T16:32:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ACTION",
-        "decisionId": "01M4VC04W0V419EBXS2QWZ5V0K",
+        "decisionId": "01M4VC04W0NRKE30J2CYTBGEHG",
         "entity": "Decision",
         "evaluated": [],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "month": "2026-10",
         "operationId": "op-4488",
         "refs": {
@@ -1239,19 +1239,19 @@
         "ts": "2026-10-13T19:32:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "action": "SEND_WHATSAPP",
         "actor": "AGENT",
         "atReal": "2026-09-25T12:00:00.000Z",
         "atSim": "2026-10-13T16:33:00-03:00",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "decision": "ALLOW",
-        "decisionId": "01M4VC1ZF0GG20P5TP7A7T5P9P",
+        "decisionId": "01M4VC1ZF0513AGM5XTBBZTBVN",
         "detail": {
-          "answers": "msg-01M4VBWFP030SJG1N693Z3VZ27",
+          "answers": "msg-01M4VBWFP0BA02DX0N97YEBA09",
           "kind": "REPLY"
         },
         "entity": "Decision",
@@ -1327,12 +1327,12 @@
             "ruleId": "CP-NO-FOREIGN-LINKS"
           }
         ],
-        "firmId": "firm-judge-00",
-        "messageId": "msg-01M4VC1ZF0GHV4EG3JAFXFR07K",
+        "firmId": "firm-guest-00",
+        "messageId": "msg-01M4VC1ZF0SZ46DK19ZGWVAC2C",
         "month": "2026-10",
         "operationId": "op-4488",
         "refs": {
-          "messageId": "msg-01M4VC1ZF0GHV4EG3JAFXFR07K",
+          "messageId": "msg-01M4VC1ZF0SZ46DK19ZGWVAC2C",
           "operationId": "op-4488"
         },
         "ruleIds": [
@@ -1351,7 +1351,7 @@
         "ts": "2026-10-13T19:33:00.000Z",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       }
     ],
     "Conversations": [
@@ -1362,7 +1362,7 @@
           {
             "action": "UPLOAD",
             "title": "Subir documentos",
-            "url": "https://legajo.demo.craftech.io/u/5_J05keNjAg3eWXdoUebbEVilp904Qo-rELjE3Z6ZU4"
+            "url": "https://legajo.demo.craftech.io/u/bbTclvsJiJA0GfyUERhJLLOxEnErkAW5QewcNx6ntVo"
           },
           {
             "action": "SUPPLIER_SENDS",
@@ -1378,17 +1378,17 @@
           }
         ],
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "counterpart": "IMPORTER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "deferredTimerKey": "TIMER#DEFERRED_SEND#deferred-4478-1",
         "direction": "OUT",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "simulated",
         "importerId": "imp-norpampa",
         "kind": "DOCS_REQUEST",
-        "messageId": "msg-01M4TJ4GG0J296CEZEHHVECZ0Z",
+        "messageId": "msg-01M4TJ4GG0DTD5PJTHB7W7KRWF",
         "operationId": "op-4478",
         "policy": {
           "decision": "ALLOW",
@@ -1430,26 +1430,26 @@
         "to": "+5491155510001",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "attachments": [],
         "author": "IMPORTER",
         "body": "Los manda el proveedor",
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "counterpart": "IMPORTER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "IN",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "+5491155510001",
         "importerId": "imp-norpampa",
         "interactive": {
           "action": "SUPPLIER_SENDS",
           "type": "button_reply"
         },
-        "messageId": "msg-01M4TJDNF0BBTWS5TBG2NC8D2N",
+        "messageId": "msg-01M4TJDNF0EWC98J9WMDGS7B7T",
         "operationId": "op-4478",
         "refs": {},
         "sentAtReal": "2026-09-25T12:00:00.000Z",
@@ -1461,11 +1461,11 @@
         "trusted": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "author": "AGENT",
-        "body": "¿Le escribimos a tu proveedor a j***@sim.legajo.demo.craftech.io? Confirmá con un botón o pasanos otro contacto.",
+        "body": "¿Le escribimos a tu proveedor a g***@sim.legajo.demo.craftech.io? Confirmá con un botón o pasanos otro contacto.",
         "buttons": [
           {
             "action": "CONFIRM_CONTACT",
@@ -1481,12 +1481,12 @@
           }
         ],
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "counterpart": "IMPORTER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "OUT",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "simulated",
         "importerId": "imp-norpampa",
         "interactive": {
@@ -1498,7 +1498,7 @@
           "type": "button"
         },
         "kind": "CONTACT_CONFIRMATION",
-        "messageId": "msg-01M4TJFG203M71BR5YQH11GNXT",
+        "messageId": "msg-01M4TJFG20RVPN6DDQR9331Z3M",
         "operationId": "op-4478",
         "policy": {
           "decision": "ALLOW",
@@ -1523,26 +1523,26 @@
         "to": "+5491155510001",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "attachments": [],
         "author": "IMPORTER",
         "body": "Sí, escribile",
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "counterpart": "IMPORTER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "IN",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "+5491155510001",
         "importerId": "imp-norpampa",
         "interactive": {
           "action": "CONFIRM_CONTACT",
           "type": "button_reply"
         },
-        "messageId": "msg-01M4TJZZD0GW18GFJ9ZESQP5VD",
+        "messageId": "msg-01M4TJZZD0NT9XVZ3XZ35S8PTY",
         "operationId": "op-4478",
         "refs": {},
         "sentAtReal": "2026-09-25T12:00:00.000Z",
@@ -1554,22 +1554,22 @@
         "trusted": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "author": "AGENT",
         "body": "Hello,\n\nWe are writing on behalf of Estudio Delta, the customs broker of Norpampa Insumos SRL, about invoice LVW-1190 (FOB Genoa, vessel Austral Aurora, estimated arrival in Buenos Aires on Oct 19, 2026).\nFor operation 4478 we still need the packing list and certificate of origin. Please reply to this email with them as PDF by Oct 15, 2026, 17:00 (your time).\nThe packing list has to match the commercial invoice in gross weight and number of packages.\n\nThank you,\nEstudio Delta",
         "channel": "EMAIL",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "contactId": "ctc-ligurmare-1",
         "counterpart": "SUPPLIER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "OUT",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "{threadAddress}",
         "kind": "DOCS_REQUEST",
-        "messageId": "msg-01M4TK94C02AZ25878QMW0YVJ5",
+        "messageId": "msg-01M4TK94C09Y9Q65MGQWF50AKZ",
         "operationId": "op-4478",
         "policy": {
           "decision": "ALLOW",
@@ -1586,40 +1586,40 @@
             "CP-NO-FOREIGN-LINKS"
           ]
         },
-        "providerMessageId": "010091d75b2842c0-e1075170-4543-c17f-0ba0-69c28f4a8db2-000000",
+        "providerMessageId": "010042f9b7a7b8e3-2dfdfbdf-9a81-7887-c7eb-fd98e9964401-000000",
         "refs": {
           "docTypes": [
             "PACKING_LIST",
             "CERTIFICATE_OF_ORIGIN"
           ]
         },
-        "rfcMessageId": "<010091d75b2842c0-e1075170-4543-c17f-0ba0-69c28f4a8db2-000000@email.amazonses.com>",
+        "rfcMessageId": "<010042f9b7a7b8e3-2dfdfbdf-9a81-7887-c7eb-fd98e9964401-000000@email.amazonses.com>",
         "sentAtReal": "2026-09-25T12:00:00.000Z",
         "sentAtSim": "2026-10-13T12:20:00.000Z",
         "simulated": false,
         "status": "DELIVERED",
         "subject": "[Op 4478] Missing documents: packing list, certificate of origin (Invoice LVW-1190)",
         "synthetic": true,
-        "to": "j00-ligurmare@sim.legajo.demo.craftech.io",
+        "to": "g00-ligurmare@sim.legajo.demo.craftech.io",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "author": "AGENT",
         "body": "Listo, ya le escribimos a Ligurmare Valve Works S.r.l. para pedirle el packing list y el certificado de origen de la operación 4478. Te avisamos cuando lleguen.",
         "buttons": [],
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "counterpart": "IMPORTER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "OUT",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "simulated",
         "importerId": "imp-norpampa",
         "kind": "REPLY",
-        "messageId": "msg-01M4TKAYZ0Y4TVKCWPBC357BPR",
+        "messageId": "msg-01M4TKAYZ062NTAPAZT5AG35SR",
         "operationId": "op-4478",
         "policy": {
           "decision": "ALLOW",
@@ -1649,23 +1649,23 @@
         "to": "+5491155510001",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "author": "AGENT",
         "body": "Hello,\n\nThis is a reminder about invoice LVW-1190 (operation 4478): the packing list and certificate of origin are still missing.\nThe deadline is Oct 15, 2026, 17:00 (your time). Please reply to this email with them as PDF.\n\nThank you,\nEstudio Delta",
         "channel": "EMAIL",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "contactId": "ctc-ligurmare-1",
         "counterpart": "SUPPLIER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "OUT",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "{threadAddress}",
-        "inReplyTo": "<010091d75b2842c0-e1075170-4543-c17f-0ba0-69c28f4a8db2-000000@email.amazonses.com>",
+        "inReplyTo": "<010042f9b7a7b8e3-2dfdfbdf-9a81-7887-c7eb-fd98e9964401-000000@email.amazonses.com>",
         "kind": "REMINDER",
-        "messageId": "msg-01M4X7Z340053VHGK9DZ6DN816",
+        "messageId": "msg-01M4X7Z340VD577E0RC078S87K",
         "operationId": "op-4478",
         "policy": {
           "decision": "ALLOW",
@@ -1682,9 +1682,9 @@
             "CP-NO-FOREIGN-LINKS"
           ]
         },
-        "providerMessageId": "01001b8f8af7a862-55d923aa-8562-5185-12a5-6e0820b0e9c5-000000",
+        "providerMessageId": "01003dab2977d66b-42c83f79-5150-74f4-cde2-57870db47ac1-000000",
         "references": [
-          "<010091d75b2842c0-e1075170-4543-c17f-0ba0-69c28f4a8db2-000000@email.amazonses.com>"
+          "<010042f9b7a7b8e3-2dfdfbdf-9a81-7887-c7eb-fd98e9964401-000000@email.amazonses.com>"
         ],
         "refs": {
           "docTypes": [
@@ -1692,17 +1692,17 @@
             "CERTIFICATE_OF_ORIGIN"
           ]
         },
-        "rfcMessageId": "<01001b8f8af7a862-55d923aa-8562-5185-12a5-6e0820b0e9c5-000000@email.amazonses.com>",
+        "rfcMessageId": "<01003dab2977d66b-42c83f79-5150-74f4-cde2-57870db47ac1-000000@email.amazonses.com>",
         "sentAtReal": "2026-09-25T12:00:00.000Z",
         "sentAtSim": "2026-10-14T13:00:00.000Z",
         "simulated": false,
         "status": "DELIVERED",
         "subject": "[Op 4478] Reminder: packing list, certificate of origin still missing (Invoice LVW-1190)",
         "synthetic": true,
-        "to": "j00-ligurmare@sim.legajo.demo.craftech.io",
+        "to": "g00-ligurmare@sim.legajo.demo.craftech.io",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "author": "AGENT",
@@ -1711,7 +1711,7 @@
           {
             "action": "UPLOAD",
             "title": "Subir documentos",
-            "url": "https://legajo.demo.craftech.io/u/wFhE4jf3-t7i00QqWYBWO6PGdFlV6rbhS_1ZBFhMNl8"
+            "url": "https://legajo.demo.craftech.io/u/bD4536vo8H6pceS9FhgtP2eVKEgFqfv_zG2KGYq548g"
           },
           {
             "action": "SUPPLIER_SENDS",
@@ -1727,16 +1727,16 @@
           }
         ],
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "counterpart": "IMPORTER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "OUT",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "simulated",
         "importerId": "imp-norpampa",
         "kind": "DOCS_REQUEST",
-        "messageId": "msg-01M4GBZG40HBJJJAGQAC2JGSCC",
+        "messageId": "msg-01M4GBZG404BCD35BK9W9ADQCH",
         "operationId": "op-4487",
         "policy": {
           "decision": "ALLOW",
@@ -1779,23 +1779,23 @@
         "to": "+5491155510001",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "author": "BROKER:brk-judge-00",
+        "author": "BROKER:brk-guest-00",
         "body": "Operación 4487: el estudio aprobó el legajo. Te vamos a avisar las novedades del despacho por acá.",
         "buttons": [],
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "counterpart": "IMPORTER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "OUT",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "simulated",
         "importerId": "imp-norpampa",
         "kind": "APPROVAL_NOTICE",
-        "messageId": "msg-01M4TS07R036HA2X9JN6GGEF95",
+        "messageId": "msg-01M4TS07R0TGWWVS9MBV40V5JR",
         "operationId": "op-4487",
         "policy": {
           "decision": "ALLOW",
@@ -1826,7 +1826,7 @@
         "to": "+5491155510001",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "attachments": [
@@ -1834,7 +1834,7 @@
             "contentType": "application/pdf",
             "docVersionId": "dv-4488-CI-1",
             "index": 0,
-            "s3Key": "sim/msg-01M4TS07R0FN85R5WCCBVNXM8K/0.pdf",
+            "s3Key": "sim/msg-01M4TS07R04MX8PANBMKF5GH71/0.pdf",
             "sizeBytes": 2465,
             "status": "ACCEPTED"
           }
@@ -1842,15 +1842,15 @@
         "author": "IMPORTER",
         "body": "Te mando la factura comercial.",
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "counterpart": "IMPORTER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "IN",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "+5491155510005",
         "importerId": "imp-sierras",
-        "messageId": "msg-01M4TS07R0FN85R5WCCBVNXM8K",
+        "messageId": "msg-01M4TS07R04MX8PANBMKF5GH71",
         "operationId": "op-4488",
         "refs": {},
         "sentAtReal": "2026-09-25T12:00:00.000Z",
@@ -1862,7 +1862,7 @@
         "trusted": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "attachments": [
@@ -1870,7 +1870,7 @@
             "contentType": "application/pdf",
             "docVersionId": "dv-4488-PL-1",
             "index": 0,
-            "s3Key": "sim/msg-01M4TS22B0ZNJ915VEDZN10ZVV/0.pdf",
+            "s3Key": "sim/msg-01M4TS22B0DWASDERTB1ME0PJ6/0.pdf",
             "sizeBytes": 2035,
             "status": "ACCEPTED"
           }
@@ -1878,15 +1878,15 @@
         "author": "IMPORTER",
         "body": "Va el packing list.",
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "counterpart": "IMPORTER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "IN",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "+5491155510005",
         "importerId": "imp-sierras",
-        "messageId": "msg-01M4TS22B0ZNJ915VEDZN10ZVV",
+        "messageId": "msg-01M4TS22B0DWASDERTB1ME0PJ6",
         "operationId": "op-4488",
         "refs": {},
         "sentAtReal": "2026-09-25T12:00:00.000Z",
@@ -1898,7 +1898,7 @@
         "trusted": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "attachments": [
@@ -1906,7 +1906,7 @@
             "contentType": "application/pdf",
             "docVersionId": "dv-4488-CO-1",
             "index": 0,
-            "s3Key": "sim/msg-01M4TS3WY0S8SA0H5AWBMWCZ62/0.pdf",
+            "s3Key": "sim/msg-01M4TS3WY0YMB7M47X0C0KSMGF/0.pdf",
             "sizeBytes": 2119,
             "status": "ACCEPTED"
           }
@@ -1914,15 +1914,15 @@
         "author": "IMPORTER",
         "body": "Y el certificado de origen.",
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "counterpart": "IMPORTER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "IN",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "+5491155510005",
         "importerId": "imp-sierras",
-        "messageId": "msg-01M4TS3WY0S8SA0H5AWBMWCZ62",
+        "messageId": "msg-01M4TS3WY0YMB7M47X0C0KSMGF",
         "operationId": "op-4488",
         "refs": {},
         "sentAtReal": "2026-09-25T12:00:00.000Z",
@@ -1934,23 +1934,23 @@
         "trusted": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "author": "AGENT",
         "body": "Recibimos la factura comercial, el packing list y el certificado de origen de la operación 4488. El packing list tiene una diferencia en la cantidad de bultos con la factura y la corrección la tiene que emitir el proveedor. El estudio te va a confirmar cómo seguimos.",
         "buttons": [],
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "counterpart": "IMPORTER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "OUT",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "simulated",
         "importerId": "imp-sierras",
         "kind": "REPLY",
-        "messageId": "msg-01M4TS9CQ05KKXZ4ZB9769M400",
+        "messageId": "msg-01M4TS9CQ05MBEXSK5KXZSYHK6",
         "operationId": "op-4488",
         "policy": {
           "decision": "ALLOW",
@@ -1975,7 +1975,7 @@
         "to": "+5491155510005",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "attachments": [
@@ -1983,7 +1983,7 @@
             "contentType": "application/pdf",
             "docVersionId": "dv-4488-PL-2",
             "index": 0,
-            "s3Key": "sim/msg-01M4VBWFP030SJG1N693Z3VZ27/0.pdf",
+            "s3Key": "sim/msg-01M4VBWFP0BA02DX0N97YEBA09/0.pdf",
             "sizeBytes": 2035,
             "status": "ACCEPTED"
           }
@@ -1991,15 +1991,15 @@
         "author": "IMPORTER",
         "body": "Te reenvío el packing list corregido.",
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "counterpart": "IMPORTER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "IN",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "+5491155510005",
         "importerId": "imp-sierras",
-        "messageId": "msg-01M4VBWFP030SJG1N693Z3VZ27",
+        "messageId": "msg-01M4VBWFP0BA02DX0N97YEBA09",
         "operationId": "op-4488",
         "refs": {},
         "sentAtReal": "2026-09-25T12:00:00.000Z",
@@ -2011,23 +2011,23 @@
         "trusted": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "author": "AGENT",
         "body": "Recibimos el packing list corregido de la operación 4488. Los tres documentos están en regla y el legajo quedó listo para la revisión del estudio.",
         "buttons": [],
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "counterpart": "IMPORTER",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "direction": "OUT",
         "entity": "Message",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "from": "simulated",
         "importerId": "imp-sierras",
         "kind": "REPLY",
-        "messageId": "msg-01M4VC1ZF0GHV4EG3JAFXFR07K",
+        "messageId": "msg-01M4VC1ZF0SZ46DK19ZGWVAC2C",
         "operationId": "op-4488",
         "policy": {
           "decision": "ALLOW",
@@ -2052,7 +2052,7 @@
         "to": "+5491155510005",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       }
     ],
     "Firms": [
@@ -2070,17 +2070,17 @@
             "FRI"
           ]
         },
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Firm",
-        "firmId": "firm-judge-00",
-        "kind": "JUDGE",
-        "mailboxAddress": "estudio-j00@sim.legajo.demo.craftech.io",
+        "firmId": "firm-guest-00",
+        "kind": "GUEST",
+        "mailboxAddress": "estudio-g00@sim.legajo.demo.craftech.io",
         "name": "Estudio Delta",
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "assumptions": {
@@ -2095,7 +2095,7 @@
         "costBudgetUsdPerDossier": 2,
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "FirmSettings",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "humanActionMinutes": {
           "items": [
             {
@@ -2164,28 +2164,28 @@
         "untrustedSenderEmailsPerDay": 3,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "active": true,
-        "brokerId": "brk-judge-00",
+        "brokerId": "brk-guest-00",
         "cognitoSub": "",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Broker",
-        "firmId": "firm-judge-00",
-        "name": "Jurado",
-        "role": "JUDGE",
+        "firmId": "firm-guest-00",
+        "name": "Invitado",
+        "role": "GUEST",
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "checklistVersion": 1,
         "createdAt": "2026-09-25T12:00:00.000Z",
         "docType": "COMMERCIAL_INVOICE",
         "entity": "Checklist",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "items": [
           {
             "docType": "COMMERCIAL_INVOICE",
@@ -2239,14 +2239,14 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "checklistVersion": 1,
         "createdAt": "2026-09-25T12:00:00.000Z",
         "docType": "PACKING_LIST",
         "entity": "Checklist",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "items": [
           {
             "docType": "PACKING_LIST",
@@ -2282,14 +2282,14 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "checklistVersion": 1,
         "createdAt": "2026-09-25T12:00:00.000Z",
         "docType": "CERTIFICATE_OF_ORIGIN",
         "entity": "Checklist",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "items": [
           {
             "docType": "CERTIFICATE_OF_ORIGIN",
@@ -2331,13 +2331,13 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "ResponsibilityMatrix",
         "fallback": "BROKER",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "matrixVersion": 1,
         "rules": [
           {
@@ -2410,14 +2410,14 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       }
     ],
     "LegajoMetrics": [],
     "Operations": [
       {
         "carrier": "Austral Line",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "control": "AGENT",
         "controlHistory": [
           {
@@ -2449,7 +2449,7 @@
             "source": "SEED"
           }
         ],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-norpampa",
         "incoterm": "FOB",
         "incotermPlace": "Qingdao",
@@ -2472,10 +2472,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "vessel": "Austral Aurora",
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentDocVersionId": "dv-4471-CI-1",
         "currentVersion": 1,
@@ -2488,10 +2488,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "validatedBy": "READER",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentVersion": 0,
         "docType": "PACKING_LIST",
@@ -2501,10 +2501,10 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentVersion": 0,
         "docType": "CERTIFICATE_OF_ORIGIN",
@@ -2514,10 +2514,10 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "docType": "COMMERCIAL_INVOICE",
         "docVersionId": "dv-4471-CI-1",
@@ -2565,10 +2565,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "versionNo": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-15T13:00:00.000Z",
         "entity": "Timer",
@@ -2580,10 +2580,10 @@
         "timerId": "DOCS_REQUEST",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-17T13:00:00.000Z",
         "entity": "Timer",
@@ -2595,10 +2595,10 @@
         "timerId": "FOLLOWUP",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-19T13:00:00.000Z",
         "entity": "Timer",
@@ -2610,10 +2610,10 @@
         "timerId": "FOLLOWUP_FINAL",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-20T11:00:00.000Z",
         "entity": "Timer",
@@ -2625,10 +2625,10 @@
         "timerId": "ESCALATION",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-22T11:00:00.000Z",
         "entity": "Timer",
@@ -2640,11 +2640,11 @@
         "timerId": "ARRIVAL",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "carrier": "Río Sur Shipping",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "control": "AGENT",
         "controlHistory": [
           {
@@ -2676,7 +2676,7 @@
             "source": "SEED"
           }
         ],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-patagonia",
         "incoterm": "FOB",
         "incotermPlace": "Nhava Sheva",
@@ -2699,10 +2699,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "vessel": "Río Sur Tern",
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentVersion": 0,
         "docType": "COMMERCIAL_INVOICE",
@@ -2712,10 +2712,10 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentVersion": 0,
         "docType": "PACKING_LIST",
@@ -2725,10 +2725,10 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentVersion": 0,
         "docType": "CERTIFICATE_OF_ORIGIN",
@@ -2738,10 +2738,10 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-17T13:00:00.000Z",
         "entity": "Timer",
@@ -2753,10 +2753,10 @@
         "timerId": "DOCS_REQUEST",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-19T13:00:00.000Z",
         "entity": "Timer",
@@ -2768,10 +2768,10 @@
         "timerId": "FOLLOWUP",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-21T13:00:00.000Z",
         "entity": "Timer",
@@ -2783,10 +2783,10 @@
         "timerId": "FOLLOWUP_FINAL",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-22T13:00:00.000Z",
         "entity": "Timer",
@@ -2798,10 +2798,10 @@
         "timerId": "ESCALATION",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-24T13:00:00.000Z",
         "entity": "Timer",
@@ -2813,11 +2813,11 @@
         "timerId": "ARRIVAL",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "carrier": "Pacifica Container Lines",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "control": "AGENT",
         "controlHistory": [
           {
@@ -2849,7 +2849,7 @@
             "source": "SEED"
           }
         ],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-riberas",
         "incoterm": "FOB",
         "incotermPlace": "Busan",
@@ -2872,10 +2872,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "vessel": "Pacifica Dawn",
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentVersion": 0,
         "docType": "COMMERCIAL_INVOICE",
@@ -2885,10 +2885,10 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentVersion": 0,
         "docType": "PACKING_LIST",
@@ -2898,10 +2898,10 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentVersion": 0,
         "docType": "CERTIFICATE_OF_ORIGIN",
@@ -2911,10 +2911,10 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-20T13:00:00.000Z",
         "entity": "Timer",
@@ -2926,10 +2926,10 @@
         "timerId": "DOCS_REQUEST",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-22T13:00:00.000Z",
         "entity": "Timer",
@@ -2941,10 +2941,10 @@
         "timerId": "FOLLOWUP",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-24T13:00:00.000Z",
         "entity": "Timer",
@@ -2956,10 +2956,10 @@
         "timerId": "FOLLOWUP_FINAL",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-25T11:00:00.000Z",
         "entity": "Timer",
@@ -2971,10 +2971,10 @@
         "timerId": "ESCALATION",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-27T11:00:00.000Z",
         "entity": "Timer",
@@ -2986,11 +2986,11 @@
         "timerId": "ARRIVAL",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "carrier": "Austral Line",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "control": "AGENT",
         "controlHistory": [
           {
@@ -3022,7 +3022,7 @@
             "source": "SEED"
           }
         ],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-norpampa",
         "incoterm": "FOB",
         "incotermPlace": "Genoa",
@@ -3045,10 +3045,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "vessel": "Austral Aurora",
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentDocVersionId": "dv-4478-CI-1",
         "currentVersion": 1,
@@ -3061,10 +3061,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "validatedBy": "READER",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentVersion": 0,
         "docType": "PACKING_LIST",
@@ -3077,10 +3077,10 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentVersion": 0,
         "docType": "CERTIFICATE_OF_ORIGIN",
@@ -3093,10 +3093,10 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "docType": "COMMERCIAL_INVOICE",
         "docVersionId": "dv-4478-CI-1",
@@ -3144,10 +3144,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "versionNo": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-12T13:00:00.000Z",
         "entity": "Timer",
@@ -3161,10 +3161,10 @@
         "timerId": "DOCS_REQUEST",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-14T13:00:00.000Z",
         "entity": "Timer",
@@ -3178,10 +3178,10 @@
         "timerId": "FOLLOWUP",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-16T13:00:00.000Z",
         "entity": "Timer",
@@ -3193,10 +3193,10 @@
         "timerId": "FOLLOWUP_FINAL",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-17T11:00:00.000Z",
         "entity": "Timer",
@@ -3208,10 +3208,10 @@
         "timerId": "ESCALATION",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-19T11:00:00.000Z",
         "entity": "Timer",
@@ -3223,10 +3223,10 @@
         "timerId": "ARRIVAL",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-13T12:00:00.000Z",
         "entity": "Timer",
@@ -3236,7 +3236,7 @@
         "operationId": "op-4478",
         "payload": {
           "kind": "DOCS_REQUEST",
-          "messageId": "msg-01M4TJ4GG0J296CEZEHHVECZ0Z"
+          "messageId": "msg-01M4TJ4GG0DTD5PJTHB7W7KRWF"
         },
         "reason": "CP-HOURS-AR",
         "status": "FIRED",
@@ -3244,13 +3244,13 @@
         "timerId": "deferred-4478-1",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "approvedAtSim": "2026-10-13T11:00:00-03:00",
-        "approvedBy": "brk-judge-00",
+        "approvedBy": "brk-guest-00",
         "carrier": "Pacifica Container Lines",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "control": "AGENT",
         "controlHistory": [
           {
@@ -3277,7 +3277,7 @@
           },
           {
             "atSim": "2026-10-13T11:00:00-03:00",
-            "by": "BROKER:brk-judge-00",
+            "by": "BROKER:brk-guest-00",
             "status": "APPROVED"
           }
         ],
@@ -3292,7 +3292,7 @@
             "source": "SEED"
           }
         ],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-norpampa",
         "incoterm": "FOB",
         "incotermPlace": "Shenzhen",
@@ -3315,10 +3315,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "vessel": "Pacifica Horizon",
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentDocVersionId": "dv-4487-CI-1",
         "currentVersion": 1,
@@ -3333,10 +3333,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "validatedBy": "READER",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentDocVersionId": "dv-4487-PL-1",
         "currentVersion": 1,
@@ -3351,10 +3351,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "validatedBy": "READER",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentDocVersionId": "dv-4487-CO-1",
         "currentVersion": 1,
@@ -3369,10 +3369,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "validatedBy": "READER",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "docType": "COMMERCIAL_INVOICE",
         "docVersionId": "dv-4487-CI-1",
@@ -3414,17 +3414,17 @@
         "source": {
           "channel": "UPLOAD_LINK",
           "party": "IMPORTER",
-          "uploadToken": "wFhE4jf3-t7i00QqWYBWO6PGdFlV6rbhS_1ZBFhMNl8"
+          "uploadToken": "bD4536vo8H6pceS9FhgtP2eVKEgFqfv_zG2KGYq548g"
         },
         "state": "READ",
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "versionNo": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "docType": "PACKING_LIST",
         "docVersionId": "dv-4487-PL-1",
@@ -3460,17 +3460,17 @@
         "source": {
           "channel": "UPLOAD_LINK",
           "party": "IMPORTER",
-          "uploadToken": "wFhE4jf3-t7i00QqWYBWO6PGdFlV6rbhS_1ZBFhMNl8"
+          "uploadToken": "bD4536vo8H6pceS9FhgtP2eVKEgFqfv_zG2KGYq548g"
         },
         "state": "READ",
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "versionNo": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "docType": "CERTIFICATE_OF_ORIGIN",
         "docVersionId": "dv-4487-CO-1",
@@ -3507,17 +3507,17 @@
         "source": {
           "channel": "UPLOAD_LINK",
           "party": "IMPORTER",
-          "uploadToken": "wFhE4jf3-t7i00QqWYBWO6PGdFlV6rbhS_1ZBFhMNl8"
+          "uploadToken": "bD4536vo8H6pceS9FhgtP2eVKEgFqfv_zG2KGYq548g"
         },
         "state": "READ",
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "versionNo": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-09T13:00:00.000Z",
         "entity": "Timer",
@@ -3531,10 +3531,10 @@
         "timerId": "DOCS_REQUEST",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-11T13:00:00.000Z",
         "entity": "Timer",
@@ -3547,10 +3547,10 @@
         "timerId": "FOLLOWUP",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-13T13:00:00.000Z",
         "entity": "Timer",
@@ -3563,10 +3563,10 @@
         "timerId": "FOLLOWUP_FINAL",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-14T10:00:00.000Z",
         "entity": "Timer",
@@ -3579,10 +3579,10 @@
         "timerId": "ESCALATION",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-16T10:00:00.000Z",
         "entity": "Timer",
@@ -3595,11 +3595,11 @@
         "timerId": "ARRIVAL",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "carrier": "Austral Line",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "control": "AGENT",
         "controlHistory": [
           {
@@ -3636,7 +3636,7 @@
             "source": "SEED"
           }
         ],
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-sierras",
         "incoterm": "CIF",
         "incotermPlace": "Buenos Aires",
@@ -3659,10 +3659,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "vessel": "Austral Aurora",
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentDocVersionId": "dv-4488-CI-1",
         "currentVersion": 1,
@@ -3675,10 +3675,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "validatedBy": "READER",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentDocVersionId": "dv-4488-PL-2",
         "currentVersion": 2,
@@ -3692,10 +3692,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "validatedBy": "READER",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "currentDocVersionId": "dv-4488-CO-1",
         "currentVersion": 1,
@@ -3708,10 +3708,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "validatedBy": "READER",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "docType": "COMMERCIAL_INVOICE",
         "docVersionId": "dv-4488-CI-1",
@@ -3752,7 +3752,7 @@
         "sizeBytes": 2465,
         "source": {
           "channel": "WHATSAPP",
-          "messageId": "msg-01M4TS07R0FN85R5WCCBVNXM8K",
+          "messageId": "msg-01M4TS07R04MX8PANBMKF5GH71",
           "party": "IMPORTER"
         },
         "state": "READ",
@@ -3760,10 +3760,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "versionNo": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "docType": "PACKING_LIST",
         "docVersionId": "dv-4488-PL-1",
@@ -3807,7 +3807,7 @@
         "sizeBytes": 2035,
         "source": {
           "channel": "WHATSAPP",
-          "messageId": "msg-01M4TS22B0ZNJ915VEDZN10ZVV",
+          "messageId": "msg-01M4TS22B0DWASDERTB1ME0PJ6",
           "party": "IMPORTER"
         },
         "state": "READ",
@@ -3815,10 +3815,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "versionNo": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "docType": "PACKING_LIST",
         "docVersionId": "dv-4488-PL-2",
@@ -3853,7 +3853,7 @@
         "sizeBytes": 2035,
         "source": {
           "channel": "WHATSAPP",
-          "messageId": "msg-01M4VBWFP030SJG1N693Z3VZ27",
+          "messageId": "msg-01M4VBWFP0BA02DX0N97YEBA09",
           "party": "IMPORTER"
         },
         "state": "READ",
@@ -3861,10 +3861,10 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "versionNo": 2,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "docType": "CERTIFICATE_OF_ORIGIN",
         "docVersionId": "dv-4488-CO-1",
@@ -3900,7 +3900,7 @@
         "sizeBytes": 2119,
         "source": {
           "channel": "WHATSAPP",
-          "messageId": "msg-01M4TS3WY0S8SA0H5AWBMWCZ62",
+          "messageId": "msg-01M4TS3WY0YMB7M47X0C0KSMGF",
           "party": "IMPORTER"
         },
         "state": "READ",
@@ -3908,12 +3908,12 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "versionNo": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "againstDocType": "COMMERCIAL_INVOICE",
         "attempts": 0,
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "code": "PACKAGES_MISMATCH",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "docType": "PACKING_LIST",
@@ -3949,10 +3949,10 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-14T13:00:00.000Z",
         "entity": "Timer",
@@ -3965,10 +3965,10 @@
         "timerId": "DOCS_REQUEST",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-16T13:00:00.000Z",
         "entity": "Timer",
@@ -3981,10 +3981,10 @@
         "timerId": "FOLLOWUP",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-18T13:00:00.000Z",
         "entity": "Timer",
@@ -3997,10 +3997,10 @@
         "timerId": "FOLLOWUP_FINAL",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-19T11:00:00.000Z",
         "entity": "Timer",
@@ -4013,10 +4013,10 @@
         "timerId": "ESCALATION",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "dueAtSim": "2026-10-21T11:00:00.000Z",
         "entity": "Timer",
@@ -4029,15 +4029,15 @@
         "timerId": "ARRIVAL",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "emailSent": false,
         "entity": "Escalation",
         "escalationId": "esc-other-1",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "notifyImporter": false,
         "observationId": "obs-4488-PL-PACKAGES_MISMATCH",
         "openedAtSim": "2026-10-13T11:04:00-03:00",
@@ -4046,23 +4046,23 @@
         "reason": "OTHER",
         "resolution": "El estudio pidió la corrección al proveedor por fuera de la plataforma.",
         "resolvedAtSim": "2026-10-13T12:30:00-03:00",
-        "resolvedBy": "BROKER:brk-judge-00",
+        "resolvedBy": "BROKER:brk-guest-00",
         "status": "RESOLVED",
         "summary": "Sin autorización para escribirle al proveedor: la corrección del packing list la gestiona el estudio.",
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       }
     ],
     "Parties": [
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "contactFirstName": "Lucía",
         "contactName": "Lucía Benítez",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Importer",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-norpampa",
         "language": "es",
         "name": "Norpampa Insumos SRL",
@@ -4070,14 +4070,14 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Consent",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "grantedAt": "2026-09-30T11:00:00-03:00",
         "history": [
           {
@@ -4094,15 +4094,15 @@
         "textVersion": "v1",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "contactFirstName": "Tomás",
         "contactName": "Tomás Quiroga",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Importer",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-patagonia",
         "language": "es",
         "name": "Patagonia Frío SA",
@@ -4110,14 +4110,14 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Consent",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "grantedAt": "2026-09-29T15:00:00-03:00",
         "history": [
           {
@@ -4134,15 +4134,15 @@
         "textVersion": "v1",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "contactFirstName": "Nicolás",
         "contactName": "Nicolás Ibarra",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Importer",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-riberas",
         "language": "es",
         "name": "Riberas Ferretería SA",
@@ -4150,14 +4150,14 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Consent",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "grantedAt": "2026-09-28T11:00:00-03:00",
         "history": [
           {
@@ -4174,15 +4174,15 @@
         "textVersion": "v1",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "contactFirstName": "Valeria",
         "contactName": "Valeria Paz",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Importer",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-sierras",
         "language": "es",
         "name": "Sierras Textil SRL",
@@ -4190,14 +4190,14 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "channel": "WHATSAPP",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Consent",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "grantedAt": "2026-10-01T11:00:00-03:00",
         "history": [
           {
@@ -4214,21 +4214,21 @@
         "textVersion": "v1",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "authorized": true,
         "authorizedAt": "2026-09-30T11:00:00-03:00",
-        "brokerId": "brk-judge-00",
-        "clockId": "JUDGE#firm-judge-00",
+        "brokerId": "brk-guest-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "SupplierAuthorization",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "history": [
           {
             "action": "AUTHORIZED",
             "atSim": "2026-09-30T11:00:00-03:00",
-            "by": "BROKER:brk-judge-00"
+            "by": "BROKER:brk-guest-00"
           }
         ],
         "importerId": "imp-norpampa",
@@ -4236,21 +4236,21 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "authorized": true,
         "authorizedAt": "2026-09-30T11:00:00-03:00",
-        "brokerId": "brk-judge-00",
-        "clockId": "JUDGE#firm-judge-00",
+        "brokerId": "brk-guest-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "SupplierAuthorization",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "history": [
           {
             "action": "AUTHORIZED",
             "atSim": "2026-09-30T11:00:00-03:00",
-            "by": "BROKER:brk-judge-00"
+            "by": "BROKER:brk-guest-00"
           }
         ],
         "importerId": "imp-norpampa",
@@ -4258,21 +4258,21 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "authorized": true,
         "authorizedAt": "2026-09-29T15:00:00-03:00",
-        "brokerId": "brk-judge-00",
-        "clockId": "JUDGE#firm-judge-00",
+        "brokerId": "brk-guest-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "SupplierAuthorization",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "history": [
           {
             "action": "AUTHORIZED",
             "atSim": "2026-09-29T15:00:00-03:00",
-            "by": "BROKER:brk-judge-00"
+            "by": "BROKER:brk-guest-00"
           }
         ],
         "importerId": "imp-patagonia",
@@ -4280,21 +4280,21 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "authorized": true,
         "authorizedAt": "2026-09-28T11:00:00-03:00",
-        "brokerId": "brk-judge-00",
-        "clockId": "JUDGE#firm-judge-00",
+        "brokerId": "brk-guest-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "SupplierAuthorization",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "history": [
           {
             "action": "AUTHORIZED",
             "atSim": "2026-09-28T11:00:00-03:00",
-            "by": "BROKER:brk-judge-00"
+            "by": "BROKER:brk-guest-00"
           }
         ],
         "importerId": "imp-riberas",
@@ -4302,21 +4302,21 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "authorized": true,
         "authorizedAt": "2026-09-28T11:00:00-03:00",
-        "brokerId": "brk-judge-00",
-        "clockId": "JUDGE#firm-judge-00",
+        "brokerId": "brk-guest-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "SupplierAuthorization",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "history": [
           {
             "action": "AUTHORIZED",
             "atSim": "2026-09-28T11:00:00-03:00",
-            "by": "BROKER:brk-judge-00"
+            "by": "BROKER:brk-guest-00"
           }
         ],
         "importerId": "imp-riberas",
@@ -4324,21 +4324,21 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "authorized": true,
         "authorizedAt": "2026-10-01T11:00:00-03:00",
-        "brokerId": "brk-judge-00",
-        "clockId": "JUDGE#firm-judge-00",
+        "brokerId": "brk-guest-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "SupplierAuthorization",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "history": [
           {
             "action": "AUTHORIZED",
             "atSim": "2026-10-01T11:00:00-03:00",
-            "by": "BROKER:brk-judge-00"
+            "by": "BROKER:brk-guest-00"
           }
         ],
         "importerId": "imp-sierras",
@@ -4346,16 +4346,16 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "behaviour": "SEEDED_ERROR",
         "behaviourParams": {},
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "country": "CN",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Supplier",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "language": "en",
         "name": "Qingdao Bluewave Textiles Co., Ltd.",
         "supplierId": "sup-qingdao",
@@ -4363,17 +4363,17 @@
         "timezone": "Asia/Shanghai",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "confirmedAt": "2026-09-22T11:00:00-03:00",
         "confirmedBy": "SEED",
         "contactId": "ctc-qingdao-1",
         "createdAt": "2026-09-25T12:00:00.000Z",
-        "email": "j00-qingdao@sim.legajo.demo.craftech.io",
+        "email": "g00-qingdao@sim.legajo.demo.craftech.io",
         "entity": "SupplierContact",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "status": "ACTIVE",
         "statusHistory": [
           {
@@ -4387,14 +4387,14 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "bounces": 0,
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "SupplierProfile",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "lateDocTypes": [],
         "medianReplyHours": 1.3,
         "repliesMeasured": 6,
@@ -4403,16 +4403,16 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "workingContactId": "ctc-qingdao-1",
-        "world": "judge"
+        "world": "guest"
       },
       {
         "behaviour": "BOUNCE",
         "behaviourParams": {},
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "country": "IN",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Supplier",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "language": "en",
         "name": "Konkanshore Specialty Chemicals Pvt Ltd",
         "supplierId": "sup-konkan",
@@ -4420,17 +4420,17 @@
         "timezone": "Asia/Kolkata",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "confirmedAt": "2026-09-22T11:00:00-03:00",
         "confirmedBy": "SEED",
         "contactId": "ctc-konkan-1",
         "createdAt": "2026-09-25T12:00:00.000Z",
-        "email": "bounce+j00@simulator.amazonses.com",
+        "email": "bounce+g00@simulator.amazonses.com",
         "entity": "SupplierContact",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "status": "ACTIVE",
         "statusHistory": [
           {
@@ -4444,14 +4444,14 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "bounces": 0,
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "SupplierProfile",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "lateDocTypes": [
           "CERTIFICATE_OF_ORIGIN"
         ],
@@ -4460,16 +4460,16 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "behaviour": "UNKNOWN_DOC",
         "behaviourParams": {},
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "country": "KR",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Supplier",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "language": "en",
         "name": "Busan Coastal Parts Co.",
         "supplierId": "sup-busan",
@@ -4477,17 +4477,17 @@
         "timezone": "Asia/Seoul",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "confirmedAt": "2026-09-22T11:00:00-03:00",
         "confirmedBy": "SEED",
         "contactId": "ctc-busan-1",
         "createdAt": "2026-09-25T12:00:00.000Z",
-        "email": "j00-busan@sim.legajo.demo.craftech.io",
+        "email": "g00-busan@sim.legajo.demo.craftech.io",
         "entity": "SupplierContact",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "status": "ACTIVE",
         "statusHistory": [
           {
@@ -4501,14 +4501,14 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "bounces": 0,
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "SupplierProfile",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "lateDocTypes": [],
         "medianReplyHours": 1.7,
         "repliesMeasured": 6,
@@ -4517,16 +4517,16 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "workingContactId": "ctc-busan-1",
-        "world": "judge"
+        "world": "guest"
       },
       {
         "behaviour": "NEVER",
         "behaviourParams": {},
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "country": "IT",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Supplier",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "language": "en",
         "name": "Ligurmare Valve Works S.r.l.",
         "supplierId": "sup-ligurmare",
@@ -4534,17 +4534,17 @@
         "timezone": "Europe/Rome",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "confirmedAt": "2026-10-13T09:15:00-03:00",
         "confirmedBy": "IMPORTER",
         "contactId": "ctc-ligurmare-1",
         "createdAt": "2026-09-25T12:00:00.000Z",
-        "email": "j00-ligurmare@sim.legajo.demo.craftech.io",
+        "email": "g00-ligurmare@sim.legajo.demo.craftech.io",
         "entity": "SupplierContact",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "status": "ACTIVE",
         "statusHistory": [
           {
@@ -4564,30 +4564,30 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "bounces": 0,
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "SupplierProfile",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "lateDocTypes": [],
         "repliesMeasured": 0,
         "supplierId": "sup-ligurmare",
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "behaviour": "PROMPT",
         "behaviourParams": {},
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "country": "CN",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Supplier",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "language": "en",
         "name": "Shenzhen Brightpath Electronics Co.",
         "supplierId": "sup-shenzhen",
@@ -4595,17 +4595,17 @@
         "timezone": "Asia/Shanghai",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "confirmedAt": "2026-09-22T11:00:00-03:00",
         "confirmedBy": "SEED",
         "contactId": "ctc-shenzhen-1",
         "createdAt": "2026-09-25T12:00:00.000Z",
-        "email": "j00-shenzhen@sim.legajo.demo.craftech.io",
+        "email": "g00-shenzhen@sim.legajo.demo.craftech.io",
         "entity": "SupplierContact",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "status": "ACTIVE",
         "statusHistory": [
           {
@@ -4619,14 +4619,14 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "bounces": 0,
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "SupplierProfile",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "lateDocTypes": [],
         "medianReplyHours": 1.3,
         "repliesMeasured": 6,
@@ -4635,16 +4635,16 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "workingContactId": "ctc-shenzhen-1",
-        "world": "judge"
+        "world": "guest"
       },
       {
         "behaviour": "PROMPT",
         "behaviourParams": {},
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "country": "DE",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "Supplier",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "language": "en",
         "name": "Elbhafen Tools GmbH",
         "supplierId": "sup-elbhafen",
@@ -4652,17 +4652,17 @@
         "timezone": "Europe/Berlin",
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "confirmedAt": "2026-09-22T11:00:00-03:00",
         "confirmedBy": "SEED",
         "contactId": "ctc-elbhafen-1",
         "createdAt": "2026-09-25T12:00:00.000Z",
-        "email": "j00-elbhafen@sim.legajo.demo.craftech.io",
+        "email": "g00-elbhafen@sim.legajo.demo.craftech.io",
         "entity": "SupplierContact",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "status": "ACTIVE",
         "statusHistory": [
           {
@@ -4676,14 +4676,14 @@
         "synthetic": true,
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
-        "world": "judge"
+        "world": "guest"
       },
       {
         "bounces": 0,
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "entity": "SupplierProfile",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "lateDocTypes": [],
         "medianReplyHours": 2.5,
         "repliesMeasured": 6,
@@ -4692,15 +4692,15 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "workingContactId": "ctc-elbhafen-1",
-        "world": "judge"
+        "world": "guest"
       }
     ],
     "Platform": [
       {
-        "PK": "POP#firm-judge-00#4471",
+        "PK": "POP#firm-guest-00#4471",
         "SK": "META",
         "carrier": "Austral Line",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "customs": {
           "status": "NONE"
@@ -4712,7 +4712,7 @@
         },
         "entity": "PlatformOperation",
         "eta": "2026-10-22T08:00:00-03:00",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-norpampa",
         "incoterm": "FOB",
         "incotermPlace": "Qingdao",
@@ -4725,13 +4725,13 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "vessel": "Austral Aurora",
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "PK": "POP#firm-judge-00#4474",
+        "PK": "POP#firm-guest-00#4474",
         "SK": "META",
         "carrier": "Río Sur Shipping",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "customs": {
           "status": "NONE"
@@ -4743,7 +4743,7 @@
         },
         "entity": "PlatformOperation",
         "eta": "2026-10-24T10:00:00-03:00",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-patagonia",
         "incoterm": "FOB",
         "incotermPlace": "Nhava Sheva",
@@ -4756,13 +4756,13 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "vessel": "Río Sur Tern",
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "PK": "POP#firm-judge-00#4477",
+        "PK": "POP#firm-guest-00#4477",
         "SK": "META",
         "carrier": "Pacifica Container Lines",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "customs": {
           "status": "NONE"
@@ -4774,7 +4774,7 @@
         },
         "entity": "PlatformOperation",
         "eta": "2026-10-27T08:00:00-03:00",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-riberas",
         "incoterm": "FOB",
         "incotermPlace": "Busan",
@@ -4787,13 +4787,13 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "vessel": "Pacifica Dawn",
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "PK": "POP#firm-judge-00#4478",
+        "PK": "POP#firm-guest-00#4478",
         "SK": "META",
         "carrier": "Austral Line",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "customs": {
           "status": "NONE"
@@ -4805,7 +4805,7 @@
         },
         "entity": "PlatformOperation",
         "eta": "2026-10-19T08:00:00-03:00",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-norpampa",
         "incoterm": "FOB",
         "incotermPlace": "Genoa",
@@ -4818,13 +4818,13 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "vessel": "Austral Aurora",
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "PK": "POP#firm-judge-00#4487",
+        "PK": "POP#firm-guest-00#4487",
         "SK": "META",
         "carrier": "Pacifica Container Lines",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "customs": {
           "status": "NONE"
@@ -4836,7 +4836,7 @@
         },
         "entity": "PlatformOperation",
         "eta": "2026-10-16T07:00:00-03:00",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-norpampa",
         "incoterm": "FOB",
         "incotermPlace": "Shenzhen",
@@ -4849,13 +4849,13 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "vessel": "Pacifica Horizon",
-        "world": "judge"
+        "world": "guest"
       },
       {
-        "PK": "POP#firm-judge-00#4488",
+        "PK": "POP#firm-guest-00#4488",
         "SK": "META",
         "carrier": "Austral Line",
-        "clockId": "JUDGE#firm-judge-00",
+        "clockId": "GUEST#firm-guest-00",
         "createdAt": "2026-09-25T12:00:00.000Z",
         "customs": {
           "status": "NONE"
@@ -4867,7 +4867,7 @@
         },
         "entity": "PlatformOperation",
         "eta": "2026-10-21T08:00:00-03:00",
-        "firmId": "firm-judge-00",
+        "firmId": "firm-guest-00",
         "importerId": "imp-sierras",
         "incoterm": "CIF",
         "incotermPlace": "Buenos Aires",
@@ -4880,15 +4880,15 @@
         "updatedAt": "2026-09-25T12:00:00.000Z",
         "version": 1,
         "vessel": "Austral Aurora",
-        "world": "judge"
+        "world": "guest"
       }
     ]
   },
   "operations": [
     {
-      "clockId": "JUDGE#firm-judge-00",
+      "clockId": "GUEST#firm-guest-00",
       "dossierStatus": "OPEN",
-      "firmId": "firm-judge-00",
+      "firmId": "firm-guest-00",
       "importerId": "imp-norpampa",
       "model": "op-4471",
       "operationId": "op-4471",
@@ -4896,9 +4896,9 @@
       "supplierId": "sup-qingdao"
     },
     {
-      "clockId": "JUDGE#firm-judge-00",
+      "clockId": "GUEST#firm-guest-00",
       "dossierStatus": "OPEN",
-      "firmId": "firm-judge-00",
+      "firmId": "firm-guest-00",
       "importerId": "imp-patagonia",
       "model": "op-4474",
       "operationId": "op-4474",
@@ -4906,9 +4906,9 @@
       "supplierId": "sup-konkan"
     },
     {
-      "clockId": "JUDGE#firm-judge-00",
+      "clockId": "GUEST#firm-guest-00",
       "dossierStatus": "OPEN",
-      "firmId": "firm-judge-00",
+      "firmId": "firm-guest-00",
       "importerId": "imp-riberas",
       "model": "op-4477",
       "operationId": "op-4477",
@@ -4916,9 +4916,9 @@
       "supplierId": "sup-busan"
     },
     {
-      "clockId": "JUDGE#firm-judge-00",
+      "clockId": "GUEST#firm-guest-00",
       "dossierStatus": "OPEN",
-      "firmId": "firm-judge-00",
+      "firmId": "firm-guest-00",
       "importerId": "imp-norpampa",
       "model": "op-4478",
       "operationId": "op-4478",
@@ -4926,9 +4926,9 @@
       "supplierId": "sup-ligurmare"
     },
     {
-      "clockId": "JUDGE#firm-judge-00",
+      "clockId": "GUEST#firm-guest-00",
       "dossierStatus": "APPROVED",
-      "firmId": "firm-judge-00",
+      "firmId": "firm-guest-00",
       "importerId": "imp-norpampa",
       "model": "op-4487",
       "operationId": "op-4487",
@@ -4936,9 +4936,9 @@
       "supplierId": "sup-shenzhen"
     },
     {
-      "clockId": "JUDGE#firm-judge-00",
+      "clockId": "GUEST#firm-guest-00",
       "dossierStatus": "READY_FOR_REVIEW",
-      "firmId": "firm-judge-00",
+      "firmId": "firm-guest-00",
       "importerId": "imp-sierras",
       "model": "op-4488",
       "operationId": "op-4488",
@@ -4947,21 +4947,21 @@
     }
   ],
   "placeholders": {
-    "brokerId": "brk-judge-00",
-    "clockId": "JUDGE#firm-judge-00",
-    "firmId": "firm-judge-00",
-    "mailboxTag": "j00",
-    "note": "the world factory writes the judge's two digits instead of 00",
+    "brokerId": "brk-guest-00",
+    "clockId": "GUEST#firm-guest-00",
+    "firmId": "firm-guest-00",
+    "mailboxTag": "g00",
+    "note": "the world factory writes the guest's two digits instead of 00",
     "phonePrefix": "+54911555100"
   },
   "seed": 20260925,
   "source": {
-    "clockId": "JUDGE#firm-judge-00",
-    "firmId": "firm-judge-00",
-    "firmKind": "JUDGE"
+    "clockId": "GUEST#firm-guest-00",
+    "firmId": "firm-guest-00",
+    "firmKind": "GUEST"
   },
   "startAtSim": "2026-10-14T10:30:00-03:00",
-  "template": "judge",
+  "template": "guest",
   "tour": {
     "operationId": "op-4471",
     "operationNumber": "4471",

@@ -93,5 +93,5 @@ export function operationSpec(number: string): OperationSpec {
   return found;
 }
 
-/** Operations of the curated `judge` template (§3). */
-export const JUDGE_OPERATIONS = ["4471", "4474", "4477", "4478", "4487", "4488"] as const;
+/** Operations of the curated `guest` template (§3). */
+export const GUEST_OPERATIONS = ["4471", "4474", "4477", "4478", "4487", "4488"] as const;

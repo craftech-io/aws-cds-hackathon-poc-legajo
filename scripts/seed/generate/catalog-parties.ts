@@ -7,7 +7,7 @@ import type { ConsentMedium, SupplierBehaviour } from "@legajo/shared";
 export interface FirmSpec {
   readonly firmId: string;
   readonly name: string;
-  readonly kind: "DEMO" | "JUDGE" | "QA";
+  readonly kind: "DEMO" | "GUEST" | "QA";
   readonly mailboxAddress: string;
   /** The world of a demo firm; QA firms own many worlds. */
   readonly clockId?: string;
@@ -25,7 +25,7 @@ export interface BrokerSpec {
   readonly brokerId: string;
   readonly firmId: string;
   readonly name: string;
-  readonly role: "BROKER" | "ANALYST" | "JUDGE";
+  readonly role: "BROKER" | "ANALYST" | "GUEST";
 }
 
 export const BROKERS: readonly BrokerSpec[] = [

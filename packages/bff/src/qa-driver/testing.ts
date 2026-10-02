@@ -1,8 +1,8 @@
 // Test-only worlds for the `QaDriver` over the in-memory connector: a scenario world `qa-812-1-sc01`
-// (operation `op-7001`, importer `imp-qa-812-1-sc01-a`), the minimal QA world `GLOBAL#firm-qa` (`op-4471-qa`), the synthetic judge's
-// world `JUDGE#firm-judge-test` (`op-4471-jt`) and the demo slice of firm-delta (`op-4471`), plus a
+// (operation `op-7001`, importer `imp-qa-812-1-sc01-a`), the minimal QA world `GLOBAL#firm-qa` (`op-4471-qa`), the synthetic guest's
+// world `GUEST#firm-guest-test` (`op-4471-jt`) and the demo slice of firm-delta (`op-4471`), plus a
 // handler table whose every action only counts its calls. Nothing here ships in a Lambda.
-import { JUDGE_TEST_CLOCK_ID, QA_GLOBAL_CLOCK_ID, threadAddress } from "@legajo/shared";
+import { GUEST_TEST_CLOCK_ID, QA_GLOBAL_CLOCK_ID, threadAddress } from "@legajo/shared";
 import type { MemoryStores } from "../connector/index";
 import { REAL_NOW, START_SIM, contactFixture, hashOf, importerFixture, memoryStores, operationFixture, seedDemoSlice, supplierFixture } from "../connector/testing";
 import { createLogger } from "../lib/log";
@@ -29,7 +29,7 @@ export const QA_WORLDS: readonly WorldSeed[] = [
   { clockId: QA_CLOCK, firmId: "firm-qa", operationId: "op-7001", operationNumber: "7001", suffix: "sc01a", importerId: "imp-qa-812-1-sc01-a", phone: "+5491155590001" },
   { clockId: OTHER_QA_CLOCK, firmId: "firm-qa", operationId: "op-7002", operationNumber: "7002", suffix: "sc02a", importerId: "imp-qa-812-1-sc02-a", phone: "+5491155590002" },
   { clockId: QA_GLOBAL_CLOCK_ID, firmId: "firm-qa", operationId: "op-4471-qa", operationNumber: "4471", suffix: "qamin", importerId: "imp-qamin", phone: "+5491155590003" },
-  { clockId: JUDGE_TEST_CLOCK_ID, firmId: "firm-judge-test", operationId: "op-4471-jt", operationNumber: "4471", suffix: "jtest", importerId: "imp-jtest", phone: "+5491155590004" },
+  { clockId: GUEST_TEST_CLOCK_ID, firmId: "firm-guest-test", operationId: "op-4471-jt", operationNumber: "4471", suffix: "jtest", importerId: "imp-jtest", phone: "+5491155590004" },
 ];
 
 async function seedWorld(stores: MemoryStores, world: WorldSeed): Promise<void> {
@@ -73,7 +73,7 @@ function firmRows(firmId: string, name: string) {
 export async function qaDriverStores(): Promise<MemoryStores> {
   const stores = memoryStores();
   await seedDemoSlice(stores);
-  await stores.seed.loadItems("Firms", [...firmRows("firm-qa", "Estudio QA"), ...firmRows("firm-judge-test", "Estudio de prueba")]);
+  await stores.seed.loadItems("Firms", [...firmRows("firm-qa", "Estudio QA"), ...firmRows("firm-guest-test", "Estudio de prueba")]);
   for (const world of QA_WORLDS) await seedWorld(stores, world);
   return stores;
 }

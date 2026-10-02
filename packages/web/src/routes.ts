@@ -1,7 +1,7 @@
 // Route table of the console: one entry per view of docs/design-brief.md §6, with the roles that may
 // open it (docs/architecture.md §10). console-routes.tsx matches the path and renders the view of
 // views/<id>/View.tsx; the AppShell builds the navigation from the same table. Approving and
-// reopening are actions inside the dossier, gated by the BFF (`BROKER` or `JUDGE`, recent login),
+// reopening are actions inside the dossier, gated by the BFF (`BROKER` or `GUEST`, recent login),
 // not routes.
 import type { ConsoleRole } from "@legajo/shared";
 import { copy } from "./copy/console";

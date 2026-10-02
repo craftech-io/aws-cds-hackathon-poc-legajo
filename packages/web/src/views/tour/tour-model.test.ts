@@ -94,7 +94,7 @@ describe("progress of the tour", () => {
   });
 
   it("keeps progress per world and epoch, and survives a malformed stored value", () => {
-    expect(progressKey("JUDGE#firm-judge-01", 2)).toBe("legajo.tour.JUDGE#firm-judge-01#2");
+    expect(progressKey("GUEST#firm-guest-01", 2)).toBe("legajo.tour.GUEST#firm-guest-01#2");
     expect(parseProgress('["sign-in#0", 3]')).toEqual(new Set(["sign-in#0"]));
     expect(parseProgress("{broken")).toEqual(new Set());
     expect(parseProgress(null)).toEqual(new Set());

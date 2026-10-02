@@ -124,11 +124,11 @@ describe("[FL-096] reader client · the reader is unavailable", () => {
     expect(reading).toMatchObject({ status: "RECOGNIZED", docType: "PACKING_LIST", matchedBy: "SHA256", observations: TRUTH.observations });
   });
 
-  it("[FL-096] sends X-Fault-Scope only for qa-* clocks, so a scenario's faults never reach a demo or judge world", async () => {
+  it("[FL-096] sends X-Fault-Scope only for qa-* clocks, so a scenario's faults never reach a demo or guest world", async () => {
     const { read, setFaults, recorded } = setup();
     setFaults("ERROR_503");
     expect((await read("GLOBAL#firm-delta")).status).toBe("RECOGNIZED");
-    expect((await read("JUDGE#firm-judge-01", "dv-4471-j01-PL-1")).status).toBe("RECOGNIZED");
+    expect((await read("GUEST#firm-guest-01", "dv-4471-g01-PL-1")).status).toBe("RECOGNIZED");
     expect(recorded.map((request) => request.headers["x-fault-scope"])).toEqual([undefined, undefined]);
     await failure(read(QA_CLOCK, "dv-4471-PL-2"));
     expect(recorded.at(-1)?.headers["x-fault-scope"]).toBe(QA_CLOCK);

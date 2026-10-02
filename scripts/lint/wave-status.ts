@@ -2,6 +2,9 @@
 // when the plan's own entry rule holds for it (§"Reglas del plan": the previous wave merged, deployed
 // by CI and smoke-green), so a later wave is never called done on top of waves that were never built.
 //
+// A wave may run in stages (`### Ola N · Etapa X · …`, docs/build-plan.md "Reglas del plan"): every
+// section with the same wave number adds its blockers to that one wave, and §5 keeps one row per wave.
+//
 // A wave is blocked (and therefore can only be `no aceptada` or `no iniciada`) when any of these holds:
 //   1. an earlier wave is not `aceptada`;
 //   2. a file or directory its WPs list under "Archivos:" does not exist (a glob needs one file);
@@ -131,16 +134,21 @@ export function blockers(waves: readonly Wave[], statuses: readonly WaveStatus[]
       }
     }
     if (!isDeployed) reasons.push(`sin deploy por CI (${SST_ENV_FILE} sin recursos)`);
-    result.set(number, [...new Set(reasons)]);
+    result.set(number, [...new Set([...(result.get(number) ?? []), ...reasons])]);
   }
   return result;
+}
+
+/** The wave numbers of the plan, once each even when a wave runs in several stages. */
+export function waveNumbers(waves: readonly Wave[]): number[] {
+  return [...new Set(waves.map((wave) => waveNumber(wave.title)).filter((n): n is number => n !== undefined))];
 }
 
 /** Errors in §5: missing or unknown rows, and any `aceptada` wave that still has blockers. */
 export function violations(waves: readonly Wave[], markdown: string, repo: RepoView): string[] {
   const rows = parseStatus(markdown);
   const errors: string[] = [];
-  const numbers = waves.map((wave) => waveNumber(wave.title)).filter((n): n is number => n !== undefined);
+  const numbers = waveNumbers(waves);
   for (const row of rows) {
     if (!(WAVE_STATES as readonly string[]).includes(row.state)) errors.push(`ola ${row.wave}: estado desconocido "${row.state}"`);
     if (!numbers.includes(row.wave)) errors.push(`ola ${row.wave}: no existe en §2`);

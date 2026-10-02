@@ -36,7 +36,7 @@ export function denialDecision(input: DenialInput): DecisionInput {
     detail: {
       procedure: input.path,
       role: principal.role,
-      // A principal the directory has not matched yet (a judge before its world exists) is named by its sub.
+      // A principal the directory has not matched yet (a guest before its world exists) is named by its sub.
       ...(principal.brokerId === undefined ? { sub: principal.sub } : {}),
       ...(input.target === undefined ? {} : { targetKind: input.target.kind, targetId: input.target.id }),
     },

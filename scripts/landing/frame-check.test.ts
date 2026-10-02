@@ -2,6 +2,7 @@
 // refusal never repeats what it found (docs/design-brief.md §9).
 import { describe, expect, it } from "vitest";
 import { parseTerms } from "../lint/forbidden-terms";
+import { NEUTRAL_PHRASE, NEUTRAL_WORDS } from "../lint/neutral-words";
 import { assertCleanFrame, frameProblems, termsFor } from "./frame-check";
 
 const TERMS = parseTerms("Zeta Brokers Group\nomegasoft");
@@ -23,6 +24,12 @@ describe("landing frame check", () => {
     ]);
     expect(() => assertCleanFrame("console-audit", text, TERMS)).toThrow(/console-audit: the frame shows/);
     expect(() => assertCleanFrame("console-audit", text, TERMS)).not.toThrow(/OmegaSoft|AKIA|eyJ/);
+  });
+
+  it("names every word of the neutral list a frame shows, by line", () => {
+    const [word = ""] = NEUTRAL_WORDS;
+    const text = ["Legajo listo", `Probá la demo del ${word}`, `built on ${NEUTRAL_PHRASE.toUpperCase()}`].join("\n");
+    expect(frameProblems(text, [])).toEqual([`the neutral word "${word}" on line 2`, `the neutral word "${NEUTRAL_PHRASE}" on line 3`]);
   });
 
   it("fails closed without the list for a console capture, and only warns for a local render", () => {

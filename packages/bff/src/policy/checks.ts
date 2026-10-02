@@ -1,5 +1,5 @@
 // The builders of a rule's result, and `missing`: the one place that decides what a rule does
-// without a fact it needs. A send decided now fails closed (`DENY`); a past send re-judged skips what
+// without a fact it needs. A send decided now fails closed (`DENY`); a past send re-checked skips what
 // cannot be rebuilt (`SKIP`), because its `ALLOW` decision already recorded what was checked when it
 // went out.
 import { TO_FIRM, TO_IMPORTER, TO_SUPPLIER, type Route } from "./kinds";
@@ -28,7 +28,7 @@ export function defer(detail: string, next: Date, zone: string): RuleCheck {
   return { result: "DEFER", detail: clip(detail), next, zone };
 }
 
-/** A fact the rule needs is absent: fail closed when deciding a send, skip when judging the past. */
+/** A fact the rule needs is absent: fail closed when deciding a send, skip when checking the past. */
 export function missing(ctx: { readonly mode: EvaluationMode }, fact: string): RuleCheck {
   return ctx.mode === "SEND" ? deny(`${fact} is missing: the policy fails closed`) : skip(`${fact} is not rebuilt for a past instant`);
 }

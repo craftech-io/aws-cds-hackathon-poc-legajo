@@ -1,9 +1,10 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   CATALOG_FILE,
   TEST_PLAN_FILE,
+  checkCases,
   checkCitations,
   committedMatrix,
   matrixDiff,
@@ -52,7 +53,7 @@ describe("catalog and matrix", () => {
 
   it("keeps the committed matrix of docs/test-plan.md in step with docs/flows-catalog.md", () => {
     const flows = parseCatalog(readFileSync(resolve(process.cwd(), CATALOG_FILE), "utf8"));
-    expect(flows).toHaveLength(100);
+    expect(flows).toHaveLength(132);
     expect(committedMatrix(readFileSync(resolve(process.cwd(), TEST_PLAN_FILE), "utf8"))).toBe(renderMatrix(flows));
   });
 });
@@ -63,6 +64,7 @@ describe("citations", () => {
     expect(resolveTestPath("U", "reader-mock/reader.test.ts")).toBe("packages/reader-mock/src/reader.test.ts");
     expect(resolveTestPath("U", "views/landing/landing.test.ts")).toBe("packages/web/src/views/landing/landing.test.ts");
     expect(resolveTestPath("U", "infra/policy-rules.test.ts")).toBe("infra/policy-rules.test.ts");
+    expect(resolveTestPath("U", "shared/legal-versions.test.ts")).toBe("packages/shared/src/legal-versions.test.ts");
     expect(resolveTestPath("UI", "registry.spec.ts")).toBe("packages/web/e2e/registry.spec.ts");
     expect(resolveTestPath("LF", "importer.flow.test.ts")).toBe("tests/flows/importer.flow.test.ts");
     expect(scenarioPrefix("SC-16/1")).toBe("sc-16-");
@@ -98,5 +100,21 @@ describe("citations", () => {
       ),
     );
     expect(report.errors).toEqual(['FL-002: scripts/scenarios/sc-00-smoke.ts has no step with flows: [..."FL-002"...] (SMK/3)']);
+  });
+});
+
+describe("QA cases", () => {
+  it("fails a flow without its case and a case whose heading lost the catalog's title", () => {
+    const flows = parseCatalog(CATALOG);
+    expect(checkCases(flows, files({ "tests/cases/FL-001.md": "# FL-001 · Alta de importador\n\n> Caso" }))).toEqual(["FL-002: tests/cases/FL-002.md does not exist"]);
+    expect(checkCases(flows, files({ "tests/cases/FL-001.md": "# FL-001 · Alta", "tests/cases/FL-002.md": "# FL-002 · Importador sin opt-in" }))).toEqual([
+      'FL-001: tests/cases/FL-001.md starts with "# FL-001 · Alta", expected "# FL-001 · Alta de importador"',
+    ]);
+  });
+
+  it("every flow of docs/flows-catalog.md has its case with the catalog's title", () => {
+    const flows = parseCatalog(readFileSync(resolve(process.cwd(), CATALOG_FILE), "utf8"));
+    const disk = { exists: (path: string) => existsSync(resolve(process.cwd(), path)), read: (path: string) => readFileSync(resolve(process.cwd(), path), "utf8") };
+    expect(checkCases(flows, disk)).toEqual([]);
   });
 });

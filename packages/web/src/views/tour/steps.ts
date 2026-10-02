@@ -1,8 +1,8 @@
-// The judge's guided tour (docs/design-brief.md §15), single source of three things: the "Recorrido
+// The guest's guided tour (docs/design-brief.md §15), single source of three things: the "Recorrido
 // guiado" panel of the console (es/en), the "Test instructions" of the README (English, written by
 // `npm run tour:check -- --write` between its markers) and the steps of `SC-24` (scripts/scenarios),
 // which imports this module. `npm run tour:check` fails when the README or SC-24 drift from it, and
-// scripts/tour/timeline.test.ts walks these steps over the `judge` template to prove the expected
+// scripts/tour/timeline.test.ts walks these steps over the `guest` template to prove the expected
 // hours below are the real ones.
 //
 // The tour follows the story of operation 4471 and the video: the request at 15/10 10:00, the email
@@ -16,7 +16,7 @@ import { formatTime, wallClockOf } from "../../lib/format";
 
 export const TOUR_OPERATION_NUMBER = "4471";
 
-/** Simulated window of the tour in the `judge` template (docs/seed-spec.md §3, invariant 21). */
+/** Simulated window of the tour in the `guest` template (docs/seed-spec.md §3, invariant 21). */
 export const TOUR_WINDOW = { startSim: "2026-10-14T10:30:00-03:00", endSim: "2026-10-16T09:00:00-03:00" } as const;
 
 export const AR_ZONE = "America/Argentina/Buenos_Aires";

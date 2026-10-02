@@ -1,7 +1,7 @@
 // Test-only Cognito user pool: the behaviour of the challenges the console handles, with real SRP
 // verification (srp-server.ts) and real TOTP codes (totp.ts). Users are invited (temporary
 // password, FORCE_CHANGE_PASSWORD) or confirmed, with or without TOTP; they sign in with their email
-// (an alias, like infra/auth.ts) or, like a judge, with a username and no email. The pool's MFA is
+// (an alias, like infra/auth.ts) or, like a guest, with a username and no email. The pool's MFA is
 // OPTIONAL like infra/auth.ts, or ON to exercise MFA_SETUP. Every request is recorded so a test can
 // assert what crossed the wire.
 import { type AuthResponse, type AuthenticationResult, type CognitoApi, CognitoError, TOTP_MFA } from "../cognito";
@@ -11,7 +11,7 @@ import { randomBase32Secret, totpCode } from "./totp";
 
 export const FAKE_POOL_ID = "us-east-1_FakePool1";
 
-/** A user signs in with `email` (brokers, analysts) or with `username` (judges, who have no email). */
+/** A user signs in with `email` (brokers, analysts) or with `username` (guests, who have no email). */
 export interface FakeUserInit {
   readonly email?: string;
   readonly username?: string;

@@ -1,7 +1,7 @@
 // The rules that do not depend on the hour (docs/design-brief.md §5.7): who has the conversation,
 // the kind → channel matrix, the recipient fence, the opt-in and opt-out, the supplier authorization
 // and contact status, the scope of an approved dossier, and the two content rules. Every dated fact
-// is read from its history at the judged instant; a send decided now also honours the current value
+// is read from its history at the decided instant; a send decided now also honours the current value
 // when it is the stricter one, so a history that lags the item can never let a send through.
 import { normalizePhone } from "@legajo/shared";
 import { findSensitiveAsk } from "../copy/forbidden";
@@ -82,7 +82,7 @@ export function checkOptIn(ctx: PolicyContext): RuleCheck {
   if (!importerOfOperation(ctx)) return deny("the opt-in given is not the operation's importer's");
   const entry = consentEntry(ctx);
   if (entry === undefined) return deny("the importer has no WhatsApp opt-in");
-  return pass(entry.action === "GRANTED" ? `WhatsApp opt-in in force since ${entry.atSim}` : "WhatsApp opt-in registered; its revocation is judged by CP-OPTOUT");
+  return pass(entry.action === "GRANTED" ? `WhatsApp opt-in in force since ${entry.atSim}` : "WhatsApp opt-in registered; its revocation is decided by CP-OPTOUT");
 }
 
 /** `CP-OPTOUT`: after an opt-out only the opt-out confirmation goes out. */
@@ -117,7 +117,7 @@ export function checkSupplierAuth(ctx: PolicyContext): RuleCheck {
 export function checkBouncedContact(ctx: PolicyContext): RuleCheck {
   if (!ctx.toSupplierByEmail) return skip("the contact status only applies to email to the supplier");
   const { contact } = ctx.input;
-  if (contact === undefined) return skip("no contact to judge (CP-SUPPLIER-AUTH)");
+  if (contact === undefined) return skip("no contact to guest (CP-SUPPLIER-AUTH)");
   const dated = contactStatusAt(contact, atSim(ctx));
   const status = dated === "BOUNCED" || dated === "COMPLAINED" ? dated : sending(ctx) && (contact.status === "BOUNCED" || contact.status === "COMPLAINED") ? contact.status : undefined;
   return status === undefined ? pass("the contact has not bounced or complained") : deny(`the contact ${status === "BOUNCED" ? "bounced" : "complained"}: it is never written to again`);

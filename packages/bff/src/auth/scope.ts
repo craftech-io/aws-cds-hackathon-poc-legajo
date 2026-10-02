@@ -7,7 +7,7 @@
 // checked in part. An id that does not exist is not this fence's business: the procedure answers
 // NOT_FOUND or creates it.
 //
-//   firm          the id itself                     clock      GLOBAL#/JUDGE# name their firm;
+//   firm          the id itself                     clock      GLOBAL#/GUEST# name their firm;
 //   operation     Operations META `firmId`                     qa-* → firm-qa, sim-* → firm-sim
 //   importer      Parties importer `firmId`         docVersion `dv-<op>-…`  → its operation
 //   supplier      Parties supplier `firmId`         observation `obs-<op>-…` → its operation
@@ -75,7 +75,7 @@ export function fencedIdsOf(input: unknown): FenceWalk {
   return broken === undefined ? { ok: true, ids: [...found.values()] } : { ok: false, limit: broken };
 }
 
-// `dv-4471-PL-1`, `obs-4471-j03-PL-GROSS_WEIGHT_MISMATCH` → `op-4471`, `op-4471-j03`.
+// `dv-4471-PL-1`, `obs-4471-g03-PL-GROSS_WEIGHT_MISMATCH` → `op-4471`, `op-4471-g03`.
 const OPERATION_OF_CHILD = /^(?:dv|obs)-(\d{4}(?:-[a-z0-9]+)?)-(?:CI|PL|CO)-/;
 
 /** The operation a document version or an observation belongs to. */
@@ -87,7 +87,7 @@ export function operationOfChildId(id: string): string | undefined {
 // Worlds that are not a firm's own clock belong to the QA and batch firms (docs/architecture.md §8).
 const FIRM_OF_CLOCK_SCOPE = { QA: "firm-qa", SIM: "firm-sim" } as const;
 
-/** The firm a world belongs to: the one a GLOBAL or JUDGE clock names, `firm-qa` for `qa-*`, `firm-sim` for `sim-*`. */
+/** The firm a world belongs to: the one a GLOBAL or GUEST clock names, `firm-qa` for `qa-*`, `firm-sim` for `sim-*`. */
 export function firmOfClockId(clockId: string): string | undefined {
   const parsed = parseClockId(clockId);
   if (parsed === undefined) return undefined;

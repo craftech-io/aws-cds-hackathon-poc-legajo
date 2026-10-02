@@ -29,18 +29,18 @@ describe("[FL-005] GET /v1/operations/{operationNumber}?firm=<firmId>", () => {
     for (const attribute of ["PK", "SK", "entity", "version", "createdAt", "world", "expiresAt"]) expect(result.json).not.toHaveProperty(attribute);
   });
 
-  it("[FL-005] answers 404 for the same number in another firm and serves each judge firm its own row", async () => {
-    const judge = operationItem({ firmId: "firm-judge-01", eta: "2026-10-20T08:00:00-03:00" }, { clockId: "JUDGE#firm-judge-01", world: "judge" });
-    const { app } = platformFixture({ items: [operationItem(), judge] });
+  it("[FL-005] answers 404 for the same number in another firm and serves each guest firm its own row", async () => {
+    const guest = operationItem({ firmId: "firm-guest-01", eta: "2026-10-20T08:00:00-03:00" }, { clockId: "GUEST#firm-guest-01", world: "guest" });
+    const { app } = platformFixture({ items: [operationItem(), guest] });
 
     const other = await call(app, "GET", platformPaths.operation("firm-norte", "4471"));
     expect(other.status).toBe(404);
     expect(errorOf(other).code).toBe("NOT_FOUND");
 
     const delta = await call(app, "GET", platformPaths.operation(DELTA, "4471"));
-    const own = await call(app, "GET", platformPaths.operation("firm-judge-01", "4471"));
+    const own = await call(app, "GET", platformPaths.operation("firm-guest-01", "4471"));
     expect(delta.json).toMatchObject({ firmId: DELTA, eta: "2026-10-22T08:00:00-03:00" });
-    expect(own.json).toMatchObject({ firmId: "firm-judge-01", eta: "2026-10-20T08:00:00-03:00" });
+    expect(own.json).toMatchObject({ firmId: "firm-guest-01", eta: "2026-10-20T08:00:00-03:00" });
   });
 
   it("[FL-005] answers 404 for a number the firm does not have", async () => {
@@ -110,10 +110,10 @@ describe("[FL-061] POST /v1/operations/{operationNumber}/eta", () => {
   const advance = { newEta: "2026-10-20T08:00:00-03:00", occurredAtSim: "2026-10-16T09:30:00-03:00" };
 
   it("[FL-061] moves the ETA, logs the event and publishes CarrierEtaChanged to the bus", async () => {
-    const judge = operationItem({ firmId: "firm-judge-03" }, { clockId: "JUDGE#firm-judge-03", world: "judge", expiresAt: 1_893_456_000 });
-    const { app, store, publisher } = platformFixture({ items: [judge] });
+    const guest = operationItem({ firmId: "firm-guest-03" }, { clockId: "GUEST#firm-guest-03", world: "guest", expiresAt: 1_893_456_000 });
+    const { app, store, publisher } = platformFixture({ items: [guest] });
 
-    const result = await call(app, "POST", platformPaths.eta("firm-judge-03", "4471"), { body: advance, headers: KEY });
+    const result = await call(app, "POST", platformPaths.eta("firm-guest-03", "4471"), { body: advance, headers: KEY });
 
     expect(result.status).toBe(200);
     const [published] = publisher.events;
@@ -124,7 +124,7 @@ describe("[FL-061] POST /v1/operations/{operationNumber}/eta", () => {
       detailType: "CarrierEtaChanged",
       detail: {
         eventId: published?.detail.eventId,
-        firmId: "firm-judge-03",
+        firmId: "firm-guest-03",
         operationNumber: "4471",
         vessel: "Austral Aurora",
         previousEta: "2026-10-22T08:00:00-03:00",
@@ -134,18 +134,18 @@ describe("[FL-061] POST /v1/operations/{operationNumber}/eta", () => {
       },
     });
 
-    const after = await call(app, "GET", platformPaths.operation("firm-judge-03", "4471"));
+    const after = await call(app, "GET", platformPaths.operation("firm-guest-03", "4471"));
     expect(after.json).toMatchObject({ eta: "2026-10-20T08:00:00-03:00" });
     const rows = store.items();
     expect(rows.map((row) => row.entity).sort()).toEqual(["PlatformEvent", "PlatformOperation"]);
     expect(rows.find((row) => row.entity === "PlatformOperation")).toMatchObject({ version: 2, eta: "2026-10-20T08:00:00-03:00" });
     // The event row inherits the world attributes, so the world's reset and TTL reach it.
     expect(rows.find((row) => row.entity === "PlatformEvent")).toMatchObject({
-      PK: platformPk("firm-judge-03", "4471"),
+      PK: platformPk("firm-guest-03", "4471"),
       eventId: published?.detail.eventId,
       idempotencyKey: KEY["idempotency-key"],
-      clockId: "JUDGE#firm-judge-03",
-      world: "judge",
+      clockId: "GUEST#firm-guest-03",
+      world: "guest",
       expiresAt: 1_893_456_000,
     });
   });

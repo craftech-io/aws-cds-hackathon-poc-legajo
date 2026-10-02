@@ -1,16 +1,16 @@
-// SC-25 · the judge's world and its sessions (docs/test-plan.md §4.5): two browser contexts (A and B)
-// of the synthetic account `judge-test` on the deployed console. The first sign-in creates the judge's
-// world from the `judge` template through the BFF; a second session gets the shell's fixed notice
+// SC-25 · the guest's world and its sessions (docs/test-plan.md §4.5): two browser contexts (A and B)
+// of the synthetic account `guest-test` on the deployed console. The first sign-in creates the guest's
+// world from the `guest` template through the BFF; a second session gets the shell's fixed notice
 // without a reset button; "Reiniciar demo" brings the template back, with a new epoch, a new thread
 // address for 4471 and the platform's ETA restored. Runs before SC-24 (the same account) and destroys
-// the judge world at the start and in its cleanup.
+// the guest world at the start and in its cleanup.
 import type { Browser, BrowserContext, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type { QaSnapshot } from "@legajo/bff/qa-driver/snapshot";
-import { JUDGE_TEST_CLOCK_ID } from "@legajo/shared";
+import { GUEST_TEST_CLOCK_ID } from "@legajo/shared";
 import { clockCopy } from "../../packages/web/src/views/clock/copy";
 import { TOUR_WINDOW } from "../../packages/web/src/views/tour/steps";
-import { judgePassword, launchBrowser, operationIdOf, otherSessionNotice, signIn } from "./lib/browser";
+import { guestPassword, launchBrowser, operationIdOf, otherSessionNotice, signIn } from "./lib/browser";
 import { SITE } from "./lib/site";
 import { type ScenarioContext, defineScenario, ensure } from "./lib/steps";
 
@@ -40,7 +40,7 @@ async function newSession(sessions: Sessions): Promise<Page> {
 }
 
 async function platformEta(ctx: ScenarioContext): Promise<number> {
-  const row = (await ctx.qa("platform.get", { firmId: "firm-judge-test", operationNumber: "4471" })) as { eta: string };
+  const row = (await ctx.qa("platform.get", { firmId: "firm-guest-test", operationNumber: "4471" })) as { eta: string };
   return Date.parse(row.eta);
 }
 
@@ -49,17 +49,17 @@ const section = (page: Page, title: string) => page.getByRole("region", { name: 
 export const sc25 = defineScenario({
   id: "SC-25",
   slug: "sc25",
-  title: "The judge's world and its sessions",
+  title: "The guest's world and its sessions",
   suites: ["full"],
-  lane: "judge",
+  lane: "guest",
   steps: [
     {
       n: 1,
-      title: "the first sign-in creates the judge's world from its template, paused at 14/10 10:30",
+      title: "the first sign-in creates the guest's world from its template, paused at 14/10 10:30",
       flows: ["FL-079"],
       async run(ctx) {
-        await ctx.qa("world.destroy", { clockId: JUDGE_TEST_CLOCK_ID });
-        const sessions: Sessions = { browser: await launchBrowser(), contexts: [], password: judgePassword() };
+        await ctx.qa("world.destroy", { clockId: GUEST_TEST_CLOCK_ID });
+        const sessions: Sessions = { browser: await launchBrowser(), contexts: [], password: guestPassword() };
         ctx.state.sessions = sessions;
         sessions.a = await newSession(sessions);
         const operationId = await operationIdOf(sessions.a, "4471");
@@ -130,6 +130,6 @@ export const sc25 = defineScenario({
     const sessions = ctx.state.sessions as Sessions | undefined;
     for (const context of sessions?.contexts ?? []) await context.close();
     await sessions?.browser.close();
-    await ctx.qa("world.destroy", { clockId: JUDGE_TEST_CLOCK_ID });
+    await ctx.qa("world.destroy", { clockId: GUEST_TEST_CLOCK_ID });
   },
 });

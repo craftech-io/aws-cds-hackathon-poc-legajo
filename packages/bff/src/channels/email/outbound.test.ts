@@ -19,7 +19,7 @@ let world: EmailWorld;
 let client: EmailClient;
 let lines: string[];
 let qaA: Operation;
-let judge: Operation;
+let guest: Operation;
 
 async function cloneWorld(clockId: string, firmId: string, key: string, number: string, clockTag: string, mailbox: string): Promise<Operation> {
   const { parties, operations, world: runtime } = world.stores.connector;
@@ -38,7 +38,7 @@ beforeEach(async () => {
   world = await emailWorld();
   qaA = await cloneWorld(QA_CLOCK, "firm-qa", "qa-812-1-sc15-a", "7042", "q1", QA_A);
   await cloneWorld(QA_CLOCK, "firm-qa", "qa-812-1-sc15-b", "7043", "q1", QA_B);
-  judge = await cloneWorld("JUDGE#firm-judge-01", "firm-judge-01", "j01-qingdao", "4471", "j01", "j01-qingdao@sim.legajo.demo.craftech.io");
+  guest = await cloneWorld("GUEST#firm-guest-01", "firm-guest-01", "g01-qingdao", "4471", "g01", "g01-qingdao@sim.legajo.demo.craftech.io");
   lines = [];
   let sequence = 0;
   client = createEmailClient({
@@ -203,7 +203,7 @@ describe("[FL-059] the recipient fence lives inside the single client", () => {
     expect(await qa(QA_B, qaA.threadAddress)).toMatchObject({ allowed: true });
     expect(await qa(QA_A, qaA.threadAddress)).toMatchObject({ allowed: false, code: "INVALID", reason: "QA_FROM_ACTIVE_CONTACT" });
     expect(await qa(INJECTOR, world.op4471.threadAddress)).toMatchObject({ allowed: false, code: "RECIPIENT_NOT_ALLOWED", reason: "QA_RECIPIENT" });
-    expect(await qa(INJECTOR, judge.threadAddress)).toMatchObject({ allowed: false, reason: "QA_RECIPIENT" });
+    expect(await qa(INJECTOR, guest.threadAddress)).toMatchObject({ allowed: false, reason: "QA_RECIPIENT" });
     expect(await qa(INJECTOR, "op-9999-abcdef@legajo.demo.craftech.io")).toMatchObject({ allowed: true, awaiting: "INBOUND" });
     expect(await qa(INJECTOR, "op-7042-zzzzzz@legajo.demo.craftech.io")).toMatchObject({ allowed: true });
     expect(await qa(INJECTOR, QA_B)).toMatchObject({ allowed: true, awaiting: "SIMMAIL" });

@@ -1,8 +1,8 @@
 // Contract of the contact-policy engine (docs/design-brief.md §5.7, ADR-0012). Everything a rule
 // needs arrives in `PolicyInput`: the engine reads no table, no linked resource and no clock of the
-// machine. `clock` is the instant being judged: the world's "now" when a send is decided
+// machine. `clock` is the instant being decided: the world's "now" when a send is decided
 // (engine.ts `evaluate`), or the instants a stored message went out when `PolicyAudit` and the seed
-// invariants judge the past (as-of.ts `evaluateAsOf`). Every dated fact (control, dossier status,
+// invariants guest the past (as-of.ts `evaluateAsOf`). Every dated fact (control, dossier status,
 // opt-in, supplier authorization, contact status) is rebuilt from its history at that instant.
 import { z } from "zod";
 import {
@@ -31,7 +31,7 @@ import { ControlEvent, DossierEvent } from "../domain/operations";
 import { AuthorizationEvent, ConsentEvent, ContactStatusEvent } from "../domain/parties";
 import { PolicyHolidays } from "./holidays";
 
-/** `SEND`: a send being decided now, fail closed on missing facts. `AS_OF`: a past send re-judged. */
+/** `SEND`: a send being decided now, fail closed on missing facts. `AS_OF`: a past send re-checked. */
 export type EvaluationMode = "SEND" | "AS_OF";
 
 /** A `Date` or an ISO 8601 instant, read as a `Date`. */
@@ -40,13 +40,13 @@ export const PolicyInstant = z
   .transform((value) => new Date(value instanceof Date ? value.getTime() : Date.parse(value)))
   .refine((date) => !Number.isNaN(date.getTime()), "invalid instant");
 
-/** The message being judged. Ids and addresses come from the registry, never from the model. */
+/** The message being decided. Ids and addresses come from the registry, never from the model. */
 export const PolicyMessage = z.object({
   /** Its id when it already exists (a deferred send, a stored message): never counted against itself. */
   messageId: MessageId.optional(),
   channel: Channel,
   counterpart: Counterpart,
-  /** Optional only so a stored message without one can be judged; a send without one fails closed. */
+  /** Optional only so a stored message without one can be decided; a send without one fails closed. */
   kind: MessageKind.optional(),
   author: Actor,
   /** Recipient as it will be delivered: the registered phone (E.164) or email address. */
@@ -122,7 +122,7 @@ export const HistoryMessage = z.object({
 });
 export type HistoryMessage = z.output<typeof HistoryMessage>;
 
-/** The instant being judged, in the world's simulated time and in real time. */
+/** The instant being decided, in the world's simulated time and in real time. */
 export const PolicyClock = z.object({ simNow: PolicyInstant, realNow: PolicyInstant });
 
 export const PolicyModes = z.object({ email: ChannelMode, whatsapp: ChannelMode });

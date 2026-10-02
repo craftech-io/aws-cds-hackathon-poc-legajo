@@ -8,9 +8,6 @@ import { formatNumber } from "../../lib/format";
 import type { MediaId } from "./manifest";
 import type { DecisionRule, EtaMilestoneId, SceneId } from "./scenes";
 
-/** The judges' button, the same in both languages (docs/design-brief.md §7). */
-export const JUDGES_SIGN_IN = "Judges: sign in / Jurado: ingresar";
-
 interface Card {
   readonly title: string;
   readonly text: string;
@@ -46,16 +43,15 @@ export const es = {
     how: "Cómo decide",
     console: "La consola",
     architecture: "Arquitectura",
-    judges: "Jurados",
   },
   hero: {
     eyebrow: "Agente de coordinación para estudios de despachantes de aduana",
     title: "Cada legajo, completo antes de que llegue el buque.",
     lead: "Legajo listo persigue la factura comercial, el packing list y el certificado de origen de cada importación: al importador por WhatsApp y al proveedor extranjero por email. Cada PDF pasa por un lector documental externo; el agente decide quién corrige cada observación, recalcula los plazos cuando se mueve la ETA y deja el legajo listo para que el despachante lo apruebe.",
-    note: "Demo para la AWS CDS Agentic AI Partner Hackathon. Datos 100 % sintéticos: no hay empresas, personas ni operaciones reales.",
+    note: "Datos 100 % sintéticos: no hay empresas, personas ni operaciones reales.",
     story: "Ver la historia",
   },
-  cta: { judges: JUDGES_SIGN_IN, goToConsole: "Ir a la consola" },
+  cta: { signIn: "Ingresar", goToConsole: "Ir a la consola" },
   problem: {
     title: "Tres documentos, dos idiomas y un buque que no espera",
     lead: "Antes del arribo, el despachante necesita el legajo completo de cada importación. Los documentos los tiene el importador o, casi siempre, un proveedor extranjero que contesta en inglés, desde otra zona horaria y por email.",
@@ -185,7 +181,7 @@ export const es = {
     eyebrow: "La consola del estudio",
     title: "Todo lo que pasó, con su motivo",
     lead: "Operaciones con su próximo evento, el detalle de cada legajo con lecturas, observaciones y pendientes, el reloj de la demo, el simulador de teléfono, el buzón de demo, las métricas con su N y su rótulo, y la bitácora de decisiones.",
-    pending: "Las capturas de la consola se toman en el stage desplegado, con la cuenta sintética de prueba de jurado, después de una corrida real.",
+    pending: "Las capturas de la consola se toman en el stage desplegado, con la cuenta sintética de prueba, después de una corrida real.",
     uploadTitle: "La página de carga del importador, sin login",
   },
   media: {
@@ -245,21 +241,9 @@ export const es = {
       },
     ]),
   },
-  judges: {
-    eyebrow: "Para jurados",
-    title: "Probalo en tu propio mundo",
-    lead: "Cada cuenta de jurado tiene su propio estudio y su propio mundo de datos sintéticos, con el reloj en pausa el 14/10 a las 10:30 y la operación 4471 fijada arriba. Lo que hagas no toca el mundo de otro jurado.",
-    steps: list<string>([
-      "Ingresá con tu cuenta de jurado.",
-      "Seguí el panel Recorrido guiado: cada paso tiene un botón, dice qué mirar y cuánto esperar.",
-      "Los emails van y vuelven por SES de verdad: esperá lo que indica cada paso antes de avanzar.",
-    ]),
-    credentials: "Las credenciales y la regla de asignación de cuentas están en las instrucciones de prueba de la submission.",
-  },
   video: { title: "El video de la demo" },
-  closing: { title: "El legajo, listo antes que el buque", lead: "Entrá con tu cuenta de jurado y recorré la historia de la 4471 en unos minutos." },
   footer: {
-    made: "Legajo listo · Powered by Craftech. Hecho para la AWS CDS Agentic AI Partner Hackathon.",
+    made: "Legajo listo · Powered by Craftech.",
     synthetic: "Datos 100 % sintéticos: todo nombre es ficticio.",
     legal: "Legales",
     privacy: "Privacidad",

@@ -79,7 +79,7 @@ async function scripted(page: Page, overrides: Parameters<typeof shellApi>[0] = 
       ...overrides,
     }),
   );
-  await plantSession(page, "judge");
+  await plantSession(page, "guest");
   await page.goto("/app/simulator");
   await expectView(page, "simulator");
   return calls;

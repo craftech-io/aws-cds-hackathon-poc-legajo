@@ -102,9 +102,9 @@ export const CAPABILITIES: Readonly<Record<CapabilityName, Capability>> = {
 
 /** `dynamodb:LeadingKeys` of `Platform` per role that holds `WORLDS` (docs/architecture.md §14). */
 export const WORLDS_LEADING_KEYS = {
-  Bff: ["POP#firm-delta#*", "POP#firm-norte#*", "POP#firm-judge-*"],
-  WorldJanitor: ["POP#firm-judge-*"],
-  QaDriver: ["POP#firm-qa#*", "POP#firm-sim#*", "POP#firm-judge-test#*"],
+  Bff: ["POP#firm-delta#*", "POP#firm-norte#*", "POP#firm-guest-*"],
+  WorldJanitor: ["POP#firm-guest-*"],
+  QaDriver: ["POP#firm-qa#*", "POP#firm-sim#*", "POP#firm-guest-test#*"],
 } as const;
 
 export type WorldsRole = keyof typeof WORLDS_LEADING_KEYS;
@@ -246,7 +246,7 @@ export const LAMBDA_CAPABILITIES = {
       "cloudwatch:DescribeAlarmHistory",
     ],
     fence:
-      "ses:FromAddress qainject-*@sim / qa-*@sim, ses:Recipients op-*@ / qa-*@sim, configuration set …-sim-poc; InvokeFunction of InboundEmail, SimMail and PolicyAudit; DeleteObject only qa/*; DeleteSchedule only tm-q-* and tm-j-*; sqs Receive/Delete/GetQueueAttributes only on OperationEventsDlq.fifo; DescribeAlarmHistory only on the DLQ alarm",
+      "ses:FromAddress qainject-*@sim / qa-*@sim, ses:Recipients op-*@ / qa-*@sim, configuration set …-sim-poc; InvokeFunction of InboundEmail, SimMail and PolicyAudit; DeleteObject only qa/*; DeleteSchedule only tm-q-* and tm-g-*; sqs Receive/Delete/GetQueueAttributes only on OperationEventsDlq.fifo; DescribeAlarmHistory only on the DLQ alarm",
   },
 } as const satisfies Record<string, LambdaCapabilities>;
 

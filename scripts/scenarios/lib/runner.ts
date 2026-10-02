@@ -1,7 +1,7 @@
 // Runs a suite of scenarios against `poc` (docs/test-plan.md §4.4):
 //
 //   - up to 4 scenarios at a time; the scenarios of one lane run one after the other (SC-25 then
-//     SC-24 share the judge account) and a `last` scenario (SC-20) runs alone at the end, with the
+//     SC-24 share the guest account) and a `last` scenario (SC-20) runs alone at the end, with the
 //     results of every earlier one;
 //   - inside a scenario the steps run in order; after a failed step the rest are SKIPPED, never
 //     retried (a step that waits for the agent already allows up to two turns);

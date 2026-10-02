@@ -68,7 +68,7 @@ export const clockCopy = {
     confirm: "Sí, reiniciar",
     cancel: "Cancelar",
     done: "Listo: el mundo volvió a su inicio.",
-    onlyApprovers: "Solo un despachante o un jurado puede reiniciar la demo.",
+    onlyApprovers: "Solo un despachante o un invitado puede reiniciar la demo.",
     wait: (at: string) => `Ya se reinició hace poco: se puede volver a reiniciar a las ${at}.`,
   },
   gate: {

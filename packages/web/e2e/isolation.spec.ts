@@ -1,7 +1,7 @@
 // FL-082 · isolation between firms (docs/flows-catalog.md) against the local UI server: a broker of
 // Estudio Norte asks for Estudio Delta's operation, its timeline, one of its documents, its decisions
 // and its world, through the console and straight to the API with its own signed token; every answer
-// is a 403 with the refusal `CROSS_FIRM` and no data of Delta. A judge sees only its own world. The
+// is a 403 with the refusal `CROSS_FIRM` and no data of Delta. A guest sees only its own world. The
 // `AuditLog DENY CROSS_FIRM` the refusal writes is asserted at level U (routers/isolation.test.ts).
 import { type APIRequestContext, expect, test } from "@playwright/test";
 import { dataCopy } from "../src/copy/console-data.ts";
@@ -73,8 +73,8 @@ test.describe("[FL-082] aislamiento entre estudios", () => {
     expect(own.body).toContain("Norpampa Insumos SRL");
   });
 
-  test("[FL-082] a judge sees only its own world, never Delta's operations", async ({ page }) => {
-    await plantSession(page, "judge");
+  test("[FL-082] a guest sees only its own world, never Delta's operations", async ({ page }) => {
+    await plantSession(page, "guest");
     await page.goto("/app/operations");
     await expect(page.getByText(operationsCopy.empty.title)).toBeVisible();
     expect(await page.locator("#content").innerText()).not.toMatch(DELTA_DATA);

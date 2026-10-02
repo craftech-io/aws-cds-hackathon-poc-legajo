@@ -1,8 +1,8 @@
 // Invariants 10 and 21 of docs/seed-spec.md §15. Invariant 10: every seeded outbound message has its
 // `ALLOW` decision with the rules evaluated (PolicyAudit check a), a deferred one has its fired
 // `TIMER#DEFERRED_SEND`, and the real contact policy (packages/bff/src/policy/, `evaluateAsOf`, with
-// each party's zone and the holidays of `Reference`) judged at the instant the message went out would
-// have let it out (check b). Invariant 21: the window of the judge's tour holds no event of another
+// each party's zone and the holidays of `Reference`) decided at the instant the message went out would
+// have let it out (check b). Invariant 21: the window of the guest's tour holds no event of another
 // operation, and no dossier ready for review or approved has a milestone still scheduled.
 import { evaluateAsOf, type AsOfFacts } from "@legajo/bff/policy/as-of";
 import { wentOut } from "@legajo/bff/policy/kinds";
@@ -15,8 +15,8 @@ export interface MessageVerdict {
   readonly messageId: string;
   readonly operationId: string;
   readonly decision: PolicyDecision;
-  /** Rules that could not be judged for lack of a fact the seed should have provided. */
-  readonly unjudged: readonly string[];
+  /** Rules that could not be decided for lack of a fact the seed should have provided. */
+  readonly undecided: readonly string[];
 }
 
 type HistoryRow = NonNullable<AsOfFacts["history"]>[number];
@@ -59,19 +59,19 @@ export function factsOf(view: WorldView, message: SeedItem, holidays: readonly s
 const NOT_REBUILT_BY_DESIGN = new Set(["CP-RECIPIENT-FENCE"]);
 
 /** The real policy over every seeded outbound message of the view. */
-export function judgeHistory(view: WorldView, holidays: readonly string[]): MessageVerdict[] {
+export function decideHistory(view: WorldView, holidays: readonly string[]): MessageVerdict[] {
   return view
     .of("Message")
     .filter((message) => wentOut(message as unknown as Parameters<typeof wentOut>[0]))
     .map((message) => {
       const decision = evaluateAsOf(factsOf(view, message, holidays), { exhaustive: true });
-      const unjudged = decision.evaluated.filter((entry) => entry.detail.endsWith("is not rebuilt for a past instant") && !(message.channel === "EMAIL" && NOT_REBUILT_BY_DESIGN.has(entry.ruleId))).map((entry) => entry.ruleId);
-      return { messageId: str(message.messageId), operationId: str(message.operationId), decision, unjudged };
+      const undecided = decision.evaluated.filter((entry) => entry.detail.endsWith("is not rebuilt for a past instant") && !(message.channel === "EMAIL" && NOT_REBUILT_BY_DESIGN.has(entry.ruleId))).map((entry) => entry.ruleId);
+      return { messageId: str(message.messageId), operationId: str(message.operationId), decision, undecided };
     });
 }
 
 /**
- * A deferred message went out at the hour the policy lets it out: judged at the instant it was first
+ * A deferred message went out at the hour the policy lets it out: decided at the instant it was first
  * decided, the policy defers it, and `nextAllowedAt` is exactly its `sentAtSim`.
  */
 export function deferralProblems(view: WorldView, message: SeedItem, decidedAtSim: string, holidays: readonly string[]): string[] {
@@ -99,16 +99,16 @@ export function historyProblems(view: WorldView, holidays: readonly string[]): s
       else problems.push(...deferralProblems(view, message, str(deferral.atSim), holidays));
     }
   }
-  for (const verdict of judgeHistory(view, holidays)) {
+  for (const verdict of decideHistory(view, holidays)) {
     if (!verdict.decision.allowed) problems.push(`${view.label}: ${verdict.messageId} (${verdict.operationId}) would be ${verdict.decision.outcome} by ${verdict.decision.ruleIds.join(", ")} at its instant`);
-    if (verdict.unjudged.length > 0) problems.push(`${view.label}: ${verdict.messageId} could not be judged on ${verdict.unjudged.join(", ")} (a fact is missing)`);
+    if (verdict.undecided.length > 0) problems.push(`${view.label}: ${verdict.messageId} could not be decided on ${verdict.undecided.join(", ")} (a fact is missing)`);
   }
   return problems;
 }
 
 const FINAL_STATUSES = new Set(["READY_FOR_REVIEW", "APPROVED"]);
 
-/** Invariant 21 over the `judge` and `demo-firm-delta` templates. */
+/** Invariant 21 over the `guest` and `demo-firm-delta` templates. */
 export function tourWindowProblems(view: WorldView, windowEndSim: string = TOUR_WINDOW_END_SIM): string[] {
   const problems: string[] = [];
   const statusOf = new Map(view.of("Operation").map((operation) => [str(operation.operationId), str(operation.dossierStatus)]));

@@ -1,6 +1,6 @@
 // Firm-level state shared by every view: the firm comes from the JWT (`firmId`, never from input),
-// its name and the judge's other-session notice from `account.session` (asked once per sign-in; for
-// a judge the first one also creates its world, ~10 s), and the ETA range that filters the
+// its name and the guest's other-session notice from `account.session` (asked once per sign-in; for
+// a guest the first one also creates its world, ~10 s), and the ETA range that filters the
 // operations. Views read it through `useFirm`.
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { type AccountSession, fetchAccountSession } from "../lib/console-api";

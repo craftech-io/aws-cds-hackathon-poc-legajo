@@ -58,7 +58,7 @@ describe("thread tag", () => {
   it("changes with the world, the epoch and the key", async () => {
     const tag = await computeThreadTag(KEY, INPUT);
     expect(await computeThreadTag(KEY, { ...INPUT, worldEpoch: 2 })).not.toBe(tag);
-    expect(await computeThreadTag(KEY, { ...INPUT, clockId: "JUDGE#firm-judge-01" })).not.toBe(tag);
+    expect(await computeThreadTag(KEY, { ...INPUT, clockId: "GUEST#firm-guest-01" })).not.toBe(tag);
     expect(await computeThreadTag("other-key", INPUT)).not.toBe(tag);
   });
 

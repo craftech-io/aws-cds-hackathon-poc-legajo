@@ -1,5 +1,5 @@
 // The scenarios of docs/test-plan.md §4.5 and the two suites (§5): `smoke` is SC-00, what every deploy
-// runs; `full` is every scenario, SC-25 then SC-24 in one lane (one judge account) and SC-20 last.
+// runs; `full` is every scenario, SC-25 then SC-24 in one lane (one guest account) and SC-20 last.
 // SC-23 (live WhatsApp) joins when P-01 is closed; the light load runs only when named.
 import { loadLight } from "../load-light";
 import { sc00 } from "../sc-00-smoke";
@@ -25,8 +25,8 @@ import { sc19 } from "../sc-19-failures";
 import { sc20 } from "../sc-20-audit";
 import { sc21 } from "../sc-21-complaint";
 import { sc22 } from "../sc-22-observations";
-import { sc24 } from "../sc-24-judge";
-import { sc25 } from "../sc-25-judge-sessions";
+import { sc24 } from "../sc-24-guest";
+import { sc25 } from "../sc-25-guest-sessions";
 import type { ScenarioDef, Suite } from "./steps";
 
 /** In the order they are listed; the runner puts lanes and `last` in place. SC-25 goes before SC-24. */

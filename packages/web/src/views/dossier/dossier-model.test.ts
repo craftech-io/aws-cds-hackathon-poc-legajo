@@ -105,18 +105,18 @@ describe("documents of the dossier", () => {
 });
 
 describe("approving and reopening (ADR-0010)", () => {
-  it("shows 'Aprobar legajo' only to BROKER and JUDGE, open once the dossier is ready for review", () => {
+  it("shows 'Aprobar legajo' only to BROKER and GUEST, open once the dossier is ready for review", () => {
     expect(approveGate("BROKER", "READY_FOR_REVIEW")).toEqual({ visible: true, enabled: true });
-    expect(approveGate("JUDGE", "READY_FOR_REVIEW")).toEqual({ visible: true, enabled: true });
+    expect(approveGate("GUEST", "READY_FOR_REVIEW")).toEqual({ visible: true, enabled: true });
     expect(approveGate("BROKER", "OPEN")).toEqual({ visible: true, enabled: false, reason: "NOT_READY" });
     expect(approveGate("ANALYST", "READY_FOR_REVIEW")).toEqual({ visible: false });
     expect(approveGate("BROKER", "APPROVED")).toEqual({ visible: false });
     expect(approveGate(undefined, "READY_FOR_REVIEW")).toEqual({ visible: false });
   });
 
-  it("offers reopening only an approved dossier, and only to BROKER and JUDGE", () => {
+  it("offers reopening only an approved dossier, and only to BROKER and GUEST", () => {
     expect(reopenGate("BROKER", "APPROVED")).toEqual({ visible: true, enabled: true });
-    expect(reopenGate("JUDGE", "APPROVED")).toEqual({ visible: true, enabled: true });
+    expect(reopenGate("GUEST", "APPROVED")).toEqual({ visible: true, enabled: true });
     expect(reopenGate("ANALYST", "APPROVED")).toEqual({ visible: false });
     expect(reopenGate("BROKER", "READY_FOR_REVIEW")).toEqual({ visible: false });
   });

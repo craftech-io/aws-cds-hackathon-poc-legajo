@@ -1,8 +1,8 @@
 // Reads the principal out of the Cognito id token. The console only decodes the payload: the
 // signature is verified by the BFF on every call, and the JWT is the only source of `firmId` and
 // role (docs/design-brief.md §6). The claims are the ones packages/bff/src/auth/principal.ts reads:
-// `custom:firmId` from the invitation, `custom:role` and `custom:isJudge` from the pre-token trigger,
-// the Cognito groups, `cognito:username` (a judge signs in with it: judges have no email) and
+// `custom:firmId` from the invitation, `custom:role` and `custom:isGuest` from the pre-token trigger,
+// the Cognito groups, `cognito:username` (a guest signs in with it: guests have no email) and
 // `auth_time`. Nothing here trusts user input.
 import { ConsoleRole, FirmId } from "@legajo/shared";
 import { z } from "zod";
@@ -20,7 +20,7 @@ const IdTokenClaimsSchema = z.looseObject({
   "cognito:username": z.string().min(1).optional(),
   "custom:firmId": z.string().min(1).optional(),
   "custom:role": z.string().optional(),
-  "custom:isJudge": z.string().optional(),
+  "custom:isGuest": z.string().optional(),
   "cognito:groups": z.array(z.string()).optional(),
 });
 
@@ -28,7 +28,7 @@ export type IdTokenClaims = z.infer<typeof IdTokenClaimsSchema>;
 
 export interface Principal {
   readonly sub: string;
-  /** Cognito username: what a judge types to sign in (`judge-01`). */
+  /** Cognito username: what a guest types to sign in (`guest-01`). */
   readonly username?: string;
   readonly email?: string;
   readonly name?: string;
@@ -36,8 +36,8 @@ export interface Principal {
   readonly firmId?: string;
   readonly role?: ConsoleRole;
   readonly groups: readonly ConsoleRole[];
-  /** A judge acts as a broker inside its own judge firm, without TOTP or password change. */
-  readonly isJudge: boolean;
+  /** A guest acts as a broker inside its own guest firm, without TOTP or password change. */
+  readonly isGuest: boolean;
   /** Epoch milliseconds of the last interactive sign-in. */
   readonly authTime?: number;
   /** Epoch milliseconds. */
@@ -88,7 +88,7 @@ export function principalFromClaims(claims: IdTokenClaims): Principal {
   return {
     sub: claims.sub,
     groups,
-    isJudge: role === "JUDGE" || claims["custom:isJudge"] === "true",
+    isGuest: role === "GUEST" || claims["custom:isGuest"] === "true",
     expiresAt: claims.exp * 1000,
     ...optional("username", claims["cognito:username"]),
     ...optional("email", claims.email),
@@ -103,7 +103,7 @@ export function principalFromIdToken(token: string): Principal {
   return principalFromClaims(parseIdTokenClaims(token));
 }
 
-/** What the person typed to sign in: the invitation email of a broker or analyst, the username of a judge. */
+/** What the person typed to sign in: the invitation email of a broker or analyst, the username of a guest. */
 export function signInNameOf(principal: Principal): string | undefined {
   return principal.email ?? principal.username;
 }

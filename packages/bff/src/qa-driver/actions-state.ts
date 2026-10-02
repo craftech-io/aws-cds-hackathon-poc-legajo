@@ -1,7 +1,7 @@
 // Actions the `QaDriver` answers from stored state (docs/tool-catalog.md "Acciones del QaDriver"):
 // `snapshot`, `op.settle`, `mail.outcome`, `supplier.setBehaviour`, `link.expire`, `nonce.expire`,
 // `policyAudit.run` and `metrics.get`. The two expirations write through the raw table client with a
-// condition on the item's own `clockId` (`qa-*` only), so a demo or judge link can never be touched
+// condition on the item's own `clockId` (`qa-*` only), so a demo or guest link can never be touched
 // whatever key the lookup built.
 import { ToolError, type WaButtonAction } from "@legajo/shared";
 import type { TableClient } from "../connector/index";

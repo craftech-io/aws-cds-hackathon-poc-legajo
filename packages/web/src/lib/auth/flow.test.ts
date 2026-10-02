@@ -93,11 +93,11 @@ describe("first login after an invitation (NEW_PASSWORD_REQUIRED → optional TO
     expect(cognito.user("analista@example.test").totpEnabled).toBe(false);
   });
 
-  it("signs a JUDGE in with its username (no email) and never offers TOTP", async () => {
-    await cognito.addUser({ username: "judge-01", password: PASSWORD, role: "JUDGE" });
-    const done = expectStep(await run(INITIAL_STATE, { type: "signIn", login: " Judge-01 ", password: PASSWORD }), "done");
+  it("signs a GUEST in with its username (no email) and never offers TOTP", async () => {
+    await cognito.addUser({ username: "guest-01", password: PASSWORD, role: "GUEST" });
+    const done = expectStep(await run(INITIAL_STATE, { type: "signIn", login: " Guest-01 ", password: PASSWORD }), "done");
     expect(done.totpVerified).toBe(false);
-    expect(JSON.parse(cognito.calls[0]?.payload ?? "{}")).toMatchObject({ username: "judge-01" });
+    expect(JSON.parse(cognito.calls[0]?.payload ?? "{}")).toMatchObject({ username: "guest-01" });
     expect(cognito.calls.map((call) => call.operation)).toEqual(["InitiateAuth", "RespondToAuthChallenge"]);
   });
 
@@ -206,10 +206,10 @@ describe("recent-login step-up (a fresh auth_time to approve or reopen)", () => 
   });
 });
 
-describe("recent-login step-up of a judge", () => {
-  it("signs the judge in again by its username, with the password alone", async () => {
-    const user = await cognito.addUser({ username: "judge-01", password: PASSWORD, role: "JUDGE" });
-    const mode: FlowMode = { kind: "stepUp", sub: user.sub, login: "judge-01" };
+describe("recent-login step-up of a guest", () => {
+  it("signs the guest in again by its username, with the password alone", async () => {
+    const user = await cognito.addUser({ username: "guest-01", password: PASSWORD, role: "GUEST" });
+    const mode: FlowMode = { kind: "stepUp", sub: user.sub, login: "guest-01" };
     const done = expectStep(await run(INITIAL_STATE, { type: "signIn", login: "", password: PASSWORD }, mode), "done");
     expect(subOf(done.tokens)).toBe(user.sub);
     expect(cognito.calls.map((call) => call.operation)).not.toContain("GetUser");

@@ -16,7 +16,7 @@ import { s3PdfPresigner } from "./presign";
 /** A 32-byte base64url token, as `newPublicToken` makes them. */
 export const TOKEN = "Zq3v9Kf0mX2bR7wLpT4yNc8hJd1sGa6eUo5iQkVxWtY";
 export const OTHER_TOKEN = "Bn7Gm2Qx9Lr4Vt1Kc6Hp3Wz8Jd0Fs5Ay_Ue-Io2RqXe";
-export const BUCKET = "aws-cds-hackathon-poc-leg-poc-uploads-776805327629";
+export const BUCKET = "legajo-poc-uploads-776805327629";
 export const OPERATION_ID = "op-4471";
 export const IN_72_HOURS = new Date(Date.parse(REAL_NOW) + 72 * 3_600_000).toISOString();
 

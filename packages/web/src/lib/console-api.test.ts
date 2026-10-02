@@ -10,7 +10,7 @@ interface Sent {
   readonly body: string | undefined;
 }
 
-const CLOCK = { clockId: "JUDGE#firm-judge-01", mode: "PAUSED", simNow: "2026-10-14T10:30:00-03:00", busy: false, pending: [] };
+const CLOCK = { clockId: "GUEST#firm-guest-01", mode: "PAUSED", simNow: "2026-10-14T10:30:00-03:00", busy: false, pending: [] };
 
 /** Answers tRPC batch requests with one result (or error) per procedure of the batch. */
 function stubBff(answer: (path: string) => { data?: unknown; error?: { code: string; httpStatus: number; reason?: string } }) {
@@ -53,7 +53,7 @@ describe("shell procedures over tRPC (clock and account routers)", () => {
   it("moves the clock with a mutation and keeps the BFF's WORLD_BUSY reason", async () => {
     const sent = stubBff((path) => (path === "clock.advance" ? { error: { code: "CONFLICT", httpStatus: 409, reason: "WORLD_BUSY" } } : { data: CLOCK }));
     const trpc = createConsoleClient(() => "t");
-    expect(await moveClock(trpc, { kind: "next" }, true)).toMatchObject({ clockId: "JUDGE#firm-judge-01" });
+    expect(await moveClock(trpc, { kind: "next" }, true)).toMatchObject({ clockId: "GUEST#firm-guest-01" });
     expect(sent[0]).toMatchObject({ method: "POST" });
     expect(sent[0]?.url).toMatch(/^\/api\/clock\.advanceToNext\?batch=1/);
     expect(JSON.parse(sent[0]?.body ?? "{}")).toEqual({ 0: { force: true } });
@@ -63,7 +63,7 @@ describe("shell procedures over tRPC (clock and account routers)", () => {
     expect(JSON.parse(sent[1]?.body ?? "{}")).toEqual({ 0: { minutes: 60 } });
   });
 
-  it("reads the firm's name and a judge's other session from account.session", async () => {
+  it("reads the firm's name and a guest's other session from account.session", async () => {
     stubBff(() => ({ data: { firm: { name: "Estudio Delta" }, otherSession: { lastActiveAtReal: "2026-10-01T12:00:00Z" } } }));
     expect(await fetchAccountSession(createConsoleClient(() => "t"))).toEqual({ firm: { name: "Estudio Delta" }, otherSession: { lastActiveAtReal: "2026-10-01T12:00:00Z" } });
     expect(AccountSession.parse({})).toEqual({});

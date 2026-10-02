@@ -4,7 +4,7 @@
 import { en } from "./copy-en";
 import { es } from "./copy-es";
 
-export { JUDGES_SIGN_IN, type LandingCopy } from "./copy-es";
+export type { LandingCopy } from "./copy-es";
 
 export const LANDING_COPY = { es, en } as const;
 

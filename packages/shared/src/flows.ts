@@ -1,4 +1,4 @@
-// Flow ids of docs/flows-catalog.md (`FL-001` … `FL-100`), their areas, the test levels of the
+// Flow ids of docs/flows-catalog.md (`FL-001` … `FL-132`), their areas, the test levels of the
 // traceability matrix (docs/test-plan.md §2) and the scenario step references it cites. Tests tag
 // every `describe`/`it` that proves a flow with `[FL-xxx]`; scenario steps declare `flows: [...]`.
 import { z } from "zod";
@@ -19,6 +19,8 @@ export const FLOW_AREAS = {
   I: "Approval and dispatch",
   J: "Console and public surfaces",
   K: "Live channel and robustness",
+  L: "Public signup, guest account and leads",
+  M: "Commercial landing and neutral surfaces",
 } as const;
 
 export const FlowArea = z.enum(Object.keys(FLOW_AREAS) as [keyof typeof FLOW_AREAS, ...Array<keyof typeof FLOW_AREAS>]);

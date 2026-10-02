@@ -12,7 +12,7 @@ export const loginCopy = {
   },
   credentials: {
     title: "Ingresá a la consola",
-    lead: "Usá el email de tu invitación o, si sos jurado, tu usuario (judge-NN).",
+    lead: "Usá el email de tu invitación o, si tenés una cuenta de invitado, tu usuario (guest-NN).",
     login: "Email o usuario",
     password: "Contraseña",
     submit: "Ingresar",

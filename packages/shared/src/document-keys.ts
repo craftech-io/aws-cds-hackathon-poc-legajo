@@ -113,7 +113,7 @@ export function parseSimMediaRef(ref: string): string | undefined {
 }
 
 /** World templates the world factory reads from `Seed/worlds/<template>.json` (docs/seed-spec.md §1). */
-export const WorldTemplateName = z.enum(["demo-firm-delta", "demo-firm-norte", "qa-min", "judge", "models"]);
+export const WorldTemplateName = z.enum(["demo-firm-delta", "demo-firm-norte", "qa-min", "guest", "models"]);
 export type WorldTemplateName = z.infer<typeof WorldTemplateName>;
 
 export const seedKeys = {

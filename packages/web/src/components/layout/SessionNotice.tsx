@@ -1,8 +1,8 @@
 // What the shell says about the session's world, above every view (docs/design-brief.md §7.1):
-//   - a judge's first sign-in creates its world (~10 s): "Preparando tu mundo de demo";
-//   - another sign-in (another `origin_jti`) acted on this judge world in the last 2 hours: a fixed
-//     notice, in Spanish and English, to use another judge account. It neither offers a reset
-//     (that would erase the other judge's run) nor blocks anything.
+//   - a guest's first sign-in creates its world (~10 s): "Preparando tu mundo de demo";
+//   - another sign-in (another `origin_jti`) acted on this guest world in the last 2 hours: a fixed
+//     notice, in Spanish and English, to use another guest account. It neither offers a reset
+//     (that would erase the other guest's run) nor blocks anything.
 import { useFirm } from "../../context/FirmContext";
 import { usePrincipal } from "../../context/SessionContext";
 import { useWorldClock } from "../../context/WorldClockContext";
@@ -15,7 +15,7 @@ export function SessionNotice() {
   // Re-rendered on every answer of the world clock, so "hace X min" keeps counting.
   useWorldClock();
 
-  if (principal.isJudge && account.status === "loading" && account.previous === undefined) {
+  if (principal.isGuest && account.status === "loading" && account.previous === undefined) {
     return (
       <p role="status" className="border-b border-mist bg-info-soft px-4 py-2 text-sm text-info md:px-6">
         {copy.session.preparing}

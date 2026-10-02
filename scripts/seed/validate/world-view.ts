@@ -3,7 +3,7 @@
 import type { SeedItem } from "../lib/items";
 
 export interface WorldView {
-  /** What the view is: `data GLOBAL#firm-delta`, `template judge`. */
+  /** What the view is: `data GLOBAL#firm-delta`, `template guest`. */
   readonly label: string;
   readonly items: readonly SeedItem[];
   of(entity: string): SeedItem[];

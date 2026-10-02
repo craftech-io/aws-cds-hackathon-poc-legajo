@@ -14,7 +14,7 @@
 //   QA         From the injector `qainject-…@sim…` (never a party) or a registered party of a `qa-*`
 //              world that is not an ACTIVE contact of the destination's supplier. To `qa-*@sim…`, or an
 //              `op-*@` address of a `qa-*` clock or of no operation at all (an unknown number or a tag
-//              that does not verify); an address of a demo, judge or `GLOBAL#firm-qa` world is refused.
+//              that does not verify); an address of a demo, guest or `GLOBAL#firm-qa` world is refused.
 //
 // A `From` that does not match its profile is `INVALID`; a recipient outside the profile's set is
 // `RECIPIENT_NOT_ALLOWED`. outbound/recipient-fence.ts (the pipeline) and the `QaDriver`'s

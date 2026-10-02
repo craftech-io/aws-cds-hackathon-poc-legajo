@@ -240,14 +240,14 @@ describe("reader mock · faults per world (X-Fault-Scope)", () => {
     expect((await post({ scope: "qa-812-1-sc01", key: "dv-4471-PL-2" })).statusCode).toBe(200);
   });
 
-  it("never applies a fault to a demo or judge clock, even if a row names it", async () => {
+  it("never applies a fault to a demo or guest clock, even if a row names it", async () => {
     const { post, catalog } = setup();
-    for (const clockId of ["GLOBAL#firm-delta", "JUDGE#firm-judge-01"]) {
+    for (const clockId of ["GLOBAL#firm-delta", "GUEST#firm-guest-01"]) {
       catalog.setFaults({ ...faults("ERROR_503"), SK: `FAULTS#${clockId}`, clockId });
       expect((await post({ scope: clockId })).statusCode).toBe(200);
     }
     expect(() => faultItem("GLOBAL#firm-delta", { mode: "ERROR_503", until: "2026-10-16T00:00:00Z" }, new Date())).toThrow(RangeError);
-    expect(() => faultItem("JUDGE#firm-judge-01", { mode: "ERROR_503", until: "2026-10-16T00:00:00Z" }, new Date())).toThrow(RangeError);
+    expect(() => faultItem("GUEST#firm-guest-01", { mode: "ERROR_503", until: "2026-10-16T00:00:00Z" }, new Date())).toThrow(RangeError);
   });
 
   it("honours until and rate", async () => {

@@ -117,8 +117,11 @@ describe("CONTEXT.md and the design docs", () => {
   it("supplier behaviours, templates and sender profiles of the integrations doc", () => {
     expect([...messaging.SupplierBehaviour.options].sort()).toEqual(columnTokens(INTEGRATIONS, "| Comportamiento | Respuesta").sort());
     expect(messaging.WhatsAppTemplateName.options).toEqual(columnTokens(INTEGRATIONS, "| Nombre | Cuerpo | Botones"));
-    expect(core.SenderProfile.options).toEqual(columnTokens(INTEGRATIONS, "| Perfil | Quién lo usa"));
+    // LEAD_NOTICE (ADR-0015 §6) changes the recipient fence, so it arrives with WP-50 (wave 3, stage A2).
+    expect(core.SenderProfile.options).toEqual(columnTokens(INTEGRATIONS, "| Perfil | Quién lo usa").filter((profile) => profile !== "LEAD_NOTICE"));
   });
+
+  it.todo("[WP-50:pending] SenderProfile has LEAD_NOTICE, fenced to exact @craftech.io recipients by channels/email/fence.ts");
 
   it("inline enums of the tool outputs and handlers", () => {
     expect(dossier.DispatchStatus.options).toEqual(pipeList(TOOL_CATALOG, /"status": "(NONE \| OFICIALIZADO[^"]*)"/));
@@ -132,7 +135,8 @@ describe("CONTEXT.md and the design docs", () => {
   });
 
   it("tenants, metrics, pending mail and reference types of the data model", () => {
-    expect(core.FirmKind.options).toEqual(tokensBetween(ARCHITECTURE, "Firm (`kind` ", ")"));
+    expect(core.FirmKind.options).toEqual(tokensBetween(ARCHITECTURE, "Firm (`kind` ", ";"));
+    expect(core.GuestKind.options).toEqual(tokensBetween(ARCHITECTURE, "`guestKind` ", " en los `GUEST`"));
     expect(core.MetricSource.options).toEqual(tokensBetween(ARCHITECTURE, "DossierKpi (`source` ", ", `runId`"));
     expect(core.AgentMode.options).toEqual(tokensBetween(ARCHITECTURE, "`agentMode` ", ")"));
     expect(core.MailAwaiting.options).toEqual(tokensBetween(INTEGRATIONS, "con `awaiting` ", " según"));
@@ -160,9 +164,9 @@ describe("catalog invariants", () => {
     expect(core.channelNameOf("EMAIL")).toBe("email");
   });
 
-  it("console roles keep their precedence and only BROKER and JUDGE approve", () => {
-    expect(core.ConsoleRole.options).toEqual(["BROKER", "JUDGE", "ANALYST"]);
-    expect(core.ConsoleRole.options.filter(core.canApprove)).toEqual(["BROKER", "JUDGE"]);
+  it("console roles keep their precedence and only BROKER and GUEST approve", () => {
+    expect(core.ConsoleRole.options).toEqual(["BROKER", "GUEST", "ANALYST"]);
+    expect(core.ConsoleRole.options.filter(core.canApprove)).toEqual(["BROKER", "GUEST"]);
   });
 
   it("the matrix default adds SENDER to the parties", () => {

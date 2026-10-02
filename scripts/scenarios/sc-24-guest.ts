@@ -1,19 +1,19 @@
-// SC-24 · the judge's guided tour on the deployed console (docs/test-plan.md §4.5, docs/design-brief.md
-// §15): Playwright against https://legajo.demo.craftech.io with the synthetic account `judge-test`,
+// SC-24 · the guest's guided tour on the deployed console (docs/test-plan.md §4.5, docs/design-brief.md
+// §15): Playwright against https://legajo.demo.craftech.io with the synthetic account `guest-test`,
 // walking TOUR_STEPS of packages/web/src/views/tour/steps.ts literally (the same source as the README
 // and the console's panel; `npm run tour:check` holds the three together). Every button is touched the
 // moment it is enabled; only then the state the step describes is asserted, within the step's wait.
-// The driver only destroys and reads `JUDGE#firm-judge-test` (ADR-0005); runs after SC-25, never with it.
+// The driver only destroys and reads `GUEST#firm-guest-test` (ADR-0005); runs after SC-25, never with it.
 import type { Browser, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type { QaSnapshot } from "@legajo/bff/qa-driver/snapshot";
 import { BUTTON_LABELS } from "@legajo/bff/copy/buttons";
-import { JUDGE_TEST_CLOCK_ID } from "@legajo/shared";
+import { GUEST_TEST_CLOCK_ID } from "@legajo/shared";
 import { copy } from "../../packages/web/src/copy/console";
 import { TOUR_TEXTS } from "../../packages/web/src/views/tour/copy";
 import { TOUR_STEPS, TOUR_WINDOW, type TourStep, type TourStepId, lookText } from "../../packages/web/src/views/tour/steps";
 import { SENT_STATUSES, allValid, observations, outbound } from "./lib/asserts";
-import { accountApiRefuses, judgePassword, launchBrowser, moveButton, operationIdOf, phoneButton, signIn, tapWhenEnabled, tokenPlaces, tourPanel, confirmWithPassword } from "./lib/browser";
+import { accountApiRefuses, guestPassword, launchBrowser, moveButton, operationIdOf, phoneButton, signIn, tapWhenEnabled, tokenPlaces, tourPanel, confirmWithPassword } from "./lib/browser";
 import { isLanguage } from "./lib/oracles";
 import { SITE } from "./lib/site";
 import { type ScenarioContext, defineScenario, ensure } from "./lib/steps";
@@ -62,10 +62,10 @@ const CHECKS: Readonly<Record<TourStepId, { readonly flows: readonly string[]; r
       const places = await tokenPlaces(tour.page);
       ctx.check(places.session !== undefined, "the session tokens are in sessionStorage");
       ctx.check(places.localStorageKeys.every((key) => !/token/i.test(key)), "no token in localStorage");
-      ctx.check(await accountApiRefuses(places.session?.accessToken ?? ""), "Cognito's account API refuses the judge's access token (no aws.cognito.signin.user.admin)");
+      ctx.check(await accountApiRefuses(places.session?.accessToken ?? ""), "Cognito's account API refuses the guest's access token (no aws.cognito.signin.user.admin)");
       tour.operationId = await operationIdOf(tour.page, "4471");
       const snapshot = await snapshotOf(ctx);
-      ctx.check(snapshot.clock.mode === "PAUSED" && Date.parse(snapshot.clock.simNow) === Date.parse(TOUR_WINDOW.startSim), "the judge's own world is paused at 14/10 10:30");
+      ctx.check(snapshot.clock.mode === "PAUSED" && Date.parse(snapshot.clock.simNow) === Date.parse(TOUR_WINDOW.startSim), "the guest's own world is paused at 14/10 10:30");
     },
   },
   "first-request": {
@@ -107,7 +107,7 @@ const CHECKS: Readonly<Record<TourStepId, { readonly flows: readonly string[]; r
     flows: [],
     async check(ctx, _tour, step) {
       const moved = await until(ctx, step, "the ETA two days earlier and its notice", (snapshot) => outbound(snapshot, { kind: "ETA_CHANGE" }).length > 0);
-      const platform = (await ctx.qa("platform.get", { firmId: "firm-judge-test", operationNumber: "4471" })) as { eta: string };
+      const platform = (await ctx.qa("platform.get", { firmId: "firm-guest-test", operationNumber: "4471" })) as { eta: string };
       ctx.check(Date.parse(platform.eta) === Date.parse(moved.operation.eta), "the platform and the dossier agree on the new ETA");
     },
   },
@@ -134,8 +134,8 @@ const CHECKS: Readonly<Record<TourStepId, { readonly flows: readonly string[]; r
 
 async function runTourStep(ctx: ScenarioContext, step: TourStep): Promise<void> {
   if (step.number === 1) {
-    await ctx.qa("world.destroy", { clockId: JUDGE_TEST_CLOCK_ID });
-    const password = judgePassword();
+    await ctx.qa("world.destroy", { clockId: GUEST_TEST_CLOCK_ID });
+    const password = guestPassword();
     const browser = await launchBrowser();
     ctx.state.tour = { browser, page: await browser.newPage(), password } satisfies Tour;
     await signIn(tourOf(ctx).page, password);
@@ -157,9 +157,9 @@ async function runTourStep(ctx: ScenarioContext, step: TourStep): Promise<void> 
 export const sc24 = defineScenario({
   id: "SC-24",
   slug: "sc24",
-  title: "The judge's guided tour on the deployed console",
+  title: "The guest's guided tour on the deployed console",
   suites: ["full"],
-  lane: "judge",
+  lane: "guest",
   steps: TOUR_STEPS.map((step) => ({ n: step.number, title: step.title.en, flows: CHECKS[step.id].flows, run: (ctx: ScenarioContext) => runTourStep(ctx, step) })),
   async cleanup(ctx) {
     const tour = ctx.state.tour as Tour | undefined;

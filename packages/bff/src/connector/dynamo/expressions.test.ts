@@ -57,7 +57,7 @@ describe("condition", () => {
     const built = condition(QA_DELETE_CONDITION);
     expect(built.expression).toBe("#n0 = :v1 AND (begins_with(#n2, :v3) OR #n2 = :v4 OR #n2 = :v5)");
     expect(built.names).toEqual({ "#n0": "world", "#n2": "clockId" });
-    expect(built.values).toEqual({ ":v1": "qa", ":v3": "qa-", ":v4": "GLOBAL#firm-qa", ":v5": "JUDGE#firm-judge-test" });
+    expect(built.values).toEqual({ ":v1": "qa", ":v3": "qa-", ":v4": "GLOBAL#firm-qa", ":v5": "GUEST#firm-guest-test" });
   });
 
   it("refuses an empty oneOf", () => {

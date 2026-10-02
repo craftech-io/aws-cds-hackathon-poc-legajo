@@ -42,7 +42,7 @@ describe("seed conforms to the domain", () => {
   });
 
   it("instantiates every world template into valid items, and the demo ones into the table files", async () => {
-    expect(Object.keys(seed.templates).sort()).toEqual(["demo-firm-delta", "demo-firm-norte", "judge", "models", "qa-min"]);
+    expect(Object.keys(seed.templates).sort()).toEqual(["demo-firm-delta", "demo-firm-norte", "guest", "models", "qa-min"]);
     for (const template of Object.values(seed.templates)) expect(template.startAtSim).toBe(START_AT_SIM);
     expect(await templateConformance(seed)).toEqual([]);
   });
@@ -54,7 +54,7 @@ describe("seed conforms to the domain", () => {
         for (const field of ["PK", "SK", "worldEpoch", "threadTag", "threadAddress", "phoneHash", "emailHash"]) expect(item, `${name} ${item.entity}`).not.toHaveProperty(field);
       }
     }
-    expect(seed.templates.judge?.placeholders).toMatchObject({ firmId: "firm-judge-00", clockId: "JUDGE#firm-judge-00", mailboxTag: "j00" });
+    expect(seed.templates.guest?.placeholders).toMatchObject({ firmId: "firm-guest-00", clockId: "GUEST#firm-guest-00", mailboxTag: "g00" });
     expect(seed.templates.models?.operations).toHaveLength(30);
   });
 

@@ -1,9 +1,9 @@
 // The policy at a past instant (docs/build-plan.md WP-17, docs/architecture.md §12): a message that
-// already went out, judged at its own `sentAtSim`/`sentAtReal` with the rows as they are now, whose
+// already went out, decided at its own `sentAtSim`/`sentAtReal` with the rows as they are now, whose
 // dated histories (control, dossier status, opt-in, supplier authorization, contact status) rebuild
 // what was in force then. A revocation, a bounce or a takeover recorded after the send never makes it
 // a breach; one that was in force when it went out always does. The WhatsApp window runs on the
-// clock the message itself ran on (`simulated`). What only exists at send time is not re-judged:
+// clock the message itself ran on (`simulated`). What only exists at send time is not re-checked:
 // the recipient fence of an email (the SES client checked it) and the content rules (the audit never
 // reads a body). `PolicyAudit` (check b) and the seed invariants (docs/seed-spec.md invariant 10)
 // read the result; neither ever reads the machine's clock.

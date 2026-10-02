@@ -16,7 +16,7 @@ describe("the steps of the tour", () => {
     expect(validateSteps(broken)).toContainEqual(expect.stringContaining('reply: "en" uses {deferredSend, other}'));
   });
 
-  it("fail when an expected hour falls outside the tour window of the judge template", () => {
+  it("fail when an expected hour falls outside the tour window of the guest template", () => {
     const broken = replaceStep("delegate", (step) => ({ ...step, times: { ...step.times, deferredSend: { timer: "DEFERRED_SEND", expectedSim: "2026-10-17T10:00:00-03:00", zone: "America/Argentina/Buenos_Aires" } } }));
     expect(validateSteps(broken)).toContainEqual(expect.stringContaining("outside the tour window"));
   });
@@ -74,16 +74,16 @@ describe("the SC-24 scenario", () => {
   const importLine = 'import { TOUR_STEPS } from "../../packages/web/src/views/tour/steps";';
 
   it("passes when it imports the steps module and walks TOUR_STEPS", () => {
-    expect(checkScenario("scripts/scenarios/sc-24-judge.ts", `${importLine}\nfor (const step of TOUR_STEPS) run(step);`)).toEqual({ status: "ok" });
+    expect(checkScenario("scripts/scenarios/sc-24-guest.ts", `${importLine}\nfor (const step of TOUR_STEPS) run(step);`)).toEqual({ status: "ok" });
   });
 
   it("passes when it imports the module and names every step", () => {
     const named = `import { lookText } from "../../packages/web/src/views/tour/steps.ts";\n${TOUR_STEPS.map((step) => `step("${step.id}");`).join("\n")}`;
-    expect(checkScenario("scripts/scenarios/sc-24-judge.ts", named)).toEqual({ status: "ok" });
+    expect(checkScenario("scripts/scenarios/sc-24-guest.ts", named)).toEqual({ status: "ok" });
   });
 
   it("fails when it keeps its own list of steps", () => {
-    const verdict = checkScenario("scripts/scenarios/sc-24-judge.ts", 'const steps = ["sign-in", "first-request"];');
+    const verdict = checkScenario("scripts/scenarios/sc-24-guest.ts", 'const steps = ["sign-in", "first-request"];');
     expect(verdict.status).toBe("error");
     expect(verdict.status === "error" && verdict.errors.join("\n")).toMatch(/does not import[\s\S]*names the steps delegate/);
   });

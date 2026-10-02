@@ -1,5 +1,5 @@
 // Fixed English gloss of every Spanish template and fixed text, shown with "EN" in the phone
-// simulator, the demo mailbox and the guided tour so a judge who reads no Spanish follows the story
+// simulator, the demo mailbox and the guided tour so a guest who reads no Spanish follows the story
 // (docs/design-brief.md §10). A gloss is never sent to anybody. Each one implements the same type as
 // its Spanish source, so a text without a gloss does not compile; parameters stay as the importer saw
 // them.

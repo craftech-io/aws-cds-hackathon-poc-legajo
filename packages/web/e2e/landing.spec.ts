@@ -1,11 +1,11 @@
 // FL-089 · the bilingual landing and the legal pages of the demo (docs/flows-catalog.md), on the UI
 // server's Vite: the story with the real texts, "Powered by Craftech", the synthetic-data notice and
 // the block of what is real and what is simulated, the es/en switch, the scenes, the gallery with zoom
-// (buttons, keys, swipe, Escape), the judges' button to the login and the two legal pages. Every
+// (buttons, keys, swipe, Escape), the sign-in button to the login and the two legal pages. Every
 // request stays on the machine.
 import { readFileSync } from "node:fs";
 import { type Page, expect, test } from "@playwright/test";
-import { JUDGES_SIGN_IN, LANDING_COPY } from "../src/views/landing/copy.ts";
+import { LANDING_COPY } from "../src/views/landing/copy.ts";
 import { LandingManifest, mediaIdsIn } from "../src/views/landing/manifest.ts";
 import { SCENES } from "../src/views/landing/scenes.ts";
 import { loginCopy } from "../src/views/login/copy.ts";
@@ -136,9 +136,9 @@ test.describe("[FL-089] landing bilingüe y páginas legales", () => {
     await expect(dialog).toBeHidden();
   });
 
-  test("[FL-089] Judges: sign in / Jurado: ingresar opens the login", async ({ page }) => {
+  test("[FL-089] the hero's sign-in button opens the login", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("region", { name: es.judges.title }).getByRole("link", { name: `${JUDGES_SIGN_IN} →` }).click();
+    await page.getByRole("main").getByRole("link", { name: `${es.cta.signIn} →` }).first().click();
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByRole("heading", { level: 1, name: loginCopy.credentials.title })).toBeVisible();
   });

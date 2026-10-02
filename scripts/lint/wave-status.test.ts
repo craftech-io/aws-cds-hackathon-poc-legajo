@@ -130,6 +130,46 @@ describe("violations", () => {
   });
 });
 
+describe("waves in stages", () => {
+  const staged = (rows: string) => `
+## 2. Paquetes de trabajo
+
+### Ola 3 · Etapa A1 · Guard
+
+**WP-47 · Guard** — devops · —
+Objetivo: x. Archivos: \`scripts/lint/neutral-surfaces.ts\`, \`scripts/ci/**\`. Aceptación: ok.
+
+### Ola 3 · Etapa B · Logic
+
+**WP-25 · Outbound** — typescript-dev · WP-47
+Objetivo: y. Archivos: \`packages/bff/src/outbound/**\`. Aceptación: ok.
+
+## 3. Dependencias
+
+## 5. Estado de las olas
+
+| Ola | Estado | Qué falta |
+|---|---|---|
+${rows}
+`;
+  const stagedRepo = memoryRepo({ "sst-env.d.ts": DEPLOYED_SST_ENV, "scripts/lint/neutral-surfaces.ts": "it.todo('x');\n", "scripts/ci/order.test.ts": "it('y', () => {});\n" });
+
+  it("adds the blockers of every stage of a wave instead of keeping only the last one", () => {
+    const markdown = staged("| Ola 3 | `aceptada` | x |");
+    const reasons = blockers(parsePlan(markdown), [{ wave: 3, state: "aceptada" }], stagedRepo).get(3);
+    expect(reasons).toEqual(["WP-47: scripts/lint/neutral-surfaces.ts: 1 × it.todo", "WP-25: packages/bff/src/outbound/** no existe"]);
+    expect(violations(parsePlan(markdown), markdown, stagedRepo)).toEqual([
+      "ola 3 declarada aceptada con 2 bloqueo(s): WP-47: scripts/lint/neutral-surfaces.ts: 1 × it.todo; WP-25: packages/bff/src/outbound/** no existe",
+    ]);
+  });
+
+  it("expects one row per wave, not one per stage", () => {
+    const markdown = staged("| Ola 3 | `no iniciada` | x |");
+    expect(violations(parsePlan(markdown), markdown, stagedRepo)).toEqual([]);
+    expect(violations(parsePlan(staged("")), staged(""), stagedRepo)).toEqual(["ola 3: 0 fila(s) en ## 5. Estado de las olas, se espera 1"]);
+  });
+});
+
 describe("docs/build-plan.md", () => {
   const root = resolve(import.meta.dirname, "../..");
   const markdown = readFileSync(resolve(root, PLAN_FILE), "utf8");

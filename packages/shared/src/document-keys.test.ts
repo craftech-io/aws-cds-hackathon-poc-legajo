@@ -81,7 +81,7 @@ describe("Seed keys (docs/seed-spec.md §1)", () => {
   it("PDFs of model operations, unknown PDFs, world templates and fixed objects", () => {
     expect(seedKeys.pdf("op-4471", "PACKING_LIST", 1)).toBe("pdfs/op-4471/PACKING_LIST-v1.pdf");
     expect(seedKeys.unknownPdf(3)).toBe("pdfs/unknown/3.pdf");
-    expect(seedKeys.worldTemplate("judge")).toBe("worlds/judge.json");
+    expect(seedKeys.worldTemplate("guest")).toBe("worlds/guest.json");
     expect(seedKeys.readerCatalog).toBe("reader/catalog.json");
     expect(seedKeys.batchInputs).toBe("metrics/batch-inputs.jsonl");
   });

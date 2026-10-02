@@ -1,9 +1,9 @@
 // Building blocks every entity schema shares (docs/architecture.md §5): the metadata each DynamoDB
-// item carries, the `entity` discriminator, the world stamp of QA and judge worlds, dated histories
+// item carries, the `entity` discriminator, the world stamp of QA and guest worlds, dated histories
 // and the small value schemas that repeat across tables. Entities are validated with these schemas
 // at the connector edge (reads and writes) and by the seed loader.
 import { z } from "zod";
-import { JUDGE_TEST_CLOCK_ID, QA_GLOBAL_CLOCK_ID, World, parseClockId } from "@legajo/shared";
+import { GUEST_TEST_CLOCK_ID, QA_GLOBAL_CLOCK_ID, World, parseClockId } from "@legajo/shared";
 
 /** Every persisted entity, by table (docs/architecture.md §5). */
 export const EntityName = z.enum([
@@ -164,7 +164,7 @@ export const EntityMeta = z.object({
   updatedAt: ZonedInstant,
   version: z.number().int().min(1),
   synthetic: z.boolean().default(false),
-  /** `qa` or `judge` on every item of those worlds: the condition of every QA delete (docs/architecture.md §14). */
+  /** `qa` or `guest` on every item of those worlds: the condition of every QA delete (docs/architecture.md §14). */
   world: World.optional(),
   runId: z.string().min(1).max(128).optional(),
   expiresAt: EpochSeconds.optional(),
@@ -183,18 +183,18 @@ export function defineEntity<T extends z.ZodRawShape>(shape: T) {
   return EntityMeta.extend(shape);
 }
 
-/** Items of a QA world expire after 48 hours; the fixed QA and judge-test worlds are restored instead. */
+/** Items of a QA world expire after 48 hours; the fixed QA and guest-test worlds are restored instead. */
 export const QA_WORLD_TTL_SECONDS = 48 * 60 * 60;
 
 /**
  * `world` of an item of this clock (docs/seed-spec.md §14): `qa` for `qa-*` clocks and the two fixed
- * QA clocks, `judge` for any other judge world, nothing for demo and batch worlds.
+ * QA clocks, `guest` for any other guest world, nothing for demo and batch worlds.
  */
 export function worldOfClock(clockId: string): World | undefined {
-  if (clockId === QA_GLOBAL_CLOCK_ID || clockId === JUDGE_TEST_CLOCK_ID) return "qa";
+  if (clockId === QA_GLOBAL_CLOCK_ID || clockId === GUEST_TEST_CLOCK_ID) return "qa";
   const scope = parseClockId(clockId)?.scope;
   if (scope === "QA") return "qa";
-  if (scope === "JUDGE") return "judge";
+  if (scope === "GUEST") return "guest";
   return undefined;
 }
 

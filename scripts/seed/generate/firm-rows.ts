@@ -50,7 +50,7 @@ export const RESPONSIBILITY_MATRIX: readonly MatrixRule[] = [
   ...(["MISSING_SIGNATURE", "MISSING_STAMP", "ORIGIN_MISMATCH", "INVOICE_NUMBER_MISMATCH"] as const).map((code) => rule("CERTIFICATE_OF_ORIGIN", code, "SUPPLIER")),
 ];
 
-/** Every row of a firm; the rows of a judge's own firm carry that world's stamp (`world: "judge"`). */
+/** Every row of a firm; the rows of a guest's own firm carry that world's stamp (`world: "guest"`). */
 export function firmRows(firm: FirmSpec, brokers: readonly BrokerSpec[], world?: World): SeedItem[] {
   const rows: SeedItem[] = [
     templateItem("Firm", {

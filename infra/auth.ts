@@ -5,19 +5,19 @@
 // Who gets in. Nobody signs up: `allowAdminCreateUserOnly`, and the operator creates every user with
 // AdminCreateUser through `npm run console:invite` (scripts/console/invite.ts), which sets the group
 // and `custom:firmId`. Sign-in names: email is an alias, so brokers and analysts sign in with the
-// email the invitation verified, and judges (`judge-01..NN`, `judge-test`) with a plain username and
+// email the invitation verified, and guests (`guest-01..NN`, `guest-test`) with a plain username and
 // no email at all. Cognito refuses an email-shaped username while email is an alias, so the invite
 // script generates the username of an invited broker.
 //
-// Tenancy. Groups BROKER, JUDGE and ANALYST; `custom:firmId` is readable by the web client and never
+// Tenancy. Groups BROKER, GUEST and ANALYST; `custom:firmId` is readable by the web client and never
 // writable by it (WEB_CLIENT_SETTINGS.writeAttributes). The pre token generation trigger (event
-// V2_0, packages/bff/src/auth-triggers/pre-token.ts) adds `firmId`, the role and `isJudge` from
+// V2_0, packages/bff/src/auth-triggers/pre-token.ts) adds `firmId`, the role and `isGuest` from
 // `Firms/BROKER#`; Cognito waits at most 5 s for it, hence the explicit timeout.
 //
 // Sign-in surface. The console's own screen (packages/web/src/views/login) speaks USER_SRP_AUTH,
 // REFRESH_TOKEN_AUTH, the challenges, ForgotPassword and RevokeToken to the Cognito API. The pool has
 // no domain and the client no OAuth flow, so there is no hosted UI. MFA is optional TOTP (no SMS):
-// brokers and analysts may turn it on; judge accounts are created with it off and the console hides it.
+// brokers and analysts may turn it on; guest accounts are created with it off and the console hides it.
 //
 // Email. Cognito sends the invitation and the code message with its service-linked role
 // (AWSServiceRoleForAmazonCognitoIdpEmailService, created by the first deploy that sets DEVELOPER),
@@ -25,7 +25,7 @@
 // infra/messaging-email.ts, once that identity exists and is verified; until then from Cognito's
 // default sender with the same templates, and the deploy log says so (auth-email.ts `emailSenderFor`).
 // These emails bypass the app's SES client and its recipient fence: the only recipients are the
-// addresses the operator passes to console:invite (judges get no email).
+// addresses the operator passes to console:invite (guests get no email).
 //
 // Verify:
 //   aws --profile craftech-demos cognito-idp describe-user-pool --user-pool-id <id>
@@ -33,7 +33,7 @@
 //     MfaConfiguration = OPTIONAL · UserPoolTier = ESSENTIALS · SchemaAttributes has custom:firmId ·
 //     LambdaConfig.PreTokenGenerationConfig.LambdaVersion = V2_0 · no Domain ·
 //     EmailConfiguration.EmailSendingAccount = DEVELOPER (once the SES identity is verified)
-//   aws --profile craftech-demos cognito-idp list-groups --user-pool-id <id>        BROKER, JUDGE, ANALYST
+//   aws --profile craftech-demos cognito-idp list-groups --user-pool-id <id>        BROKER, GUEST, ANALYST
 //   aws --profile craftech-demos cognito-idp describe-user-pool-client --user-pool-id <id> --client-id <clientId>
 //     ExplicitAuthFlows = [ALLOW_USER_SRP_AUTH, ALLOW_REFRESH_TOKEN_AUTH] · AllowedOAuthFlowsUserPoolClient = false ·
 //     AccessTokenValidity = IdTokenValidity = 15 (minutes) · RefreshTokenValidity = 12 (hours)
@@ -79,9 +79,9 @@ function senderConfiguration(identity: unknown): $util.Output<EmailConfiguration
 // whatever the order.
 const emailConfiguration = $util.output(import("./messaging-email").then((module) => senderConfiguration(Reflect.get(module, "emailIdentity"))));
 
-/** Adds `firmId`, the role and `isJudge` to the tokens; reads only `Firms` (its broker rows and GSI1). */
+/** Adds `firmId`, the role and `isGuest` to the tokens; reads only `Firms` (its broker rows and GSI1). */
 export const preTokenTrigger = new sst.aws.Function("AuthPreToken", {
-  description: "Cognito pre token generation (V2_0): firmId, role and isJudge from Firms/BROKER#.",
+  description: "Cognito pre token generation (V2_0): firmId, role and isGuest from Firms/BROKER#.",
   handler: PRE_TOKEN_HANDLER,
   link: lateLinks("auth", "storage-tables", () => import("./storage-tables"), ["Firms"]),
   timeout: "5 seconds",

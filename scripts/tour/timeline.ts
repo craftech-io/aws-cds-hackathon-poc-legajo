@@ -1,4 +1,4 @@
-// Walks the judge's guided tour (packages/web/src/views/tour/steps.ts) over a world and checks that
+// Walks the guest's guided tour (packages/web/src/views/tour/steps.ts) over a world and checks that
 // the hours the tour promises are the ones the world produces (docs/test-plan.md §3, "línea de tiempo
 // del recorrido"; docs/seed-spec.md §3, invariant 21):
 //
@@ -11,7 +11,7 @@
 //      the end of the window steps.ts declares, and no timer of 4471 is left inside the window.
 //
 // The world is a port: scripts/tour/timeline.test.ts runs the walk over the in-process world of the
-// local flows (tests/flows/support/world.ts) loaded with the `judge` template and the scripted Harness.
+// local flows (tests/flows/support/world.ts) loaded with the `guest` template and the scripted Harness.
 // Button taps inside the phone simulator are not moves of the panel; the tour asks for them in "Qué
 // mirar" and SC-24 taps them, so the walk taps them too (TOUR_TAPS).
 import type { TimerKind, WaButtonAction } from "@legajo/shared";
@@ -30,7 +30,7 @@ export interface TourClockView {
   readonly pending: readonly TourTimer[];
 }
 
-/** `tour` of the `judge` template (docs/seed-spec.md §3). */
+/** `tour` of the `guest` template (docs/seed-spec.md §3). */
 export interface TourWindowDeclaration {
   readonly operationNumber: string;
   readonly windowStartSim: string;
@@ -46,7 +46,7 @@ export interface TourWorld {
   tap(action: WaButtonAction): Promise<readonly TourTimer[]>;
 }
 
-/** Phone buttons each step asks the judge to tap after its moves ("Qué mirar" of steps.ts, SC-24). */
+/** Phone buttons each step asks the guest to tap after its moves ("Qué mirar" of steps.ts, SC-24). */
 export const TOUR_TAPS: Readonly<Partial<Record<TourStepId, readonly WaButtonAction[]>>> = {
   delegate: ["SUPPLIER_SENDS", "CONFIRM_CONTACT"],
 };

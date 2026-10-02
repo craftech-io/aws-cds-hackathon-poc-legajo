@@ -4,11 +4,11 @@
 //
 //   custom:firmId   the tenant the invitation set (re-stamped once validated)
 //   custom:role     from the broker row the user's `sub` is bound to (`Firms/BROKER#`, GSI1), else
-//                   the highest-precedence console group (a judge's first sign-in, before its world
+//                   the highest-precedence console group (a guest's first sign-in, before its world
 //                   and its broker row exist)
-//   custom:isJudge  "true" for a JUDGE, who acts as a broker only inside its own judge firm
+//   custom:isGuest  "true" for a GUEST, who acts as a broker only inside its own guest firm
 //
-// A judge's access token also loses the `aws.cognito.signin.user.admin` scope: judge accounts are
+// A guest's access token also loses the `aws.cognito.signin.user.admin` scope: guest accounts are
 // shared through the private Devpost instructions, so Cognito itself must refuse ChangePassword,
 // AssociateSoftwareToken, SetUserMFAPreference, UpdateUserAttributes and DeleteUser with it (hiding
 // them in the console is not enough; docs/design-brief.md §7.1). SRP sign-in, refresh and
@@ -16,7 +16,7 @@
 //
 // The groups are copied back unchanged: a V2_0 response that leaves `groupOverrideDetails` empty
 // suppresses them. An account that cannot be resolved (no valid firm, no console role, an inactive
-// broker, a judge outside a judge firm) gets a token without tenant, role or groups, which the BFF
+// broker, a guest outside a guest firm) gets a token without tenant, role or groups, which the BFF
 // refuses (PRINCIPAL_INCOMPLETE) and the console shows as "no access". A broker directory that
 // cannot be read fails the sign-in: Cognito waits at most 5 s, so the read has its own deadline.
 import { FirmId } from "@legajo/shared";
@@ -29,7 +29,7 @@ import { withDeadline } from "../lib/deadline";
 import { createLogger, type Logger } from "../lib/log";
 
 /** Claims this trigger owns in the id token. */
-export const STAMPED_CLAIMS = { firmId: "custom:firmId", role: "custom:role", isJudge: "custom:isJudge" } as const;
+export const STAMPED_CLAIMS = { firmId: "custom:firmId", role: "custom:role", isGuest: "custom:isGuest" } as const;
 
 // What the trigger reads of the event; everything else Cognito sends passes through untouched.
 const GroupConfiguration = z.looseObject({
@@ -75,7 +75,7 @@ export type PreTokenDecision =
   | { readonly outcome: "REFUSED"; readonly refusal: PreTokenRefusal; readonly details: ClaimsAndScopeOverrideDetails };
 
 /**
- * No tenant and no groups in either token: the account has no access. Role and judge flag are
+ * No tenant and no groups in either token: the account has no access. Role and guest flag are
  * simply not stamped; only claims the pool really issues are suppressed (`custom:firmId` is a pool
  * attribute), and empty group overrides clear `cognito:groups` in the id and access tokens.
  */
@@ -112,15 +112,15 @@ export async function decidePreToken(event: PreTokenEvent, deps: PreTokenDeps): 
 
   const resolved = resolveAccess({ firmId, role: row?.role, groups: groupConfiguration.groupsToOverride });
   if (!resolved.ok) return refused(resolved.refusal);
-  const { role, isJudge } = resolved.access;
+  const { role, isGuest } = resolved.access;
 
   return {
     outcome: "STAMPED",
     details: {
       idTokenGeneration: {
-        claimsToAddOrOverride: { [STAMPED_CLAIMS.firmId]: firmId, [STAMPED_CLAIMS.role]: role, [STAMPED_CLAIMS.isJudge]: isJudge ? "true" : "false" },
+        claimsToAddOrOverride: { [STAMPED_CLAIMS.firmId]: firmId, [STAMPED_CLAIMS.role]: role, [STAMPED_CLAIMS.isGuest]: isGuest ? "true" : "false" },
       },
-      ...(isJudge ? { accessTokenGeneration: { scopesToSuppress: [ACCOUNT_ADMIN_SCOPE] } } : {}),
+      ...(isGuest ? { accessTokenGeneration: { scopesToSuppress: [ACCOUNT_ADMIN_SCOPE] } } : {}),
       groupOverrideDetails: groupConfiguration,
     },
   };

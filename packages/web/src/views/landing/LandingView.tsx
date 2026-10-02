@@ -1,8 +1,8 @@
 // `/`: the public welcome page of the demo, "Legajo listo · Powered by Craftech", in Spanish or
 // English (docs/design-brief.md §7). No login: it tells the problem and the story of operation 4471
 // with the real texts of the product, says what is real and what is simulated, shows the console and
-// the architecture, and sends judges to the login. A signed-in visitor still lands here, with the call
-// to action pointing to the console.
+// the architecture, and offers the sign-in. A signed-in visitor still lands here, with the call to
+// action pointing to the console.
 import { BrandLine, LegajoWordmark, PoweredByCraftech } from "../../components/brand/Brand";
 import { useRouter } from "../../lib/router";
 import { ArchitectureSection } from "./Architecture";
@@ -11,7 +11,7 @@ import { DemoScenes } from "./DemoScenes";
 import { GalleryProvider } from "./gallery";
 import { LandingLangProvider, langFromSearch, useLandingCopy, useLandingLang } from "./lang";
 import { type MediaState, useLandingMedia } from "./media";
-import { ConsoleSection, HowSection, JudgesButton, JudgesSection, LandingSection, ProblemSection, RealSection, VideoSlot } from "./Sections";
+import { ConsoleSection, HowSection, LandingSection, ProblemSection, RealSection, SignInButton, VideoSlot } from "./Sections";
 import { WhatsAppPhone } from "./WhatsAppPhone";
 
 function LangSwitch() {
@@ -39,7 +39,6 @@ function Header() {
     { href: "#how", label: nav.how },
     { href: "#console", label: nav.console },
     { href: "#architecture", label: nav.architecture },
-    { href: "#judges", label: nav.judges },
   ];
   return (
     <header className="sticky top-0 z-30 border-b border-mist bg-white/95 backdrop-blur">
@@ -70,7 +69,7 @@ function Hero() {
           <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">{hero.title}</h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-mist">{hero.lead}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <JudgesButton onDark />
+            <SignInButton onDark />
             <a href="#story" className="inline-flex items-center justify-center rounded-md border border-navy-soft px-5 py-3 text-sm font-semibold text-white hover:bg-navy-soft">
               {hero.story}
             </a>
@@ -133,7 +132,6 @@ export function LandingView() {
             <ConsoleSection media={media} />
             <ArchitectureSection />
             <VideoSlot media={media} />
-            <JudgesSection />
           </main>
           <Footer />
         </div>

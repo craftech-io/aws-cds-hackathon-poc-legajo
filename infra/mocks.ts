@@ -23,7 +23,7 @@
 // QaDriver); `grantMockInvoke` refuses any other.
 //
 // Tables. Keys `PK`/`SK`, no GSI, TTL `expiresAt` in epoch seconds (faults and idempotency of the
-// reader expire in 48 h; platform rows of QA and judge worlds with their world), DynamoDB's default
+// reader expire in 48 h; platform rows of QA and guest worlds with their world), DynamoDB's default
 // encryption with an AWS owned key (docs/architecture.md §5, "SSE con claves de AWS"). `ReaderCatalog`
 // is linked as it is. `Platform` is not: the world factory writes its rows directly with capability
 // WORLDS, fenced per role by `dynamodb:LeadingKeys` (Bff, WorldJanitor, QaDriver), and a link to the

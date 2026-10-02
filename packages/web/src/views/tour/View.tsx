@@ -1,5 +1,5 @@
 // "Recorrido guiado" (docs/design-brief.md §15), the shell's side panel, open from the start for a
-// judge: the 10 steps of steps.ts over the story of operation 4471, in Spanish or English. The current
+// guest: the 10 steps of steps.ts over the story of operation 4471, in Spanish or English. The current
 // step is the first with a move still to do; each button calls the console's own procedures, the
 // buttons that change the world wait for a quiet one (the shell's poll of `clock.get` says when), and
 // the hours of "Qué mirar" come from the world's pending timers of 4471. Progress is kept per world

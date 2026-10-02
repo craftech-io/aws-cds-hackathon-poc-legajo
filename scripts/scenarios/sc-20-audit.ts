@@ -2,7 +2,7 @@
 // `GLOBAL#firm-qa` at the start and at the end (in its cleanup too), so every run finds the world of the
 // `qa-min` template; it aggregates the policy audit of every earlier scenario of the run; and it proves
 // that "Reiniciar demo" leaves no Memory of the previous epoch behind. Its own `sc20` worlds (clones of
-// the judge template) carry the console reads and the paused-clock checks.
+// the guest template) carry the console reads and the paused-clock checks.
 import { readFile } from "node:fs/promises";
 import { z } from "zod";
 import type { RecordKey } from "@legajo/bff/qa-driver/contract-inputs";
@@ -16,7 +16,7 @@ import { SENTINELS, sentinelMessage } from "./lib/sentinels";
 import { type ScenarioContext, defineScenario, ensure } from "./lib/steps";
 import { advanceTo, awaitState, createWorld, opOf, worldOf } from "./lib/world";
 
-const JUDGE_START = "2026-10-14T10:30:00-03:00";
+const GUEST_START = "2026-10-14T10:30:00-03:00";
 /** Manifest of the seed: `qaMetrics.aggregates` are the KPIs the `qa-min` fixture must produce (docs/seed-spec.md §15, invariant 14). */
 const MANIFEST = "scripts/seed/data/manifest.json";
 const ManifestAggregates = z.object({ qaMetrics: z.object({ aggregates: z.record(z.string(), z.number()) }).loose().optional() }).loose();
@@ -28,7 +28,7 @@ async function manifestAggregates(): Promise<Record<string, number> | undefined>
     return undefined;
   }
 }
-const JUDGE_MODELS = ["op-4471", "op-4474", "op-4477", "op-4478", "op-4487", "op-4488"];
+const GUEST_MODELS = ["op-4471", "op-4474", "op-4477", "op-4478", "op-4487", "op-4488"];
 
 interface WorldMetrics {
   readonly usage: { readonly turns: number };
@@ -72,7 +72,7 @@ export const sc20 = defineScenario({
       flows: [],
       async run(ctx) {
         await resetGlobalQa(ctx);
-        await createWorld(ctx, { startAtSim: JUDGE_START, operations: JUDGE_MODELS.map((model, index) => ({ key: `j${index}`, model })) });
+        await createWorld(ctx, { startAtSim: GUEST_START, operations: GUEST_MODELS.map((model, index) => ({ key: `j${index}`, model })) });
       },
     },
     {
@@ -188,10 +188,10 @@ export const sc20 = defineScenario({
     },
     {
       n: 9,
-      title: "two worlds of the judge template: paused clocks never move alone; one advances and approves, the other does not change",
+      title: "two worlds of the guest template: paused clocks never move alone; one advances and approves, the other does not change",
       flows: ["FL-065", "FL-087"],
       async run(ctx) {
-        await createWorld(ctx, { suffix: "b", startAtSim: JUDGE_START, operations: JUDGE_MODELS.map((model, index) => ({ key: `j${index}`, model })) });
+        await createWorld(ctx, { suffix: "b", startAtSim: GUEST_START, operations: GUEST_MODELS.map((model, index) => ({ key: `j${index}`, model })) });
         const [first, second] = [opOf(ctx, "j5").operationId, opOf(ctx, "j5", "b").operationId];
         const before = [await ctx.snapshot(first), await ctx.snapshot(second)].map((snapshot) => snapshot.clock.simNow);
         await ctx.pause(10 * 60);

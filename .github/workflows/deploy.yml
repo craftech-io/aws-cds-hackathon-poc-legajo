@@ -12,7 +12,11 @@
 #
 # Order (docs/architecture.md §15 step 5): the checks of ci.yml, then assume the deploy role, prove
 # who we are, check the active receipt rule set, deploy, load the seed (idempotent), smoke. Steps
-# whose script is not in the repository yet print a notice and pass (never the forbidden terms).
+# whose script is not in the repository yet print a notice and pass (never the forbidden terms nor
+# the neutral-surfaces guard, which needs no secret: ADR-0014 §6). As in ci.yml, the guard's source
+# pass runs right after the forbidden terms of the tree and its build pass right after the web
+# build, both before `sst deploy` (scripts/ci/workflows-order.test.ts). GUEST_TEST_PASSWORD is the
+# password of the synthetic `guest-test` account, read only from the secret and never printed.
 name: Deploy poc
 
 on:
@@ -82,15 +86,30 @@ jobs:
           npm run channels:check-modes
           run_if scripts/reader/contract-check.ts reader:contract
 
+      - name: Forbidden terms (tree, commit messages, PDFs and seed)
+        env:
+          FORBIDDEN_TERMS: ${{ secrets.FORBIDDEN_TERMS }}
+        run: npm run lint:forbidden
+
+      - name: Neutral surfaces (visible sources and seed PDFs)
+        run: npm run lint:neutral-surfaces
+
       - name: Build the console
         run: npm run build -w packages/web
 
-      - name: Forbidden terms (tree, commit messages, PDFs, seed and web build)
+      - name: Neutral surfaces (web build)
+        run: npm run lint:neutral-surfaces -- --dist
+
+      - name: Forbidden terms (web build)
         env:
           FORBIDDEN_TERMS: ${{ secrets.FORBIDDEN_TERMS }}
+        run: npm run lint:forbidden -- --dist
+
+      - name: Landing manifest, images, renders and bundle budget
         run: |
-          npm run lint:forbidden
-          npm run lint:forbidden -- --dist
+          run_if() { if [ -f "$1" ]; then npm run "$2"; else echo "::notice::$2 skipped: $1 is not in the repository yet (WP-48)."; fi; }
+          run_if scripts/landing/check.ts landing:check
+          run_if scripts/landing/bundle-budget.ts landing:budget
 
       - name: Assume the deploy role (OIDC, no access keys)
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
@@ -145,4 +164,6 @@ jobs:
 
       - name: Smoke scenarios (SC-00)
         if: ${{ hashFiles('scripts/scenarios/sc-00-smoke.ts') != '' }}
+        env:
+          GUEST_TEST_PASSWORD: ${{ secrets.GUEST_TEST_PASSWORD }}
         run: npm run scenarios -- --suite smoke

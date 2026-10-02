@@ -35,7 +35,7 @@ export function looksLikeEmail(email: string): boolean {
 
 /**
  * What a person signs in with: brokers and analysts use the email of their invitation (an alias of
- * the pool), judges a plain username without email (`judge-01`, infra/auth.ts). Usernames are
+ * the pool), guests a plain username without email (`guest-01`, infra/auth.ts). Usernames are
  * lower case, so both are normalised the same way.
  */
 export const normalizeSignInName = normalizeEmail;

@@ -1,6 +1,6 @@
-// Tells whether a user signs in with TOTP (optional for brokers and analysts, off for judges,
+// Tells whether a user signs in with TOTP (optional for brokers and analysts, off for guests,
 // docs/architecture.md §10). Cognito's id token has no `amr` claim, so the console asks the BFF,
-// which reads the MFA settings of the user; the settings screen shows the answer and judges never
+// which reads the MFA settings of the user; the settings screen shows the answer and guests never
 // see the option.
 import { AdminGetUserCommand, CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 import { type ClientTimeouts, awsClientConfig } from "../lib/clients";

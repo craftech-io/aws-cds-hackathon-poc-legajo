@@ -23,6 +23,7 @@
     "lint": "tsx scripts/lint/max-lines.ts && tsx scripts/lint/no-intl.ts && tsx scripts/lint/wave-status.ts",
     "lint:duplicates": "tsx scripts/lint/duplicates.ts",
     "lint:forbidden": "tsx scripts/lint/forbidden-terms.ts",
+    "lint:neutral-surfaces": "tsx scripts/lint/neutral-surfaces.ts",
     "lint:wp-ownership": "tsx scripts/lint/wp-ownership.ts",
     "flows:check": "tsx scripts/flows/check.ts",
     "tour:check": "tsx scripts/tour/check.ts",
@@ -36,7 +37,9 @@
     "seed:validate": "tsx scripts/seed/validate.ts",
     "seed:load": "sst shell --stage poc -- tsx scripts/seed/load.ts",
     "scenarios": "tsx scripts/scenarios/run.ts",
-    "smoke:interim": "tsx scripts/smoke/interim.ts"
+    "smoke:interim": "tsx scripts/smoke/interim.ts",
+    "landing:check": "tsx scripts/landing/check.ts",
+    "landing:budget": "tsx scripts/landing/bundle-budget.ts"
   },
   "dependencies": {
     "zod": "4.6.5"

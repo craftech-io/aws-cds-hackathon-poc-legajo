@@ -20,13 +20,13 @@
 //                          invocation role, only towards scheduler.amazonaws.com.
 //
 // WorldJanitor. The world factory's background worker (capability WORLDS, Platform fenced to
-// POP#firm-judge-* by infra/mocks.ts). Two entries:
+// POP#firm-guest-* by infra/mocks.ts). Two entries:
 //   - MEMORY_PURGE, invoked asynchronously by Bff and QaDriver after "Reiniciar demo" or world.destroy:
 //     the second pass and the listings of the Memory purge, up to 10 minutes (docs/architecture.md
 //     §9.3), hence the 12-minute timeout. Its resource policy names those two roles; within one
 //     account an identity policy alone also invokes, so the fence that counts is that no other role
 //     of the app holds lambda:InvokeFunction on it (infra/iam-capabilities.ts).
-//   - The nightly reset of judge worlds idle for 24 real hours, at 04:00 ART (docs/architecture.md §8):
+//   - The nightly reset of guest worlds idle for 24 real hours, at 04:00 ART (docs/architecture.md §8):
 //     an EventBridge rule on the default bus (`sst.aws.Cron`), cron(0 7 * * ? *) in UTC, since
 //     Argentina keeps UTC−3 all year. A rule and not a Scheduler schedule: the CI deploy role creates
 //     tagged rules, while schedules are created only by the code, inside the group above.
@@ -80,7 +80,7 @@ export const WORLD_JANITOR = {
   /** 04:00 ART = 07:00 UTC; EventBridge rules run in UTC. */
   nightlySchedule: "cron(0 7 * * ? *)",
   /** Input of the nightly run (packages/bff/src/handlers/world-janitor.ts validates it with zod). */
-  nightlyEvent: { kind: "IDLE_JUDGE_RESET" },
+  nightlyEvent: { kind: "IDLE_GUEST_RESET" },
 } as const;
 
 /** Callers of the asynchronous MEMORY_PURGE, by the export of infra/bff.ts (WP-32) that creates each one. */
@@ -164,7 +164,7 @@ export const Scheduler = new sst.Linkable("Scheduler", {
 // ---- WorldJanitor ----------------------------------------------------------------------------------
 
 export const worldJanitor = new sst.aws.Function("WorldJanitor", {
-  description: "Continues the Memory purge of a reset or destroyed world (MEMORY_PURGE) and resets idle judge worlds nightly.",
+  description: "Continues the Memory purge of a reset or destroyed world (MEMORY_PURGE) and resets idle guest worlds nightly.",
   handler: SCHEDULER_HANDLERS.WorldJanitor,
   timeout: `${WORLD_JANITOR.timeoutSeconds} seconds`,
   // Reloads world templates from Seed and rewrites every item of a world.

@@ -88,10 +88,15 @@ function documentedTables(): Map<string, { indexes: Record<string, IndexSpec>; t
 describe("DynamoDB tables of docs/architecture.md §5", () => {
   const documented = documentedTables();
 
+  // Leads (ADR-0015 §6) is documented in §5 ahead of its table.
+  const DOCUMENTED_AHEAD = ["Leads"];
+
   it("declares every table of §5 except the two the mocks own", () => {
-    expect(documented.size).toBe(10);
-    expect([...TABLES, ...MOCK_TABLES].sort()).toEqual([...documented.keys()].sort());
+    expect(documented.size).toBe(11);
+    expect([...TABLES, ...MOCK_TABLES, ...DOCUMENTED_AHEAD].sort()).toEqual([...documented.keys()].sort());
   });
+
+  it.todo("[WP-51:pending] declares the Leads table of §5 (pk/sk, TTL expiresAt) with the removal policy of the other tables");
 
   it.each(TABLES)("keeps the GSIs and the TTL of %s exactly as §5", (name) => {
     expect(TABLE_SPECS[name].indexes).toEqual(documented.get(name)?.indexes);
@@ -101,7 +106,7 @@ describe("DynamoDB tables of docs/architecture.md §5", () => {
   it("keys every table by PK and SK and expires items by expiresAt, Parties included", () => {
     expect(PRIMARY_KEY).toEqual({ hashKey: "PK", rangeKey: "SK" });
     expect(TTL_ATTRIBUTE).toBe("expiresAt");
-    expect(section("## 5. DynamoDB", "## 6. S3")).toContain("`world` y `expiresAt` (TTL)");
+    expect(section("## 5. DynamoDB", "## 6. S3")).toContain("`world` (`qa` \\| `guest`) y `expiresAt` (TTL)");
     expect(TABLE_SPECS.Parties.ttl).toBe(true);
     expect(TABLES.filter((name) => !TABLE_SPECS[name].ttl)).toEqual(["Reference"]);
   });

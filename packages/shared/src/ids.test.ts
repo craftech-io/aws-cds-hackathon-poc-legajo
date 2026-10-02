@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
-  JUDGE_TEST_CLOCK_ID,
+  GUEST_TEST_CLOCK_ID,
   QA_FIRM_IDS,
   QA_GLOBAL_CLOCK_ID,
   ClockId,
   clockScopeOf,
   globalClockId,
-  judgeClockId,
+  guestClockId,
   parseClockId,
   qaClockId,
   simClockId,
@@ -53,7 +53,7 @@ describe("prefixes", () => {
     for (const doc of docs) {
       for (const match of readDoc(doc).matchAll(ID_TOKEN)) {
         const token = match[1] ?? "";
-        // Placeholders (`imp-qa-<runId>-…`), ranges (`firm-judge-01..NN`), addresses and wildcards.
+        // Placeholders (`imp-qa-<runId>-…`), ranges (`firm-guest-01..NN`), addresses and wildcards.
         if (/[<>*@#…]|\.\./.test(token)) continue;
         checked += 1;
         const valid = token.startsWith("LDOC-") ? SyntheticDocId.safeParse(token).success : kindOfId(token) !== undefined;
@@ -68,14 +68,14 @@ describe("prefixes", () => {
 describe("validation", () => {
   it("accepts the fixtures of the seed", () => {
     expect(isId("firm", "firm-delta")).toBe(true);
-    expect(isId("firm", "firm-judge-test")).toBe(true);
+    expect(isId("firm", "firm-guest-test")).toBe(true);
     expect(isId("broker", "brk-delta-diego")).toBe(true);
     expect(isId("importer", "imp-norpampa")).toBe(true);
     expect(isId("importer", "imp-qa-local-01J9ZQX-sc16-b")).toBe(true);
     expect(isId("supplier", "sup-n-elbhafen")).toBe(true);
     expect(isId("contact", "ctc-qingdao-1")).toBe(true);
     expect(isId("operation", "op-4471")).toBe(true);
-    expect(isId("operation", "op-4471-j03")).toBe(true);
+    expect(isId("operation", "op-4471-g03")).toBe(true);
     expect(isId("docVersion", "dv-4471-PL-1")).toBe(true);
     expect(isId("observation", "obs-4471-PL-GROSS_WEIGHT_MISMATCH")).toBe(true);
     expect(isId("message", "msg-01J9ZQX4V7K2")).toBe(true);
@@ -106,7 +106,7 @@ describe("validation", () => {
   it("recognizes the kind of an id", () => {
     expect(kindOfId("brk-qa-runner")).toBe("broker");
     expect(kindOfId("obs-4479-CO-INVOICE_NUMBER_MISMATCH")).toBe("observation");
-    expect(kindOfId("dv-4471-j03-CI-2")).toBe("docVersion");
+    expect(kindOfId("dv-4471-g03-CI-2")).toBe("docVersion");
     expect(kindOfId("unknown-thing")).toBeUndefined();
     expect(kindOfId("nodash")).toBeUndefined();
     expect(kindOfId("op-abcd")).toBeUndefined();
@@ -122,15 +122,15 @@ describe("builders", () => {
 
   it("operation ids, keys and numbers", () => {
     expect(operationId("4471")).toBe("op-4471");
-    expect(operationId("4471", "j03")).toBe("op-4471-j03");
+    expect(operationId("4471", "g03")).toBe("op-4471-g03");
     expect(() => operationId("471")).toThrow();
-    expect(operationKey("op-4471-j03")).toBe("4471-j03");
-    expect(operationNumberOf("op-4471-j03")).toBe("4471");
+    expect(operationKey("op-4471-g03")).toBe("4471-g03");
+    expect(operationNumberOf("op-4471-g03")).toBe("4471");
   });
 
   it("document versions, observations and synthetic documents", () => {
     expect(docVersionId("op-4471", "PACKING_LIST", 1)).toBe("dv-4471-PL-1");
-    expect(docVersionId("op-4471-j03", "COMMERCIAL_INVOICE", 2)).toBe("dv-4471-j03-CI-2");
+    expect(docVersionId("op-4471-g03", "COMMERCIAL_INVOICE", 2)).toBe("dv-4471-g03-CI-2");
     expect(() => docVersionId("op-4471", "PACKING_LIST", 0)).toThrow(RangeError);
     expect(observationId("op-4471", "PACKING_LIST", "GROSS_WEIGHT_MISMATCH")).toBe("obs-4471-PL-GROSS_WEIGHT_MISMATCH");
     expect(ObservationId.safeParse(observationId("op-4486", "CERTIFICATE_OF_ORIGIN", "MISSING_SIGNATURE")).success).toBe(true);
@@ -165,11 +165,11 @@ describe("builders", () => {
 describe("clock ids", () => {
   it("parse the four kinds of world clock", () => {
     expect(parseClockId("GLOBAL#firm-delta")).toEqual({ scope: "GLOBAL", firmId: "firm-delta" });
-    expect(parseClockId("JUDGE#firm-judge-03")).toEqual({ scope: "JUDGE", firmId: "firm-judge-03" });
+    expect(parseClockId("GUEST#firm-guest-03")).toEqual({ scope: "GUEST", firmId: "firm-guest-03" });
     expect(parseClockId("qa-812-1-sc18-rate")).toEqual({ scope: "QA" });
     expect(parseClockId("sim-0042")).toEqual({ scope: "SIM" });
     expect(clockScopeOf(QA_GLOBAL_CLOCK_ID)).toBe("GLOBAL");
-    expect(clockScopeOf(JUDGE_TEST_CLOCK_ID)).toBe("JUDGE");
+    expect(clockScopeOf(GUEST_TEST_CLOCK_ID)).toBe("GUEST");
   });
 
   it("reject anything else", () => {
@@ -182,7 +182,7 @@ describe("clock ids", () => {
 
   it("builders produce parseable ids", () => {
     expect(globalClockId("firm-norte")).toBe("GLOBAL#firm-norte");
-    expect(judgeClockId("firm-judge-01")).toBe("JUDGE#firm-judge-01");
+    expect(guestClockId("firm-guest-01")).toBe("GUEST#firm-guest-01");
     expect(qaClockId("local-01J9ZQX", "sc16")).toBe("qa-local-01J9ZQX-sc16");
     expect(simClockId("0007")).toBe("sim-0007");
     expect(() => globalClockId("delta")).toThrow();
@@ -190,9 +190,9 @@ describe("clock ids", () => {
   });
 
   it("QA firms are the three firms of QA type", () => {
-    expect(QA_FIRM_IDS).toEqual(["firm-qa", "firm-sim", "firm-judge-test"]);
+    expect(QA_FIRM_IDS).toEqual(["firm-qa", "firm-sim", "firm-guest-test"]);
     for (const firmId of QA_FIRM_IDS) expect(FirmId.safeParse(firmId).success).toBe(true);
     expect(QA_GLOBAL_CLOCK_ID).toBe(globalClockId("firm-qa"));
-    expect(JUDGE_TEST_CLOCK_ID).toBe(judgeClockId("firm-judge-test"));
+    expect(GUEST_TEST_CLOCK_ID).toBe(guestClockId("firm-guest-test"));
   });
 });

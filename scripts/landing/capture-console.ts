@@ -1,9 +1,9 @@
 // Console captures of the landing's gallery (status `capture` in public/landing/manifest.json), one per
 // entry of scripts/landing/captures.json, at 1280x800 (docs/design-brief.md §7.2):
 //
-//   JUDGE_TEST_PASSWORD=… FORBIDDEN_TERMS=… npx tsx scripts/landing/capture-console.ts --target poc
+//   GUEST_TEST_PASSWORD=… FORBIDDEN_TERMS=… npx tsx scripts/landing/capture-console.ts --target poc
 //       the deployed stage (https://legajo.demo.craftech.io, or --base-url), signed in through the real
-//       login as the synthetic `judge-test` account right after a real run of the guided tour (SC-24):
+//       login as the synthetic `guest-test` account right after a real run of the guided tour (SC-24):
 //       origin `poc`
 //   FORBIDDEN_TERMS=… npx tsx scripts/landing/capture-console.ts --target local
 //       the local UI server (Vite + the real appRouter over the in-memory world, local-server.ts) with a
@@ -32,8 +32,8 @@ import { startLocalServer } from "./local-server";
 import { LANDING_DIR, WEB_DIR, recordInManifest, writePicture } from "./manifest-file";
 
 const STAGE_URL = "https://legajo.demo.craftech.io";
-const JUDGE_TEST_USER = "judge-test";
-const PASSWORD_ENV = "JUDGE_TEST_PASSWORD";
+const GUEST_TEST_USER = "guest-test";
+const PASSWORD_ENV = "GUEST_TEST_PASSWORD";
 const VIEWPORT = { width: 1280, height: 800 } as const;
 
 const Capture = z.object({ view: z.string().startsWith("/app/"), open: z.string().optional(), moment: z.string().min(1) }).strict();
@@ -51,7 +51,7 @@ interface Target {
 
 async function pocTarget(baseUrl: string): Promise<Target> {
   const password = process.env[PASSWORD_ENV];
-  if (!password) throw new Error(`${PASSWORD_ENV} is not set: the judge-test password comes only from the environment`);
+  if (!password) throw new Error(`${PASSWORD_ENV} is not set: the guest-test password comes only from the environment`);
   const base = new URL(baseUrl).origin;
   return {
     origin: "poc",
@@ -61,7 +61,7 @@ async function pocTarget(baseUrl: string): Promise<Target> {
     async signIn(page) {
       // The sign-in form by its autocomplete roles: its labels pull the login's DOM-typed modules in.
       await page.goto(`${base}/login`);
-      await page.locator('input[autocomplete="username"]').fill(JUDGE_TEST_USER);
+      await page.locator('input[autocomplete="username"]').fill(GUEST_TEST_USER);
       await page.locator('input[autocomplete="current-password"]').fill(password);
       await page.locator('form button[type="submit"]').click();
       await page.waitForURL(/\/app\//, { timeout: 90_000 });
@@ -98,7 +98,7 @@ async function localTarget(): Promise<Target> {
   };
 }
 
-/** The guided tour opens by itself for a judge; the captures show the view without it. */
+/** The guided tour opens by itself for a guest; the captures show the view without it. */
 async function closeTour(page: Page): Promise<void> {
   const toggle = page.getByRole("button", { name: copy.tour.open, exact: true }).first();
   if ((await toggle.count()) > 0 && (await toggle.getAttribute("aria-pressed")) === "true") await toggle.click();

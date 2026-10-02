@@ -27,7 +27,7 @@ describe("principal from the id token", () => {
       firmId: "firm-delta",
       role: "BROKER",
       groups: ["ANALYST"],
-      isJudge: false,
+      isGuest: false,
       authTime: 1_799_996_400_000,
       expiresAt: 1_800_000_000_000,
     });
@@ -47,15 +47,15 @@ describe("principal from the id token", () => {
 
   it("treats a firm id that is not firm-<slug> as no firm", () => {
     expect(principalFromIdToken(jwt({ ...base, "custom:firmId": "Estudio Delta" })).firmId).toBeUndefined();
-    expect(principalFromIdToken(jwt({ ...base, "custom:firmId": "firm-judge-01" })).firmId).toBe("firm-judge-01");
+    expect(principalFromIdToken(jwt({ ...base, "custom:firmId": "firm-guest-01" })).firmId).toBe("firm-guest-01");
   });
 
-  it("marks a judge by role or by the pre-token flag, and names it by its username", () => {
-    const judge = principalFromIdToken(jwt({ ...base, email: undefined, "cognito:username": "judge-01", "cognito:groups": ["JUDGE"], "custom:firmId": "firm-judge-01" }));
-    expect(judge).toMatchObject({ role: "JUDGE", isJudge: true });
-    expect(signInNameOf(judge)).toBe("judge-01");
-    expect(displayNameOf(judge)).toBe("judge-01");
-    expect(principalFromIdToken(jwt({ ...base, "custom:isJudge": "true", "cognito:groups": ["BROKER"] })).isJudge).toBe(true);
+  it("marks a guest by role or by the pre-token flag, and names it by its username", () => {
+    const guest = principalFromIdToken(jwt({ ...base, email: undefined, "cognito:username": "guest-01", "cognito:groups": ["GUEST"], "custom:firmId": "firm-guest-01" }));
+    expect(guest).toMatchObject({ role: "GUEST", isGuest: true });
+    expect(signInNameOf(guest)).toBe("guest-01");
+    expect(displayNameOf(guest)).toBe("guest-01");
+    expect(principalFromIdToken(jwt({ ...base, "custom:isGuest": "true", "cognito:groups": ["BROKER"] })).isGuest).toBe(true);
   });
 
   it("prefers the email to sign in again and the name to show", () => {

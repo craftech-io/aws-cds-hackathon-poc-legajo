@@ -49,8 +49,8 @@ async function norteWorld(stores: MemoryStores): Promise<void> {
   ]);
 }
 
-const pablo: Principal = { sub: PABLO_SUB, username: "b7f0e2e4", firmId: "firm-norte", role: "BROKER", groups: ["BROKER"], isJudge: false, authTime: NOW.getTime() / 1000 };
-const judge: Principal = { sub: "0b7f0e2e-0000-4000-8000-000000000003", username: "judge-01", firmId: "firm-judge-01", role: "JUDGE", groups: ["JUDGE"], isJudge: true, authTime: NOW.getTime() / 1000 };
+const pablo: Principal = { sub: PABLO_SUB, username: "b7f0e2e4", firmId: "firm-norte", role: "BROKER", groups: ["BROKER"], isGuest: false, authTime: NOW.getTime() / 1000 };
+const guest: Principal = { sub: "0b7f0e2e-0000-4000-8000-000000000003", username: "guest-01", firmId: "firm-guest-01", role: "GUEST", groups: ["GUEST"], isGuest: true, authTime: NOW.getTime() / 1000 };
 
 async function refusalOf(call: Promise<unknown>): Promise<{ code: string; reason: string }> {
   try {
@@ -179,12 +179,12 @@ describe("[FL-082] firm isolation of the console", () => {
     expect(await refusalOf(as(pablo).byRef({ ref: "op-4471" }))).toEqual({ code: "FORBIDDEN", reason: AUTH_REASON.CROSS_FIRM });
   });
 
-  it("[FL-082] keeps a judge inside its own judge world", async () => {
-    expect(await as(judge).anything({ clockId: "JUDGE#firm-judge-01" })).toBe("ran");
-    expect(await refusalOf(as(judge).anything({ clockId: "JUDGE#firm-judge-02" }))).toMatchObject({ reason: AUTH_REASON.CROSS_FIRM });
-    expect(await refusalOf(as(judge).operations.get({ operationId: "op-4471" }))).toMatchObject({ reason: AUTH_REASON.CROSS_FIRM });
-    const [decision] = await denials("firm-judge-01");
-    expect(decision).toMatchObject({ actor: "SYSTEM", detail: { sub: judge.sub, role: "JUDGE" } });
+  it("[FL-082] keeps a guest inside its own guest world", async () => {
+    expect(await as(guest).anything({ clockId: "GUEST#firm-guest-01" })).toBe("ran");
+    expect(await refusalOf(as(guest).anything({ clockId: "GUEST#firm-guest-02" }))).toMatchObject({ reason: AUTH_REASON.CROSS_FIRM });
+    expect(await refusalOf(as(guest).operations.get({ operationId: "op-4471" }))).toMatchObject({ reason: AUTH_REASON.CROSS_FIRM });
+    const [decision] = await denials("firm-guest-01");
+    expect(decision).toMatchObject({ actor: "SYSTEM", detail: { sub: guest.sub, role: "GUEST" } });
   });
 
   it("[FL-082] runs the same fence for the QaDriver's createCaller with a principal built on the server (SC-20/3)", async () => {
@@ -231,7 +231,7 @@ describe("firm fence: which values are ids", () => {
         { kind: "clock", id: "qa-812-1-sc20" },
       ],
     });
-    expect(operationOfChildId("dv-4471-j03-PL-2")).toBe("op-4471-j03");
+    expect(operationOfChildId("dv-4471-g03-PL-2")).toBe("op-4471-g03");
     expect(operationOfChildId("obs-5501-CO-SIGNATURE_MISSING")).toBe("op-5501");
     expect(operationOfChildId("op-4471")).toBeUndefined();
   });

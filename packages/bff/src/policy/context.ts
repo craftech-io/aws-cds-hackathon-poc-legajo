@@ -23,7 +23,7 @@ export interface PolicyContext {
   readonly toSupplierByEmail: boolean;
   readonly windowBase: TimeBase;
   readonly holidays: HolidayCalendar | undefined;
-  /** The counterpart's messages, without the judged message itself. */
+  /** The counterpart's messages, without the decided message itself. */
   readonly history: readonly HistoryMessage[] | undefined;
   /** `undefined` when there is no history to prove it either way. */
   readonly reply: boolean | undefined;

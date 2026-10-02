@@ -1,5 +1,5 @@
 // A signed-in broker or analyst changes its own password in place (lib/auth/password-change.ts):
-// the current password, the new one against the pool's policy, and Cognito's answer. A judge never
+// the current password, the new one against the pool's policy, and Cognito's answer. A guest never
 // gets here (SecurityPrompts refuses the prompt and the header hides the option).
 import { useState, type FormEvent } from "react";
 import { Button } from "../../components/Button";
@@ -31,7 +31,7 @@ export function ChangePasswordForm({ onClose }: { readonly onClose: () => void }
     );
   }
   if (state.status !== "authenticated" || !auth) return <ErrorNote>{loginCopy.errors.UNAVAILABLE}</ErrorNote>;
-  const session = { tokens: state.tokens, isJudge: state.principal.isJudge };
+  const session = { tokens: state.tokens, isGuest: state.principal.isGuest };
   const same = form.password.length > 0 && form.password === current;
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {

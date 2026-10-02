@@ -27,14 +27,14 @@ export const IdTokenClaims = z.looseObject({
   iat: z.number().int(),
   // Epoch seconds of the last interactive sign-in; a refresh does not move it.
   auth_time: z.number().int(),
-  // Id of the sign-in the token descends from; a refresh keeps it (one session per judge world).
+  // Id of the sign-in the token descends from; a refresh keeps it (one session per guest world).
   origin_jti: z.string().min(1).max(128).optional(),
   "cognito:username": z.string().min(1),
   "cognito:groups": z.array(z.string()).optional(),
-  // Set by the invitation (custom:firmId) and by the pre-token trigger (role, isJudge).
+  // Set by the invitation (custom:firmId) and by the pre-token trigger (role, isGuest).
   "custom:firmId": z.string().optional(),
   "custom:role": z.string().optional(),
-  "custom:isJudge": z.enum(["true", "false"]).optional(),
+  "custom:isGuest": z.enum(["true", "false"]).optional(),
   email: z.string().optional(),
   name: z.string().optional(),
 });

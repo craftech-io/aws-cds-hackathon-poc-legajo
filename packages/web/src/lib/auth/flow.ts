@@ -6,7 +6,7 @@
 //   credentials ──signIn──▶ SRP ──▶ newPassword ──▶ (mfaSetup | totp | done)
 //        │                    ├──▶ totp ─────────▶ done
 //        │                    ├──▶ mfaSetup ─────▶ done        (Cognito MFA_SETUP, or the optional
-//        │                    └──▶ done                         TOTP offer; never to a judge)
+//        │                    └──▶ done                         TOTP offer; never to a guest)
 //        └──forgot──▶ forgotRequest ──▶ forgotConfirm ──▶ credentials (notice: passwordReset)
 //
 // The same machine runs the recent-login step-up (mode `stepUp`): approving or reopening a file
@@ -18,7 +18,7 @@ import { type AuthFlowErrorCode, type FlowStep, errorCodeOf } from "./errors";
 import type { SrpClient } from "./srp";
 import { type TokenSet, tokenSetOf } from "./tokens";
 
-/** `login` of a step-up: the sign-in name of the person in session (email, or a judge's username). */
+/** `login` of a step-up: the sign-in name of the person in session (email, or a guest's username). */
 export type FlowMode = { readonly kind: "signIn" } | { readonly kind: "stepUp"; readonly sub: string; readonly login: string };
 
 /** A pending Cognito challenge: what was typed, who it is (USER_ID_FOR_SRP) and the session that answers it. */
@@ -49,7 +49,7 @@ export type AuthFlowState =
   | { readonly step: "done"; readonly tokens: TokenSet; readonly totpVerified: boolean };
 
 export type AuthFlowAction =
-  /** `login`: the invitation email of a broker or analyst, or the username of a judge. */
+  /** `login`: the invitation email of a broker or analyst, or the username of a guest. */
   | { readonly type: "signIn"; readonly login: string; readonly password: string }
   | { readonly type: "newPassword"; readonly password: string }
   | { readonly type: "totp"; readonly code: string }
@@ -70,7 +70,7 @@ export interface AuthFlowDeps {
   readonly srp: SrpClient;
   readonly mode: FlowMode;
   readonly now: () => number;
-  /** Whether this person may be offered TOTP after signing in (never a judge). */
+  /** Whether this person may be offered TOTP after signing in (never a guest). */
   readonly offersTotp: (tokens: TokenSet) => boolean;
   /** `sub` of the id token, to tell whether a step-up signed in the same person. */
   readonly subOf: (tokens: TokenSet) => string | undefined;
@@ -242,7 +242,7 @@ async function afterTokens(tokens: TokenSet, login: string, totpVerified: boolea
   if (totpVerified) return { state: { step: "done", tokens, totpVerified } };
 
   // The pool's MFA is optional (docs/architecture.md §10): a user without TOTP signs in with the
-  // password alone, a step-up never turns into an enrolment, and judges are never offered TOTP.
+  // password alone, a step-up never turns into an enrolment, and guests are never offered TOTP.
   if (deps.mode.kind === "stepUp" || !deps.offersTotp(tokens)) return { state: { step: "done", tokens, totpVerified: false } };
   let enabled: readonly string[];
   try {

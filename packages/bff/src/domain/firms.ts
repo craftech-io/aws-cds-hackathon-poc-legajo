@@ -2,7 +2,7 @@
 // labelled "supuesto" (docs/seed-spec.md §4, invariant 13), its brokers (the console principals), the
 // versioned checklist the agent answers from (ADR-0013) and the versioned responsibility matrix.
 import { z } from "zod";
-import { BrokerId, ClockId, ConsoleRole, DocType, FirmId, FirmKind, MatrixResponsible, ObservationCode, Party, Weekday } from "@legajo/shared";
+import { BrokerId, ClockId, ConsoleRole, DocType, FirmId, FirmKind, GuestKind, MatrixResponsible, ObservationCode, Party, Weekday } from "@legajo/shared";
 import { EmailAddress, IanaZone, NonEmptyText, TimeOfDay, UsdRange, defineEntity } from "./common";
 
 export const BusinessHours = z.object({
@@ -17,10 +17,12 @@ export const Firm = defineEntity({
   firmId: FirmId,
   name: NonEmptyText,
   kind: FirmKind,
+  /** Reserved account or public slot; only on `GUEST` firms (docs/architecture.md §5). */
+  guestKind: GuestKind.optional(),
   /** Demo mailbox of the firm (`estudio-<slug>@sim…`): escalations land here. */
   mailboxAddress: EmailAddress,
   businessHours: BusinessHours,
-  /** The world of a demo or judge firm; QA firms own many worlds and leave it out. */
+  /** The world of a demo or guest firm; QA firms own many worlds and leave it out. */
   clockId: ClockId.optional(),
   active: z.boolean().default(true),
 });

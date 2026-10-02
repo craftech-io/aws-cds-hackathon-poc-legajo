@@ -1,5 +1,5 @@
-// One session per role (docs/test-plan.md §3): a broker and an analyst of Estudio Delta, a judge of
-// its own judge firm and a broker of another firm, with the claims the pre-token trigger stamps
+// One session per role (docs/test-plan.md §3): a broker and an analyst of Estudio Delta, a guest of
+// its own guest firm and a broker of another firm, with the claims the pre-token trigger stamps
 // (packages/bff/src/auth/principal.ts). Their id tokens are signed with the run's ephemeral key
 // (keys.ts), so the same session works on Vite alone, where the console only decodes the token, and
 // on the UI server, where the BFF's real verifier checks it. The console keeps its tokens in
@@ -39,11 +39,11 @@ export const PERSONAS = {
     role: "ANALYST",
     firmId: "firm-delta",
   },
-  judge: {
+  guest: {
     sub: "0b7f0e2e-0000-4000-8000-000000000003",
-    username: "judge-01",
-    role: "JUDGE",
-    firmId: "firm-judge-01",
+    username: "guest-01",
+    role: "GUEST",
+    firmId: "firm-guest-01",
   },
   otherFirm: {
     sub: "0b7f0e2e-0000-4000-8000-000000000004",
@@ -79,7 +79,7 @@ export function idTokenFor(name: PersonaName, options: TokenOptions = {}): strin
     "cognito:groups": [persona.role],
     "custom:firmId": persona.firmId,
     "custom:role": persona.role,
-    ...(persona.role === "JUDGE" ? { "custom:isJudge": "true" } : {}),
+    ...(persona.role === "GUEST" ? { "custom:isGuest": "true" } : {}),
     ...(persona.email !== undefined ? { email: persona.email, email_verified: true } : {}),
     ...(persona.name !== undefined ? { name: persona.name } : {}),
   });

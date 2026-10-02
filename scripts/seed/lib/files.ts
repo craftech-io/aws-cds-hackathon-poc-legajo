@@ -5,7 +5,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { z } from "zod";
 import { WorldTemplateName } from "@legajo/shared";
-import { BATCH_INPUTS_FILE, QA_FIXTURE_FILE, SEED_TABLES, WORLD_TABLES, seedPaths, type SeedPaths, type SeedTableName } from "./constants";
+import { BATCH_INPUTS_FILE, PRODUCT, QA_FIXTURE_FILE, SEED_TABLES, WORLD_TABLES, seedPaths, type SeedPaths, type SeedTableName } from "./constants";
 import type { SeedItem } from "./items";
 
 const Item = z.record(z.string(), z.unknown()).refine((item) => typeof item.entity === "string", "every item names its entity") as unknown as z.ZodType<SeedItem>;
@@ -46,7 +46,7 @@ export const QaFixtureFile = z.object({
 export type QaFixtureFile = z.infer<typeof QaFixtureFile>;
 
 export const Manifest = z.object({
-  app: z.string(),
+  product: z.literal(PRODUCT),
   generatorVersion: z.string(),
   seed: z.number().int(),
   clock: z.object({ generatedAt: z.string(), startAtSim: z.string() }),

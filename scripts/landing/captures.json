@@ -1,9 +1,9 @@
 {
-  "_readme": "Console captures of the landing (packages/web/public/landing/manifest.json), taken by scripts/landing/capture-console.ts at 1280x800: on the deployed stage (--target poc) signed in as the synthetic judge-test account after a real run of the guided tour (SC-24), or on the local UI server (--target local), which the landing labels 'entorno local, agente guionado'. Each entry names the console view, the operation row to open from it when the moment needs one, and the moment the frame shows. Alt texts and captions live in packages/web/src/views/landing/copy-*.ts. Kept out of public/ on purpose.",
+  "_readme": "Console captures of the landing (packages/web/public/landing/manifest.json), taken by scripts/landing/capture-console.ts at 1280x800: on the deployed stage (--target poc) signed in as the synthetic guest-test account after a real run of the guided tour (SC-24), or on the local UI server (--target local), which the landing labels 'entorno local, agente guionado'. Each entry names the console view, the operation row to open from it when the moment needs one, and the moment the frame shows. Alt texts and captions live in packages/web/src/views/landing/copy-*.ts. Kept out of public/ on purpose.",
   "captures": {
     "console-operations": {
       "view": "/app/operations",
-      "moment": "Operations of the judge's world with 4471 pinned as the main story, its dossier ready for review and its next event"
+      "moment": "Operations of the guest's world with 4471 pinned as the main story, its dossier ready for review and its next event"
     },
     "console-dossier": {
       "view": "/app/operations",

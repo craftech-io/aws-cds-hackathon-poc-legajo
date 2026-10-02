@@ -18,7 +18,7 @@ export const PRODUCT_NAME = "Legajo listo";
 /** Console roles, one Cognito group each; the lowest precedence wins in `cognito:preferred_role`. */
 export const CONSOLE_GROUPS = {
   BROKER: { precedence: 10, description: "Customs broker: works, approves and reopens the dossiers of the firm" },
-  JUDGE: { precedence: 20, description: "Hackathon judge: broker permissions inside the judge's own demo firm, no TOTP" },
+  GUEST: { precedence: 20, description: "Guest: broker permissions inside its own demo firm, no TOTP" },
   ANALYST: { precedence: 30, description: "Firm analyst: works the dossiers, never approves or reopens them" },
 } as const;
 
@@ -71,7 +71,7 @@ export interface WebClientSettings {
 // placeholder callback URL SST puts on a client is cleared). Tokens live 15 minutes because the BFF
 // verifies them offline, so a revoked or copied token is usable until it expires; the console
 // refreshes silently with the 12-hour refresh token. Revocation also puts `origin_jti` on the
-// tokens, which the BFF uses to tell two sessions on the same judge world apart.
+// tokens, which the BFF uses to tell two sessions on the same guest world apart.
 export const WEB_CLIENT_SETTINGS: WebClientSettings = {
   generateSecret: false,
   allowedOauthFlowsUserPoolClient: false,

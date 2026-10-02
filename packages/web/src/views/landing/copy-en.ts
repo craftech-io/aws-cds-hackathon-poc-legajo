@@ -1,11 +1,11 @@
 // English texts of the public landing, with the same shape as the Spanish ones (copy-es.ts): the
-// language judges read (docs/adr/0008-idiomas.md). Words for documents, statuses and parties come
+// language of visitors who read no Spanish (docs/adr/0008-idiomas.md). Words for documents, statuses and parties come
 // from packages/bff/src/copy/en.ts; WhatsApp messages stay in Spanish with their fixed English gloss.
 import { labelsEn } from "@legajo/bff/copy/en";
 import { OBSERVATION_LABELS } from "@legajo/bff/copy/observation-labels";
 import type { ObservationCode } from "@legajo/shared";
 import { formatNumber } from "../../lib/format";
-import { JUDGES_SIGN_IN, type LandingCopy } from "./copy-es";
+import type { LandingCopy } from "./copy-es";
 
 export const en: LandingCopy = {
   lang: { code: "en", switchTo: "Español", switchLabel: "View the page in Spanish" },
@@ -17,16 +17,15 @@ export const en: LandingCopy = {
     how: "How it decides",
     console: "The console",
     architecture: "Architecture",
-    judges: "Judges",
   },
   hero: {
     eyebrow: "A coordination agent for customs brokerage firms in Latin America",
     title: "Every import file complete before the vessel arrives.",
     lead: "Legajo listo chases the commercial invoice, the packing list and the certificate of origin of every import: the importer on WhatsApp and the foreign supplier by email. Every PDF goes through an external document reader; the agent decides who must correct each finding, reschedules the deadlines when the ETA moves and leaves the file ready for the customs broker to approve.",
-    note: "Demo for the AWS CDS Agentic AI Partner Hackathon. 100% synthetic data: no real companies, people or shipments.",
+    note: "100% synthetic data: no real companies, people or shipments.",
     story: "See the story",
   },
-  cta: { judges: JUDGES_SIGN_IN, goToConsole: "Go to the console" },
+  cta: { signIn: "Sign in", goToConsole: "Go to the console" },
   problem: {
     title: "Three documents, two languages and a vessel that does not wait",
     lead: "Before the vessel arrives, the customs broker needs the complete file (legajo) of every import. The documents are with the importer or, almost always, with a foreign supplier who answers in English, from another time zone and by email.",
@@ -156,7 +155,7 @@ export const en: LandingCopy = {
     eyebrow: "The firm's console",
     title: "Everything that happened, with its reason",
     lead: "Operations with their next event, the detail of each file with readings, observations and pendings, the demo clock, the phone simulator, the demo mailbox, metrics with their N and label, and the decision log.",
-    pending: "Console captures are taken on the deployed stage, with the synthetic judge test account, after a real run.",
+    pending: "Console captures are taken on the deployed stage, with the synthetic test account, after a real run.",
     uploadTitle: "The importer's upload page, with no login",
   },
   media: {
@@ -216,21 +215,9 @@ export const en: LandingCopy = {
       },
     ],
   },
-  judges: {
-    eyebrow: "For judges",
-    title: "Try it in your own world",
-    lead: "Every judge account has its own firm and its own world of synthetic data, with the clock paused on 14/10 at 10:30 and operation 4471 pinned on top. What you do never touches another judge's world.",
-    steps: [
-      "Sign in with your judge account.",
-      "Follow the Guided tour panel: every step has a button, says what to look at and how long to wait.",
-      "Emails really travel through SES: wait as long as each step says before moving on.",
-    ],
-    credentials: "Credentials and the account assignment rule are in the submission's testing instructions.",
-  },
   video: { title: "The demo video" },
-  closing: { title: "The file ready before the vessel", lead: "Sign in with your judge account and walk through the story of 4471 in a few minutes." },
   footer: {
-    made: "Legajo listo · Powered by Craftech. Built for the AWS CDS Agentic AI Partner Hackathon.",
+    made: "Legajo listo · Powered by Craftech.",
     synthetic: "100% synthetic data: every name is fictitious.",
     legal: "Legal",
     privacy: "Privacy",

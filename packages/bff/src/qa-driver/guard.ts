@@ -2,7 +2,7 @@
 // §4.1). Before an action runs, the guard resolves the world it touches from ids it reads itself (an
 // operation's own `clockId` and `firmId`, never what the caller says they are) and checks:
 //
-//   1. the firm is of QA type (`firm-qa`, `firm-sim`, `firm-judge-test`) and matches the clock;
+//   1. the firm is of QA type (`firm-qa`, `firm-sim`, `firm-guest-test`) and matches the clock;
 //   2. the clock is `qa-*` (every action but `batch.run`), or one of the two fixed QA clocks with its
 //      closed list of actions, or a `sim-*` clock of `batch.run`; any other clock is FORBIDDEN;
 //   3. every operation, importer and supplier the input names belongs to that world (firm and clock);
@@ -14,7 +14,7 @@
 // before the procedure reads anything (SC-20/3): a call that names only other firms' worlds is such a
 // cross-firm probe. An operation or a party of a QA firm must still be of the world the call names:
 // firm-qa owns `GLOBAL#firm-qa` and every `qa-*` world, so `firmProcedure` alone cannot tell them apart.
-import { JUDGE_TEST_CLOCK_ID, QA_FIRM_IDS, QA_GLOBAL_CLOCK_ID, ToolError, parseClockId } from "@legajo/shared";
+import { GUEST_TEST_CLOCK_ID, QA_FIRM_IDS, QA_GLOBAL_CLOCK_ID, ToolError, parseClockId } from "@legajo/shared";
 import { type FencedId, fencedIdsOf, firmOfClockId, operationOfChildId } from "../auth/scope";
 import { QA_REASON, type QaActionName } from "./contract";
 import type { QaParsedInput } from "./contract-inputs";
@@ -22,8 +22,8 @@ import type { QaParsedInput } from "./contract-inputs";
 /** Actions `GLOBAL#firm-qa` admits (SC-20 resets it and reads it; nothing else moves it). */
 export const GLOBAL_QA_ACTIONS: readonly string[] = ["wa.inbound", "snapshot", "op.settle", "memory.inspect", "console.clock.reset", "metrics.get"];
 
-/** Actions `JUDGE#firm-judge-test` admits (SC-24 and SC-25 destroy it to test the first sign-in, and read it). */
-export const JUDGE_TEST_ACTIONS: readonly string[] = ["world.destroy", "snapshot", "op.settle", "platform.get"];
+/** Actions `GUEST#firm-guest-test` admits (SC-24 and SC-25 destroy it to test the first sign-in, and read it). */
+export const GUEST_TEST_ACTIONS: readonly string[] = ["world.destroy", "snapshot", "op.settle", "platform.get"];
 
 /** Actions that touch no world at all: they read the stack, never a firm's data. */
 export const WORLDLESS_ACTIONS: ReadonlySet<QaActionName> = new Set<QaActionName>(["guardrail.probe", "probe.mocks", "alarm.history"]);
@@ -99,8 +99,8 @@ export function checkFence(scope: Scope): void {
   if (firmOfClockId(scope.clockId) !== scope.firmId) throw forbidden(`the world ${scope.clockId} is not of ${scope.firmId}`);
   if (scope.clockId === QA_GLOBAL_CLOCK_ID) {
     if (!GLOBAL_QA_ACTIONS.includes(scope.name)) throw forbidden(`${scope.name} is not allowed on ${QA_GLOBAL_CLOCK_ID}`);
-  } else if (scope.clockId === JUDGE_TEST_CLOCK_ID) {
-    if (!JUDGE_TEST_ACTIONS.includes(scope.name)) throw forbidden(`${scope.name} is not allowed on ${JUDGE_TEST_CLOCK_ID}`);
+  } else if (scope.clockId === GUEST_TEST_CLOCK_ID) {
+    if (!GUEST_TEST_ACTIONS.includes(scope.name)) throw forbidden(`${scope.name} is not allowed on ${GUEST_TEST_CLOCK_ID}`);
   } else if (parsed.scope === "SIM") {
     if (scope.name !== "batch.run") throw forbidden(`only batch.run acts on a batch world (${scope.clockId})`);
   } else if (parsed.scope !== "QA" || scope.name === "batch.run") {
@@ -184,8 +184,8 @@ async function withActor(scope: Scope, actorId: string, lookups: GuardLookups): 
 }
 
 function platformScope(input: QaParsedInput<"platform.get">): Scope {
-  if (input.firmId !== "firm-qa" && input.firmId !== "firm-judge-test") throw forbidden(`platform.get only reads QA firms, not ${input.firmId}`);
-  const clockId = input.clockId ?? (input.firmId === "firm-judge-test" ? JUDGE_TEST_CLOCK_ID : undefined);
+  if (input.firmId !== "firm-qa" && input.firmId !== "firm-guest-test") throw forbidden(`platform.get only reads QA firms, not ${input.firmId}`);
+  const clockId = input.clockId ?? (input.firmId === "firm-guest-test" ? GUEST_TEST_CLOCK_ID : undefined);
   if (clockId === undefined) throw new ToolError("INVALID", "platform.get of firm-qa names the world (clockId)");
   const scope = worldOf("platform.get", clockId);
   if (scope.firmId !== input.firmId) throw forbidden(`the world ${clockId} is not of ${input.firmId}`);

@@ -1,7 +1,7 @@
 // FL-079 · the console's own sign-in and its 15-minute tokens (docs/flows-catalog.md), on Vite alone
 // with the Cognito API and the BFF answered from the page (support/cognito-route.ts,
 // support/api-route.ts): SRP without the password on the wire, TOTP and the first password for firm
-// accounts, a judge by username with neither, the judge's other-session notice without a reset,
+// accounts, a guest by username with neither, the guest's other-session notice without a reset,
 // silent refresh, expiry, sign-out with revocation and tokens only in sessionStorage. Also the shell
 // every view opens in: navigation by role and the simulated-time bar. Nothing leaves the machine.
 import { type Page, expect, test } from "@playwright/test";
@@ -108,15 +108,15 @@ test.describe("[FL-079] login propio y tokens de 15 minutos", () => {
     expect(JSON.parse(calls[2]?.body ?? "{}")).toMatchObject({ ChallengeName: "NEW_PASSWORD_REQUIRED", ChallengeResponses: { NEW_PASSWORD: NEW_PASSWORD } });
   });
 
-  test("[FL-079] a judge signs in with its username: no TOTP, no password change, the guided tour open", async ({ page }) => {
-    const calls = await routeCognito(page, { InitiateAuth: passwordVerifier("judge"), RespondToAuthChallenge: tokensAnswer("judge") });
+  test("[FL-079] a guest signs in with its username: no TOTP, no password change, the guided tour open", async ({ page }) => {
+    const calls = await routeCognito(page, { InitiateAuth: passwordVerifier("guest"), RespondToAuthChallenge: tokensAnswer("guest") });
     await page.goto(`${SHELL_URL}/login`);
-    await signInWith(page, "judge-01");
+    await signInWith(page, "guest-01");
     await expectView(page, "operations");
 
     expect(calls.map((call) => call.operation)).toEqual(["InitiateAuth", "RespondToAuthChallenge"]);
-    expect(JSON.parse(calls[0]?.body ?? "{}")).toMatchObject({ AuthParameters: { USERNAME: "judge-01" } });
-    await expect(page.getByText(`${copy.app.roleLabel}: ${copy.roles.JUDGE}`, { exact: false })).toBeVisible();
+    expect(JSON.parse(calls[0]?.body ?? "{}")).toMatchObject({ AuthParameters: { USERNAME: "guest-01" } });
+    await expect(page.getByText(`${copy.app.roleLabel}: ${copy.roles.GUEST}`, { exact: false })).toBeVisible();
     await expect(page.getByRole("complementary", { name: copy.tour.title })).toBeVisible();
     await expect(page.getByRole("button", { name: copy.tour.open })).toHaveAttribute("aria-pressed", "true");
 
@@ -127,10 +127,10 @@ test.describe("[FL-079] login propio y tokens de 15 minutos", () => {
     await expectNoRawCodes(page);
   });
 
-  test("[FL-079] a judge whose world another session used in the last 2 hours sees the fixed notice, without a reset", async ({ page }) => {
+  test("[FL-079] a guest whose world another session used in the last 2 hours sees the fixed notice, without a reset", async ({ page }) => {
     const lastActiveAtReal = new Date(Date.now() - 12 * 60_000 - 5_000).toISOString();
     await routeApi(page, shellApi({ "account.session": { data: { firm: { name: "Estudio Delta" }, otherSession: { lastActiveAtReal } } } }));
-    await plantSession(page, "judge");
+    await plantSession(page, "guest");
     await page.goto(`${SHELL_URL}/app/operations`);
     const notice = page.getByRole("alert").filter({ hasText: copy.session.otherSessionEn });
     await expect(notice).toBeVisible();
@@ -142,9 +142,9 @@ test.describe("[FL-079] login propio y tokens de 15 minutos", () => {
     await expect(page.getByRole("button", { name: copy.clock.next })).toBeEnabled();
   });
 
-  test("[FL-079] a judge's first sign-in waits for its world with a notice", async ({ page }) => {
+  test("[FL-079] a guest's first sign-in waits for its world with a notice", async ({ page }) => {
     await routeApi(page, shellApi({ "account.session": { data: { firm: { name: "Estudio Delta" } }, delayMs: 1_500 } }));
-    await plantSession(page, "judge");
+    await plantSession(page, "guest");
     await page.goto(`${SHELL_URL}/app/operations`);
     await expect(page.getByRole("status").filter({ hasText: copy.session.preparing })).toBeVisible();
     await expect(page.getByRole("status").filter({ hasText: copy.session.preparing })).toHaveCount(0, { timeout: 10_000 });
@@ -223,7 +223,7 @@ test.describe("[FL-079] login propio y tokens de 15 minutos", () => {
 });
 
 test.describe("the shell after signing in", () => {
-  for (const persona of ["broker", "analyst", "judge"] as const satisfies readonly PersonaName[]) {
+  for (const persona of ["broker", "analyst", "guest"] as const satisfies readonly PersonaName[]) {
     test(`every view of the console opens inside the shell for ${persona}`, async ({ page }) => {
       await plantSession(page, persona);
       await page.goto(`${SHELL_URL}/app/operations`);
@@ -261,7 +261,7 @@ test.describe("the shell after signing in", () => {
         },
       }),
     );
-    await plantSession(page, "judge");
+    await plantSession(page, "guest");
     await page.goto(`${SHELL_URL}/app/simulator`);
     await expect(clockBar(page)).toContainText(`${copy.clock.label} · mié 14/10 10:30 · ${copy.clock.paused}`);
     await clockBar(page).getByRole("button", { name: copy.clock.next }).click();

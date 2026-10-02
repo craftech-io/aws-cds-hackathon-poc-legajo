@@ -1,8 +1,8 @@
 // A signed-in broker or analyst changes its own password: Cognito `ChangePassword` with the
-// session's access token, after the same policy checks the sign-in forms apply. Never for a judge:
-// judge accounts keep the permanent password the operator set, so the next judge of the same
+// session's access token, after the same policy checks the sign-in forms apply. Never for a guest:
+// guest accounts keep the permanent password the operator set, so the next guest of the same
 // account is not locked out (docs/design-brief.md §7.1); the console hides the option, this refuses
-// it as well, and Cognito refuses it for good: a judge's access token carries no
+// it as well, and Cognito refuses it for good: a guest's access token carries no
 // `aws.cognito.signin.user.admin` scope (packages/bff/src/auth-triggers/pre-token.ts).
 import type { CognitoApi } from "./cognito";
 import { hasOuterSpaces, missingPasswordRules } from "./credentials";
@@ -18,10 +18,10 @@ export interface PasswordChangeInput {
 
 export async function changeOwnPassword(
   cognito: Pick<CognitoApi, "changePassword">,
-  session: { readonly tokens: TokenSet; readonly isJudge: boolean },
+  session: { readonly tokens: TokenSet; readonly isGuest: boolean },
   { current, proposed }: PasswordChangeInput,
 ): Promise<PasswordChangeResult> {
-  if (session.isJudge) return { ok: false, error: "UNSUPPORTED" };
+  if (session.isGuest) return { ok: false, error: "UNSUPPORTED" };
   if (!current) return { ok: false, error: "INVALID_CREDENTIALS" };
   if (missingPasswordRules(proposed).length > 0 || hasOuterSpaces(proposed) || proposed === current) return { ok: false, error: "WEAK_PASSWORD" };
   try {

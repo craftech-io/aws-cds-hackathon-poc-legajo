@@ -1,10 +1,10 @@
 // Check (b) of `PolicyAudit` (docs/architecture.md §12): the contact policy re-evaluated with the
 // data of the moment a message went out. The rules are the engine's (packages/bff/src/policy/,
-// ADR-0012): `evaluateAsOf` judges the send at its own instant from the dated histories the connector
+// ADR-0012): `evaluateAsOf` decides the send at its own instant from the dated histories the connector
 // keeps (consent, supplier authorization, contact status, control and dossier status; §5), so a
 // revocation, a bounce or a takeover that happened after the send never makes a past send a violation,
 // and one that was in force when it went out always does. What only exists at send time (the
-// recipient fence of an email, the content rules) is not re-judged: as-of.ts skips it.
+// recipient fence of an email, the content rules) is not re-checked: as-of.ts skips it.
 import { CONTACT_POLICY_RULES, type ContactPolicyRuleId } from "@legajo/shared";
 import { type AsOfFacts, evaluateAsOf } from "../policy/as-of";
 

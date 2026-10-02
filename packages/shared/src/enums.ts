@@ -42,11 +42,11 @@ export const ErrorCode = z.enum([
 export type ErrorCode = z.infer<typeof ErrorCode>;
 
 /** Console roles, in precedence order (docs/architecture.md §10). */
-export const ConsoleRole = z.enum(["BROKER", "JUDGE", "ANALYST"]);
+export const ConsoleRole = z.enum(["BROKER", "GUEST", "ANALYST"]);
 export type ConsoleRole = z.infer<typeof ConsoleRole>;
 
-/** Roles that approve and reopen a dossier (ADR-0010): a judge acts as a broker inside its own firm. */
-export const APPROVER_ROLES: readonly ConsoleRole[] = ["BROKER", "JUDGE"];
+/** Roles that approve and reopen a dossier (ADR-0010): a guest acts as a broker inside its own firm. */
+export const APPROVER_ROLES: readonly ConsoleRole[] = ["BROKER", "GUEST"];
 
 export function canApprove(role: ConsoleRole): boolean {
   return APPROVER_ROLES.includes(role);
@@ -59,12 +59,16 @@ export type Weekday = z.infer<typeof Weekday>;
 export const Language = z.enum(["es", "en"]);
 export type Language = z.infer<typeof Language>;
 
-/** `Firm.kind` (docs/architecture.md §5): the operator's demo, a judge's own firm, or a QA firm. */
-export const FirmKind = z.enum(["DEMO", "JUDGE", "QA"]);
+/** `Firm.kind` (docs/architecture.md §5): the operator's demo, a guest's own firm, or a QA firm. */
+export const FirmKind = z.enum(["DEMO", "GUEST", "QA"]);
 export type FirmKind = z.infer<typeof FirmKind>;
 
-/** `world` attribute of the items of QA and judge worlds, the condition of every QA delete (§14). */
-export const World = z.enum(["qa", "judge"]);
+/** `Firm.guestKind` of a `GUEST` firm: a reserved account's fixed firm or a slot of the public range (ADR-0015). */
+export const GuestKind = z.enum(["RESERVED", "PUBLIC"]);
+export type GuestKind = z.infer<typeof GuestKind>;
+
+/** `world` attribute of the items of QA and guest worlds, the condition of every QA delete (§14). */
+export const World = z.enum(["qa", "guest"]);
 export type World = z.infer<typeof World>;
 
 /**

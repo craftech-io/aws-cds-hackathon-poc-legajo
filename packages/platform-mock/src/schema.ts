@@ -89,7 +89,7 @@ export type PlatformOperationInput = z.input<typeof PlatformOperation>;
 export const PLATFORM_META_SK = "META";
 export const PLATFORM_EVENT_SK_PREFIX = "EVT#";
 
-/** `POP#firm-delta#4471`: one partition per firm and operation number (numbers repeat across judge firms). */
+/** `POP#firm-delta#4471`: one partition per firm and operation number (numbers repeat across guest firms). */
 export function platformPk(firmId: string, operationNumber: string): string {
   return `POP#${FirmId.parse(firmId)}#${OperationNumber.parse(operationNumber)}`;
 }
@@ -101,7 +101,7 @@ export function platformEventSk(createdAt: string, eventId: string): string {
 
 /**
  * Attributes every item carries (docs/architecture.md §5): audit times, optimistic `version`, and the
- * world attributes when the row belongs to a QA or judge world (`expiresAt` in epoch seconds).
+ * world attributes when the row belongs to a QA or guest world (`expiresAt` in epoch seconds).
  */
 export const PlatformItemMeta = z
   .object({

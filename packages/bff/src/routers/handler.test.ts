@@ -113,10 +113,10 @@ describe("BFF Lambda handler", () => {
     const analyst = await call("/api/session.brokerOnly", { authorization: `Bearer ${issuer.idToken({ sub: UNBOUND_SUB, "custom:role": "ANALYST", "cognito:groups": ["ANALYST"] })}` });
     expect(analyst.status).toBe(403);
     expect(analyst.body.error?.data).toMatchObject({ reason: AUTH_REASON.ROLE_NOT_ALLOWED });
-    const judge = await call("/api/session.brokerOnly", {
-      authorization: `Bearer ${issuer.idToken({ sub: UNBOUND_SUB, "custom:firmId": "firm-judge-01", "custom:role": "JUDGE", "cognito:groups": ["JUDGE"] })}`,
+    const guest = await call("/api/session.brokerOnly", {
+      authorization: `Bearer ${issuer.idToken({ sub: UNBOUND_SUB, "custom:firmId": "firm-guest-01", "custom:role": "GUEST", "cognito:groups": ["GUEST"] })}`,
     });
-    expect(judge.status).toBe(200);
+    expect(guest.status).toBe(200);
     const old = Math.floor(Date.now() / 1000) - 16 * 60;
     const stale = await handler(
       { ...functionUrlEvent("/api/session.approve", { authorization: `Bearer ${issuer.idToken({ auth_time: old })}`, "content-type": "application/json" }), body: "{}", requestContext: { ...functionUrlEvent("/").requestContext, http: { ...functionUrlEvent("/").requestContext.http, method: "POST" } } },

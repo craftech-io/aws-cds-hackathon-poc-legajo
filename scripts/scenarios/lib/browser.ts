@@ -1,6 +1,6 @@
-// The console as a judge sees it, for SC-24 and SC-25 (docs/test-plan.md §4.5): Playwright against
-// https://legajo.demo.craftech.io with the synthetic account `judge-test`, whose password only CI holds
-// (`JUDGE_TEST_PASSWORD`, secret of scenarios.yml; never in the repository, never printed). Selectors
+// The console as a guest sees it, for SC-24 and SC-25 (docs/test-plan.md §4.5): Playwright against
+// https://legajo.demo.craftech.io with the synthetic account `guest-test`, whose password only CI holds
+// (`GUEST_TEST_PASSWORD`, secret of scenarios.yml; never in the repository, never printed). Selectors
 // are the console's own texts where they are plain data (roles and accessible names), and the form's
 // field types for the sign-in form, whose copy module pulls browser-only code.
 // Tokens never leave the page except to prove what they cannot do (Cognito's account API).
@@ -12,16 +12,16 @@ import { dataCopy } from "../../../packages/web/src/copy/console-data";
 import type { TourStep } from "../../../packages/web/src/views/tour/steps";
 import { SITE } from "./site";
 
-export const JUDGE_TEST_USER = "judge-test";
+export const GUEST_TEST_USER = "guest-test";
 
 export class MissingSecret extends Error {
   override readonly name = "MissingSecret";
 }
 
-/** The synthetic judge's password: an environment secret of CI, never a literal. */
-export function judgePassword(): string {
-  const password = process.env.JUDGE_TEST_PASSWORD;
-  if (password === undefined || password === "") throw new MissingSecret("JUDGE_TEST_PASSWORD is not set: SC-24 and SC-25 run only in scenarios.yml");
+/** The synthetic guest's password: an environment secret of CI, never a literal. */
+export function guestPassword(): string {
+  const password = process.env.GUEST_TEST_PASSWORD;
+  if (password === undefined || password === "") throw new MissingSecret("GUEST_TEST_PASSWORD is not set: SC-24 and SC-25 run only in scenarios.yml");
   return password;
 }
 
@@ -32,7 +32,7 @@ export async function launchBrowser(): Promise<Browser> {
 /** Real SRP sign-in through the console's own form; lands on the console. */
 export async function signIn(page: Page, password: string): Promise<void> {
   await page.goto(`${SITE}/login`);
-  await page.locator('input:not([type="password"]):not([type="hidden"])').first().fill(JUDGE_TEST_USER);
+  await page.locator('input:not([type="password"]):not([type="hidden"])').first().fill(GUEST_TEST_USER);
   await page.locator('input[type="password"]').first().fill(password);
   await page.locator('button[type="submit"]').first().click();
   await page.waitForURL(/\/app\//, { timeout: 60_000 });
@@ -60,7 +60,7 @@ export async function confirmWithPassword(page: Page, password: string): Promise
   await dialog.locator('button[type="submit"]').click();
 }
 
-/** The operation id of 4471 in this judge world, from the console's own link to its dossier. */
+/** The operation id of 4471 in this guest world, from the console's own link to its dossier. */
 export async function operationIdOf(page: Page, operationNumber: string): Promise<string> {
   await page.goto(`${SITE}/app/operations`);
   const href = await page.getByRole("link", { name: new RegExp(`\\b${operationNumber}\\b`) }).first().getAttribute("href");
@@ -98,7 +98,7 @@ export async function tokenPlaces(page: Page): Promise<{ readonly session: Store
 }
 
 /**
- * The judge's access token has no `aws.cognito.signin.user.admin` scope: Cognito's account API refuses
+ * The guest's access token has no `aws.cognito.signin.user.admin` scope: Cognito's account API refuses
  * it. Only the two harmless calls are tried (never ChangePassword or DeleteUser on the real account).
  */
 export async function accountApiRefuses(accessToken: string): Promise<boolean> {
@@ -117,7 +117,7 @@ export async function accountApiRefuses(accessToken: string): Promise<boolean> {
   );
 }
 
-/** The fixed notice of the shell when another session used this judge world. */
+/** The fixed notice of the shell when another session used this guest world. */
 export const otherSessionNotice = (page: Page): Locator => page.getByRole("alert").filter({ hasText: copy.session.otherSessionEn });
 
 /** The simulator's reply button of the importer's phone (the WhatsApp button title of the copy). */

@@ -1,10 +1,10 @@
 // The security prompts of the console, in place, without leaving the view:
 //   stepUp          LOGIN_NOT_RECENT: the same person signs in again (password, and the code when
 //                   TOTP is on), which gives a fresh `auth_time`; the tokens are swapped and the old
-//                   refresh token revoked. A judge signs in again with its username.
+//                   refresh token revoked. A guest signs in again with its username.
 //   enrollTotp      the optional TOTP: associate a software token with the session's access token,
-//                   scan, verify, make it the preferred factor. Never for a judge.
-//   changePassword  the account's own password (ChangePasswordForm). Never for a judge.
+//                   scan, verify, make it the preferred factor. Never for a guest.
+//   changePassword  the account's own password (ChangePasswordForm). Never for a guest.
 // Opened from ApiErrorNotice and the account menu through the session context; mounted once by
 // console-routes.tsx.
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -111,9 +111,9 @@ const TITLES = {
 export function SecurityPrompts() {
   const { prompt, closePrompt, state } = useSession();
   if (!prompt) return null;
-  // Defence in depth: the session context never opens these for a judge either.
-  const isJudge = state.status === "authenticated" && state.principal.isJudge;
-  if (isJudge && prompt !== "stepUp") return null;
+  // Defence in depth: the session context never opens these for a guest either.
+  const isGuest = state.status === "authenticated" && state.principal.isGuest;
+  if (isGuest && prompt !== "stepUp") return null;
   let body;
   if (prompt === "stepUp") body = <StepUp onClose={closePrompt} />;
   else if (prompt === "enrollTotp") body = <Enroll onClose={closePrompt} />;

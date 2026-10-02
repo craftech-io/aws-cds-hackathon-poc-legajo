@@ -12,7 +12,7 @@ import { buildPdfs, type PdfArtifact } from "./pdfs";
 import { qaFixtureAggregates } from "./qa-fixture";
 import { referenceItems } from "./reference";
 import { buildWorld, templateFile, type BuiltWorld, type PdfCatalog } from "./worlds";
-import { deltaWorld, judgeWorld, modelsWorlds, norteWorld, qaMinWorld } from "./world-context";
+import { deltaWorld, guestWorld, modelsWorlds, norteWorld, qaMinWorld } from "./world-context";
 
 export interface SeedBundle {
   readonly tables: Record<SeedTableName, SeedItem[]>;
@@ -65,14 +65,14 @@ export async function buildSeed(): Promise<SeedBundle> {
   const catalog = pdfCatalog(pdfs);
   const delta = buildWorld(deltaWorld(), catalog);
   const norte = buildWorld(norteWorld(), catalog);
-  const judge = buildWorld(judgeWorld(), catalog);
+  const guest = buildWorld(guestWorld(), catalog);
   const qaMin = buildWorld(qaMinWorld(), catalog);
   const models = modelsWorlds().map((world) => buildWorld(world, catalog));
   const templates = {
     "demo-firm-delta": templateFile([delta]),
     "demo-firm-norte": templateFile([norte]),
     "qa-min": templateFile([qaMin]),
-    judge: templateFile([judge]),
+    guest: templateFile([guest]),
     models: templateFile(models),
   };
   const instances = await Promise.all([delta, norte, qaMin].map(instanceOf));

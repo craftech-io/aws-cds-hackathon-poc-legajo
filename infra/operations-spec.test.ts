@@ -86,7 +86,7 @@ const fake = vi.hoisted(() => {
   const metaOf = (value: unknown): Meta | undefined => (value instanceof Leaf ? value.meta : undefined);
   const output = (value: unknown) => new FakeOutput(Promise.resolve(value));
   const scanPattern = JSON.stringify({ source: ["aws.guardduty"], detail: { s3ObjectDetails: { bucketName: ["Uploads.name", "Media.name"] } } });
-  const platformStatement = { actions: ["dynamodb:Query"], resources: ["PlatformData.arn"], conditions: [{ test: "ForAllValues:StringLike", variable: "dynamodb:LeadingKeys", values: ["POP#firm-judge-*"] }] };
+  const platformStatement = { actions: ["dynamodb:Query"], resources: ["PlatformData.arn"], conditions: [{ test: "ForAllValues:StringLike", variable: "dynamodb:LeadingKeys", values: ["POP#firm-guest-*"] }] };
   return { recorded, warnings, calls, globals, settle, args, once, linkable, metaOf, output, scanPattern, platformStatement };
 });
 
@@ -184,7 +184,7 @@ describe("numbers of docs/architecture.md", () => {
   it("§8 and §9.3: the schedules group, WorldJanitor's 12-minute timeout and its nightly run at 04:00 ART", () => {
     expect(architecture).toContain(`grupo \`${scheduler.scheduleGroupName(APP, "poc")}\``);
     expect(architecture).toContain(`(timeout de la función ${scheduler.WORLD_JANITOR.timeoutSeconds / 60} min)`);
-    expect(architecture).toContain("(`WorldJanitor`, 04:00 ART)");
+    expect(architecture).toContain("(`WorldJanitor` `IDLE_GUEST_RESET`, 04:00 ART)");
     const hourUtc = Number(/^cron\(0 (\d+) \* \* \? \*\)$/.exec(scheduler.WORLD_JANITOR.nightlySchedule)?.[1]);
     expect((hourUtc - 3 + 24) % 24).toBe(4); // Argentina keeps UTC−3 all year
   });
@@ -327,8 +327,8 @@ describe("WorldJanitor", () => {
     ]);
   });
 
-  it("resets idle judge worlds every night with its own event", async () => {
-    expect(await fake.args("sst.aws.Cron", "WorldJanitorNightly")).toEqual({ function: "WorldJanitor.arn", schedule: "cron(0 7 * * ? *)", event: { kind: "IDLE_JUDGE_RESET" } });
+  it("resets idle guest worlds every night with its own event", async () => {
+    expect(await fake.args("sst.aws.Cron", "WorldJanitorNightly")).toEqual({ function: "WorldJanitor.arn", schedule: "cron(0 7 * * ? *)", event: { kind: "IDLE_GUEST_RESET" } });
   });
 
   it("its resource policy admits MEMORY_PURGE only from the roles of Bff and QaDriver", async () => {

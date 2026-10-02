@@ -20,12 +20,12 @@ describe("caller", () => {
     expect(Caller.safeParse({ kind: "CONSOLE", firmId: "firm-delta", brokerId: "imp-norpampa", role: "BROKER" }).success).toBe(false);
   });
 
-  it("console and QA callers are bound to a firm and a role; QA never acts as a judge", () => {
+  it("console and QA callers are bound to a firm and a role; QA never acts as a guest", () => {
     expect(Caller.safeParse({ kind: "CONSOLE", role: "BROKER" }).success).toBe(false);
     expect(Caller.safeParse({ kind: "CONSOLE", firmId: "firm-delta" }).success).toBe(false);
     expect(Caller.safeParse({ kind: "QA", firmId: "firm-qa" }).success).toBe(false);
-    expect(Caller.safeParse({ kind: "QA", firmId: "firm-qa", role: "JUDGE" }).success).toBe(false);
-    expect(Caller.safeParse({ kind: "CONSOLE", firmId: "firm-judge-01", role: "JUDGE" }).success).toBe(true);
+    expect(Caller.safeParse({ kind: "QA", firmId: "firm-qa", role: "GUEST" }).success).toBe(false);
+    expect(Caller.safeParse({ kind: "CONSOLE", firmId: "firm-guest-01", role: "GUEST" }).success).toBe(true);
   });
 });
 

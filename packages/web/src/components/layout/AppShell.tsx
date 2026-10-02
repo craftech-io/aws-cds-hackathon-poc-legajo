@@ -1,7 +1,7 @@
 // Frame of every authenticated view (docs/design-brief.md §6): the navigation of the route table
 // filtered by role, the header with the principal, its role and its firm, the account menu, the
-// simulated-time bar that follows the world, the session notice of a judge, and the "Recorrido
-// guiado" panel (open from the start for a judge, §7.1). The panel's content is views/tour, passed
+// simulated-time bar that follows the world, the session notice of a guest, and the "Recorrido
+// guiado" panel (open from the start for a guest, §7.1). The panel's content is views/tour, passed
 // in by console-routes.tsx so the shell never imports a view. "Legajo listo · Powered by Craftech".
 import { useState, type ReactNode } from "react";
 import { useFirm } from "../../context/FirmContext";
@@ -51,7 +51,7 @@ interface AppShellProps {
 
 export function AppShell({ tour, children }: AppShellProps) {
   const principal = usePrincipal();
-  const [tourOpen, setTourOpen] = useState(principal.isJudge);
+  const [tourOpen, setTourOpen] = useState(principal.isGuest);
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">

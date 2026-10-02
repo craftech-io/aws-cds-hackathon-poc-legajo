@@ -6,7 +6,8 @@ import { fileURLToPath } from "node:url";
 import type { TableName } from "@legajo/bff/lib/resource";
 import { QA_GLOBAL_CLOCK_ID, globalClockId } from "@legajo/shared";
 
-export const APP = "aws-cds-hackathon-poc-legajo";
+/** Product the seed belongs to, as its manifest names it (never the app id, ADR-0014 §4). */
+export const PRODUCT = "legajo-listo";
 export const SEED = 20260925;
 export const GENERATOR_VERSION = "1.0.0";
 
@@ -16,7 +17,7 @@ export const SEED_REAL_NOW = "2026-09-25T12:00:00.000Z";
 /** Wednesday 14/10 10:30 in Buenos Aires, after the 10:00 milestones of that day (§3). */
 export const START_AT_SIM = "2026-10-14T10:30:00-03:00";
 
-/** Last event of 4471 the judge's tour reaches with "Avanzar al próximo evento" (§3, invariant 21). */
+/** Last event of 4471 the guest's tour reaches with "Avanzar al próximo evento" (§3, invariant 21). */
 export const TOUR_WINDOW_END_SIM = "2026-10-16T09:00:00-03:00";
 export const TOUR_OPERATION_ID = "op-4471";
 
@@ -29,10 +30,10 @@ export const DELTA_CLOCK = globalClockId(DELTA_FIRM);
 export const NORTE_CLOCK = globalClockId(NORTE_FIRM);
 export const QA_CLOCK = QA_GLOBAL_CLOCK_ID;
 
-/** Placeholders of the `judge` template: the world factory writes `nn` of the judge instead of `00`. */
-export const JUDGE_TEMPLATE_FIRM = "firm-judge-00";
-export const JUDGE_TEMPLATE_CLOCK = `JUDGE#${JUDGE_TEMPLATE_FIRM}`;
-export const JUDGE_TEMPLATE_TAG = "j00";
+/** Placeholders of the `guest` template: the world factory writes `nn` of the guest instead of `00`. */
+export const GUEST_TEMPLATE_FIRM = "firm-guest-00";
+export const GUEST_TEMPLATE_CLOCK = `GUEST#${GUEST_TEMPLATE_FIRM}`;
+export const GUEST_TEMPLATE_TAG = "g00";
 
 /** The seeded tables, one JSON file each (`scripts/seed/data/<Tabla>.json`, §1). */
 export const SEED_TABLES = ["Firms", "Parties", "Operations", "Conversations", "AuditLog", "Reference", "LegajoMetrics", "ReaderCatalog", "Platform"] as const satisfies readonly TableName[];

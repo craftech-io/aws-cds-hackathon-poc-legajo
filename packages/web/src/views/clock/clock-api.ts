@@ -10,7 +10,7 @@
 //   clock.fireMilestone       { operationId, milestone, force? }
 //   clock.moveEta             { operationId, eta, force? }
 //   clock.emitDispatchStatus  { operationId, status, channel?, force? }
-//   clock.reset               {}                (BROKER or JUDGE, once every 10 minutes per world; the
+//   clock.reset               {}                (BROKER or GUEST, once every 10 minutes per world; the
 //                                                shared `ClockResetInput`, as the scenarios send it)
 import { ClockResetInput, CustomsChannel, IsoInstant, MilestoneName, OperationNumber, TimerKind } from "@legajo/shared";
 import { getUntypedClient } from "@trpc/client";

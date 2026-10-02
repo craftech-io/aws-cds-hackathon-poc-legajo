@@ -1,10 +1,10 @@
-// Keeps the judge's guided tour in one source (docs/design-brief.md §15, docs/architecture.md §18):
+// Keeps the guest's guided tour in one source (docs/design-brief.md §15, docs/architecture.md §18):
 // packages/web/src/views/tour/steps.ts drives the console's panel, and this check makes the other two
 // readers follow it.
 //
 //   1. The steps are consistent: numbered in order, every "What to look at" placeholder declared (and
 //      every declared time used) in both languages, every expected hour inside the tour window of the
-//      `judge` template, the clock moves in simulated order ending at the window's end, and each
+//      `guest` template, the clock moves in simulated order ending at the window's end, and each
 //      "go to" button naming the hour it goes to.
 //   2. The README's "Test instructions" table between <!-- TOUR:START --> and <!-- TOUR:END --> is
 //      exactly the one rendered here from the steps, in English, with the expected hours

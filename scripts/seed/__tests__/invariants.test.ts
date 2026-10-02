@@ -1,6 +1,6 @@
 // docs/seed-spec.md §15 over the committed seed. Invariant 10 runs the real contact policy
 // (packages/bff/src/policy/, `evaluateAsOf`, with each party's zone and `HOLIDAY#AR`) over every
-// historical message of the `judge` and `demo-firm-delta` templates; 20 and 21 are checked on those
+// historical message of the `guest` and `demo-firm-delta` templates; 20 and 21 are checked on those
 // templates too. Each check is also shown to fail on a seed that breaks it, so a green run means
 // something.
 import { describe, expect, it } from "vitest";
@@ -9,7 +9,7 @@ import { START_AT_SIM, TOUR_WINDOW_END_SIM } from "../lib/constants";
 import { readSeed } from "../lib/files";
 import type { SeedItem } from "../lib/items";
 import { batchProblems } from "../validate/batch";
-import { historyProblems, judgeHistory, tourWindowProblems } from "../validate/history";
+import { historyProblems, decideHistory, tourWindowProblems } from "../validate/history";
 import { forbiddenTermProblems, seedTexts } from "../validate/names";
 import { injectorProblems } from "../validate/parties";
 import { validateSeed } from "../validate/run";
@@ -19,7 +19,7 @@ import { worldView, type WorldView } from "../validate/world-view";
 const seed = readSeed();
 const holidays = seed.tables.Reference.items.filter((item) => item.entity === "Holiday").map((item) => String(item.date));
 
-function templateView(name: "judge" | "demo-firm-delta" | "qa-min"): WorldView {
+function templateView(name: "guest" | "demo-firm-delta" | "qa-min"): WorldView {
   const template = seed.templates[name];
   if (template === undefined) throw new Error(`template ${name} missing`);
   return worldView(`template ${name}`, Object.values(template.items).flat());
@@ -38,21 +38,21 @@ describe("seed invariants (docs/seed-spec.md §15)", () => {
   });
 
   describe("invariant 10: the real policy over every historical message", () => {
-    for (const name of ["judge", "demo-firm-delta"] as const) {
-      it(`lets out every seeded message of ${name} at the instant it went out, with every rule judged`, () => {
+    for (const name of ["guest", "demo-firm-delta"] as const) {
+      it(`lets out every seeded message of ${name} at the instant it went out, with every rule decided`, () => {
         const view = templateView(name);
-        const verdicts = judgeHistory(view, holidays);
-        expect(verdicts.length).toBeGreaterThanOrEqual(name === "judge" ? 9 : 14);
+        const verdicts = decideHistory(view, holidays);
+        expect(verdicts.length).toBeGreaterThanOrEqual(name === "guest" ? 9 : 14);
         for (const verdict of verdicts) {
           expect(verdict.decision.outcome, `${verdict.operationId} ${verdict.messageId}`).toBe("ALLOW");
-          expect(verdict.unjudged, verdict.messageId).toEqual([]);
+          expect(verdict.undecided, verdict.messageId).toEqual([]);
         }
         expect(historyProblems(view, holidays)).toEqual([]);
       });
     }
 
     it("sends op-4478's request after the 12/10 holiday, to the supplier at 14:20 in Rome, and its reminder at 15:00 there", () => {
-      const view = templateView("judge");
+      const view = templateView("guest");
       expect(Date.parse(String(messageOf(view, "op-4478", "DOCS_REQUEST", "WHATSAPP")?.sentAtSim))).toBe(Date.parse("2026-10-13T09:00:00-03:00"));
       expect(Date.parse(String(messageOf(view, "op-4478", "DOCS_REQUEST", "EMAIL")?.sentAtSim))).toBe(Date.parse("2026-10-13T14:20:00+02:00"));
       expect(Date.parse(String(messageOf(view, "op-4478", "REMINDER", "EMAIL")?.sentAtSim))).toBe(Date.parse("2026-10-14T15:00:00+02:00"));
@@ -75,25 +75,25 @@ describe("seed invariants (docs/seed-spec.md §15)", () => {
 
   describe("invariant 20: the QA injector's prefix", () => {
     it("is nobody's mailbox, and every party of the QA world carries its run and scenario", () => {
-      for (const name of ["judge", "demo-firm-delta"] as const) expect(injectorProblems(templateView(name), false, seed.templates[name]?.altContacts)).toEqual([]);
+      for (const name of ["guest", "demo-firm-delta"] as const) expect(injectorProblems(templateView(name), false, seed.templates[name]?.altContacts)).toEqual([]);
       expect(injectorProblems(templateView("qa-min"), true)).toEqual([]);
-      const injected = edited(templateView("judge"), (items) => items.map((item) => (item.entity === "SupplierContact" && item.contactId === "ctc-busan-1" ? { ...item, email: "qainject-812-sc15@sim.legajo.demo.craftech.io" } : item)));
+      const injected = edited(templateView("guest"), (items) => items.map((item) => (item.entity === "SupplierContact" && item.contactId === "ctc-busan-1" ? { ...item, email: "qainject-812-sc15@sim.legajo.demo.craftech.io" } : item)));
       expect(injectorProblems(injected, false)).toHaveLength(1);
       const unprefixed = edited(templateView("qa-min"), (items) => items.map((item) => (item.entity === "SupplierContact" ? { ...item, email: "supplier-qingdao@sim.legajo.demo.craftech.io" } : item)));
       expect(injectorProblems(unprefixed, true).length).toBeGreaterThan(0);
     });
   });
 
-  describe("invariant 21: the window of the judge's tour", () => {
-    it("is declared by the judge template as steps.ts walks it, and holds no event of another operation", () => {
-      expect(seed.templates.judge?.tour).toEqual({ operationId: "op-4471", operationNumber: "4471", windowStartSim: START_AT_SIM, windowEndSim: TOUR_WINDOW_END_SIM });
+  describe("invariant 21: the window of the guest's tour", () => {
+    it("is declared by the guest template as steps.ts walks it, and holds no event of another operation", () => {
+      expect(seed.templates.guest?.tour).toEqual({ operationId: "op-4471", operationNumber: "4471", windowStartSim: START_AT_SIM, windowEndSim: TOUR_WINDOW_END_SIM });
       expect(Date.parse(TOUR_WINDOW.startSim)).toBe(Date.parse(START_AT_SIM));
       expect(Date.parse(TOUR_WINDOW.endSim)).toBe(Date.parse(TOUR_WINDOW_END_SIM));
-      for (const name of ["judge", "demo-firm-delta"] as const) expect(tourWindowProblems(templateView(name))).toEqual([]);
+      for (const name of ["guest", "demo-firm-delta"] as const) expect(tourWindowProblems(templateView(name))).toEqual([]);
     });
 
     it("fails a timer of another operation inside the window and a reviewed dossier with a milestone still pending", () => {
-      const view = templateView("judge");
+      const view = templateView("guest");
       const intruder = edited(view, (items) => items.map((item) => (item.entity === "Timer" && item.operationId === "op-4474" && item.timerId === "DOCS_REQUEST" ? { ...item, dueAtSim: "2026-10-15T13:00:00.000Z" } : item)));
       expect(tourWindowProblems(intruder).join("\n")).toMatch(/op-4474 has MILESTONE DOCS_REQUEST .* inside the tour window/);
       const pending = edited(view, (items) => items.map((item) => (item.entity === "Timer" && item.operationId === "op-4488" && item.timerId === "ARRIVAL" ? { ...item, status: "SCHEDULED" } : item)));

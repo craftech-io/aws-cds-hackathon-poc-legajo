@@ -65,7 +65,7 @@ describe("the policy at the instant a message went out", () => {
     expect(evaluateAsOf(email({ contact: undefined })).ruleIds).toEqual(["CP-SUPPLIER-AUTH"]);
   });
 
-  it("judges the hours at the send's own instant: the seeded holiday send of 4478 went out at 09:00 of the 13th", () => {
+  it("checks the hours at the send's own instant: the seeded holiday send of 4478 went out at 09:00 of the 13th", () => {
     // docs/seed-spec.md §3: the milestone of Monday 12/10 (holiday) was deferred to Tuesday 13/10 09:00.
     expect(evaluateAsOf(whatsapp({}, { sentAtSim: "2026-10-13T09:00:00-03:00" })).outcome).toBe("ALLOW");
     expect(evaluateAsOf(whatsapp({}, { sentAtSim: "2026-10-12T10:00:00-03:00" }))).toMatchObject({ outcome: "DEFER", ruleIds: ["CP-HOURS-AR"] });
@@ -98,7 +98,7 @@ describe("the policy at the instant a message went out", () => {
     expect(evaluateAsOf(whatsapp({ history, trigger: undefined }, { ...text, simulated: true })).ruleIds).toEqual(["CP-WA-24H"]);
   });
 
-  it("does not re-judge what only exists at send time, and skips what it cannot rebuild", () => {
+  it("does not re-check what only exists at send time, and skips what it cannot rebuild", () => {
     const decision = evaluateAsOf(email({ history: undefined }));
     const results = Object.fromEntries(decision.evaluated.map((entry) => [entry.ruleId, entry.result]));
     expect(decision.outcome).toBe("ALLOW");

@@ -26,7 +26,7 @@ interface CredentialsStepProps extends StepProps {
   readonly onForgot?: () => void;
 }
 
-/** Email of the invitation (brokers, analysts) or username (judges, who have no email). */
+/** Email of the invitation (brokers, analysts) or username (guests, who have no email). */
 export function CredentialsStep({ busy, dispatch, inDrawer, fixedLogin, notice, onForgot }: CredentialsStepProps) {
   const [login, setLogin] = useState(fixedLogin ?? "");
   const [password, setPassword] = useState("");

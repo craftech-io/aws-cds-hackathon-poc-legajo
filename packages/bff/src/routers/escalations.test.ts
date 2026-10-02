@@ -28,7 +28,7 @@ describe("escalations router", () => {
 
   it("refuses another firm and an account without a broker row", async () => {
     await expect(world.caller(PABLO).escalations.resolve({ operationId: "op-4471", escalationId, resolution: "x" })).rejects.toMatchObject({ code: "FORBIDDEN" });
-    const unbound = principalOf(FIRM, "BROKER", SUBS.judge, "brk-delta-diego", { brokerId: undefined });
+    const unbound = principalOf(FIRM, "BROKER", SUBS.guest, "brk-delta-diego", { brokerId: undefined });
     await expect(world.caller(unbound).escalations.resolve({ operationId: "op-4471", escalationId, resolution: "x" })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 });

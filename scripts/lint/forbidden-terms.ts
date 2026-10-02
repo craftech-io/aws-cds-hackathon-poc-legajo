@@ -113,7 +113,8 @@ function distFiles(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-async function pdfText(bytes: Buffer): Promise<string> {
+/** Text and metadata of a PDF, the same extraction `lint:neutral-surfaces` uses. */
+export async function pdfText(bytes: Buffer): Promise<string> {
   const { extractText, getMeta, getDocumentProxy } = await import("unpdf");
   const pdf = await getDocumentProxy(new Uint8Array(bytes));
   const { text } = await extractText(pdf, { mergePages: true });

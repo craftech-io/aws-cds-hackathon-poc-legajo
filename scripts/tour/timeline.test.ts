@@ -5,7 +5,7 @@ import { walkTour, type TourTimer, type TourWindowDeclaration, type TourWorld } 
 
 // A table-driven stand-in of a world: pending timers, a paused clock and, per fired timer or tapped
 // button, the timers the world would create next. It exercises the walk's checks; the hours of the
-// real `judge` template come from the todo at the end, once the world can run the tour.
+// real `guest` template come from the todo at the end, once the world can run the tour.
 type Reaction = (world: StoryWorld) => void;
 
 interface Story {
@@ -139,6 +139,6 @@ describe("walk of the guided tour", () => {
   });
 
   it.todo(
-    "walks TOUR_STEPS over the in-process world loaded with the `judge` template and the scripted Harness (tests/flows/support/world.ts) with no problem — pending: the loader and world factory over the judge template (scripts/seed/data/worlds/judge.json, WP-31), the clock, timers and milestones (WP-27), the worker (WP-28), the channel entries (WP-29), the supplier simulator (WP-30), the outbound pipeline (WP-25) and the console's clock, dossier and simulator procedures (WP-33)",
+    "walks TOUR_STEPS over the in-process world loaded with the `guest` template and the scripted Harness (tests/flows/support/world.ts) with no problem — pending: the loader and world factory over the guest template (scripts/seed/data/worlds/guest.json, WP-31), the clock, timers and milestones (WP-27), the worker (WP-28), the channel entries (WP-29), the supplier simulator (WP-30), the outbound pipeline (WP-25) and the console's clock, dossier and simulator procedures (WP-33)",
   );
 });

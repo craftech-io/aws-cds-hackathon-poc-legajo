@@ -5,7 +5,7 @@
 // open (once every 10 real minutes per world from the console).
 //
 // `worldOf` is how every feature router finds the world of a request: the clock the input names
-// (already fenced to the principal's firm by `firmProcedure`) or, for a demo or judge firm, its own.
+// (already fenced to the principal's firm by `firmProcedure`) or, for a demo or guest firm, its own.
 import { z } from "zod";
 import { ClockId, type PendingKind, operationNumberOf } from "@legajo/shared";
 import type { Connector } from "../connector/index";

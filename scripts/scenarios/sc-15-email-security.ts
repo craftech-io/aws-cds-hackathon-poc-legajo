@@ -12,7 +12,7 @@ import { awaitState, createWorld, opOf, worldOf } from "./lib/world";
 const START = "2026-10-15T09:58:00-03:00";
 const DOCS_REQUEST = "2026-10-15T10:00:00-03:00";
 const ETA_B = "2026-10-22T10:00:00-03:00";
-/** A thread address outside every demo, judge and QA range: it resolves to no operation. */
+/** A thread address outside every demo, guest and QA range: it resolves to no operation. */
 const UNKNOWN_THREAD = "op-0000-q7p2q9@legajo.demo.craftech.io";
 
 interface Outcome {

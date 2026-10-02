@@ -5,9 +5,9 @@
 //   firmProcedure         verified id token with firm and role; an inactive broker is refused; every
 //                         id of the input is fenced to the principal's firm (403 + AuditLog DENY
 //                         CROSS_FIRM, auth/scope.ts); an input the fence cannot check whole is
-//                         refused (403 + AuditLog DENY INPUT_TOO_LARGE); a judge's call keeps the
-//                         world's `lastSession` fresh (judge-activity.ts)
-//   brokerProcedure       firm + role BROKER or JUDGE (a judge acts as broker in its own judge firm);
+//                         refused (403 + AuditLog DENY INPUT_TOO_LARGE); a guest's call keeps the
+//                         world's `lastSession` fresh (guest-activity.ts)
+//   brokerProcedure       firm + role BROKER or GUEST (a guest acts as broker in its own guest firm);
 //                         any other role: 403 + AuditLog DENY ROLE_NOT_ALLOWED
 //   recentLoginProcedure  broker + interactive sign-in at most 15 minutes old, 60 s of skew, real
 //                         clock (approve, reopen)
@@ -28,7 +28,7 @@ import { type FencedId, type FirmOwnership, createFirmOwnership, crossFirmTarget
 import { type Logger, correlationIdFrom } from "../lib/log";
 import { type ContextDeps, defaultDeps } from "./deps";
 import { reasonOf, toTrpcError } from "./errors";
-import { refreshJudgeActivity } from "./judge-activity";
+import { refreshGuestActivity } from "./guest-activity";
 
 export interface Context {
   readonly correlationId: string;
@@ -172,7 +172,7 @@ async function refuseAudited(ctx: AuditedContext, path: string, refusal: Audited
 
 const CROSS_FIRM_MESSAGE = "this belongs to another firm";
 
-/** `account.session`: the one call that must read the judge world's last session before refreshing it. */
+/** `account.session`: the one call that must read the guest world's last session before refreshing it. */
 const SIGN_IN_CHECK_PATH = "account.session";
 const INPUT_TOO_LARGE_MESSAGE = "this request names too much at once";
 
@@ -220,7 +220,7 @@ export const firmProcedure = baseProcedure.use(async ({ ctx, next, path, getRawI
   if (target) await refuseAudited(audited, path, "CROSS_FIRM", CROSS_FIRM_MESSAGE, target);
 
   // The sign-in check compares with the last session before it records this one (account.ts).
-  if (path !== SIGN_IN_CHECK_PATH) await refreshJudgeActivity(ctx.deps.connector, principal, ctx.deps.wallClock(), log);
+  if (path !== SIGN_IN_CHECK_PATH) await refreshGuestActivity(ctx.deps.connector, principal, ctx.deps.wallClock(), log);
 
   const firmContext: FirmContext = { ...ctx, principal, authFailure: null, log, firmScope: firmScopeOf(audited, path, ownership) };
   return next({ ctx: firmContext });
@@ -231,7 +231,7 @@ async function enforceRole(ctx: FirmContext, path: string, roles: readonly Conso
   await refuseAudited(ctx, path, "ROLE_NOT_ALLOWED", `this procedure needs one of: ${roles.join(", ")}`);
 }
 
-/** Firm + role BROKER or JUDGE. */
+/** Firm + role BROKER or GUEST. */
 export const brokerProcedure = firmProcedure.use(async ({ ctx, next, path }) => {
   await enforceRole(ctx, path, APPROVER_ROLES);
   return next();

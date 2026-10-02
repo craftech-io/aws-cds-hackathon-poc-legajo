@@ -1,6 +1,6 @@
-// The judge's guided tour (docs/design-brief.md §15, views/tour/steps.ts). Against the local UI
-// server a judge finds the panel open with step 1, its hour read from the real `clock.get` of its
-// world, in Spanish or English, and a second session on the same judge world gets the shell's fixed
+// The guest's guided tour (docs/design-brief.md §15, views/tour/steps.ts). Against the local UI
+// server a guest finds the panel open with step 1, its hour read from the real `clock.get` of its
+// world, in Spanish or English, and a second session on the same guest world gets the shell's fixed
 // notice from the real `account.session`. Scripted answers then walk the buttons: each waits for a
 // quiet world, calls the console's own procedure (`clock.advanceTo` at 15/10 10:00, `clock.moveEta`
 // from the ETA of 4471, `dossier.approve`), fills "Qué mirar" from the pending timers of 4471 and
@@ -40,9 +40,9 @@ function moveButton(page: Page, id: TourStep["id"], index = 0) {
   return panel(page).getByRole("button", { name: stepById(id).moves[index]?.label.es ?? "", exact: true });
 }
 
-test.describe("the guided tour against the real world of a judge", () => {
+test.describe("the guided tour against the real world of a guest", () => {
   test("opens with step 1 and the hour of the world's start, in Spanish or English", async ({ page }) => {
-    await plantSession(page, "judge");
+    await plantSession(page, "guest");
     await page.goto("/app/operations");
     await expectView(page, "operations");
     await expect(panel(page).getByRole("heading", { name: stepById("sign-in").title.es })).toBeVisible();
@@ -63,8 +63,8 @@ test.describe("the guided tour against the real world of a judge", () => {
 
   // The shell's first batch carries `clock.get` and `account.session` (twice under React's StrictMode):
   // their writes race on the clock's version, and the notice must survive the race (FL-079).
-  test("a second session on the same judge world gets the fixed notice, without a reset", async ({ page, browser }) => {
-    await plantSession(page, "judge", { signedInAgo: 3_600 });
+  test("a second session on the same guest world gets the fixed notice, without a reset", async ({ page, browser }) => {
+    await plantSession(page, "guest", { signedInAgo: 3_600 });
     const recorded = page.waitForResponse((response) => response.url().includes("account.session") && response.ok());
     await page.goto("/app/operations");
     await recorded;
@@ -72,7 +72,7 @@ test.describe("the guided tour against the real world of a judge", () => {
     const { baseURL, locale, timezoneId } = test.info().project.use;
     const other = await browser.newContext({ baseURL, locale, timezoneId });
     const second = await other.newPage();
-    await plantSession(second, "judge", { signedInAgo: 5 });
+    await plantSession(second, "guest", { signedInAgo: 5 });
     await second.goto("/app/operations");
     const notice = second.getByRole("alert").filter({ hasText: copy.session.otherSessionEn });
     await expect(notice).toBeVisible();
@@ -83,12 +83,12 @@ test.describe("the guided tour against the real world of a judge", () => {
 });
 
 const OPERATIONS = {
-  clockId: "JUDGE#firm-judge-01",
+  clockId: "GUEST#firm-guest-01",
   operations: [
     {
       operationId: "op-4471",
       operationNumber: "4471",
-      clockId: "JUDGE#firm-judge-01",
+      clockId: "GUEST#firm-guest-01",
       importerId: "imp-norpampa",
       supplierId: "sup-qingdao",
       importerName: "Norpampa Insumos SRL",
@@ -109,12 +109,12 @@ const OPERATIONS = {
   ],
 };
 
-const JUDGE_CLOCK = { ...CLOCK_AT_START, clockId: "JUDGE#firm-judge-01", worldEpoch: 1, startAtSim: "2026-10-14T10:30:00-03:00", nextEvents: [] };
+const GUEST_CLOCK = { ...CLOCK_AT_START, clockId: "GUEST#firm-guest-01", worldEpoch: 1, startAtSim: "2026-10-14T10:30:00-03:00", nextEvents: [] };
 
-/** Progress of the tour stored as if the judge had done every move before `id`. */
+/** Progress of the tour stored as if the guest had done every move before `id`. */
 async function startAt(page: Page, id: TourStep["id"]): Promise<void> {
   const before = TOUR_STEPS.slice(0, TOUR_STEPS.findIndex((step) => step.id === id)).flatMap((step) => step.moves.map((_, index) => `${step.id}#${index}`));
-  await page.addInitScript((done) => window.sessionStorage.setItem("legajo.tour.JUDGE#firm-judge-01#1", JSON.stringify(done)), before);
+  await page.addInitScript((done) => window.sessionStorage.setItem("legajo.tour.GUEST#firm-guest-01#1", JSON.stringify(done)), before);
 }
 
 async function scripted(page: Page, world: Record<string, unknown>, overrides: Parameters<typeof shellApi>[0] = {}): Promise<ApiCall[]> {
@@ -132,7 +132,7 @@ async function scripted(page: Page, world: Record<string, unknown>, overrides: P
       ...overrides,
     }),
   );
-  await plantSession(page, "judge");
+  await plantSession(page, "guest");
   // The clock view reads only what is scripted here; the panel is the same on every view.
   await page.goto("/app/clock");
   return calls;
@@ -143,7 +143,7 @@ const inputOf = (calls: readonly ApiCall[], path: string) => calls.find((call) =
 test.describe("the tour's buttons (scripted answers)", () => {
   test("a button that changes the world waits for a quiet one, then goes to the 4471 request at 15/10 10:00", async ({ page }) => {
     await startAt(page, "first-request");
-    const calls = await scripted(page, { ...JUDGE_CLOCK, busy: true, pending: [{ kind: "EVENT", operationNumber: "4471", sinceReal: new Date().toISOString() }] });
+    const calls = await scripted(page, { ...GUEST_CLOCK, busy: true, pending: [{ kind: "EVENT", operationNumber: "4471", sinceReal: new Date().toISOString() }] });
     await expect(moveButton(page, "first-request")).toBeDisabled();
     await expect(panel(page).getByText(es.busy)).toBeVisible();
     expect(inputOf(calls, "clock.advanceTo")).toBeUndefined();
@@ -151,7 +151,7 @@ test.describe("the tour's buttons (scripted answers)", () => {
 
   test("goes to the 4471 request at 15/10 10:00 and moves on to the next step", async ({ page }) => {
     await startAt(page, "first-request");
-    const calls = await scripted(page, JUDGE_CLOCK);
+    const calls = await scripted(page, GUEST_CLOCK);
     await moveButton(page, "first-request").click();
     await expect(panel(page).getByRole("heading", { name: stepById("delegate").title.es })).toBeVisible();
     expect(inputOf(calls, "clock.advanceTo")).toEqual({ toSim: "2026-10-15T10:00:00-03:00" });
@@ -160,7 +160,7 @@ test.describe("the tour's buttons (scripted answers)", () => {
   test("'Qué mirar' reads its hours from the pending timers of 4471, not from the text", async ({ page }) => {
     await startAt(page, "delegate");
     await scripted(page, {
-      ...JUDGE_CLOCK,
+      ...GUEST_CLOCK,
       simNow: "2026-10-15T10:07:00-03:00",
       nextEvents: [
         { operationId: "op-4471", operationNumber: "4471", kind: "DEFERRED_SEND", timerId: "ds-1", dueAtSim: "2026-10-15T21:30:00-03:00" },
@@ -172,7 +172,7 @@ test.describe("the tour's buttons (scripted answers)", () => {
 
   test("moves the ETA of 4471 two days earlier from the ETA it has now", async ({ page }) => {
     await startAt(page, "eta");
-    const calls = await scripted(page, JUDGE_CLOCK);
+    const calls = await scripted(page, GUEST_CLOCK);
     await moveButton(page, "eta").click();
     await expect(panel(page).getByRole("heading", { name: stepById("approve").title.es })).toBeVisible();
     expect(inputOf(calls, "clock.moveEta")).toEqual({ operationId: "op-4471", eta: "2026-10-20T08:00:00-03:00" });
@@ -181,7 +181,7 @@ test.describe("the tour's buttons (scripted answers)", () => {
   test("approving asks for the password when the sign-in is old, and approves 4471 once it is recent", async ({ page }) => {
     await startAt(page, "approve");
     let refused = false;
-    const calls = await scripted(page, JUDGE_CLOCK, {
+    const calls = await scripted(page, GUEST_CLOCK, {
       "dossier.approve": () => {
         if (refused) return { data: { ok: true } };
         refused = true;
@@ -198,7 +198,7 @@ test.describe("the tour's buttons (scripted answers)", () => {
   test("shows the English gloss of the step's message from the simulator's thread of 4471", async ({ page }) => {
     await startAt(page, "first-request");
     const gloss = "Hi, we are writing from Estudio Delta. Operation 4471 … How do we proceed?";
-    await scripted(page, JUDGE_CLOCK, {
+    await scripted(page, GUEST_CLOCK, {
       "simulator.threads": {
         data: {
           threads: [

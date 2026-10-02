@@ -89,7 +89,7 @@ describe("runtimeSessionId", () => {
     const variants = [
       runtimeSessionId(key, { ...base, worldEpoch: 2 }),
       runtimeSessionId(key, { ...base, sessionEpoch: 1 }),
-      runtimeSessionId(key, { ...base, clockId: "JUDGE#firm-judge-01" }),
+      runtimeSessionId(key, { ...base, clockId: "GUEST#firm-guest-01" }),
       runtimeSessionId(deriveSubkey(MASTER, "session"), base),
     ];
     expect(new Set([id, ...variants]).size).toBe(5);

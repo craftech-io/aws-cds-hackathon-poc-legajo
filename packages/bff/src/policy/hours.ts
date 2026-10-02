@@ -7,7 +7,7 @@
 //                      supplier's zone, with its daylight saving time and without holidays
 //
 // Out of hours is a deferral, not a denial: the send waits for `nextAllowedAt`, the next opening.
-// Both rules take the instant they judge, so the engine also asks them about a later instant when it
+// Both rules take the instant they guest, so the engine also asks them about a later instant when it
 // looks for the first moment every time rule allows the send.
 import { formatDate } from "@legajo/shared";
 import { type BusinessHours, ARGENTINA_TIME_ZONE, argentinaBusinessHours, isBusinessDate, isBusinessOpen, nextBusinessOpening, supplierBusinessHours, toZonedIso, zonedParts } from "../services/business-hours";
@@ -33,7 +33,7 @@ function wallClock(at: Date, hours: BusinessHours): string {
   return `${parts.weekday} ${formatDate(parts.date).slice(0, 5)} ${parts.time}${closedDay}`;
 }
 
-function judgeHours(at: Date, hours: BusinessHours, side: string): RuleCheck {
+function checkHours(at: Date, hours: BusinessHours, side: string): RuleCheck {
   const local = wallClock(at, hours);
   if (isBusinessOpen(at, hours)) return pass(`${local} is inside ${side} business hours`);
   const next = nextBusinessOpening(at, hours);
@@ -47,7 +47,7 @@ export function checkHoursAr(ctx: PolicyContext, at: Date): RuleCheck {
   if (ctx.reply) return skip("a reply to the importer's own message is exempt from business hours");
   const hours = importerHoursOf(ctx);
   if (hours === undefined) return missing(ctx, "the holiday calendar of Argentina");
-  return judgeHours(at, hours, `Buenos Aires (${ARGENTINA_TIME_ZONE})`);
+  return checkHours(at, hours, `Buenos Aires (${ARGENTINA_TIME_ZONE})`);
 }
 
 /** `CP-HOURS-SUPPLIER` at `at`. */
@@ -55,5 +55,5 @@ export function checkHoursSupplier(ctx: PolicyContext, at: Date): RuleCheck {
   if (!ctx.toSupplierByEmail) return skip("the supplier's hours only apply to email to the supplier");
   const hours = supplierHoursOf(ctx);
   if (hours === undefined) return missing(ctx, "the supplier's time zone");
-  return judgeHours(at, hours, `the supplier's (${hours.timeZone})`);
+  return checkHours(at, hours, `the supplier's (${hours.timeZone})`);
 }

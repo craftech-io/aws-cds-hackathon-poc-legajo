@@ -6,14 +6,14 @@ El CTO pidió no ver la POC hasta que esté 100 % probada. Este documento fija q
 
 La POC está **100 % probada** cuando, sobre un mismo commit de `main` desplegado en `poc`:
 
-1. Cada uno de los 131 flujos tiene todas las pruebas que le asigna la matriz de §2, y todas están en verde.
+1. Cada uno de los 132 flujos tiene todas las pruebas que le asigna la matriz de §2, y todas están en verde.
 2. Todo flujo que toca un servicio de AWS en runtime (SES, AgentCore, Scheduler, lector, EventBridge, S3, Cognito) tiene al menos un paso del **ejecutor de escenarios** en `poc` (`SR`). Excepciones cerradas, con motivo, en §2.1.
 3. La suite completa de escenarios, **incluidos `SC-24` (recorrido del invitado), `SC-25` (mundo y sesiones del invitado) y `SC-26` (alta pública de punta a punta)**, pasa **3 corridas seguidas** (el agente no es determinista: un escenario que pasa 2 de 3 no está probado).
 4. `policy_audit` sobre todos los mundos de esas corridas da **0 violaciones**.
 5. El smoke de CI (`SC-00`) pasa en el deploy de ese commit.
 6. Los checks de rendimiento y costo de §6 están dentro de umbral.
 7. La revisión de seguridad de §7 no tiene hallazgos altos ni medios abiertos.
-8. `npm run flows:check` confirma que la matriz de §2 cubre los 131 flujos, que cada prueba citada existe y lleva la etiqueta del flujo, y que cada paso `SR` citado declara el flujo; `npm run tour:check` confirma que el README y `SC-24` salen de la misma fuente.
+8. `npm run flows:check` confirma que la matriz de §2 cubre los 132 flujos, que cada prueba citada existe y lleva la etiqueta del flujo, y que cada paso `SR` citado declara el flujo; `npm run tour:check` confirma que el README y `SC-24` salen de la misma fuente.
 
 ## 2. Niveles de prueba
 
@@ -139,7 +139,7 @@ Generada desde las líneas "Prueba" de `docs/flows-catalog.md`; `npm run flows:c
 | FL-084 | Buzón de demo | `sim-mail/mailbox.test.ts`, `routers/mailbox.test.ts` | — | `mailbox.spec.ts` | `SC-06/7`, `SC-24/4` | — | — |
 | FL-085 | Métricas con rótulos | `metrics/kpis.test.ts` | — | `metrics.spec.ts` | `SC-20/4` | — | — |
 | FL-086 | Bitácora | `routers/audit.test.ts` | — | `audit.spec.ts` | `SC-20/7` | — | — |
-| FL-087 | Reiniciar la demo | `clock/reset.test.ts`, `worlds/worlds.test.ts`, `scripts/seed/__tests__/load.test.ts` | — | `clock.spec.ts` | `SC-20/5`, `SC-20/9`, `SC-25/4..5` | — | `GLOBAL#firm-qa`; `SC-25`: reinicio por la consola del invitado con la ETA de `Platform` restaurada |
+| FL-087 | Reiniciar la demo | `clock/reset.test.ts`, `worlds/worlds.test.ts`, `worlds/guest-worlds.test.ts`, `scripts/seed/__tests__/load.test.ts` | — | `clock.spec.ts` | `SC-20/5`, `SC-20/9`, `SC-25/4..5` | — | `GLOBAL#firm-qa`; `worlds/guest-worlds.test.ts` cubre `IDLE_GUEST_RESET`: reinicia solo los mundos reservados sin actividad en 24 h y nunca uno público; `SC-25`: reinicio por la consola del invitado con la ETA de `Platform` restaurada |
 | FL-088 | Comportamiento del proveedor simulado | `sim-mail/supplier-simulator.test.ts`, `sim-mail/guard.test.ts` | — | `registry.spec.ts` | `SC-02/1`, `SC-15/10` | — | `supplier.setBehaviour` en SC-02..SC-05; `SC-15/10`: correo que `SimMail` descarta |
 | FL-089 | Landing comercial bilingüe y páginas legales | `views/landing/landing.test.ts` | — | `landing.spec.ts` | — | `SMK/1` | `landing.spec.ts` y `landing.test.ts` se reescriben con la landing nueva (ADR-0016); la versión de los legales igual a la del consentimiento la cubre FL-119 |
 | FL-090 | WhatsApp vivo: eventos entrantes | `channels/whatsapp/inbound.test.ts`, `channels/whatsapp/media.test.ts` | — | — | — | — | Excepción §2.1; prueba viva `SC-23` al cerrar P-01 |
@@ -166,7 +166,7 @@ Generada desde las líneas "Prueba" de `docs/flows-catalog.md`; `npm run flows:c
 | FL-111 | Cuotas de uso por mundo alcanzadas | `worlds/guest-quotas.test.ts`, `routers/guest-world.test.ts`, `policy/world-quota.test.ts` | `guest-world.flow.test.ts` | `welcome.spec.ts` | — | — | Excepción §2.1 |
 | FL-112 | Rate limits del alta | `signup/rate-limits.test.ts`, `lib/viewer-ip.test.ts`, `routers/signup.test.ts`, `infra/edge-waf-spec.test.ts` | `signup.flow.test.ts` | `auth.spec.ts` | — | — | Excepción §2.1 (probar el bloqueo de WAF en `poc` dejaría a la IP del runner afuera 5 min); la configuración de WAF se verifica post-deploy (`docs/architecture.md` §15 paso 6) |
 | FL-113 | Bot rechazado | `signup/bot-checks.test.ts`, `auth-triggers/pre-signup.test.ts`, `routers/signup.test.ts`, `routers/signup-batch.test.ts`, `routers/origin-verify.test.ts`, `infra/edge-waf-spec.test.ts` | `signup.flow.test.ts` | `auth.spec.ts` | `SC-26/10` | — | (c) con OAC se verifica post-deploy (`docs/architecture.md` §15 paso 6: `curl` directo a las Function URL → 403) |
-| FL-114 | Cuotas de emails de cuenta | `auth-triggers/custom-message.test.ts`, `channels/email/mail-status.test.ts`, `signup/dispatch.test.ts` | `signup.flow.test.ts` | — | `SC-26/11` | — | riesgo residual declarado en ADR-0015 §3.2 (el error distinto de `ForgotPassword` directo con la cuota agotada) |
+| FL-114 | Cuotas de emails de cuenta | `auth-triggers/custom-message.test.ts`, `channels/email/mail-status.test.ts`, `signup/dispatch.test.ts`, `scripts/leads/breaker.test.ts` | `signup.flow.test.ts` | — | `SC-26/11` | — | `scripts/leads/breaker.test.ts` prueba `npm run signup:breaker -- --close`; riesgo residual declarado en ADR-0015 §3.2 (el error distinto de `ForgotPassword` directo con la cuota agotada) |
 | FL-115 | Aviso de lead a Craftech | `leads/notice/notice.test.ts`, `outbound/recipient-fence.test.ts`, `channels/email/lead-notice-send.test.ts`, `infra/leads-spec.test.ts` | `leads.flow.test.ts` | — | `SC-26/5` | — | SR asierta `noticeStatus SENT`; la llegada a la casilla la confirma la aceptación A-01 |
 | FL-116 | Exportar los leads | `scripts/leads/export.test.ts` | `leads.flow.test.ts` | — | — | — | Excepción §2.1 (herramienta del operador, sin runtime propio en `poc`); la corre el operador en la aceptación A-01 |
 | FL-117 | Retiro del consentimiento de contacto | `scripts/leads/optout.test.ts` | `leads.flow.test.ts` | — | — | — | Excepción §2.1 |

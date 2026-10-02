@@ -4,11 +4,11 @@
 import { z } from "zod";
 import { DocType, ObservationCode } from "./enums-dossier";
 
-// Lower-case slug (`firm-judge-01`, `brk-delta-diego`).
+// Lower-case slug (`firm-guest-01`, `brk-delta-diego`).
 const SLUG = "[a-z0-9]+(?:-[a-z0-9]+)*";
 // QA ids embed the run id, which may be `local-<ULID>` (upper case): `imp-qa-local-01J9ZQ-sc16-b`.
 const TOKEN = "[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*";
-// Operation key: the 4-digit number, plus the clock tag of a cloned world (`4471-j03`).
+// Operation key: the 4-digit number, plus the clock tag of a cloned world (`4471-g03`).
 const OPERATION_KEY = "\\d{4}(?:-[a-z0-9]+)?";
 const DOC_SHORT = "(?:CI|PL|CO)";
 
@@ -95,7 +95,7 @@ export const OperationNumber = z.string().regex(/^\d{4}$/, "expected a 4-digit o
 export type OperationNumber = z.infer<typeof OperationNumber>;
 
 /**
- * Number ranges (docs/architecture.md §5): `firm-delta` and every judge firm use 4400-4499,
+ * Number ranges (docs/architecture.md §5): `firm-delta` and every guest firm use 4400-4499,
  * `firm-norte` 5500-5599, and QA worlds lease 7000-7999 (`Runtime/LEASE#OPNUM#<n>`).
  */
 export const OPERATION_NUMBER_RANGES = {
@@ -112,13 +112,13 @@ export function operationNumberRange(operationNumber: string): OperationNumberRa
   );
 }
 
-/** `op-4471`, or `op-4471-j03` for the clone of a model operation in another world. */
+/** `op-4471`, or `op-4471-g03` for the clone of a model operation in another world. */
 export function operationId(operationNumber: string, clockTag?: string): OperationId {
   const number = OperationNumber.parse(operationNumber);
   return clockTag === undefined ? makeId("operation", number) : makeId("operation", number, clockTag);
 }
 
-/** The operation id without its prefix, as other ids embed it (`op-4471-j03` → `4471-j03`). */
+/** The operation id without its prefix, as other ids embed it (`op-4471-g03` → `4471-g03`). */
 export function operationKey(id: string): string {
   return OperationId.parse(id).slice(`${ID_SPEC.operation.prefix}-`.length);
 }

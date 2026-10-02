@@ -1,6 +1,8 @@
 # Scenario suite against the deployed stage `poc` (docs/test-plan.md §4), on demand. The runner
 # drives every flow through the QA driver Lambda with the qa-runner role of the bootstrap
-# (ADR-0005); no human credentials. Only `main` can assume the role, so dispatch it from main.
+# (ADR-0005); no human credentials. Only `main` can assume the role, so dispatch it from main. The
+# browser scenarios sign in with the synthetic `guest-test` account: its password comes only from the
+# GUEST_TEST_PASSWORD secret and is never printed.
 name: Scenarios poc
 
 on:
@@ -54,6 +56,7 @@ jobs:
       - name: Run the suite
         env:
           SUITE: ${{ inputs.suite }}
+          GUEST_TEST_PASSWORD: ${{ secrets.GUEST_TEST_PASSWORD }}
         run: |
           if [ ! -f scripts/scenarios/run.ts ]; then
             echo "::notice::scenarios skipped: scripts/scenarios/run.ts is not in the repository yet (WP-37)."

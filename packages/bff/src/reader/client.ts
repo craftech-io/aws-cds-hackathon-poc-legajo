@@ -4,7 +4,7 @@
 //   - Requests and answers are validated with the contract's zod schemas (@legajo/reader-contract).
 //   - Signed with SigV4 (reader/signer.ts); `Idempotency-Key` = the `docVersionId` being read.
 //   - `X-Fault-Scope: <clockId>` only for operations of a `qa-*` clock, so a scenario's faults never
-//     reach a demo or judge world.
+//     reach a demo or guest world.
 //   - 8 s per attempt; 3 retries with exponential backoff and full jitter on 429, 502, 503, 504,
 //     timeouts and network errors, never earlier than `Retry-After`. A `Retry-After` longer than a
 //     Lambda can wait ends the call at once: the intake's `TIMER#READER_RETRY` takes over.

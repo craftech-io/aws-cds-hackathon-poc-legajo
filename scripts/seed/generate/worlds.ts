@@ -3,7 +3,7 @@
 // `data/worlds/<template>.json` holds); `seed.ts` instantiates the demo worlds for the table files.
 import { worldOfClock } from "@legajo/bff/domain/common";
 import type { DocType } from "@legajo/shared";
-import { SEED, GENERATOR_VERSION, START_AT_SIM, TOUR_OPERATION_ID, TOUR_WINDOW_END_SIM, JUDGE_TEMPLATE_CLOCK, JUDGE_TEMPLATE_FIRM, JUDGE_TEMPLATE_TAG, type WorldTableName } from "../lib/constants";
+import { SEED, GENERATOR_VERSION, START_AT_SIM, TOUR_OPERATION_ID, TOUR_WINDOW_END_SIM, GUEST_TEMPLATE_CLOCK, GUEST_TEMPLATE_FIRM, GUEST_TEMPLATE_TAG, type WorldTableName } from "../lib/constants";
 import { DERIVED_FIELDS, THREAD_ADDRESS_PLACEHOLDER, type SeedItem } from "../lib/items";
 import type { DocVersion } from "./documents";
 import { firmRows } from "./firm-rows";
@@ -51,7 +51,7 @@ export function buildWorld(world: WorldContext, catalog: PdfCatalog): BuiltWorld
     if (story?.contactConfirmedAt !== undefined && world.withTimeline) confirmations.set(op.supplier.contactId, story.contactConfirmedAt);
     return operationItems({ world, op, versions: catalog.versionsByModel.get(op.model.number) ?? [], files: catalog.files, ...(story === undefined ? {} : { story }) });
   });
-  if (world.ownsFirm) items.Firms.push(...firmRows(world.firm, world.brokers, world.template === "judge" ? worldOfClock(world.clockId) : undefined));
+  if (world.ownsFirm) items.Firms.push(...firmRows(world.firm, world.brokers, world.template === "guest" ? worldOfClock(world.clockId) : undefined));
   items.Parties.push(...partyItems(world, confirmations));
   for (const produced of perOperation) {
     items.Operations.push(...produced.Operations);
@@ -81,9 +81,9 @@ export function templateFile(built: readonly BuiltWorld[]): Record<string, unkno
     startAtSim: START_AT_SIM,
     ...(template === "models" ? {} : { source: { firmId: first.world.firm.firmId, clockId: first.world.clockId, firmKind: first.world.firm.kind } }),
     derived: { fields: DERIVED_FIELDS, threadAddressPlaceholder: THREAD_ADDRESS_PLACEHOLDER, worldEpoch: "COUNTER#EPOCH#<clockId>", keys: "packages/bff/src/connector/item-shape.ts" },
-    ...(template === "judge"
+    ...(template === "guest"
       ? {
-          placeholders: { firmId: JUDGE_TEMPLATE_FIRM, clockId: JUDGE_TEMPLATE_CLOCK, brokerId: "brk-judge-00", mailboxTag: JUDGE_TEMPLATE_TAG, phonePrefix: "+54911555100", note: "the world factory writes the judge's two digits instead of 00" },
+          placeholders: { firmId: GUEST_TEMPLATE_FIRM, clockId: GUEST_TEMPLATE_CLOCK, brokerId: "brk-guest-00", mailboxTag: GUEST_TEMPLATE_TAG, phonePrefix: "+54911555100", note: "the world factory writes the guest's two digits instead of 00" },
           tour: { operationId: TOUR_OPERATION_ID, operationNumber: TOUR_OPERATION_ID.slice(3), windowStartSim: START_AT_SIM, windowEndSim: TOUR_WINDOW_END_SIM },
         }
       : {}),

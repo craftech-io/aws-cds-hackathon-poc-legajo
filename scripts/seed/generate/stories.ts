@@ -2,7 +2,7 @@
 // op-4478 (holiday deferral, delegation to the supplier, reminder), op-4487 (approved), op-4488
 // (ready for review after a corrected packing list), op-4489 (approved and released) and Norte's
 // op-5505. Every message carries the instant the policy lets it out (invariant 10); the same stories
-// run for the clones of the `judge` and `qa-min` templates, with that world's parties.
+// run for the clones of the `guest` and `qa-min` templates, with that world's parties.
 import type { CustomsChannel, DispatchStatus, DocType, MilestoneName, TimerStatus } from "@legajo/shared";
 import { DISPATCH_GLOSSARY, dispatchGlossaryKey } from "@legajo/bff/copy/dispatch-glossary";
 import { importerEsAR, missingDocumentsEsAR } from "@legajo/bff/copy/es-AR";

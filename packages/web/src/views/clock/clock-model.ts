@@ -66,9 +66,9 @@ export function controlGate(snapshot: ClockSnapshot | undefined, nowMs: number):
 
 export type ResetGate = { readonly allowed: true } | { readonly allowed: false; readonly reason: string };
 
-/** "Reiniciar demo": broker or judge only, once every 10 real minutes per world. */
+/** "Reiniciar demo": broker or guest only, once every 10 real minutes per world. */
 export function resetGate(detail: Pick<ClockDetail, "reset"> | undefined, role: ConsoleRole | undefined): ResetGate {
-  if (role !== "BROKER" && role !== "JUDGE") return { allowed: false, reason: clockCopy.reset.onlyApprovers };
+  if (role !== "BROKER" && role !== "GUEST") return { allowed: false, reason: clockCopy.reset.onlyApprovers };
   const window = detail?.reset;
   if (window && !window.allowed) {
     return { allowed: false, reason: window.nextAllowedAtReal ? clockCopy.reset.wait(formatTime(window.nextAllowedAtReal)) : clockCopy.reset.onlyApprovers };

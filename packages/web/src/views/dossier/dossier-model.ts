@@ -1,7 +1,7 @@
 // The dossier as the console shows it (docs/design-brief.md §6, row 2; FL-042..FL-044, FL-067,
 // FL-068, FL-073, FL-075): per document its state, responsible, versions with their reading and the
 // observations with their attempts; which actions the role and the state allow (approve and reopen
-// only BROKER or JUDGE, ADR-0010); when approving needs the password again (15 minutes of real time,
+// only BROKER or GUEST, ADR-0010); when approving needs the password again (15 minutes of real time,
 // the BFF's `recentLoginProcedure`); and how the firm may write to the importer (control taken, the
 // 24-hour window of WhatsApp, the scope of an approved dossier). The BFF enforces every rule again.
 import { CONSOLE_TEXT_MAX, type ConsoleRole, type ConversationControl, type DocStatus, type DocType, type DossierStatus, type Party, canApprove } from "@legajo/shared";
@@ -77,13 +77,13 @@ export function outstandingOf(dossier: Pick<DossierData, "documents" | "versions
 
 export type Gate = { readonly visible: false } | { readonly visible: true; readonly enabled: true } | { readonly visible: true; readonly enabled: false; readonly reason: "NOT_READY" };
 
-/** "Aprobar legajo": only for BROKER or JUDGE (an analyst never sees it, FL-075), open once ready for review. */
+/** "Aprobar legajo": only for BROKER or GUEST (an analyst never sees it, FL-075), open once ready for review. */
 export function approveGate(role: ConsoleRole | undefined, status: DossierStatus): Gate {
   if (role === undefined || !canApprove(role) || status === "APPROVED") return { visible: false };
   return status === "READY_FOR_REVIEW" ? { visible: true, enabled: true } : { visible: true, enabled: false, reason: "NOT_READY" };
 }
 
-/** "Reabrir": only for BROKER or JUDGE, only on an approved dossier. */
+/** "Reabrir": only for BROKER or GUEST, only on an approved dossier. */
 export function reopenGate(role: ConsoleRole | undefined, status: DossierStatus): Gate {
   if (role === undefined || !canApprove(role) || status !== "APPROVED") return { visible: false };
   return { visible: true, enabled: true };

@@ -16,7 +16,7 @@ import { CONSOLE_TOKENS_KEY } from "../../../../../scripts/landing/console-sessi
 import { supplierReplies } from "../../../../../scripts/landing/supplier-replies";
 import { TOKENS_KEY } from "../../lib/auth/tokens";
 import { CONVERSATION_IDS, CORRECTION_TARGET, STORY, SUPPLIER_THREAD, SupplierReplies, conversation } from "./conversations";
-import { JUDGES_SIGN_IN, LANDING_COPY } from "./copy";
+import { LANDING_COPY } from "./copy";
 import { landingHref, langFromSearch } from "./lang";
 import { CONSOLE_CAPTURE_IDS, LandingManifest, MEDIA_IDS, type MediaItem, mediaIdsIn, withMedia } from "./manifest";
 import { SCENES, SCENE_IDS } from "./scenes";
@@ -72,13 +72,11 @@ describe("landing copy [FL-089]", () => {
     expect(liveWhatsApp).toEqual([]);
   });
 
-  it("is Powered by Craftech and sends judges to the login with one button in both languages", () => {
+  it("is Powered by Craftech and sends visitors to the login with one button in both languages", () => {
     expect(LANDING_COPY.es.footer.made).toContain("Legajo listo · Powered by Craftech");
     expect(LANDING_COPY.en.footer.made).toContain("Legajo listo · Powered by Craftech");
-    expect(JUDGES_SIGN_IN).toBe("Judges: sign in / Jurado: ingresar");
-    expect(LANDING_COPY.es.cta.judges).toBe(JUDGES_SIGN_IN);
-    expect(LANDING_COPY.en.cta.judges).toBe(JUDGES_SIGN_IN);
-    expect(LANDING_COPY.en.judges.credentials).toMatch(/testing instructions/);
+    expect(LANDING_COPY.es.cta.signIn).toBe("Ingresar");
+    expect(LANDING_COPY.en.cta.signIn).toBe("Sign in");
   });
 
   it("labels the delay figures as assumptions", () => {

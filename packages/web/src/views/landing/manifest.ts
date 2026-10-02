@@ -1,6 +1,6 @@
 // Shape of public/landing/manifest.json, the list of the landing's pictures: renders of real pages
 // made by scripts/landing/render-visuals.ts and console captures taken by
-// scripts/landing/capture-console.ts, in `poc` with the synthetic `judge-test` account after a real run
+// scripts/landing/capture-console.ts, in `poc` with the synthetic `guest-test` account after a real run
 // or on the local UI server, which the landing labels "entorno local, agente guionado"
 // (docs/design-brief.md §7.2). Pure zod, no React: the landing and the scripts share it. A picture's
 // alt text and caption live in copy, in both languages; the manifest only says what the file is.

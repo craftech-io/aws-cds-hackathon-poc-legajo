@@ -7,7 +7,7 @@
 //   GET  /v1/health                                                      → { status: "ok" }
 //
 // Every operation route is scoped by `firm`, like the table key `POP#<firmId>#<n>`: operation numbers
-// repeat across judge firms. The two POST routes need an `Idempotency-Key`: a retry with the same key
+// repeat across guest firms. The two POST routes need an `Idempotency-Key`: a retry with the same key
 // and body re-publishes the same event (same `eventId`) instead of changing the operation twice.
 import { z } from "zod";
 import { CustomsChannel, FirmId, OperationNumber } from "@legajo/shared";

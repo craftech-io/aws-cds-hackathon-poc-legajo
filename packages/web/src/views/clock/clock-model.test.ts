@@ -8,7 +8,7 @@ const ago = (ms: number) => new Date(NOW - ms).toISOString();
 
 function detail(overrides: Record<string, unknown> = {}): ClockDetail {
   return ClockDetail.parse({
-    clockId: "JUDGE#firm-judge-01",
+    clockId: "GUEST#firm-guest-01",
     mode: "PAUSED",
     simNow: "2026-10-14T10:30:00-03:00",
     runningUntilReal: null,
@@ -121,14 +121,14 @@ describe("commands of the clock view", () => {
 });
 
 describe("who may reset the world and when", () => {
-  it("lets a broker or a judge reset, never an analyst", () => {
+  it("lets a broker or a guest reset, never an analyst", () => {
     expect(resetGate(detail(), "BROKER")).toEqual({ allowed: true });
-    expect(resetGate(detail(), "JUDGE")).toEqual({ allowed: true });
+    expect(resetGate(detail(), "GUEST")).toEqual({ allowed: true });
     expect(resetGate(detail(), "ANALYST")).toEqual({ allowed: false, reason: clockCopy.reset.onlyApprovers });
   });
 
   it("says when the next reset opens (once every 10 minutes per world)", () => {
-    const gate = resetGate(detail({ reset: { allowed: false, nextAllowedAtReal: "2026-10-15T13:12:00Z" } }), "JUDGE");
+    const gate = resetGate(detail({ reset: { allowed: false, nextAllowedAtReal: "2026-10-15T13:12:00Z" } }), "GUEST");
     expect(gate).toEqual({ allowed: false, reason: clockCopy.reset.wait("10:12") });
   });
 });

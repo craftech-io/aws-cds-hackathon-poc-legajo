@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { QA_ACTIONS, type QaActionName, qaEventId, qaMailId, qaMessageId, simulatedWamid } from "./contract";
-import { GLOBAL_QA_ACTIONS, JUDGE_TEST_ACTIONS, type Scope, WORLDLESS_ACTIONS, checkFence } from "./guard";
+import { GLOBAL_QA_ACTIONS, GUEST_TEST_ACTIONS, type Scope, WORLDLESS_ACTIONS, checkFence } from "./guard";
 import { OTHER_QA_CLOCK, QA_CLOCK, countingHandlers, driverUnderTest, key } from "./testing";
 
 const scope = (name: string, clockId: string | undefined, firmId = "firm-qa", operations: Scope["operations"] = []): Scope => ({ name, firmId, operations, ...(clockId === undefined ? {} : { clockId }) });
@@ -30,19 +30,19 @@ describe("checkFence: the clocks and firms of ADR-0005", () => {
     expect(fenceCode(scope("world.destroy", "GLOBAL#firm-qa"))).toBe("FORBIDDEN");
   });
 
-  it("closes JUDGE#firm-judge-test to world.destroy, snapshot, op.settle and platform.get", () => {
+  it("closes GUEST#firm-guest-test to world.destroy, snapshot, op.settle and platform.get", () => {
     for (const action of [...WORLD_ACTIONS, "console.clock.reset"]) {
-      expect(fenceCode(scope(action, "JUDGE#firm-judge-test", "firm-judge-test")), action).toBe(JUDGE_TEST_ACTIONS.includes(action) ? undefined : "FORBIDDEN");
+      expect(fenceCode(scope(action, "GUEST#firm-guest-test", "firm-guest-test")), action).toBe(GUEST_TEST_ACTIONS.includes(action) ? undefined : "FORBIDDEN");
     }
   });
 
-  it("refuses every demo, judge and batch world, whatever the action", () => {
+  it("refuses every demo, guest and batch world, whatever the action", () => {
     const worlds: Array<[string, string]> = [
       ["GLOBAL#firm-delta", "firm-delta"],
       ["GLOBAL#firm-norte", "firm-norte"],
-      ["JUDGE#firm-judge-01", "firm-judge-01"],
+      ["GUEST#firm-guest-01", "firm-guest-01"],
       ["GLOBAL#firm-sim", "firm-sim"],
-      ["JUDGE#firm-qa", "firm-qa"],
+      ["GUEST#firm-qa", "firm-qa"],
       ["sim-batch1", "firm-sim"],
     ];
     for (const [clockId, firmId] of worlds) {
@@ -53,7 +53,7 @@ describe("checkFence: the clocks and firms of ADR-0005", () => {
 
   it("refuses a firm that is not of QA type and a clock of another firm", () => {
     expect(fenceCode(scope("snapshot", "GLOBAL#firm-delta", "firm-delta"))).toBe("FORBIDDEN");
-    expect(fenceCode(scope("snapshot", QA_CLOCK, "firm-judge-test"))).toBe("FORBIDDEN");
+    expect(fenceCode(scope("snapshot", QA_CLOCK, "firm-guest-test"))).toBe("FORBIDDEN");
     expect(fenceCode(scope("guardrail.probe", undefined, "firm-delta"))).toBe("FORBIDDEN");
   });
 
@@ -114,11 +114,11 @@ describe("QaDriver: the fence on stored data", () => {
     expect(await driver({ action: "snapshot", idempotencyKey: key(2), input: { operationId: "op-4471-qa" } })).toMatchObject({ ok: true });
     expect(await driver({ action: "clock.advance", idempotencyKey: key(2, "b"), input: { clockId: "GLOBAL#firm-qa", byMinutes: 60 } })).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
     expect(await driver({ action: "world.destroy", idempotencyKey: key(2, "c"), input: { clockId: "GLOBAL#firm-qa" } })).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
-    expect(await driver({ action: "world.destroy", idempotencyKey: key(2, "d"), input: { clockId: "JUDGE#firm-judge-test" } })).toMatchObject({ ok: true });
+    expect(await driver({ action: "world.destroy", idempotencyKey: key(2, "d"), input: { clockId: "GUEST#firm-guest-test" } })).toMatchObject({ ok: true });
     expect(await driver({ action: "wa.inbound", idempotencyKey: key(2, "e"), input: { operationId: "op-4471-jt", message: { type: "text", text: "hola" } } })).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
-    expect(await driver({ action: "platform.get", idempotencyKey: key(2, "f"), input: { firmId: "firm-judge-test", operationNumber: "4471" } })).toMatchObject({ ok: true });
+    expect(await driver({ action: "platform.get", idempotencyKey: key(2, "f"), input: { firmId: "firm-guest-test", operationNumber: "4471" } })).toMatchObject({ ok: true });
     expect(await driver({ action: "platform.get", idempotencyKey: key(2, "g"), input: { firmId: "firm-delta", operationNumber: "4471" } })).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
-    expect(await driver({ action: "platform.get", idempotencyKey: key(2, "h"), input: { firmId: "firm-judge-test", operationNumber: "4471", clockId: QA_CLOCK } })).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
+    expect(await driver({ action: "platform.get", idempotencyKey: key(2, "h"), input: { firmId: "firm-guest-test", operationNumber: "4471", clockId: QA_CLOCK } })).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
     expect([...calls.keys()].sort()).toEqual(["platform.get", "snapshot", "world.destroy"]);
   });
 
@@ -140,7 +140,7 @@ describe("QaDriver: the fence on stored data", () => {
     const inspect = (label: string, actorId: string, clockId: string) => driver({ action: "memory.inspect", idempotencyKey: key(9, label), input: { actorId, clockId, sessionIds: ["s1"] } });
     const fenced = { ok: false, error: { code: "FORBIDDEN", reason: "QA_FENCE" } };
     expect(await inspect("a", "imp-qa-812-1-sc01-a-e1", QA_CLOCK)).toMatchObject({ ok: true });
-    // A demo firm's importer, the synthetic judge's, another scenario's and GLOBAL#firm-qa's, all under a qa-* clock.
+    // A demo firm's importer, the synthetic guest's, another scenario's and GLOBAL#firm-qa's, all under a qa-* clock.
     expect(await inspect("b", "imp-norpampa-e1", QA_CLOCK)).toMatchObject(fenced);
     expect(await inspect("c", "imp-jtest-e1", QA_CLOCK)).toMatchObject(fenced);
     expect(await inspect("d", "imp-qa-812-1-sc02-a-e1", QA_CLOCK)).toMatchObject(fenced);

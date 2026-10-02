@@ -18,7 +18,7 @@ function denied(decision: PolicyDecision) {
 describe("contact policy engine: order and outcome", () => {
   afterEach(() => vi.useRealTimers());
 
-  it("allows a clean template to the importer, judging all 14 rules in order and listing the ones that passed", () => {
+  it("allows a clean template to the importer, checking all 14 rules in order and listing the ones that passed", () => {
     const decision = evaluate(toImporter());
     expect(decision).toMatchObject({ outcome: "ALLOW", allowed: true, deferred: false, reply: false, window: { state: "CLOSED" } });
     expect(decision.evaluated.map((entry) => entry.ruleId)).toEqual([...CONTACT_POLICY_RULES]);
@@ -34,7 +34,7 @@ describe("contact policy engine: order and outcome", () => {
     expect(toPolicyResult(decision)).toEqual({ allowed: false, ruleIds: ["CP-CONTROL-BROKER"], reason: "the firm has taken the conversation: the agent does not send" });
   });
 
-  it("in exhaustive mode judges every rule and lists every breach, the first one deciding", () => {
+  it("in exhaustive mode checks every rule and lists every breach, the first one deciding", () => {
     const decision = evaluate(toImporter({ operation: takenOver, importer: noConsent }), { exhaustive: true });
     expect(denied(decision)).toEqual({ outcome: "DENY", ruleIds: ["CP-CONTROL-BROKER", "CP-OPTIN"], errorCode: "CONTROL_BROKER" });
     expect(decision.evaluated).toHaveLength(CONTACT_POLICY_RULES.length);
