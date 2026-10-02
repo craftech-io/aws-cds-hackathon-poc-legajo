@@ -324,7 +324,7 @@ Hasta que exista `SC-00` (WP-37), el cierre de cada ola usa un **smoke interino*
 
 ### 5.1 Aceptación A-01: alta real en `poc` registrada como lead
 
-El CTO pidió ver un alta de prueba del stage desplegado registrada como lead. Es la verificación de punta a punta que ninguna prueba automática puede hacer (una casilla real de Craftech, el aviso llegando a `LeadNoticeTo`, el CSV del operador), y se corre una vez después del primer deploy del stage y de nuevo antes de entregar credenciales o anunciar el alta (`docs/pending.md` P-07). Como el stage se despliega por primera vez recién con las olas 3 a 6 construidas y en verde (ADR-0015 §1.4), la corrida llega siempre hasta el mundo listo:
+El CTO pidió ver un alta de prueba del stage desplegado registrada como lead. Es la verificación de punta a punta que ninguna prueba automática puede hacer (una casilla real de Craftech, el aviso llegando a `LeadNoticeTo`, el CSV del operador), y se corre una vez cuando el producto completo (olas 3 a 6) está desplegado y de nuevo antes de entregar credenciales o anunciar el alta (`docs/pending.md` P-07). Como se corre con las olas 3 a 6 desplegadas y probadas (ADR-0015 §1.4), la corrida llega siempre hasta el mundo listo:
 
 1. Requisitos: `SC-26` en verde en la última corrida completa; `LeadNoticeTo` cargado (P-06 punto 3); `lint:neutral-surfaces -- --dist` en verde en el deploy.
 2. El CTO (o el operador con el CTO presente) abre `https://legajo.demo.craftech.io/?utm_source=acceptance&utm_medium=internal&utm_campaign=a01` en un teléfono (390 px) y usa "Probar la demo" con su propia casilla `@craftech.io`, nombre, empresa y cargo, y los dos consentimientos tildados.
