@@ -46,7 +46,7 @@ Idioma de este doc: español (Argentina). Los textos visibles van en §2 y §8, 
 | D-08 | El botón "Hablemos" va a la página de contacto pública de Craftech (§9), en una pestaña nueva, con UTM | Verificado el 2026-09-26 |
 | D-09 | El recorrido guiado de la consola (`views/tour`) no cambia de lógica; cambia su copy para el rol `GUEST` y deja de hablar de "cuentas asignadas" | El invitado se da de alta solo |
 | D-10 | La landing no muestra precios ni promete fechas de disponibilidad comercial; sí explica **de qué depende el costo** y cuál es el paso siguiente (FAQ, §2.13) | Es una demo; lo comercial va por "Hablemos", pero una objeción sin respuesta hace perder al visitante |
-| D-11 | **Modo de alta pública** configurable por stage: `waitlist` (valor por defecto) u `open`. En `waitlist` la landing no promete una demo que todavía no se puede crear: el CTA sigue diciendo "Probar la demo" (punto 5 del CTO) y su nota avisa que el estudio de prueba llega después; `/signup` es **la misma alta verificada por código** (cuenta de Cognito, `verifiedAt`, lead y consentimientos solo después de verificar, aviso de lead después de verificar) y lo único que no se crea es el mundo; la landing va con `noindex`. Pasa a `open` solo cuando `SC-24`, `SC-25` y `SC-26` están en verde en `poc` y un alta real se probó ahí (`docs/design-brief.md` §9, punto 7). Detalle en §8.0 | El orden de construcción no garantiza que "Probar la demo" funcione al publicarse la ola 3: `account.ensureWorld` y la fábrica de mundos llegan con WP-31 (ola 4). Un prospecto que se da de alta y cae en "No pudimos preparar tu mundo" es un lead quemado |
+| D-11 | **Una sola alta pública, sin modos.** No hay modo "lista de espera" ni ninguna variante de la landing o del alta por stage: el CTA primario es siempre "Probar la demo" / "Try the demo" (punto 5 del CTO), la landing es siempre indexable y toda alta verificada por código termina en un mundo de invitado. Cuando el tope de mundos de invitado activos está lleno, la cuenta y el lead verificado existen igual y `/welcome` muestra el estado `CAPACITY` ("La demo está completa en este momento" + "Hablemos") sin crear mundo; el próximo ingreso reintenta. Detalle en §8.0 y §8.5 | El stage se despliega por primera vez recién cuando el producto completo (olas 3 a 6) está construido y en verde, así que "Probar la demo" funciona desde el primer deploy. Una lista de espera guardaría consentimiento de contacto de direcciones sin verificar (inválido bajo la Ley 25.326) y cambiaría el CTA que eligió el CTO |
 | D-12 | **Mecánica del acceso = ADR-0015 y FL-101 a FL-131.** §8 fija copy y experiencia; procedimientos, estados, códigos de error, nombres de archivos, secretos y scripts se toman de ADR-0015 y de `docs/tool-catalog.md` sin renombrar. Ningún número de límites se escribe a mano en el copy ni en los tests: toda duración, tope o cantidad visible se deriva de `packages/shared/src/guest-limits.ts` (fuente única de ADR-0015 §3.2 y §4) | Una sola fuente de verdad: si WAF o las cuotas cambian, cambia un archivo y el copy lo sigue |
 | D-13 | Dos audiencias: **estudios de despachantes** (compran el producto) y **plataformas de software de comercio exterior** (lo integran como módulo). La segunda tiene su bloque en `#integrations` y su CTA "Hablemos de integrarlo" | Evita que un proveedor de software lea la landing como la de un competidor |
 
@@ -60,7 +60,7 @@ Idioma de este doc: español (Argentina). Los textos visibles van en §2 y §8, 
 | Qué es | Un agente de coordinación que persigue la factura comercial, el packing list y el certificado de origen de cada importación, habla con cada parte por su canal y en su idioma, y deja el legajo listo para que el despachante lo apruebe |
 | Para quién | Estudios de despachantes de aduana de Latinoamérica (el despachante y su equipo operativo); de rebote, sus importadores y los proveedores extranjeros de esos importadores. Además, **plataformas de software de comercio exterior** que quieran sumarlo como módulo: se conecta por dos contratos (lector documental en OpenAPI 3.1; plataforma de gestión como API REST versionada) y por eventos (§1.8, bloque "Para plataformas") |
 | Qué no es | No clasifica mercadería, no valora, no liquida tributos, no asesora en materia aduanera, no lee documentos por su cuenta y **no aprueba**: aprobar es siempre de una persona |
-| Prueba | "Probar la demo": en dos minutos, un estudio ficticio propio con la operación 4471 lista para recorrer. Mientras el alta pública esté en modo `waitlist` (D-11), la cuenta se crea y verifica igual y el estudio llega cuando se abre la demo |
+| Prueba | "Probar la demo": en dos minutos, un estudio ficticio propio con la operación 4471 lista para recorrer |
 
 ### 1.2 Arco narrativo (orden de las secciones)
 
@@ -76,10 +76,10 @@ Idioma de este doc: español (Argentina). Los textos visibles van en §2 y §8, 
 | 8 | Qué es simulado en esta demo | `#demo` | ¿Qué es real acá? | Tabla de 4 columnas: real / implementado en modo simulado / sistemas simulados / datos |
 | 9 | Preguntas frecuentes | `#faq` | ¿Dónde quedan mis datos? ¿Y si no tengo lector? ¿Qué necesito para WhatsApp? ¿Cuánto cuesta? | 6 preguntas en `<details>` (§2.13) |
 | 10 | Galería | `#gallery` | ¿Cómo se ve la consola? | Grilla de capturas reales con zoom (§6) |
-| 11 | CTA final | `#start` | ¿Cómo lo pruebo? | "Probar la demo" (en modo `waitlist`, con la nota de §8.0), "Ingresar", "Hablemos" y "Powered by Craftech" |
+| 11 | CTA final | `#start` | ¿Cómo lo pruebo? | "Probar la demo", "Ingresar", "Hablemos" y "Powered by Craftech" |
 
 El header fijo muestra: wordmark "Legajo listo", enlaces a `#tour`, `#guarantees`, `#integrations`, `#demo`, `#faq`
-(≥ 1024 px), toggle es/en, "Ingresar" (enlace) y el CTA primario (botón "Probar la demo" en los dos modos). En < 1024 px los enlaces van a un menú (`<details>` o botón con `aria-expanded`), y el CTA primario sigue
+(≥ 1024 px), toggle es/en, "Ingresar" (enlace) y el CTA primario (botón "Probar la demo"). En < 1024 px los enlaces van a un menú (`<details>` o botón con `aria-expanded`), y el CTA primario sigue
 visible.
 
 ### 1.3 Los 3 dolores
@@ -195,9 +195,8 @@ de su columna.
 ### 1.10 CTA final
 
 "Probar la demo" (primario, `/signup` por navegación completa, `<a href>`), "Ingresar" (secundario, `/login`), "Hablemos" (terciario, contacto de Craftech,
-§9). Debajo: "Legajo listo · Powered by Craftech", legales, aviso de datos sintéticos. En modo `waitlist` (D-11, §8.0) el
-primario sigue diciendo "Probar la demo" y el bloque cambia su título y su lead (`closing.waitlist.*`, §2.11); "Ingresar" y
-"Hablemos" no cambian.
+§9). Debajo: "Legajo listo · Powered by Craftech", legales, aviso de datos sintéticos. El bloque tiene una sola
+versión (D-11): mismo título, mismo lead y mismo CTA primario en todo stage.
 
 ## 2. Copy deck (es-AR y en)
 
@@ -246,7 +245,6 @@ palabra completa y con cortes de camelCase; la lista literal vive solo en ADR-00
 | `hero.tertiary` | Ver cómo funciona | See how it works |
 | `hero.trust` (3 ítems con check) | La aprobación es siempre tuya · Política de contacto en código · Serverless en AWS | Approval is always yours · Contact policy in code · Serverless on AWS |
 | `hero.note` | Demo con datos 100 % sintéticos: tu propio estudio ficticio, listo en un minuto. | Demo with 100% synthetic data: your own fictitious firm, ready in a minute. |
-| `hero.noteWaitlist` (modo `waitlist`, reemplaza a `hero.note`) | Estamos abriendo la demo de a poco: creá tu cuenta hoy y te avisamos por email cuando tu estudio ficticio esté listo. Datos 100 % sintéticos. | We are opening the demo gradually: create your account today and we will email you when your fictitious firm is ready. 100% synthetic data. |
 | `hero.phoneCaption` | Simulador: los textos son los reales de las plantillas; el estudio es ficticio. | Simulator: the texts are the real template texts; the firm is fictitious. |
 | `hero.replay` | Repetir la conversación | Replay the conversation |
 | `hero.phoneLabel` | Conversación de ejemplo por WhatsApp entre Estudio Delta y un importador | Sample WhatsApp conversation between Estudio Delta and an importer |
@@ -428,8 +426,6 @@ Alt y leyenda de cada captura: §7.3.
 | `closing.title` | Tu estudio de prueba, listo en un minuto | Your trial firm, ready in a minute |
 | `closing.lead` | Creá tu cuenta, recibí un estudio ficticio con la operación 4471 y recorré la historia a tu ritmo, con el reloj en tus manos. | Create your account, get a fictitious firm with operation 4471 and walk through the story at your own pace, with the clock in your hands. |
 | `closing.try` | Probar la demo | Try the demo |
-| `closing.waitlist.title` (modo `waitlist`) | Reservá tu estudio de prueba | Reserve your trial firm |
-| `closing.waitlist.lead` (modo `waitlist`) | Estamos abriendo la demo de a poco. Creá tu cuenta y verificá tu email; te avisamos cuando tu estudio ficticio con la operación 4471 esté listo. | We are opening the demo gradually. Create your account and verify your email; we will let you know when your fictitious firm with operation 4471 is ready. |
 | `closing.talkAlt` | o escribinos a sales@craftech.io | or write to sales@craftech.io |
 | `closing.signIn` | Ya tengo cuenta: ingresar | I have an account: sign in |
 | `closing.talkTitle` | ¿Querés llevarlo a tu estudio? | Want it for your firm? |
@@ -736,7 +732,7 @@ texto del recorrido, la conversación completa y los valores finales de las meta
 
 | Sección | 360 px | 390 px | 768 px | 1024 px | 1440 px + |
 |---|---|---|---|---|---|
-| Header | Wordmark, CTA primario (compacto: "Probar"/"Try", en los dos modos), menú | Igual que 360 | Wordmark, toggle es/en, "Ingresar", "Probar la demo", menú | Wordmark, 4 enlaces, toggle, "Ingresar", "Probar la demo" | Igual que 1024, contenido centrado en `--container-content` |
+| Header | Wordmark, CTA primario (compacto: "Probar"/"Try"), menú | Igual que 360 | Wordmark, toggle es/en, "Ingresar", "Probar la demo", menú | Wordmark, 4 enlaces, toggle, "Ingresar", "Probar la demo" | Igual que 1024, contenido centrado en `--container-content` |
 | Hero | Una columna: eyebrow, título, lead, CTAs apilados a ancho completo, trust en lista; teléfono debajo, ancho ≤ 300 px | Igual, teléfono ≤ 320 px | Una columna con CTAs en fila; teléfono centrado ≤ 340 px | Dos columnas 7/5: texto a la izquierda, teléfono a la derecha | Igual, teléfono ≤ 380 px; fondo con grilla a sangre |
 | Problema | Tarjetas apiladas; línea de tiempo horizontal compacta (4 marcas) | Igual | 3 tarjetas en 2 + 1 | 3 tarjetas en fila; línea de tiempo a ancho completo | Igual |
 | Recorrido | Carrusel (§4.3) | Carrusel | Pasos apilados | Sticky de dos columnas 5/7 | Igual, escenario ≤ 44 rem de alto |
@@ -804,9 +800,8 @@ sesión.
 - `<meta name="description">` es/en con la línea de valor; Open Graph (`og:title`, `og:description`, `og:image` =
   render `og-card` 1200 × 630 generado por `render-visuals.ts` con el hero); `twitter:card` `summary_large_image`.
 - `<link rel="alternate" hreflang="es-AR" href="/?lang=es">` y `hreflang="en"`; `canonical` a `/`.
-- `robots`: en modo `open`, landing y legales indexables; en modo `waitlist` (D-11, valor por defecto), **la landing
-  también va con `noindex`** (`<meta name="robots">` según `VITE_PUBLIC_SIGNUP_MODE`, y `robots.txt` generado en el
-  build con `Disallow: /` salvo `/legal/`). Siempre `noindex`: `/signup`, `/login`, `/forgot*`, `/welcome` y `/app/*`.
+- `robots`: landing y legales indexables, siempre (D-11: no hay variante por stage ni por modo). `robots.txt` estático en
+  `public/` y `<meta name="robots" content="noindex">` solo en `/signup*`, `/login`, `/forgot*`, `/welcome` y `/app/*`.
 
 ### 5.5 Seguridad de la página
 
@@ -821,8 +816,8 @@ sesión.
 | Test | Qué verifica |
 |---|---|
 | `npm run lint:neutral-surfaces` (script + tests por palabra) | Vocabulario de §2.0 ausente de las fuentes visibles que enumera ADR-0014 §4 (web, `public/`, copy del BFF, página de carga, emails de cuenta y de lead, plantillas, textos del seed que ve un usuario) y del `dist` de la web; por palabra completa, sin distinguir mayúsculas ni acentos; corre en `ci.yml` y `deploy.yml` junto a `lint:forbidden` |
-| `landing.test.ts` | Paridad de claves es/en; ningún tile de impacto sin rótulo y a lo sumo un tile con rótulo "Garantía en código"; números de `#impact` solo de la lista de §1.7 (`72`, `100`), ninguna cifra de días libres ni de USD en la landing y ninguna aparición de "no verificada"/"unverified"; en `#demo`, **ningún servicio o sistema en dos columnas** (intersección vacía de las listas de `demo-columns.ts`) y ni "todos"/"todo" ni "every"/"all" en `demo.columns.real`; ni "tu cuenta de AWS" ni "your AWS account" en ningún texto; mismos tres puntos en `integrations.points` que en §1.8; conversaciones generadas desde `@legajo/bff/copy`; en los dos modos el CTA primario usa `cta.try` ("Probar la demo") y no existe una clave de CTA propia de `waitlist`; en modo `waitlist`, `hero.noteWaitlist` y `closing.waitlist.*` reemplazan a `hero.note` y `closing.title`/`lead` |
-| `e2e/landing.spec.ts` | 360/390/768/1024/1440 sin scroll horizontal; orden de las 11 secciones; toggle es/en cambia `lang` y textos; recorrido desktop cambia el visual al scrollear; carrusel mobile con botones; reduced motion (§4.7); CTAs a `/signup`, `/login` y al contacto de Craftech (incluido `utm_content=platform` y `faq`); `#faq` con 6 `<details>` operables con teclado; con `VITE_PUBLIC_SIGNUP_MODE=waitlist`, "Probar la demo" en header, hero y cierre (a `/signup`), `hero.noteWaitlist` visible y `<meta name="robots" content="noindex">` en `/`; con `open`, "Probar la demo", `hero.note` y landing indexable |
+| `landing.test.ts` | Paridad de claves es/en; ningún tile de impacto sin rótulo y a lo sumo un tile con rótulo "Garantía en código"; números de `#impact` solo de la lista de §1.7 (`72`, `100`), ninguna cifra de días libres ni de USD en la landing y ninguna aparición de "no verificada"/"unverified"; en `#demo`, **ningún servicio o sistema en dos columnas** (intersección vacía de las listas de `demo-columns.ts`) y ni "todos"/"todo" ni "every"/"all" en `demo.columns.real`; ni "tu cuenta de AWS" ni "your AWS account" en ningún texto; mismos tres puntos en `integrations.points` que en §1.8; conversaciones generadas desde `@legajo/bff/copy`; el CTA primario de header, hero y cierre usa `cta.try` ("Probar la demo" / "Try the demo") y ningún texto de la landing ni de las pantallas de acceso dice "Pedir acceso", "Request access", "lista de espera" ni "waitlist" |
+| `e2e/landing.spec.ts` | 360/390/768/1024/1440 sin scroll horizontal; orden de las 11 secciones; toggle es/en cambia `lang` y textos; recorrido desktop cambia el visual al scrollear; carrusel mobile con botones; reduced motion (§4.7); CTAs a `/signup`, `/login` y al contacto de Craftech (incluido `utm_content=platform` y `faq`); `#faq` con 6 `<details>` operables con teclado; "Probar la demo" en header, hero y cierre (a `/signup`), `hero.note` visible y `/` sin `<meta name="robots" content="noindex">` |
 | `e2e/a11y.spec.ts` | axe-core sobre `/`, `/signup`, `/login`, `/forgot` en es y en (sin violaciones `serious`/`critical`); si agrega `@axe-core/playwright`, se declara con versión exacta |
 | `scripts/landing/bundle-budget.ts` | Presupuesto de §5.3 |
 
@@ -1056,69 +1051,45 @@ tests**: cada duración, tope o cantidad que aparece en pantalla (`{s}`, `{n}`, 
 `packages/shared/src/guest-limits.ts` o de la respuesta del BFF (`resendAfterSec`, `retryAfterSec`, `attemptsLeft`,
 `resetsAtReal`). Si algo de esta sección contradice ADR-0015, es un error de esta sección y prevalece el ADR.
 
-### 8.0 Modo de alta pública: `open` o `waitlist` (D-11)
+### 8.0 Una sola alta, sin modos (D-11)
 
-Un valor por stage, `PublicSignupMode` (`open` \| `waitlist`; **por defecto `waitlist`**), declarado en `infra/` como
-configuración del stage: el BFF lo lee con `readLinked` y el build de la web lo recibe como `VITE_PUBLIC_SIGNUP_MODE`.
-El BFF es la autoridad: si la web dijera `open` y el BFF `waitlist`, rige `waitlist`.
+No existe un modo de alta pública ni una lista de espera: ningún valor por stage cambia la landing, el alta o el
+ingreso. El stage se despliega por primera vez recién cuando el producto completo (olas 3 a 6) está construido y en
+verde, así que "Probar la demo" crea un mundo desde el primer deploy. Invariantes del alta verificada (ADR-0015 §1 a §3,
+FL-101 a FL-104):
 
-**El alta es la misma en los dos modos.** `waitlist` no es un formulario aparte ni un atajo sin verificación: el
-visitante crea su cuenta y verifica su email con el código de Cognito exactamente como en `open` (ADR-0015 §1 a §3,
-FL-101 a FL-104, las mismas capas anti abuso y las mismas cuotas de emails de cuenta). **Lo único que cambia es que no
-se crea el mundo de invitado.** Por eso rigen sin excepción las invariantes del alta verificada:
-
+- El CTA primario dice siempre **"Probar la demo"** / **"Try the demo"** (punto 5 de la decisión del CTO) y lleva a
+  `/signup`. No hay CTA "Pedir acceso" ni una ruta `/signup/waitlisted`.
 - Nada se escribe en `Leads` antes de `SIGNUP#.verifiedAt` (ADR-0015 §1.3): ni el lead, ni los consentimientos, ni su
   fecha y versión. Un envío de `/signup` con un email ajeno solo produce, como mucho, el email con el código en el
   buzón de ese tercero (con "Si no lo pediste, ignorá este mensaje") y ningún registro de consentimiento.
-- `LeadNotice` sale solo desde `finalizeSignup`, es decir, después de `verifiedAt`: su volumen queda acotado por las
-  altas verificadas, nunca por los envíos del formulario.
-- El CTA primario dice **"Probar la demo"** en los dos modos (punto 5 de la decisión del CTO). En `waitlist` lo que
-  cambia es la nota que lo acompaña, que dice sin rodeos que el estudio de prueba llega después.
+- El lead se escribe **solo en `finalizeSignup`**, después de verificar el email con el código; toda alta confirmada
+  es un lead. No existe un lead "sin verificar" ni un estado de espera.
+- `LeadNotice` sale solo desde `finalizeSignup`: su volumen queda acotado por las altas verificadas, nunca por los
+  envíos del formulario.
+- Después de `CONFIRMED`, siempre `/login?welcome=1` con el email precargado; al ingresar, `/welcome` pide el mundo
+  (§8.5).
 
-| Superficie | `open` | `waitlist` |
+**Capacidad.** Hay dos topes y cada uno tiene su lugar:
+
+| Tope | Dónde se ve | Qué pasa con la cuenta y el lead |
 |---|---|---|
-| CTA primario (header, hero, cierre) | "Probar la demo" (`cta.try`) → `/signup` | **Igual**: "Probar la demo" → `/signup` |
-| Hero y cierre | `hero.note`, `closing.title`/`lead` | `hero.noteWaitlist`, `closing.waitlist.title`/`lead` (§2.2, §2.11): creá tu cuenta hoy y te avisamos cuando tu estudio ficticio esté listo |
-| `/signup` | Formulario, consentimientos y botón "Crear cuenta" de §8.2 | **Igual** (mismos campos, mismos consentimientos sin tildar, mismo botón), con `signup.leadWaitlist` como bajada |
-| `signup.start`, `SignupDispatch`, `signup.resend` | ADR-0015 §1: `CODE_SENT` único, ramas `NEW`/`EXISTING_GUEST`/`INELIGIBLE`/`SUPPRESSED` | **Igual** |
-| `/signup/verify` y `signup.confirm` | `ConfirmSignUp`/`ConfirmForgotPassword` → `verifiedAt` → `finalizeSignup` → `CONFIRMED` | **Igual**; `finalizeSignup` escribe el lead con `status: "WAITLIST"` (o lo deja como está si ya existía, FL-104 a) y `CONFIRMED` trae `signupMode: "waitlist"` cuando el lead queda en `WAITLIST` |
-| Pantalla después de `CONFIRMED` | `/login?welcome=1` con el email precargado | `/signup/waitlisted`: "Te avisamos cuando tu demo esté lista" (§8.3.1) |
-| Aviso de lead a Craftech | En `finalizeSignup`, después de `verifiedAt` | **Igual** (mismo momento, mismo cerco), con asunto propio y la línea "Estado: lista de espera" (§8.10) |
-| `/login` | Todos | **Igual**; `login.noAccount` sigue diciendo "¿No tenés cuenta? Probá la demo" |
-| `/welcome` y `account.ensureWorld` | Crea el mundo (§8.5) | Para un `GUEST` público cuyo lead está en `WAITLIST` **no crea nada**: `account.world`/`ensureWorld` responden `{state: "WAITLISTED"}` y la pantalla muestra el panel de §8.3.1. Un lead que ya es `ACTIVE` (se abrió antes y se volvió a cerrar) sigue creando su mundo. Las cuentas reservadas (`guest-NN`, `guest-test`) no cambian: su estudio es fijo y van directo a `READY` |
-| `robots` de `/` | Indexable | `noindex` (§5.4) |
+| Altas nuevas (tope global de `signup.start`/`signup.resend` o disyuntor de reputación abierto) | `CAPACITY` de `signup.start` → estado `signupPaused` de §8.8, en `/signup` | No se crea nada: no hubo verificación |
+| Mundos de invitado activos (ADR-0015 §4) | `CAPACITY` de `account.ensureWorld`/`account.world` → "La demo está completa" en `/welcome` (§8.5), por ejemplo en el primer ingreso después de verificar | La cuenta y el lead verificado **ya existen** y no se tocan; no se crea mundo. La pantalla reintenta sola mientras está abierta y el próximo ingreso vuelve a pedir el mundo |
 
-**Estado del lead.** `WAITLIST`: cuenta verificada que todavía no puede crear mundo. `ACTIVE`: cuenta que puede crear
-mundo. En `open`, `finalizeSignup` lo escribe `ACTIVE`; en `waitlist`, `WAITLIST`. El primer `account.ensureWorld` que
-crea un mundo para esa cuenta (ya con el stage en `open`) lo pasa a `ACTIVE`. Ningún lead nace fuera de
-`finalizeSignup`: no existe un registro "sin verificar" en `Leads`.
+`signup.start` conserva sus respuestas `RATE_LIMITED` y `CAPACITY`; no tiene otra.
 
-**Excepción cercada en código** (para poder probar antes de abrir): en `waitlist`, `account.ensureWorld` crea el mundo
-igual que en `open` solo para las cuentas cuyo email es de los escenarios (`qa-signup-<runId>-*@sim.legajo.demo.craftech.io`,
-`SC-26`) o `<local>@craftech.io` exacto (alta real de prueba del equipo), con el mismo parser de direcciones del cerco de
-`LeadNotice`; esas altas reciben `CONFIRMED` con `signupMode: "open"` y su lead nace `ACTIVE`. El alta en sí ya es la
-misma en los dos modos, así que la excepción solo toca la creación del mundo.
-
-**Criterio para pasar a `open`** (lo cambia el operador en `infra/` por PR, deploy por CI): `SC-24`, `SC-25` y `SC-26`
-en verde en `poc` en 3 corridas seguidas, un alta real de punta a punta probada en `poc` con una casilla
-`@craftech.io` (`docs/architecture.md` §15 paso 6) y P-06 cerrado (`docs/pending.md`). Al abrir, el operador exporta las
-cuentas en espera (`npm run leads:export -- --waitlist`: por construcción, solo emails verificados con código) y Craftech
-les manda **un único aviso de disponibilidad** ("tu demo está lista, ingresá con tu email y tu contraseña"): es el
-servicio que la persona pidió al crear la cuenta en `waitlist` y lo cubre la finalidad de la política de privacidad
-(§8.9). Cualquier otro contacto, incluido uno comercial en ese mismo mensaje, exige el consentimiento `contact`
-(`--contactable`). Cuando la persona ingresa, `account.ensureWorld` crea su mundo y pasa el lead a `ACTIVE`.
-
-Lo que esta decisión le pide a `architect` (fuera de este doc): el switch y su criterio en ADR-0015 y en el plan (WP-50
-BFF, WP-51 infra, WP-48/49 web y el paso del operador); el campo `status` (`WAITLIST` \| `ACTIVE`) del lead y su
-transición en `account.ensureWorld`; `signupMode` en la respuesta `CONFIRMED` y el estado `WAITLISTED` de
-`account.world`/`account.ensureWorld` en ADR-0015 §4 y en `docs/tool-catalog.md`; el filtro `--waitlist` de
-`leads:export`; la variante `waitlist` de FL-103/FL-105 en `docs/flows-catalog.md`, y el `robots.txt` según el modo en
-FL-125/127. **No** existe una respuesta `WAITLISTED` de `signup.start` ni un lead escrito antes de `verifiedAt`.
+Lo que esta decisión le pide a `architect` (fuera de este doc, A-1): sacar de ADR-0015, `docs/build-plan.md`,
+`docs/tool-catalog.md`, `docs/flows-catalog.md`, `docs/test-plan.md`, `docs/pending.md` y la infra cualquier rastro del
+modo de alta (`PublicSignupMode`, `infra/signup-mode.ts`, `VITE_PUBLIC_SIGNUP_MODE`, la excepción cercada del modo, la
+respuesta `WAITLISTED`, `SignupDispatch` de tipo `WAITLIST`, el lead `WAITLIST`/`emailVerified: false`/`waitlistedAt`, el
+aviso "Nuevo pedido de acceso", `leads:export --waitlist`, `robots` según el modo, el punto 9 de P-07 y la métrica
+`SignupWaitlisted`); dejar el lead siempre `ACTIVE` (o quitar el campo `status` si queda sin uso), y describir en FL-132
+el estado `CAPACITY` en el primer ingreso.
 
 ### 8.1 Mapa de pantallas y estados
 
-Modo `open`. En `waitlist` (§8.0) el camino es idéntico hasta `CONFIRMED`, que trae `signupMode: "waitlist"` y lleva
-a `/signup/waitlisted`; al ingresar, un `GUEST` público sin mundo ve el estado `WAITLISTED` en `/welcome`:
+Un solo camino (D-11, §8.0):
 
 ```
 / ──"Probar la demo" (<a href>, navegación completa)──▶ GET /signup ── intersticial silencioso de WAF (cookie aws-waf-token)
@@ -1139,9 +1110,9 @@ a `/signup/waitlisted`; al ingresar, un `GUEST` público sin mundo ve el estado 
    │        CREATING ──▶ sigue "Preparando tu mundo"
    │        READY ──▶ refresco de tokens ──▶ /app/operations
    │        EXPIRED ──▶ aviso de una línea + nuevo ensureWorld ──▶ CREATING
-   │        CAPACITY ──▶ pantalla de capacidad, reintento cada 60 s con la pestaña visible
+   │        CAPACITY ──▶ "La demo está completa" + "Hablemos", sin crear mundo; reintento cada 60 s con la pestaña visible
+   │                     y en el próximo ingreso (la cuenta y el lead verificado ya existen)
    │        FAILED ──▶ "No pudimos preparar tu mundo" (el próximo ensureWorld reintenta)
-   │        WAITLISTED (solo modo waitlist) ──▶ panel de §8.3.1, sin crear nada
    ├─ UserNotConfirmedException ──▶ /signup/verify (si hay signupId) o /signup con aviso (§8.4)
    └─ "Olvidé mi contraseña" ──▶ /forgot ──▶ /forgot/reset ──▶ /login?reset=1
 Consola: 403 GUEST_WORLD_GONE ──▶ /welcome ; QUOTA_EXCEEDED {kind, resetsAtReal} ──▶ QuotaNotice ; account.usage ──▶ UsageIndicator
@@ -1149,7 +1120,7 @@ Consola ── menú de cuenta ── "Cerrar sesión" ──▶ /?signedOut=1
 ```
 
 Estados del mundo que la pantalla conoce (y solo esos): los de `account.world` en ADR-0015 §4 (`NONE`, `CREATING`,
-`READY`, `EXPIRED`, `CAPACITY`, `FAILED`) más `WAITLISTED` del modo `waitlist` (§8.0, pedido a `architect`); las cuotas no son un estado del mundo sino `QUOTA_EXCEEDED` en cada
+`READY`, `EXPIRED`, `CAPACITY`, `FAILED`); las cuotas no son un estado del mundo sino `QUOTA_EXCEEDED` en cada
 procedimiento; un token cuyo mundo ya no existe recibe `GUEST_WORLD_GONE`. Un error de transporte o 60 s sin salir de
 `CREATING` se muestra como `FAILED` (estado de la pantalla, sin cambiar nada en el BFF). Si `docs/tool-catalog.md` todavía
 muestra la versión anterior de estos procedimientos, rige el ADR (`architect` lo alinea).
@@ -1194,7 +1165,6 @@ envía (nunca por validación: los errores se muestran al enviar y al salir de c
 |---|---|---|
 | `signup.title` | Probá Legajo listo | Try Legajo listo |
 | `signup.lead` | Creá tu cuenta y en un minuto tenés un estudio ficticio propio, con la operación 4471 lista para recorrer. Todo con datos sintéticos. | Create your account and in a minute you get your own fictitious firm, with operation 4471 ready to walk through. All with synthetic data. |
-| `signup.leadWaitlist` (modo `waitlist`, reemplaza a `signup.lead`) | Estamos abriendo la demo de a poco. Creá tu cuenta y verificá tu email: te avisamos cuando tu estudio ficticio esté listo. Todo con datos sintéticos. | We are opening the demo gradually. Create your account and verify your email: we will let you know when your fictitious firm is ready. All with synthetic data. |
 | `signup.email` | Email de trabajo | Work email |
 | `signup.emailHint` | Te enviamos un código para verificarlo. | We will send you a code to verify it. |
 | `signup.password` | Contraseña | Password |
@@ -1250,7 +1220,7 @@ En `INELIGIBLE` y `SUPPRESSED`, `signup.confirm` responde `CODE_INVALID` (a los 
 | Código errado | `CODE_INVALID {attemptsLeft}` → `verify.errors.invalid`; con `attemptsLeft` ≤ 2 se suma `verify.errors.attemptsLeft(n)` (no distingue errado de vencido, FL-102) |
 | Alta cerrada | `EXPIRED` (código o alta vencidos, o el quinto error) → `verify.errors.expired` con el botón "Empezar de nuevo" a `/signup` con los datos (sin la contraseña). No hay "esperá": reintentar el mismo código nunca funciona |
 | Rate limit por IP | `RATE_LIMITED {retryAfterSec}` en `signup.confirm` → estado `rateLimited` de §8.8 con los minutos calculados |
-| Éxito | `CONFIRMED` → `/login?welcome=1` con el email precargado y `verify.done`; si trae `signupMode: "waitlist"` (§8.0), → `/signup/waitlisted` |
+| Éxito | `CONFIRMED` → `/login?welcome=1` con el email precargado y `verify.done` (siempre; no hay otra pantalla después de verificar, §8.0) |
 
 | Clave | es-AR | en |
 |---|---|---|
@@ -1272,24 +1242,6 @@ En `INELIGIBLE` y `SUPPRESSED`, `signup.confirm` responde `CODE_INVALID` (a los 
 | `verify.errors.expired` | Esta alta ya no se puede completar: el código venció o hubo demasiados intentos. Empezá de nuevo; te mandamos un código nuevo. | This sign-up can no longer be completed: the code expired or there were too many attempts. Start again and we will send you a new code. |
 | `verify.restart` | Empezar de nuevo | Start again |
 | `verify.done` | Tu email quedó verificado. Ingresá para preparar tu mundo. | Your email is verified. Sign in to prepare your world. |
-
-#### 8.3.1 Lista de espera (`/signup/waitlisted` y estado `WAITLISTED` de `/welcome`, modo `waitlist`)
-
-Se llega **solo después de verificar el email**: desde `/signup/verify` con `CONFIRMED` + `signupMode: "waitlist"`, o
-al ingresar mientras `account.world` responde `WAITLISTED` (§8.5, que muestra el mismo panel dentro de `/welcome`).
-Nunca se muestra después de un simple envío del formulario.
-
-| Clave | es-AR | en |
-|---|---|---|
-| `waitlisted.title` | Te avisamos cuando tu demo esté lista | We will let you know when your demo is ready |
-| `waitlisted.lead` | Tu email quedó verificado y tu cuenta está creada. Estamos abriendo la demo de a poco: cuando tu estudio ficticio esté listo, te escribimos y entrás con tu email y tu contraseña. | Your email is verified and your account is created. We are opening the demo gradually: when your fictitious firm is ready, we will write to you and you sign in with your email and password. |
-| `waitlisted.meanwhile` | Mientras tanto, mirá cómo funciona. | Meanwhile, see how it works. |
-| `waitlisted.back` | Volver al recorrido | Back to the tour |
-| `waitlisted.talk` | Hablemos | Let's talk |
-
-No revela nada que el visitante no sepa: solo la ve quien usó el código de su propio buzón (o ingresó con su
-contraseña). "Volver al recorrido" lleva a `/#tour`; "Hablemos" usa la constante de §9 con `utm_content=waitlisted`; en
-`/welcome` se suma "Cerrar sesión" (`welcome.signOut`).
 
 ### 8.4 Login (`/login`)
 
@@ -1332,9 +1284,8 @@ procedimiento devuelve `GUEST_WORLD_GONE`, la consola va a `/welcome`, que llama
 | `NONE` | "Preparando tu mundo" | Llama a `account.ensureWorld` (una sola vez por visita a la pantalla; el BFF limita los llamados por cuenta) |
 | `CREATING` | "Preparando tu mundo" | Sigue consultando cada 2 s. Barra indeterminada (con reduced motion, el texto "Preparando…" sin animación) y la lista `welcome.includes` como **qué vas a encontrar**, sin tildes de progreso (el BFF no informa pasos, y la pantalla no los inventa) |
 | `EXPIRED` | "Preparando tu mundo" con `welcome.expired` arriba | Llama a `account.ensureWorld` y sigue como `CREATING` |
-| `CAPACITY` | "La demo está completa" | "Probar de nuevo" y reintento automático cada 60 s mientras la pestaña está visible; la cuenta y el lead ya existen |
+| `CAPACITY` | "La demo está completa" | Tope de mundos de invitado activos lleno (ADR-0015 §4), también en el primer ingreso después de verificar. No se crea mundo; la cuenta y el lead verificado ya existen y no cambian. "Probar de nuevo" (primario), "Hablemos" (`welcome.capacity.talk`, §9 con `utm_content=welcome-capacity`) y "Cerrar sesión"; reintento automático cada 60 s mientras la pestaña está visible, y el próximo ingreso vuelve a llamar a `account.ensureWorld`. Sin cuenta regresiva ni hora estimada |
 | `FAILED`, error de transporte o 60 s en `CREATING` | "No pudimos preparar tu mundo" | "Probar de nuevo" (nuevo `ensureWorld`: el BFF reintenta) + "Cerrar sesión"; se registra con correlation id, sin email |
-| `WAITLISTED` (solo modo `waitlist`, §8.0) | Panel de §8.3.1 | No consulta más ni llama a `ensureWorld`; "Volver al recorrido", "Hablemos" y "Cerrar sesión". La cuenta y el lead ya existen, verificados |
 
 `welcome.ttl` va siempre al pie de la pantalla, así cualquiera sabe desde el primer ingreso cuánto dura su mundo. Sus
 números (`{inactiveHours}`, `{maxAgeHours}`) salen de `guest-limits.ts` (hoy 24 y 72, ADR-0015 §4).
@@ -1348,7 +1299,9 @@ números (`{inactiveHours}`, `{maxAgeHours}`) salen de `guest-limits.ts` (hoy 24
 | `welcome.expired(inactiveHours, maxAgeHours)` | Tu mundo anterior se borró: pasaron {inactiveHours} h sin uso o {maxAgeHours} h desde que lo creamos. Te preparamos uno nuevo desde el día 0. | Your previous world was deleted: {inactiveHours} h went by without use, or {maxAgeHours} h since we created it. We are preparing a new one from day 0. |
 | `welcome.ttl(inactiveHours, maxAgeHours)` | Tu mundo de demo se borra después de {inactiveHours} h sin uso o a las {maxAgeHours} h de creado. Tu cuenta sigue: al volver, te preparamos uno nuevo. | Your demo world is deleted after {inactiveHours} h without use or {maxAgeHours} h after it was created. Your account stays: when you come back, we prepare a new one. |
 | `welcome.capacity.title` | La demo está completa | The demo is full |
-| `welcome.capacity.lead` | La demo está completa en este momento; probá de nuevo en unas horas. Tu cuenta ya está creada. | The demo is full right now; try again in a few hours. Your account is already created. |
+| `welcome.capacity.lead` | La demo está completa en este momento. Tu cuenta ya está creada: probá de nuevo más tarde. | The demo is full right now. Your account is already created: try again later. |
+| `welcome.capacity.note` | Cuando vuelvas a ingresar, lo intentamos de nuevo. Si querés verlo con alguien del equipo, hablemos. | When you sign in again, we will try again. If you would like to see it with someone from the team, let's talk. |
+| `welcome.capacity.talk` | Hablemos | Let's talk |
 | `welcome.retry` | Probar de nuevo | Try again |
 | `welcome.failed.title` | No pudimos preparar tu mundo | We could not prepare your world |
 | `welcome.failed.lead` | Probá de nuevo. Si vuelve a pasar, escribinos desde "Hablemos". | Try again. If it happens again, write to us through "Let's talk". |
@@ -1425,8 +1378,7 @@ contenido obligatorio es el de ADR-0015 §8 (siete puntos); esta tabla fija cóm
 |---|---|
 | Responsable | Craftech: razón social, domicilio y casilla de privacidad `@craftech.io` que decide el CTO (`docs/pending.md` P-06 puntos 1 y 2). Sin esos datos la página no se publica (WP-52) |
 | Qué datos | Email, contraseña (la guarda Amazon Cognito con hash; Craftech no la ve ni la almacena), nombre, empresa y cargo si los diste, consentimientos con fecha y versión, idioma, origen de la visita (UTM y sitio de referencia, sin ruta ni parámetros), fechas de alta y último ingreso, estado de rebote o queja de tu email si lo hubiera, IP convertida en un hash no reversible (48 h) y la cookie técnica del filtro de bots (sin seguimiento). Lo que escribís o subís dentro de la demo tiene que ser sintético |
-| Lista de espera (modo `waitlist`, §8.0) | Si creaste tu cuenta mientras la demo se abre de a poco: los mismos datos que en cualquier alta, y un único aviso por email cuando tu estudio de prueba esté listo. Ese aviso no es contacto comercial; cualquier otro contacto requiere que lo hayas aceptado |
-| Finalidad | Darte acceso a la demo (o avisarte cuando tu estudio de prueba esté listo, si creaste la cuenta en lista de espera); si lo aceptaste, que Craftech te contacte por esta solución. Nunca se venden ni se ceden |
+| Finalidad | Darte acceso a la demo; si lo aceptaste, que Craftech te contacte por esta solución. Nunca se venden ni se ceden |
 | Base | Tu consentimiento (Ley 25.326, art. 5) |
 | Dónde | AWS, región us-east-1 (Estados Unidos), como encargado del tratamiento: transferencia internacional informada |
 | Retención | La de ADR-0015 §6: la cuenta y el lead hasta 24 meses desde tu último ingreso (o desde el alta) o hasta que pidas el borrado; el mundo de demo y lo que cargaste en él hasta que vence (sus horas salen de `guest-limits.ts`) o hasta el borrado, con un respaldo técnico que desaparece a más tardar 4 días después; logs 30 días sin datos personales |
@@ -1463,18 +1415,16 @@ separados por coma; valor inicial `disabled`; el operador carga `janu@craftech.i
 **ninguna dirección en el código**); cerco: cada destinatario tiene que ser `<local>@craftech.io` exacto, sin
 subdominios, y si no, `RECIPIENT_NOT_ALLOWED` y `noticeStatus DISABLED`.
 
-- Asunto: `[Legajo listo] Nuevo registro en la demo` (en modo `waitlist`: `[Legajo listo] Nuevo registro en lista de espera`).
+- Asunto: `[Legajo listo] Nuevo registro en la demo` (uno solo: no hay otra variante del aviso).
 - Cuerpo en texto plano (es), **el de ADR-0015 §6**: email, nombre, empresa y cargo si los dio, idioma, si aceptó el
   contacto (con su versión), UTM y host del referrer, hora del alta en ART. Nada más.
 - **Pendiente P-06 punto 6** (`docs/pending.md`): la recomendación de esta spec es incluir el email solo si la persona
   aceptó el contacto y, si no, la línea "sin consentimiento de contacto: no contactar". Hasta que el CTO decida rige
   el ADR (email siempre); el cambio, si llega, es solo del cuerpo que arma `LeadNotice`.
-- En modo `waitlist` (§8.0) el aviso sale **en el mismo momento que en `open`**: desde `finalizeSignup`, después de
-  `SIGNUP#.verifiedAt`, nunca al enviar el formulario. Mismo cerco, mismo cuerpo más la línea "Estado: lista de
-  espera". Su volumen queda acotado por las altas verificadas con código (las cuotas de emails de cuenta de ADR-0015
-  §3.2 lo limitan antes que cualquier otra cosa), así que un bot que llena `/signup` no genera avisos.
-- El aviso de disponibilidad a las cuentas en espera, al pasar a `open` (§8.0), no lo manda `LeadNotice` ni ningún
-  perfil del cliente de SES de la demo: lo escribe Craftech desde su casilla a la lista de `leads:export -- --waitlist`.
+- El aviso sale solo desde `finalizeSignup`, después de `SIGNUP#.verifiedAt`, nunca al enviar el formulario (§8.0).
+  Su volumen queda acotado por las altas verificadas con código (las cuotas de emails de cuenta de ADR-0015 §3.2 lo
+  limitan antes que cualquier otra cosa), así que un bot que llena `/signup` no genera avisos. Un alta que después cae
+  en `CAPACITY` en `/welcome` ya generó su aviso: es un lead verificado igual que cualquier otro.
 
 ### 8.11 Contrato para el build
 
@@ -1491,7 +1441,7 @@ ADR-0015, que es la fuente única. Dónde está cada cosa:
 | Tareas programadas (`GUEST_SWEEP`, `IDLE_GUEST_RESET`, `GUEST_DESTROY`) | ADR-0015 §5 |
 | Tabla `Leads`, `LeadNotice`, `leads:export`, `leads:optout`, `leads:delete`, retención y PII | ADR-0015 §6 |
 | Procedimientos, entradas y salidas | `docs/tool-catalog.md` "Alta pública" (alineado a ADR-0015) |
-| Modo de alta pública `open`/`waitlist` | §8.0 de esta spec (pedido a `architect` para ADR-0015 y el plan) |
+| Una sola alta sin modos y estado `CAPACITY` en el primer ingreso | §8.0 y §8.5 de esta spec; ADR-0015 §4 (pedido A-1 a `architect`) |
 
 Lo que el copy necesita de `guest-limits.ts` (nombres sugeridos; `typescript-dev` los fija en WP-50 y esta spec se
 refiere a ellos por significado): espera entre reenvíos, reenvíos por alta, códigos errados por alta, horas sin uso y
@@ -1508,7 +1458,7 @@ Verificado el 2026-09-26 sobre la web pública de Craftech:
 
 Enlace: `https://craftech.io/contact/?utm_source=legajo-listo&utm_medium=demo&utm_campaign=poc-landing&utm_content=<ubicación>`
 con `<ubicación>` ∈ `header`, `closing`, `footer`, `welcome-failed`, `platform` ("Hablemos de integrarlo", bloque
-"Para plataformas" de `#integrations`), `faq` (respuesta de costo) y `waitlisted` (§8.3.1); `target="_blank"`, `rel="noopener noreferrer"`,
+"Para plataformas" de `#integrations`), `faq` (respuesta de costo) y `welcome-capacity` (estado `CAPACITY` de `/welcome`, §8.5); `target="_blank"`, `rel="noopener noreferrer"`,
 ícono de enlace externo y texto accesible "(se abre en una pestaña nueva)" / "(opens in a new tab)". La URL vive en una
 sola constante (`CRAFTECH_CONTACT_URL` en `views/landing/links.ts`, ADR-0016 §1); un test verifica el formato. Si la página de contacto cambia, se actualiza
 esa constante y se vuelve a verificar con `curl -sI`. No se incrusta ningún formulario de terceros en la landing.
@@ -1526,7 +1476,7 @@ Todo requisito de acceso de esta tabla usa la mecánica y los nombres de ADR-001
 | B-05 | Chunk separado landing + acceso vs consola; presupuesto de §5.3 con `scripts/landing/bundle-budget.ts`; Lighthouse en la verificación post-deploy | `typescript-dev`, `qa` | 5.3 |
 | B-06 | Galería: cambios G-1 a G-11 sobre el `Lightbox` existente | `typescript-dev` | 6 |
 | B-07 | Pipeline de capturas: variantes desktop/mobile a 2x, AVIF/WebP/PNG con `encode.ts`, momentos deterministas del mundo `guest`, manifiesto v2 de §7.4 (= ADR-0016 §3) y `scripts/landing/renders.json` con `policy` y `until`, `landing:check`, `landing:renders`, `--base-url` solo `https://legajo.demo.craftech.io` | `typescript-dev`, `qa` | 7 |
-| B-08 | Pantallas de acceso en `views/auth/` (signup, verify, waitlisted, login, forgot, reset, welcome, logout) es/en, con los estados de §8.1, §8.5 y §8.8 y ningún número de límite escrito a mano | `typescript-dev` | 8.1-8.8 |
+| B-08 | Pantallas de acceso en `views/auth/` (signup, verify, login, forgot, reset, welcome, logout) es/en, con los estados de §8.1, §8.5 y §8.8 y ningún número de límite escrito a mano | `typescript-dev` | 8.1-8.8 |
 | B-09 | Textos de consentimiento en `packages/shared/src/consent-texts.ts` y versiones en `legal-versions.ts` (`AAAA-MM-DD`), con test de huella | `typescript-dev` | 8.2, 8.9 |
 | B-10 | Alta de ADR-0015 §1: `signup.form`/`start`/`resend`/`confirm`, `SignupDispatch`, ticket + `AuthPreSignUp`, `AuthCustomMessage` es/en (incluido "ya tenés una cuenta"), `finalizeSignup`, grupo `GUEST` | `typescript-dev`, `devops`, `security` | 8.2, 8.3, 8.10 |
 | B-11 | Mundo de invitado de ADR-0015 §4: `account.ensureWorld` + `account.world` (estados `NONE`/`CREATING`/`READY`/`EXPIRED`/`CAPACITY`/`FAILED`), `GUEST_WORLD_GONE`, `account.usage`, `QUOTA_EXCEEDED` | `typescript-dev` | 8.5 |
@@ -1534,9 +1484,9 @@ Todo requisito de acceso de esta tabla usa la mecánica y los nombres de ADR-001
 | B-13 | `Leads`, `LeadNotice` con el perfil `LEAD_NOTICE` y el secreto `LeadNoticeTo` (solo `<local>@craftech.io`, nunca en código), `leads:export`, `leads:optout`, `leads:delete`; email fuera de logs, auditoría y exports de la demo | `devops`, `typescript-dev`, `security` | 8.10 |
 | B-14 | Legales es/en con los puntos de §8.9 (ADR-0015 §8) y su versión visible | `architect` (texto), `typescript-dev` (página) | 8.9 |
 | B-15 | "Hablemos" a `CRAFTECH_CONTACT_URL` con las ubicaciones de §9; `sales@craftech.io` como alternativa | `typescript-dev` | 9 |
-| B-16 | **Modo de alta pública** `PublicSignupMode` (`waitlist` por defecto, `open`): la misma alta verificada por código en los dos modos (nada en `Leads` ni `LeadNotice` antes de `verifiedAt`); en `waitlist`, lead `status: "WAITLIST"`, `CONFIRMED` con `signupMode`, `/signup/waitlisted`, estado `WAITLISTED` de `account.world` sin crear mundo, notas de hero y cierre, `robots` y asunto del aviso según el modo; CTA "Probar la demo" en los dos; excepción cercada de creación de mundo para `qa-signup-*@sim…` y `<local>@craftech.io`; `leads:export -- --waitlist`; paso del operador para abrir cuando se cumple el criterio de §8.0 | `typescript-dev`, `devops`, `security`, operador | 0.3 D-11, 8.0 |
+| B-16 | **Una sola alta, sin modos** (D-11, §8.0): ningún `PublicSignupMode`, `VITE_PUBLIC_SIGNUP_MODE`, `/signup/waitlisted`, estado `WAITLISTED` ni variante de copy, CTA o `robots` por stage; CTA primario siempre "Probar la demo"; lead escrito solo en `finalizeSignup` (después de `verifiedAt`), sin campo de estado ni `emailVerified` (ADR-0015 §1.4); `CAPACITY` de `account.world`/`account.ensureWorld` en el primer ingreso con "Hablemos" (`utm_content=welcome-capacity`) sin crear mundo y con reintento en el próximo ingreso (§8.5); primer deploy del stage solo con las olas 3 a 6 construidas y en verde | `typescript-dev`, `devops`, operador | 0.3 D-11, 8.0, 8.5 |
 | B-17 | Sección `#faq` (§2.13) y bloque "Para plataformas de comercio exterior" (§1.8, §2.8), cada afirmación con su respaldo | `typescript-dev` | 1.8, 2.13 |
-| B-18 | Tests: `landing.test.ts` (§5.6, incluidas la intersección vacía de columnas de `#demo`, los números de impacto y la ausencia de "tu cuenta de AWS"), `e2e/landing.spec.ts`, `e2e/auth.spec.ts` (alta → código → ingreso → mundo listo, reenvío con espera y tope, código errado y alta vencida, recuperación, cierre de sesión, capacidad, mundo vencido, cuotas, modo `waitlist`: alta → código → `/signup/waitlisted`, ningún lead ni aviso antes de verificar, un envío sin verificar no deja registro en `Leads`, ingreso → `WAITLISTED` sin mundo), `e2e/a11y.spec.ts`; verificación a 390 × 844 y 1440 × 900 con capturas revisadas a ojo; flujos en `docs/flows-catalog.md` y la matriz de `docs/test-plan.md` | `qa` | 5.6, 6, 8 |
+| B-18 | Tests: `landing.test.ts` (§5.6, incluidas la intersección vacía de columnas de `#demo`, los números de impacto y la ausencia de "tu cuenta de AWS"), `e2e/landing.spec.ts`, `e2e/auth.spec.ts` (alta → código → ingreso → mundo listo, reenvío con espera y tope, código errado y alta vencida, recuperación, cierre de sesión, capacidad, mundo vencido, cuotas, ningún lead ni aviso antes de verificar, un envío sin verificar no deja registro en `Leads`, `CONFIRMED` siempre a `/login?welcome=1`; capacidad en el primer ingreso: alta → código → ingreso con el tope de mundos lleno → `CAPACITY` sin mundo, con "Hablemos", y cuenta y lead verificado existentes; con cupo, el próximo ingreso llega a `READY`), `e2e/a11y.spec.ts`; verificación a 390 × 844 y 1440 × 900 con capturas revisadas a ojo; flujos en `docs/flows-catalog.md` y la matriz de `docs/test-plan.md` | `qa` | 5.6, 6, 8 |
 | B-19 | Reemplazo de renders `swap` por capturas `origin: "poc"` cuando `SC-24` pase en `poc` (WP-36) | `qa`, operador | 7.3 |
 | B-20 | Recorrido guiado y README: copy para `GUEST`, sin cuentas asignadas; notas de la submission solo al final del README | `architect`, `typescript-dev` | 0.3 D-09 |
 
@@ -1544,11 +1494,11 @@ Pedidos a `architect` que salen de esta revisión (docs que esta spec no edita):
 
 | # | Pedido | Docs |
 |---|---|---|
-| A-1 | Registrar el modo `waitlist`/`open` (D-11, §8.0) como variante de la **misma alta verificada**: switch, excepción cercada (solo creación de mundo), `signupMode` en `CONFIRMED`, estado `WAITLISTED` de `account.world`/`ensureWorld`, `status` del lead (`WAITLIST` → `ACTIVE` en el primer mundo), filtro `--waitlist`, criterio para abrir y paso del operador (aviso único de disponibilidad); variante de FL-103/FL-105. Sin respuesta `WAITLISTED` de `signup.start` ni lead antes de `verifiedAt` | ADR-0015, `docs/build-plan.md` (WP-48 a WP-51 y operador), `docs/tool-catalog.md`, `docs/flows-catalog.md`, `docs/pending.md` P-07 |
+| A-1 | Sacar el modo de alta pública de todos los docs (D-11, §8.0): sin `PublicSignupMode`, `infra/signup-mode.ts`, `VITE_PUBLIC_SIGNUP_MODE`, excepción cercada del modo, respuesta `WAITLISTED` de `signup.start`, `SignupDispatch` de tipo `WAITLIST`, lead `WAITLIST`/`emailVerified: false`/`waitlistedAt`, aviso "Nuevo pedido de acceso", `leads:export --waitlist`, `/signup/waitlisted`, CTA "Pedir acceso", `robots` según el modo, P-07 punto 9 ni métrica `SignupWaitlisted`. Lead solo en `finalizeSignup`, siempre `ACTIVE` (o sin campo `status`). `CAPACITY` de `account.world`/`account.ensureWorld` cuando el tope de mundos activos está lleno, sin crear mundo, reintento en el próximo ingreso; FL-132 pasa a describir ese caso en el primer ingreso, con la matriz de `docs/test-plan.md` al día. `signup.start` conserva `RATE_LIMITED` y `CAPACITY` | ADR-0015, `docs/build-plan.md` (WP-48 a WP-51 y operador), `docs/tool-catalog.md`, `docs/flows-catalog.md` (FL-103, FL-105, FL-132), `docs/test-plan.md`, `docs/pending.md` P-07, `CLAUDE.md` |
 | A-2 | Sacar de `docs/build-plan.md` la excepción de precedencia de A2 ("donde §8.11 y §10 difieren…"): §8 ya no difiere de ADR-0015 | `docs/build-plan.md` |
 | A-3 | Sumar `policy` y `until` a `scripts/landing/renders.json` en ADR-0016 §3, la excepción de `zoom` en `landing:check` (§7.3) y citar los rótulos de §2.10 como fuente | ADR-0016, FL-128, FL-129 |
 | A-4 | Alinear en ADR-0016 lo que sigue distinto: recorrido en mobile (< 768 px carrusel; 768–1023 px apilado, §5.1), presupuestos (los de §5.3, más estrictos, como ya dice WP-48) y Open Graph (captura `og-card` de la propia landing, §7.3) | ADR-0016 §1 y §2 |
-| A-5 | `robots.txt` según el modo (FL-125/FL-127) y "11 secciones" en WP-48 | `docs/flows-catalog.md`, `docs/build-plan.md` |
+| A-5 | `robots.txt` estático, landing y legales siempre indexables (FL-125/FL-127, §5.4), y "11 secciones" en WP-48 | `docs/flows-catalog.md`, `docs/build-plan.md` |
 | A-6 | FL-102 (se muestran los intentos que quedan cuando son ≤ 2, sin distinguir errado de vencido), FL-106 (sin `signupId`, a `/signup`; el navegador nunca reenvía directo) y la variante horaria del aviso de cuota de ADR-0015 §4 (§8.5) | `docs/flows-catalog.md`, ADR-0015 |
 | A-7 | Si se quiere decir "tus datos en tu cuenta de AWS" o citar que el proveedor del modelo no entrena con los datos, primero un ADR de modelo de despliegue o la cita fechada de los términos de Amazon Bedrock | ADR nuevo |
 | A-8 | Si se quiere decir "OpenAPI" también para la plataforma de gestión, publicar su contrato en OpenAPI (hoy es una API REST `/v1` con schema zod) | `docs/architecture-integrations.md` §6 |

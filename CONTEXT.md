@@ -259,23 +259,15 @@ Imagen de la landing. Una **captura** sale del producto real (consola o página 
 _Avoid_: mockup, maqueta, screenshot (en docs)
 
 **Alta** (`signup`, `/signup`):
-Registro de un invitado público: email y contraseña, nombre, empresa y cargo opcionales, dos **consentimientos** y un código que Cognito manda al email. El navegador nunca llama a Cognito para crear la cuenta: el BFF guarda el alta y responde siempre igual, y `SignupDispatch` hace después las llamadas que crean la cuenta o mandan el código; Cognito rechaza un alta sin **ticket de alta**. Solo una cuenta pública de invitado existente sigue el camino de "ya tenés una cuenta"; el lead se escribe recién con la **verificación** del código (ADR-0015). En **modo lista de espera** el mismo formulario es un **pedido de acceso**.
-_Avoid_: registro (en código), sign-up (en UI en español), onboarding
+Registro de un invitado público: email y contraseña, nombre, empresa y cargo opcionales, dos **consentimientos** y un código que Cognito manda al email. El navegador nunca llama a Cognito para crear la cuenta: el BFF guarda el alta y responde siempre igual, y `SignupDispatch` hace después las llamadas que crean la cuenta o mandan el código; Cognito rechaza un alta sin **ticket de alta**. Solo una cuenta pública de invitado existente sigue el camino de "ya tenés una cuenta"; el lead se escribe recién con la **verificación** del código (ADR-0015). Hay un solo flujo de alta, sin lista de espera ni pedido de acceso (ADR-0015 §1.4).
+_Avoid_: registro (en código), sign-up (en UI en español), onboarding, lista de espera, pedido de acceso
 
 **Ticket de alta** (`signup ticket`):
 Firma HMAC de corta vida (120 s) que `SignupDispatch` agrega a su llamada a `SignUp` y que el trigger `PreSignUp` exige; sin ella no se crea ningún usuario ni sale ningún email.
 _Avoid_: token (a secas), captcha
 
-**Modo de alta pública** (`PublicSignupMode`: `open` \| `waitlist`):
-Valor único del stage que decide qué hace el formulario de `/signup`. En `waitlist` (valor inicial, con el que se despliega la ola 3) el formulario es un **pedido de acceso**: guarda un lead en lista de espera y no crea cuenta, mundo ni manda nada al visitante, salvo la **excepción cercada** (buzones `qa-signup-*` del `QaDriver` y casillas `<local>@craftech.io`), que hace el alta completa; la landing dice "Pedir acceso" y no se indexa. En `open` el formulario es el alta. Lo cambia el operador por PR cuando se cumple el criterio de ADR-0015 §1.4; manda el valor del BFF.
-_Avoid_: beta, preregistro, modo cerrado
-
-**Pedido de acceso** (`WAITLISTED`, `/signup/waitlisted`):
-Envío del formulario en modo lista de espera: deja un lead con `status WAITLIST` y el email **sin verificar**, y un aviso a Craftech. Cuando el alta abre, Craftech avisa una vez a esas personas y, si se dan de alta, su lead pasa a `ACTIVE`.
-_Avoid_: reserva, inscripción, pre-registro
-
 **Lead** (`Lead`, tabla `Leads`):
-Registro comercial de una persona que confirmó su alta (`status ACTIVE`) o que pidió acceso en modo lista de espera (`status WAITLIST`, email sin verificar): email, datos opcionales, consentimientos, idioma, POC de origen, UTM y referrer, fecha de alta y último ingreso. Vive separado de los datos de la demo y sobrevive al TTL del mundo. La tabla la tocan solo el BFF (alta y último ingreso), `SignupDispatch` (altas pendientes y leads de la lista de espera), `WorldJanitor` (barrido y borrado), el aviso a Craftech, el `QaDriver` cercado a sus buzones de prueba y los scripts del operador (`leads:export`, `leads:optout`, `leads:delete`); nunca el agente, `ChannelEvents` ni los triggers de Cognito.
+Registro comercial de una persona que confirmó su alta con el código (nunca de un email sin verificar): email, datos opcionales, consentimientos, idioma, POC de origen, UTM y referrer, fecha de alta y último ingreso. Vive separado de los datos de la demo y sobrevive al TTL del mundo. La tabla la tocan solo el BFF (alta y último ingreso), `SignupDispatch` (solo altas pendientes; nunca escribe un lead), `WorldJanitor` (barrido y borrado), el aviso a Craftech, el `QaDriver` cercado a sus buzones de prueba y los scripts del operador (`leads:export`, `leads:optout`, `leads:delete`); nunca el agente, `ChannelEvents` ni los triggers de Cognito.
 _Avoid_: cliente, prospecto (en código), contacto (es otra cosa)
 
 **Consentimiento** (`consents.terms`, `consents.contact`):
@@ -283,7 +275,7 @@ Aceptación explícita, separada y sin tildar por defecto, guardada con fecha y 
 _Avoid_: opt-in (es el de WhatsApp del importador), checkbox
 
 **Aviso de lead** (`LeadNotice`):
-Email interno por cada lead nuevo o pedido de acceso a la casilla `@craftech.io` que configura el operador (secreto `LeadNoticeTo`); el cerco solo deja salir a direcciones de `craftech.io`. No es correo de un mundo: no tiene reloj ni queda como pendiente de correo.
+Email interno por cada alta confirmada a la casilla `@craftech.io` que configura el operador (secreto `LeadNoticeTo`); el cerco solo deja salir a direcciones de `craftech.io`. No es correo de un mundo: no tiene reloj ni queda como pendiente de correo.
 _Avoid_: notificación, alerta
 
 **Mundo de invitado** (reloj `GUEST#firm-guest-<nn>`):
@@ -291,7 +283,7 @@ Mundo aislado y sembrado desde la plantilla curada `guest`, con reloj en pausa, 
 _Avoid_: sandbox, mundo de prueba
 
 **Cupo de invitado** (`SLOT#GUEST#<nn>`):
-Lugar numerado (`nn` de dos dígitos) que ocupa un mundo de invitado: `01–30` reservados, `31–90` públicos (60 mundos públicos activos como máximo). El número fija el estudio `firm-guest-<nn>`, el bloque de teléfonos ficticios y el prefijo de los buzones simulados `g<nn>-`. Un cupo liberado no se vuelve a arrendar hasta 20 minutos después. Sin cupo libre, el invitado ve "La demo está completa en este momento".
+Lugar numerado (`nn` de dos dígitos) que ocupa un mundo de invitado: `01–30` reservados, `31–90` públicos (60 mundos públicos activos como máximo). El número fija el estudio `firm-guest-<nn>`, el bloque de teléfonos ficticios y el prefijo de los buzones simulados `g<nn>-`. Un cupo liberado no se vuelve a arrendar hasta 20 minutos después. Sin cupo libre, el invitado ve el estado `CAPACITY` ("La demo está completa en este momento", con "Probar de nuevo" y "Hablemos"): su cuenta y su lead existen igual, no se crea ningún mundo y el ingreso siguiente vuelve a intentar.
 _Avoid_: slot (en UI), lugar
 
 **TTL del mundo**:
@@ -342,8 +334,8 @@ _Avoid_: precio, facturación
 - Un **Proveedor** tiene uno o más **Contactos de proveedor**, una zona horaria y un idioma.
 - Un **Turno** pertenece a una **Operación** y lo dispara un evento; los turnos de una operación son secuenciales.
 - Un **Escalamiento** pertenece a una **Operación**; **Tomar conversación** pone el control de la operación en el estudio.
-- Un **Invitado** tiene a lo sumo un **Mundo de invitado** vivo, que ocupa un **Cupo**; un invitado público tiene exactamente un **Lead** (uno por email) con dos **Consentimientos**; un **Pedido de acceso** deja un lead sin cuenta, que pasa a ser el de la cuenta si esa persona se da de alta.
-- Un **Lead** sobrevive al **TTL del mundo**; borrar un lead borra también su cuenta de Cognito y su mundo, si los tiene.
+- Un **Invitado** tiene a lo sumo un **Mundo de invitado** vivo, que ocupa un **Cupo**; un invitado público tiene exactamente un **Lead** (uno por email) con dos **Consentimientos**; todo **Lead** tiene su cuenta, porque nace con la verificación del código.
+- Un **Lead** sobrevive al **TTL del mundo**; borrar un lead borra también su cuenta de Cognito y su mundo, si lo tiene.
 
 ## Example dialogue
 

@@ -54,14 +54,15 @@ fails if they differ.
 
 A demo world is for trying the product, not for real work: it only accepts synthetic contacts, it
 has daily usage limits, and it is reset after 24 hours without activity (your account stays; the
-next sign-in creates a fresh world). Terms and privacy policy:
+next sign-in creates a fresh world). If every demo world is taken when you first sign in, your
+account is kept and the console says the demo is full right now; try again later or choose
+**Let's talk**. Terms and privacy policy:
 `https://legajo.demo.craftech.io/legal/terms.html` and `/legal/privacy.html`.
 
 **Status**: the product is being built in waves (`docs/build-plan.md`, section 5 lists what is
-missing). Public sign-up, demo worlds and some scripts named below arrive with those waves. Until a
-demo world can be created end to end, public sign-up runs as a **waiting list**: the landing says
-**Request access**, the same form records your request without creating an account, and Craftech
-emails you once when the demo opens (`docs/adr/0015-alta-publica-de-invitados-y-leads.md` §1.4).
+missing). Public sign-up, demo worlds and some scripts named below arrive with those waves. The stage
+is deployed for the first time only once the whole product is built and its checks pass, so **Try the
+demo** works from that first deploy (`docs/adr/0015-alta-publica-de-invitados-y-leads.md` §1.4).
 
 <!-- TOUR:START -->
 | # | Step | Button / action | What to look at | Expected wait |
@@ -159,18 +160,15 @@ FORBIDDEN_TERMS="…" npm run lint:forbidden  # the operator's list lives outsid
 - **Scenarios in the deployed stage**: `.github/workflows/scenarios.yml` runs the scenario suite
   against `poc` through a fenced QA driver.
 - **Operator scripts**: `npm run console:invite` (internal accounts), `npm run seed:load`, and the
-  lead scripts `leads:export` (`--waitlist` lists the pending access requests), `leads:optout` and
-  `leads:delete` (sign-ups and access requests; see the privacy policy).
-- **Opening public sign-up**: the stage deploys with `PublicSignupMode = waitlist`; an operator
-  switches it to `open` by pull request once the end-to-end sign-up scenarios pass in `poc`
-  (`docs/architecture.md` §15 step 8).
+  lead scripts `leads:export`, `leads:optout` and `leads:delete` (confirmed sign-ups; see the privacy
+  policy).
 
 ## Privacy
 
 Sign-up asks for an email and a password; name, company and job title are optional. Two separate,
 unchecked consents are recorded with their date and text version: the terms and privacy policy
-(required) and being contacted by Craftech about this solution (optional). An access request on the
-waiting list keeps the same data except the password, which is discarded. Craftech is the data
+(required) and being contacted by Craftech about this solution (optional). Craftech keeps them only
+once the email has been verified with the code. Craftech is the data
 controller; the privacy policy explains retention and how to opt out or request deletion. Emails
 never reach logs, audit trails or demo exports. Everything written or uploaded inside a demo world,
 PDFs included, is deleted with the world when it expires or when deletion is requested.
@@ -180,9 +178,8 @@ PDFs included, is deleted with the world when it expires or when deletion is req
 This repository is Craftech's entry to the AWS CDS Agentic AI Partner Hackathon. Nothing in the
 published product mentions the contest: it is presented as a product for a future customer.
 
-- **Access for testing**: once public sign-up is open, anyone can create an account at
-  `https://legajo.demo.craftech.io/signup`; while it runs as a waiting list, that page only records
-  access requests. Reserved guest accounts, with their own worlds and without the public limits on world capacity,
+- **Access for testing**: anyone can create an account at
+  `https://legajo.demo.craftech.io/signup`. Reserved guest accounts, with their own worlds and without the public limits on world capacity,
   are listed only in the private testing instructions of the submission form.
 - **Pre-existing code**: the repository skeleton (SST and CI setup, the CI bootstrap template, lint
   scripts, the console shell and shared components, the own Cognito sign-in, the tRPC base, logging,
