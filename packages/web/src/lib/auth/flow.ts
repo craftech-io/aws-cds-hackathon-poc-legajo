@@ -9,10 +9,13 @@
 //        │                    └──▶ done                         TOTP offer; never to a guest)
 //        └──forgot──▶ forgotRequest ──▶ forgotConfirm ──▶ credentials (notice: passwordReset)
 //
+// A right password on an account whose email was never verified stays on the credentials with
+// `unconfirmed` (the login typed), so the screen can send the person to verify it (§8.4).
+//
 // The same machine runs the recent-login step-up (mode `stepUp`): approving or reopening a file
 // needs an interactive sign-in in the last 15 minutes (`auth_time`, ADR-0010), so the console signs
 // the same person in again, in place, and swaps the tokens.
-import { type AuthResponse, type CognitoApi, type Credential, TOTP_MFA } from "./cognito";
+import { type AuthResponse, type CognitoApi, CognitoError, type Credential, TOTP_MFA } from "./cognito";
 import { missingPasswordRules, normalizeEmail, normalizeSignInName, normalizeTotpCode } from "./credentials";
 import { type AuthFlowErrorCode, type FlowStep, errorCodeOf } from "./errors";
 import type { SrpClient } from "./srp";
@@ -38,8 +41,12 @@ export interface MfaSetup {
   readonly via: { readonly kind: "challenge"; readonly username: string; readonly session: string } | { readonly kind: "tokens"; readonly tokens: TokenSet };
 }
 
+/** Language of the emails Cognito sends on the person's behalf (the reset code). */
+export type EmailLang = "es" | "en";
+
 export type AuthFlowState =
-  | { readonly step: "credentials"; readonly notice?: "passwordReset" }
+  /** `unconfirmed`: what was typed, when the password was right but the email is not verified yet. */
+  | { readonly step: "credentials"; readonly notice?: "passwordReset"; readonly unconfirmed?: string }
   | { readonly step: "newPassword"; readonly challenge: ChallengeContext }
   | { readonly step: "totp"; readonly challenge: ChallengeContext }
   | { readonly step: "mfaSetup"; readonly setup: MfaSetup }
@@ -56,7 +63,9 @@ export type AuthFlowAction =
   | { readonly type: "verifyMfaSetup"; readonly code: string }
   | { readonly type: "skipMfaSetup" }
   | { readonly type: "forgot" }
-  | { readonly type: "requestReset"; readonly email: string }
+  | { readonly type: "requestReset"; readonly email: string; readonly lang?: EmailLang }
+  /** Another reset code for the same email (the screen keeps the wait between requests). */
+  | { readonly type: "resendReset"; readonly lang?: EmailLang }
   | { readonly type: "confirmReset"; readonly code: string; readonly password: string }
   | { readonly type: "restart" };
 
@@ -107,8 +116,9 @@ export async function advance(state: AuthFlowState, action: AuthFlowAction, deps
       }
       return { state };
     case "forgotRequest":
-      return action.type === "requestReset" ? requestReset(state, action.email, deps) : { state };
+      return action.type === "requestReset" ? requestReset(state, action.email, action.lang, deps) : { state };
     case "forgotConfirm":
+      if (action.type === "resendReset") return requestReset(state, state.email, action.lang, deps);
       return action.type === "confirmReset" ? confirmReset(state, action.code, action.password, deps) : { state };
     case "done":
       return { state };
@@ -127,7 +137,9 @@ async function signIn(state: AuthFlowState, rawLogin: string, password: string, 
     const answer = await deps.cognito.respondToChallenge("PASSWORD_VERIFIER", responses, verifier.Session);
     return await onAuthResponse(answer, { login, username: responses.USERNAME ?? login }, false, deps);
   } catch (error) {
-    return stay(state, errorCodeOf(error, "credentials"));
+    const code = errorCodeOf(error, "credentials");
+    if (code === "UNCONFIRMED" && deps.mode.kind === "signIn") return { state: { step: "credentials", unconfirmed: login }, error: code };
+    return stay(state, code);
   }
 }
 
@@ -260,16 +272,16 @@ async function afterTokens(tokens: TokenSet, login: string, totpVerified: boolea
   }
 }
 
-async function requestReset(state: AuthFlowState, rawEmail: string, deps: AuthFlowDeps): Promise<Transition> {
+async function requestReset(state: AuthFlowState, rawEmail: string, lang: EmailLang | undefined, deps: AuthFlowDeps): Promise<Transition> {
   const email = normalizeEmail(rawEmail);
   if (!email) return stay(state, "INVALID_CREDENTIALS");
   try {
-    await deps.cognito.forgotPassword(email);
+    await deps.cognito.forgotPassword(email, lang);
   } catch (error) {
-    const code = errorCodeOf(error, "reset");
-    // Unknown email, unverified email, account still on its temporary password: same screen as a
-    // success, so the form never tells whether the email has an account.
-    if (code !== "INVALID_CODE") return stay(state, code);
+    // Any answer of Cognito (unknown email, unverified email, a temporary password, the quota of
+    // account emails, too many requests) reads like a success, so the form never tells whether the
+    // email has an account (docs/landing-spec.md §8.6). Only a network failure keeps the step.
+    if (!(error instanceof CognitoError)) return stay(state, "UNAVAILABLE");
   }
   return { state: { step: "forgotConfirm", email } };
 }

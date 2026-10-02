@@ -1,9 +1,14 @@
-// A WhatsApp thread as the importer's phone shows it (conversations.ts): the firm's messages on the
-// left, the importer's on the right, a template's buttons under its bubble, each message with its
-// fixed English gloss behind "EN" (shown by default on the English page). The frame always says
-// "simulador": WhatsApp runs in simulated mode, and this is an illustration, not a capture.
-import { useState } from "react";
+// A WhatsApp thread as the importer's phone shows it (conversations.ts), drawn in the landing's own
+// style (no third-party colours or logo, docs/landing-spec.md D-04) and always labelled "Simulador":
+// the channel runs in simulated mode. The firm's messages sit on the left, the importer's on the
+// right, a template's buttons under its bubble, and each message carries its source (approved
+// template, fixed text, sample agent text) and its fixed English gloss behind "EN" (on by default on
+// the English page). The thread is anchored to its newest message, so it follows a conversation that
+// is being written without animating the scroll; a pending message shows "escribiendo" or the tapped
+// button lit up.
+import { type ReactNode, useState } from "react";
 import type { ConversationView, WaButtonView, WaMessageView } from "./conversations";
+import { Icon } from "./icons";
 import { useLandingCopy, useLandingLang } from "./lang";
 
 /** "ED" for "Estudio Delta": the avatar of the firm's chat. */
@@ -15,13 +20,13 @@ function initials(name: string): string {
     .slice(0, 2);
 }
 
-function Buttons({ buttons }: { readonly buttons: readonly WaButtonView[] }) {
+function Buttons({ buttons, lit }: { readonly buttons: readonly WaButtonView[]; readonly lit: string | undefined }) {
   if (buttons.length === 0) return null;
   return (
-    <ul className="mt-1 divide-y divide-mist overflow-hidden rounded-xl bg-white shadow-card">
+    <ul className="mt-1 divide-y divide-rule overflow-hidden rounded-xl bg-white shadow-card">
       {buttons.map((button) => (
-        <li key={button.text} className="px-3 py-2 text-center text-xs font-semibold text-cyan-deep">
-          {button.url ? <span aria-hidden="true">↗ </span> : null}
+        <li key={button.text} className={`flex items-center justify-center gap-1 px-3 py-2 text-center text-xs font-semibold transition-colors duration-150 ${lit === button.text ? "bg-glass text-harbor-950" : "text-glass-ink"}`}>
+          {button.url ? <Icon name="external" className="h-3.5 w-3.5" /> : null}
           {button.text}
         </li>
       ))}
@@ -29,59 +34,89 @@ function Buttons({ buttons }: { readonly buttons: readonly WaButtonView[] }) {
   );
 }
 
-function Message({ message, gloss }: { readonly message: WaMessageView; readonly gloss: boolean }) {
-  const { phone } = useLandingCopy();
+function Message({ message, gloss, lit, animate }: { readonly message: WaMessageView; readonly gloss: boolean; readonly lit: string | undefined; readonly animate: boolean }) {
+  const { tour } = useLandingCopy();
   const fromFirm = message.from === "firm";
-  const source = phone.sources[message.source];
+  const source = { template: tour.template, fixed: tour.fixed, agent: tour.agentSample, importer: "" }[message.source];
   return (
-    <li className={`flex max-w-[86%] flex-col ${fromFirm ? "self-start" : "self-end"}`}>
-      <div className={`rounded-2xl px-3 py-2 text-xs leading-relaxed text-ink shadow-card ${fromFirm ? "rounded-tl-sm bg-white" : "rounded-tr-sm bg-success-soft"}`}>
-        {source ? <p className="mb-1 text-xs font-semibold text-cyan-deep">{source}</p> : null}
+    <li className={`flex max-w-[86%] flex-col ${fromFirm ? "self-start origin-bottom-left" : "self-end origin-bottom-right"} ${animate ? "animate-bubble-in" : ""}`}>
+      <div className={`rounded-2xl px-3 py-2 text-xs leading-relaxed text-ink shadow-card ${fromFirm ? "rounded-tl-sm bg-white" : "rounded-tr-sm bg-manifest-deep"}`}>
+        {source ? <p className="mb-1 text-xs font-semibold text-glass-ink">{source}</p> : null}
         <p lang="es-AR" className="whitespace-pre-line">
           {message.text}
         </p>
         {gloss ? (
-          <p lang="en" className="mt-1.5 border-t border-mist pt-1.5 italic text-slate">
-            <span className="mr-1 font-semibold not-italic text-navy">EN</span>
+          <p lang="en" className="mt-1.5 border-t border-rule pt-1.5 italic text-ink-muted">
+            <span className="mr-1 font-semibold not-italic text-ink">EN</span>
             {message.gloss}
           </p>
         ) : null}
-        <p className="mt-1 text-right text-xs text-slate">{message.time}</p>
+        <p className="mt-1 text-right text-xs text-ink-muted">{message.time}</p>
       </div>
-      <Buttons buttons={message.buttons} />
+      <Buttons buttons={message.buttons} lit={lit} />
     </li>
   );
 }
 
-interface WhatsAppPhoneProps {
-  readonly conversation: ConversationView;
-  /** Only the first messages (the hero shows the opening template). */
-  readonly limit?: number;
-  readonly className?: string;
-  /** The caption sits on a dark background (the hero). */
-  readonly onDark?: boolean;
-  /** Firm name of the header (fictitious). */
-  readonly firmName: string;
+/** The three dots of "escribiendo", 150 ms apart. */
+const DOT_DELAYS = ["[animation-delay:0ms]", "[animation-delay:150ms]", "[animation-delay:300ms]"] as const;
+
+function Typing() {
+  const { phone } = useLandingCopy();
+  return (
+    <li className="self-start rounded-2xl rounded-tl-sm bg-white px-3 py-2.5 shadow-card">
+      <span className="sr-only">{phone.typing}</span>
+      <span aria-hidden="true" className="flex gap-1">
+        {DOT_DELAYS.map((delay) => (
+          <span key={delay} className={`h-1.5 w-1.5 animate-typing-dot rounded-full bg-ink-muted ${delay}`} />
+        ))}
+      </span>
+    </li>
+  );
 }
 
-export function WhatsAppPhone({ conversation, limit, className = "", onDark = false, firmName }: WhatsAppPhoneProps) {
+export interface PhonePending {
+  readonly phase: "typing" | "highlight" | "writing";
+  /** The text the importer is writing, so far. */
+  readonly partial?: string;
+  /** The button the importer is about to tap. */
+  readonly tapped?: string;
+}
+
+interface WhatsAppPhoneProps {
+  readonly conversation: Pick<ConversationView, "id" | "day">;
+  readonly messages: readonly WaMessageView[];
+  readonly firmName: string;
+  readonly caption: string;
+  /** The screen's height: the hero's is the tallest; `compact` fits a carousel step on a phone. */
+  readonly size?: "hero" | "stage" | "compact";
+  readonly pending?: PhonePending;
+  /** New bubbles pop in (only while the hero plays). */
+  readonly animate?: boolean;
+  /** The list is decoration while a transcript elsewhere carries the text (the hero). */
+  readonly decorative?: boolean;
+  readonly children?: ReactNode;
+}
+
+const SCREEN: Readonly<Record<NonNullable<WhatsAppPhoneProps["size"]>, string>> = { hero: "h-112 sm:h-120", stage: "h-96", compact: "h-64" };
+
+export function WhatsAppPhone({ conversation, messages, firmName, caption, size = "stage", pending, animate = false, decorative = false, children }: WhatsAppPhoneProps) {
   const { phone } = useLandingCopy();
   const english = useLandingLang()?.lang === "en";
   const [chosen, setChosen] = useState<boolean | undefined>(undefined);
   const gloss = chosen ?? english;
-  const messages = limit === undefined ? conversation.messages : conversation.messages.slice(0, limit);
   return (
-    <figure className={`mx-auto w-full max-w-xs ${className}`}>
-      <div className="rounded-4xl border-4 border-navy-deep bg-navy-deep p-1.5 shadow-card">
-        <div className="overflow-hidden rounded-3xl bg-paper">
-          <p className="bg-warning-soft px-4 py-1 text-center text-xs font-semibold text-warning">{phone.simulator}</p>
-          <div className="flex items-center gap-2 bg-navy px-4 py-3 text-white">
-            <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan text-xs font-bold text-navy-deep">
+    <figure className="mx-auto w-full max-w-xs">
+      <div className="rounded-phone border border-harbor-700 bg-harbor-900 p-1.5 shadow-float">
+        <div className="overflow-hidden rounded-[1.875rem] bg-manifest">
+          <p className="bg-signal px-4 py-1 text-center text-xs font-semibold text-harbor-950">{phone.simulator}</p>
+          <div className="flex items-center gap-2 bg-harbor-800 px-4 py-3 text-foam">
+            <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-glass text-xs font-bold text-harbor-950">
               {initials(firmName)}
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{firmName}</p>
-              <p className="text-xs text-cyan-soft">{phone.fictitious}</p>
+              <p className="text-xs text-foam-muted">{phone.fictitious}</p>
             </div>
             <button
               type="button"
@@ -89,22 +124,28 @@ export function WhatsAppPhone({ conversation, limit, className = "", onDark = fa
               aria-label={phone.glossToggle}
               title={phone.glossToggle}
               onClick={() => setChosen(!gloss)}
-              className={`rounded-md border px-2 py-1 text-xs font-semibold ${gloss ? "border-cyan bg-cyan text-navy-deep" : "border-navy-soft text-white hover:bg-navy-soft"}`}
+              className={`flex h-11 min-w-11 items-center justify-center rounded-pill border px-2 text-xs font-semibold ${gloss ? "border-glass bg-glass text-harbor-950" : "border-harbor-700 text-foam hover:bg-harbor-700"}`}
             >
               EN
             </button>
           </div>
-          <p className="pt-3 text-center">
-            <span className="rounded-md bg-white px-2 py-0.5 text-xs text-slate shadow-card">{conversation.day}</span>
-          </p>
-          <ol aria-label={phone.conversation(conversation.day)} className="flex max-h-112 min-h-64 flex-col gap-3 overflow-y-auto px-3 py-4">
-            {messages.map((message, index) => (
-              <Message key={`${conversation.id}-${index}`} message={message} gloss={gloss} />
-            ))}
-          </ol>
+          {/* Scrollable, so it takes the keyboard's focus too (WCAG 2.1.1). */}
+          <div role="group" tabIndex={0} aria-label={phone.conversation(conversation.day)} className={`relative flex flex-col-reverse overflow-y-auto overscroll-contain ${SCREEN[size]}`}>
+            <ol aria-hidden={decorative || undefined} className="flex flex-col gap-3 px-3 py-4">
+              <li className="self-center rounded-md bg-white px-2 py-0.5 text-xs text-ink-muted shadow-card">{conversation.day}</li>
+              {messages.map((message, index) => (
+                <Message key={`${conversation.id}-${index}`} message={message} gloss={gloss} lit={pending?.phase === "highlight" && index === messages.length - 1 ? pending.tapped : undefined} animate={animate} />
+              ))}
+              {pending?.phase === "typing" ? <Typing /> : null}
+              {pending?.phase === "writing" && pending.partial ? (
+                <li className="max-w-[86%] self-end rounded-2xl rounded-tr-sm bg-manifest-deep px-3 py-2 text-xs text-ink shadow-card">{pending.partial}</li>
+              ) : null}
+            </ol>
+          </div>
+          {children}
         </div>
       </div>
-      <figcaption className={`mt-2 text-center text-xs ${onDark ? "text-cyan-soft" : "text-slate"}`}>{phone.caption}</figcaption>
+      <figcaption className="mt-3 text-center text-xs text-foam-muted">{caption}</figcaption>
     </figure>
   );
 }

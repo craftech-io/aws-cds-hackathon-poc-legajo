@@ -74,8 +74,10 @@ export type World = z.infer<typeof World>;
 /**
  * Sender profile the caller of the single SES client declares; the client checks the `From`
  * against it and applies that profile's recipient fence (docs/architecture-integrations.md §1).
+ * `LEAD_NOTICE` is the internal notice of a new lead (ADR-0015 §6): no clock, exact `@craftech.io`
+ * recipients from the `LeadNoticeTo` secret only.
  */
-export const SenderProfile = z.enum(["SYSTEM", "SIMULATOR", "QA"]);
+export const SenderProfile = z.enum(["SYSTEM", "SIMULATOR", "QA", "LEAD_NOTICE"]);
 export type SenderProfile = z.infer<typeof SenderProfile>;
 
 /** Who closes a pending mail of `Runtime/PENDING#<clockId>` (docs/architecture.md §7). */

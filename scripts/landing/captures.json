@@ -1,34 +1,65 @@
 {
-  "_readme": "Console captures of the landing (packages/web/public/landing/manifest.json), taken by scripts/landing/capture-console.ts at 1280x800: on the deployed stage (--target poc) signed in as the synthetic guest-test account after a real run of the guided tour (SC-24), or on the local UI server (--target local), which the landing labels 'entorno local, agente guionado'. Each entry names the console view, the operation row to open from it when the moment needs one, and the moment the frame shows. Alt texts and captions live in packages/web/src/views/landing/copy-*.ts. Kept out of public/ on purpose.",
+  "_readme": "Console captures of the landing (docs/landing-spec.md §7.3), taken by scripts/landing/capture-console.ts in desktop 1440x900 and mobile 390x844 at 2x: on the deployed stage (--target poc) signed in as the synthetic guest-test account after a real run of the guided tour (SC-24), or on the local UI server (--target local) over the deterministic moments of tests/ui-server/moments/, which the landing labels 'Entorno local, agente guionado'. Each entry names the console view, the moment of the world it shows, and what to do before the frame: scroll to a section, pick a mailbox, or keep the guided tour open. Alt texts and captions live in packages/web/src/views/landing/media-copy-*.ts. Kept out of public/ on purpose. An entry with 'pending' names why its view cannot be captured yet: capture-console.ts skips it, and landing:check lists it instead of asking for its picture.",
   "captures": {
     "console-operations": {
       "view": "/app/operations",
-      "moment": "Operations of the guest's world with 4471 pinned as the main story, its dossier ready for review and its next event"
-    },
-    "console-dossier": {
-      "view": "/app/operations",
-      "open": "4471",
-      "moment": "Detail of 4471 after the tour: three valid documents, the packing list observation resolved by version 2, and the timeline with the deferred email and its rule"
+      "moment": "after-correction"
     },
     "console-simulator": {
       "view": "/app/simulator",
-      "moment": "The importer's WhatsApp thread of 4471: the docs request template with its four buttons, the contact confirmation and the 'no tenés que hacer nada' notice, with the English gloss"
+      "moment": "after-delegate",
+      "pending": "The console's simulator procedures (simulator.*) are not registered in the appRouter yet (routers/index.ts): the view answers 'No encontramos lo que buscabas'. Capture it once they are (WP-33)."
     },
     "console-mailbox": {
       "view": "/app/mailbox",
-      "moment": "The demo mailbox with the thread of 4471: request, supplier reply with PDFs, correction request and corrected packing list, in plain text"
+      "moment": "after-correction",
+      "select": {
+        "label": "Buzón",
+        "value": "g00-qingdao@sim.legajo.demo.craftech.io"
+      }
+    },
+    "console-dossier-reading": {
+      "view": "/app/operations/op-4471",
+      "moment": "after-reading",
+      "scrollTo": "#documents"
+    },
+    "console-dossier": {
+      "view": "/app/operations/op-4471",
+      "moment": "after-correction",
+      "scrollTo": "#documents"
     },
     "console-clock": {
       "view": "/app/clock",
-      "moment": "The paused world after the tour, with the next events of every kind"
+      "moment": "after-eta-move"
+    },
+    "console-escalations": {
+      "view": "/app/escalations",
+      "moment": "after-escalation"
+    },
+    "console-mailbox-firm": {
+      "view": "/app/mailbox",
+      "moment": "after-escalation",
+      "select": {
+        "label": "Buzón",
+        "value": "estudio-g00@sim.legajo.demo.craftech.io"
+      }
+    },
+    "console-dossier-approval": {
+      "view": "/app/operations/op-4471",
+      "moment": "after-approval"
     },
     "console-metrics": {
       "view": "/app/metrics",
-      "moment": "The 'Este mundo' tab: every KPI with its N, source and label, and the policy decisions by rule next to zero violations"
+      "moment": "after-dispatch"
     },
     "console-audit": {
       "view": "/app/audit",
-      "moment": "The decision log of 4471: DEFER by CP-HOURS-SUPPLIER and CP-HOURS-AR, the approval by the broker, and the violation counter at 0"
+      "moment": "after-dispatch"
+    },
+    "console-tour": {
+      "view": "/app/operations",
+      "moment": "start",
+      "tour": "open"
     }
   }
 }

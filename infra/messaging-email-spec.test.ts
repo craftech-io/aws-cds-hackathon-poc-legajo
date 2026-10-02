@@ -6,7 +6,7 @@ import { parsePlan } from "../scripts/lint/wp-ownership";
 import { CAPABILITIES, LAMBDA_CAPABILITIES, actionDrift, expectedActions, type LambdaName } from "./iam-capabilities";
 import {
   CONFIGURATION_SETS, DKIM_TOKEN_COUNT, DMARC_RECORD, EMAIL_DNS_RECORDS, EMAIL_DOMAINS, EMAIL_EVENTS, EMAIL_FUNCTIONS, INBOUND_MAIL_LINKS,
-  INBOUND_MAIL_READERS, LATE_LINKS, MAIL_FROM_SPF_RECORD, QUARANTINE_LINK, RECEIPT_LAMBDA_INVOCATION, RECEIPT_RULE_SCAN, RECEIPT_RULE_TLS_POLICY,
+  INBOUND_MAIL_READERS, LATE_LINKS, LEAD_NOTICE_DOMAIN, MAIL_FROM_SPF_RECORD, QUARANTINE_LINK, RECEIPT_LAMBDA_INVOCATION, RECEIPT_RULE_SCAN, RECEIPT_RULE_TLS_POLICY,
   SENDERS, SENDER_PROFILES, assertEmailDomains, assertSesRegion, configurationSetName, demoRecipientEmails, dkimRecord, emailEventPattern,
   emailLinkNames, generatedActions, generatedBuckets, quarantineObjectArns, receiptRules, s3ObjectsArn, sendStatement, senderProfileOf,
   type EmailFunction, type IamStatement, type SenderProfile,
@@ -243,6 +243,20 @@ describe("send statements: the IAM half of the recipient fence", () => {
     expect(iamAllows(qa, "qainject-812-sc15@sim.legajo.demo.craftech.io", ["estudio-delta@sim.legajo.demo.craftech.io"])).toBe(false);
   });
 
+  it("LEAD_NOTICE: from avisos@ to exact @craftech.io mailboxes only, through the email set (ADR-0015 §6)", () => {
+    const notice = statement("LEAD_NOTICE");
+    expect(LEAD_NOTICE_DOMAIN).toBe("craftech.io");
+    expect(SENDERS.LEAD_NOTICE).toEqual({ linkName: "EmailSenderLeadNotice", configurationSet: "email", fromAddresses: [NOTICES_ADDRESS], recipients: ["*@craftech.io"], demoRecipients: false });
+    for (const ok of [["ventas@craftech.io"], ["ventas@craftech.io", "otra@craftech.io"]]) expect(iamAllows(notice, NOTICES_ADDRESS, ok)).toBe(true);
+    const refused = [["x@mail.craftech.io"], ["x@craftech.io.example.net"], ["x@notcraftech.io"], ["ventas@craftech.io", "visitor@gmail.com"], ["estudio-delta@sim.legajo.demo.craftech.io"]];
+    for (const recipients of refused) expect(iamAllows(notice, NOTICES_ADDRESS, recipients), recipients.join()).toBe(false);
+    for (const from of [OP, "no-reply@legajo.demo.craftech.io"]) expect(iamAllows(notice, from, ["ventas@craftech.io"]), from).toBe(false);
+    expect(valuesOf(notice, "ForAllValues:StringLike", "ses:Recipients")).toEqual(["*@craftech.io"]);
+    expect(architecture).toContain("`LEAD_NOTICE`** (`LeadNotice`; `From` `avisos@legajo.demo.craftech.io`)");
+    // No recipient of the notice is ever written in the code: only the domain pattern.
+    expect(stripComments(read("infra/messaging-email-spec.ts"))).not.toMatch(/[a-z0-9._+-]+@craftech\.io/);
+  });
+
   it("never reach a reserved domain, from any profile", () => {
     for (const profile of SENDER_PROFILES) {
       const from = SENDERS[profile].fromAddresses[0]?.replace("*", "x") ?? "";
@@ -262,9 +276,8 @@ describe("send statements: the IAM half of the recipient fence", () => {
 
   it("give every sender of docs/architecture.md §14 exactly one profile", () => {
     const senders = LAMBDAS.filter((fn) => expectedActions(fn).includes("ses:SendEmail"));
-    expect(senders.map((fn) => [fn, senderProfileOf(fn)])).toEqual(
-      senders.map((fn) => [fn, fn === "SimMail" ? "SIMULATOR" : fn === "QaDriver" ? "QA" : "SYSTEM"]),
-    );
+    const DIRECT: Partial<Record<LambdaName, SenderProfile>> = { SimMail: "SIMULATOR", QaDriver: "QA", LeadNotice: "LEAD_NOTICE" };
+    expect(senders.map((fn) => [fn, senderProfileOf(fn)])).toEqual(senders.map((fn) => [fn, DIRECT[fn] ?? "SYSTEM"]));
     expect(senders.filter((fn) => senderProfileOf(fn) === "SYSTEM").sort()).toEqual(["OperationWorker", "ToolHandoff", "ToolMessaging"]);
     for (const fn of LAMBDAS.filter((name) => !senders.includes(name))) expect(senderProfileOf(fn), fn).toBeUndefined();
   });
@@ -290,6 +303,7 @@ describe("scoped storage links", () => {
     expect(emailLinkNames("QaDriver")).toEqual(["EmailSenderQa", INBOUND_MAIL_LINKS.ops]);
     expect(emailLinkNames("ToolMessaging")).toEqual(["EmailSenderSystem"]);
     expect(emailLinkNames("ChannelEvents")).toEqual([]);
+    expect(emailLinkNames("LeadNotice")).toEqual(["EmailSenderLeadNotice"]);
     expect(emailLinkNames("Bff")).toEqual([]);
   });
 });
@@ -336,6 +350,12 @@ describe("functions", () => {
       expect(LAMBDAS).toContain(fn);
       expect(EMAIL_FUNCTIONS[fn].reservedConcurrency, fn).toBe(reserved[fn]);
     }
+  });
+
+  it("give ChannelEvents the master key for the subkey lead-email and never Leads (ADR-0015 §3.2)", () => {
+    expect(EMAIL_FUNCTIONS.ChannelEvents.sessionTokenKey).toBe(true);
+    expect(LAMBDA_CAPABILITIES.ChannelEvents.tables).not.toHaveProperty("Leads");
+    expect(architecture).toContain("secreto `SessionTokenKey` (subclave `lead-email`)");
   });
 
   it("point at handlers owned by WP-29 and WP-30 (docs/build-plan.md)", () => {

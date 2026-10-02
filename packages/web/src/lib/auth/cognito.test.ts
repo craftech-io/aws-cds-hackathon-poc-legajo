@@ -45,6 +45,16 @@ describe("Cognito API over fetch", () => {
     expect(request.options?.attempts).toBe(3);
   });
 
+  it("[FL-107] asks for a reset code in the person's language, once, without revealing anything", async () => {
+    const { sent, fetch } = fakeFetch(200, { CodeDeliveryDetails: { DeliveryMedium: "EMAIL" } });
+    const api = createCognitoApi({ region: "us-east-1", clientId: "client-1", fetch });
+    await api.forgotPassword("ana@example.test", "en");
+    await api.forgotPassword("ana@example.test");
+    expect(bodyOf(sent[0] as Sent)).toEqual({ ClientId: "client-1", Username: "ana@example.test", ClientMetadata: { lang: "en" } });
+    expect(bodyOf(sent[1] as Sent)).toEqual({ ClientId: "client-1", Username: "ana@example.test" });
+    expect(sent[0]?.options?.attempts).toBe(1);
+  });
+
   it("sends a challenge answer once: a timeout must not replay a code or a password", async () => {
     const { sent, fetch } = fakeFetch(
       200,

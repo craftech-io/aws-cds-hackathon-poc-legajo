@@ -30,18 +30,24 @@ function citedIds(prefix: string): string[] {
 }
 
 describe("contact policy rules", () => {
-  it("are the rules of docs/design-brief.md §5.7, in evaluation order", () => {
-    expect([...CONTACT_POLICY_RULES]).toEqual(columnTokens(BRIEF, "| # | Regla | Enunciado", { column: 1 }));
-  });
+  // The quota of a guest world's emails (ADR-0015 §4) is evaluated last; the table of the brief lists
+  // the fourteen rules of §5.7 and, once it lists this one too, the comparison is the whole list.
+  const WORLD_QUOTA = "CP-WORLD-QUOTA";
 
-  // Rules the docs already cite for wave 3 stage A2 (ADR-0015 §4), registered by the work package that builds them.
-  const DOCUMENTED_AHEAD = ["CP-WORLD-QUOTA"];
+  it("are the rules of docs/design-brief.md §5.7, in evaluation order, then CP-WORLD-QUOTA", () => {
+    const table = columnTokens(BRIEF, "| # | Regla | Enunciado", { column: 1 });
+    expect([...CONTACT_POLICY_RULES]).toEqual(table.includes(WORLD_QUOTA) ? table : [...table, WORLD_QUOTA]);
+    expect(CONTACT_POLICY_RULES.at(-1)).toBe(WORLD_QUOTA);
+  });
 
   it("every CP-* the docs cite exists", () => {
-    expect(citedIds("CP").filter((id) => !DOCUMENTED_AHEAD.includes(id))).toEqual([...CONTACT_POLICY_RULES].sort());
+    expect(citedIds("CP")).toEqual([...CONTACT_POLICY_RULES].sort());
   });
 
-  it.todo("[WP-50:pending] CP-WORLD-QUOTA is registered in CONTACT_POLICY_RULES and in policy/rules.ts (ADR-0015 §4)");
+  it("[FL-111] CP-WORLD-QUOTA is a rule of the closed vocabulary, cited by ADR-0015", () => {
+    expect(isRuleId(WORLD_QUOTA)).toBe(true);
+    expect(readDoc("docs/adr/0015-alta-publica-de-invitados-y-leads.md")).toContain(`\`${WORLD_QUOTA}\``);
+  });
 });
 
 describe("Cedar statements and Lambda fences", () => {

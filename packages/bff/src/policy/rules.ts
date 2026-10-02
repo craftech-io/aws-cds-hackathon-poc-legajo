@@ -1,6 +1,7 @@
 // The rules that do not depend on the hour (docs/design-brief.md §5.7): who has the conversation,
 // the kind → channel matrix, the recipient fence, the opt-in and opt-out, the supplier authorization
-// and contact status, the scope of an approved dossier, and the two content rules. Every dated fact
+// and contact status, the scope of an approved dossier, the two content rules and the quota of a
+// guest world's emails (`CP-WORLD-QUOTA`, policy/world-quota.ts, ADR-0015 §4). Every dated fact
 // is read from its history at the decided instant; a send decided now also honours the current value
 // when it is the stricter one, so a history that lags the item can never let a send through.
 import { normalizePhone } from "@legajo/shared";
@@ -159,3 +160,5 @@ export function checkForeignLinks(ctx: PolicyContext): RuleCheck {
   if (verdict === undefined) return skip("checked by outbound/verify.ts on the rendered text");
   return verdict.allowed ? pass(verdict.detail ?? "no link or contact outside the turn's") : deny(verdict.detail ?? "the text carries a link or a contact that is not the turn's");
 }
+
+export { checkWorldQuota } from "./world-quota";

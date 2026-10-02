@@ -32,6 +32,11 @@ describe("parsePlan", () => {
     ]);
   });
 
+  it("reads a WP whose title carries an asterisk inside backticks", () => {
+    const markdown = plan("`infra/a.ts`").replace("**WP-02 · Two**", "**WP-02 · Two: `signup.*`, more**");
+    expect(parsePlan(markdown)[0]?.packages.map((wp) => wp.id)).toEqual(["WP-01", "WP-02"]);
+  });
+
   it("expands nested brace lists", () => {
     expect(expandBraces("packages/{a,b}/{x,y}.ts")).toEqual(["packages/a/x.ts", "packages/a/y.ts", "packages/b/x.ts", "packages/b/y.ts"]);
   });

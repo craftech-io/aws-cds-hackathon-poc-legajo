@@ -22,8 +22,13 @@ export interface LocalServer {
 
 export type Fallback = (request: IncomingMessage, response: ServerResponse) => void;
 
+export interface LocalServerOptions {
+  /** Real time of the back half (fixed for the captures, so two runs show the same thing). */
+  readonly now?: () => Date;
+}
+
 /** Starts the server; `fallback` answers what the back half does not (Vite, for the console). */
-export async function startLocalServer(fallback?: Fallback): Promise<LocalServer> {
+export async function startLocalServer(fallback?: Fallback, options: LocalServerOptions = {}): Promise<LocalServer> {
   const issuer = createTestIssuer({ kid: "landing-local" });
   let app: UiApp | undefined;
   const server = createServer((request, response) => {
@@ -39,14 +44,15 @@ export async function startLocalServer(fallback?: Fallback): Promise<LocalServer
         else response.writeHead(404).end();
       })
       .catch((error: unknown) => {
-        process.stderr.write(`local-server: ${error instanceof Error ? error.name : "error"} on ${request.method ?? "?"} ${request.url ?? "?"}\n`);
+        // The method and the error's name only: a request's path can carry an upload token.
+        process.stderr.write(`local-server: ${error instanceof Error ? error.name : "error"} on a ${request.method ?? "?"} request\n`);
         if (!response.headersSent) response.writeHead(500);
         response.end();
       });
   });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-  app = await createUiApp({ origin, pool: TEST_POOL, jwks: issuer.jwks });
+  app = await createUiApp({ origin, pool: TEST_POOL, jwks: issuer.jwks, ...(options.now ? { now: options.now } : {}) });
   const ready = app;
   return {
     origin,

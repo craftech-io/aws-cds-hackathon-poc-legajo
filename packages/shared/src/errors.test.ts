@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { ChannelError, ConnectorError, ToolError, ToolFailureSchema, fail, isRetryable, ok, toToolFailure } from "./errors";
+import { ChannelError, ConnectorError, ERROR_REASON, QuotaExceededError, ToolError, ToolFailureSchema, fail, isRetryable, ok, toToolFailure } from "./errors";
+import { QuotaExceededKind } from "./guest-limits";
+import { QuotaExceededData } from "./signup";
 
 describe("tool envelope", () => {
   it("ok spreads the payload under ok: true", () => {
@@ -42,5 +44,21 @@ describe("toToolFailure", () => {
     expect(isRetryable(new ChannelError("SEND_FAILED", "WHATSAPP", "no", { retryable: false }))).toBe(false);
     expect(isRetryable(new ConnectorError("UNAVAILABLE", "down"))).toBe(true);
     expect(isRetryable(new Error("x"))).toBe(false);
+  });
+});
+
+describe("[FL-111] QUOTA_EXCEEDED", () => {
+  it("carries the kind and the real instant the window resets, never retryable before it", () => {
+    const error = new QuotaExceededError("OUTBOUND_EMAILS", "2026-10-14T14:00:00.000Z");
+    expect(error.reason).toBe(ERROR_REASON.QUOTA_EXCEEDED);
+    expect(QuotaExceededData.parse({ kind: error.kind, resetsAtReal: error.resetsAtReal })).toEqual({ kind: "OUTBOUND_EMAILS", resetsAtReal: "2026-10-14T14:00:00.000Z" });
+    expect(isRetryable(error)).toBe(false);
+    expect(QuotaExceededKind.options).toContain("GLOBAL");
+  });
+
+  it("is POLICY_DENIED with its reason when a tool hits it", () => {
+    const failure = toToolFailure(new QuotaExceededError("GLOBAL", "2026-10-15T00:00:00.000Z"));
+    expect(failure.error.code).toBe("POLICY_DENIED");
+    expect(failure.error.reason).toBe("QUOTA_EXCEEDED");
   });
 });

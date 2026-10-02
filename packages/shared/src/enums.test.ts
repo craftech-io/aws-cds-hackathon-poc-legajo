@@ -117,11 +117,10 @@ describe("CONTEXT.md and the design docs", () => {
   it("supplier behaviours, templates and sender profiles of the integrations doc", () => {
     expect([...messaging.SupplierBehaviour.options].sort()).toEqual(columnTokens(INTEGRATIONS, "| Comportamiento | Respuesta").sort());
     expect(messaging.WhatsAppTemplateName.options).toEqual(columnTokens(INTEGRATIONS, "| Nombre | Cuerpo | Botones"));
-    // LEAD_NOTICE (ADR-0015 §6) changes the recipient fence, so it arrives with WP-50 (wave 3, stage A2).
-    expect(core.SenderProfile.options).toEqual(columnTokens(INTEGRATIONS, "| Perfil | Quién lo usa").filter((profile) => profile !== "LEAD_NOTICE"));
+    expect(core.SenderProfile.options).toEqual(columnTokens(INTEGRATIONS, "| Perfil | Quién lo usa"));
+    // LEAD_NOTICE (ADR-0015 §6): its exact @craftech.io fence is tested in packages/bff/src/channels/email/fence.test.ts.
+    expect(core.SenderProfile.options).toContain("LEAD_NOTICE");
   });
-
-  it.todo("[WP-50:pending] SenderProfile has LEAD_NOTICE, fenced to exact @craftech.io recipients by channels/email/fence.ts");
 
   it("inline enums of the tool outputs and handlers", () => {
     expect(dossier.DispatchStatus.options).toEqual(pipeList(TOOL_CATALOG, /"status": "(NONE \| OFICIALIZADO[^"]*)"/));

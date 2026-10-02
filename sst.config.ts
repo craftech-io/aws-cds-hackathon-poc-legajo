@@ -79,7 +79,8 @@ export default $config({
 
     // Infra modules, in dependency order (docs/build-plan.md §1). Every module exists since WP-02;
     // the stubs export nothing until their work package fills them, so a later wave edits its module
-    // and never this list.
+    // and never this list. The one declared exception is the public signup (ADR-0015, WP-51), which
+    // adds `leads` (Leads, SignupDispatch, LeadNotice) and `edge-waf` (the web ACL of the Router).
     await import("./infra/tags");
     // Registers the $transform that stamps the IAM path and the CI permissions boundary on every
     // role, so it must come before any module that creates one.
@@ -94,6 +95,7 @@ export default $config({
     await import("./infra/policy"); // WP-09
     await import("./infra/auth"); // WP-11
     await import("./infra/messaging-email"); // WP-18
+    await import("./infra/leads"); // WP-51: needs auth, storage and the SES senders; before scheduler and bff
     await import("./infra/messaging-whatsapp"); // WP-21
     await import("./infra/mocks"); // WP-21
     await import("./infra/feeds"); // WP-21
@@ -104,6 +106,7 @@ export default $config({
     await import("./infra/scheduler"); // WP-24
     await import("./infra/bff"); // WP-32
     const { appUrl } = await import("./infra/dns");
+    await import("./infra/edge-waf"); // WP-51: the Router of infra/web.ts creates the web ACL with it
     await import("./infra/web"); // WP-04
     await import("./infra/observability"); // WP-32
 

@@ -126,7 +126,6 @@ export const copy = {
     busyRefused: "El mundo se ocupó mientras tanto: esperá a que termine y volvé a intentar.",
   },
   session: {
-    preparing: "Preparando tu mundo de demo (~10 s)…",
     otherSession: (minutes: number) =>
       minutes < 1
         ? "Otra sesión usó este mundo hace menos de un minuto: si compartís la cuenta, usá otra cuenta de invitado."

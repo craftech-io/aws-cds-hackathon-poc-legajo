@@ -182,6 +182,13 @@ describe("[FL-059] the recipient fence lives inside the single client", () => {
     expect((await pendings()).mails).toEqual([]);
   });
 
+  it("[FL-059] a SYSTEM mail of a guest world never reaches a registered demo recipient (ADR-0015 §4)", async () => {
+    const escalation = { profile: "SYSTEM" as const, from: { address: "avisos@legajo.demo.craftech.io", displayName: "Legajo listo" }, to: DEMO_INBOX, subject: "Escalamiento de la operación 4471", text: "Un legajo necesita al estudio.", lang: "es" as const, kind: "ESCALATION" };
+    expect(await client.send({ ...escalation, clockId: "GUEST#firm-guest-01", firmId: "firm-guest-01" })).toEqual({ status: "REFUSED", code: "RECIPIENT_NOT_ALLOWED", reason: "SYSTEM_RECIPIENT" });
+    expect(ses.commandCalls(SendEmailCommand)).toHaveLength(0);
+    expect(await client.send({ ...escalation, clockId: CLOCK, firmId: "firm-delta" })).toMatchObject({ status: "SENT", awaiting: "SES_EVENT" });
+  });
+
   it("[FL-059] SIMULATOR answers only the verified thread, only from an ACTIVE contact of that operation's supplier", async () => {
     const answered = { from: world.op4471.threadAddress, to: QINGDAO };
     const reply = (from: string, to: string, purpose: { kind: "REPLY"; answered: { from: string; to: string } } | { kind: "SEND_NOW"; operationId: string } = { kind: "REPLY", answered }) => client.checkRecipient({ profile: "SIMULATOR", from, to, purpose });

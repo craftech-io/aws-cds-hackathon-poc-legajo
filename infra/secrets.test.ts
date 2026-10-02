@@ -11,6 +11,8 @@ const declared = (source: string): string[] => [...stripComments(source).matchAl
 
 const infraSecrets = read("./secrets.ts");
 const bffSecrets = read("../packages/bff/src/lib/secrets.ts");
+const architecture = read("../docs/architecture.md");
+const section3 = architecture.slice(architecture.indexOf("## 3. Secretos"), architecture.indexOf("## 4."));
 
 describe("shared secrets", () => {
   it("declares exactly the names packages/bff/src/lib/secrets.ts reads", () => {
@@ -19,11 +21,23 @@ describe("shared secrets", () => {
     expect([...declared(infraSecrets)].sort()).toEqual([...names].sort());
   });
 
-  it("declares the four secrets of docs/architecture.md §3, each once and never with a placeholder", () => {
+  it("declares the six secrets of docs/architecture.md §3, each once and never with a placeholder", () => {
     const names = declared(infraSecrets);
-    expect([...names].sort()).toEqual(["SeedOverrides", "SessionTokenKey", "WabaId", "WhatsAppPhoneNumberId"]);
+    const documented = [...section3.matchAll(/^\| `([A-Za-z]+)` \|/gm)].map((match) => match[1] ?? "");
+    expect(documented).toHaveLength(6);
+    expect([...names].sort()).toEqual([...documented].sort());
+    expect([...names].sort()).toEqual(["LeadNoticeTo", "OriginVerifyKey", "SeedOverrides", "SessionTokenKey", "WabaId", "WhatsAppPhoneNumberId"]);
     expect(new Set(names).size).toBe(names.length);
     expect(stripComments(infraSecrets)).not.toMatch(/new sst\.Secret\("[A-Za-z0-9]+"\s*,/);
+  });
+
+  it("holds no lead notice address and no origin key value anywhere in infra/ (ADR-0015 §6)", () => {
+    const modules = readdirSync(fileURLToPath(new URL(".", import.meta.url))).filter((file) => file.endsWith(".ts") && !file.endsWith(".test.ts"));
+    for (const file of modules) {
+      const source = stripComments(read(`./${file}`));
+      expect(source, `infra/${file}`).not.toMatch(/[A-Za-z0-9._%+-]+@craftech\.io/);
+    }
+    expect(section3).toContain("`disabled` hasta que el operador cargue");
   });
 
   it("is the only infra module that declares a secret", () => {

@@ -1,18 +1,1472 @@
 {
-  "version": 1,
-  "video": null,
-  "media": {
-    "upload-page": {
-      "file": "/landing/upload-page.png",
-      "width": 780,
-      "height": 1520,
-      "status": "render"
+  "version": 2,
+  "entries": [
+    {
+      "id": "console-operations",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-operations/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-operations/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-operations/desktop-1440.avif",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-operations/desktop-1920.avif",
+            "w": 1920
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-operations/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-operations/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-operations/desktop-1440.webp",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-operations/desktop-1920.webp",
+            "w": 1920
+          }
+        ],
+        "png": {
+          "src": "/landing/console-operations/desktop.png",
+          "w": 2880,
+          "h": 1800
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
     },
-    "upload-done": {
-      "file": "/landing/upload-done.png",
-      "width": 780,
-      "height": 880,
-      "status": "render"
+    {
+      "id": "console-operations",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-operations/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-operations/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-operations/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-operations/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/console-operations/mobile.png",
+          "w": 780,
+          "h": 1688
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-mailbox",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-mailbox/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-mailbox/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-mailbox/desktop-1440.avif",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-mailbox/desktop-1920.avif",
+            "w": 1920
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-mailbox/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-mailbox/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-mailbox/desktop-1440.webp",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-mailbox/desktop-1920.webp",
+            "w": 1920
+          }
+        ],
+        "png": {
+          "src": "/landing/console-mailbox/desktop.png",
+          "w": 2880,
+          "h": 1800
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-mailbox",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-mailbox/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-mailbox/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-mailbox/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-mailbox/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/console-mailbox/mobile.png",
+          "w": 780,
+          "h": 1688
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-dossier-reading",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-dossier-reading/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-dossier-reading/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-dossier-reading/desktop-1440.avif",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-dossier-reading/desktop-1920.avif",
+            "w": 1920
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-dossier-reading/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-dossier-reading/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-dossier-reading/desktop-1440.webp",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-dossier-reading/desktop-1920.webp",
+            "w": 1920
+          }
+        ],
+        "png": {
+          "src": "/landing/console-dossier-reading/desktop.png",
+          "w": 2880,
+          "h": 1800
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-dossier-reading",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-dossier-reading/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-dossier-reading/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-dossier-reading/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-dossier-reading/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/console-dossier-reading/mobile.png",
+          "w": 780,
+          "h": 1688
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-dossier",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-dossier/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-dossier/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-dossier/desktop-1440.avif",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-dossier/desktop-1920.avif",
+            "w": 1920
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-dossier/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-dossier/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-dossier/desktop-1440.webp",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-dossier/desktop-1920.webp",
+            "w": 1920
+          }
+        ],
+        "png": {
+          "src": "/landing/console-dossier/desktop.png",
+          "w": 2880,
+          "h": 1800
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-dossier",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-dossier/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-dossier/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-dossier/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-dossier/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/console-dossier/mobile.png",
+          "w": 780,
+          "h": 1688
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-clock",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-clock/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-clock/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-clock/desktop-1440.avif",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-clock/desktop-1920.avif",
+            "w": 1920
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-clock/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-clock/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-clock/desktop-1440.webp",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-clock/desktop-1920.webp",
+            "w": 1920
+          }
+        ],
+        "png": {
+          "src": "/landing/console-clock/desktop.png",
+          "w": 2880,
+          "h": 1800
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-clock",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-clock/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-clock/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-clock/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-clock/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/console-clock/mobile.png",
+          "w": 780,
+          "h": 1688
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-escalations",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-escalations/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-escalations/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-escalations/desktop-1440.avif",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-escalations/desktop-1920.avif",
+            "w": 1920
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-escalations/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-escalations/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-escalations/desktop-1440.webp",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-escalations/desktop-1920.webp",
+            "w": 1920
+          }
+        ],
+        "png": {
+          "src": "/landing/console-escalations/desktop.png",
+          "w": 2880,
+          "h": 1800
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-escalations",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-escalations/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-escalations/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-escalations/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-escalations/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/console-escalations/mobile.png",
+          "w": 780,
+          "h": 1688
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-mailbox-firm",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-mailbox-firm/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-mailbox-firm/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-mailbox-firm/desktop-1440.avif",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-mailbox-firm/desktop-1920.avif",
+            "w": 1920
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-mailbox-firm/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-mailbox-firm/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-mailbox-firm/desktop-1440.webp",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-mailbox-firm/desktop-1920.webp",
+            "w": 1920
+          }
+        ],
+        "png": {
+          "src": "/landing/console-mailbox-firm/desktop.png",
+          "w": 2880,
+          "h": 1800
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-mailbox-firm",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-mailbox-firm/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-mailbox-firm/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-mailbox-firm/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-mailbox-firm/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/console-mailbox-firm/mobile.png",
+          "w": 780,
+          "h": 1688
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-dossier-approval",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-dossier-approval/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-dossier-approval/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-dossier-approval/desktop-1440.avif",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-dossier-approval/desktop-1920.avif",
+            "w": 1920
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-dossier-approval/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-dossier-approval/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-dossier-approval/desktop-1440.webp",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-dossier-approval/desktop-1920.webp",
+            "w": 1920
+          }
+        ],
+        "png": {
+          "src": "/landing/console-dossier-approval/desktop.png",
+          "w": 2880,
+          "h": 1800
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-dossier-approval",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-dossier-approval/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-dossier-approval/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-dossier-approval/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-dossier-approval/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/console-dossier-approval/mobile.png",
+          "w": 780,
+          "h": 1688
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-metrics",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-metrics/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-metrics/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-metrics/desktop-1440.avif",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-metrics/desktop-1920.avif",
+            "w": 1920
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-metrics/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-metrics/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-metrics/desktop-1440.webp",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-metrics/desktop-1920.webp",
+            "w": 1920
+          }
+        ],
+        "png": {
+          "src": "/landing/console-metrics/desktop.png",
+          "w": 2880,
+          "h": 1800
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-metrics",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-metrics/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-metrics/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-metrics/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-metrics/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/console-metrics/mobile.png",
+          "w": 780,
+          "h": 1688
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-audit",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-audit/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-audit/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-audit/desktop-1440.avif",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-audit/desktop-1920.avif",
+            "w": 1920
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-audit/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-audit/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-audit/desktop-1440.webp",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-audit/desktop-1920.webp",
+            "w": 1920
+          }
+        ],
+        "png": {
+          "src": "/landing/console-audit/desktop.png",
+          "w": 2880,
+          "h": 1800
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-audit",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-audit/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-audit/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-audit/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-audit/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/console-audit/mobile.png",
+          "w": 780,
+          "h": 1688
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-tour",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-tour/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-tour/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-tour/desktop-1440.avif",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-tour/desktop-1920.avif",
+            "w": 1920
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-tour/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-tour/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-tour/desktop-1440.webp",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-tour/desktop-1920.webp",
+            "w": 1920
+          }
+        ],
+        "png": {
+          "src": "/landing/console-tour/desktop.png",
+          "w": 2880,
+          "h": 1800
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "console-tour",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-tour/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-tour/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-tour/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-tour/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/console-tour/mobile.png",
+          "w": 780,
+          "h": 1688
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "upload-page",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/upload-page/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/upload-page/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/upload-page/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/upload-page/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/upload-page/mobile.png",
+          "w": 780,
+          "h": 1520
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "upload-done",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/upload-done/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/upload-done/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/upload-done/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/upload-done/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/upload-done/mobile.png",
+          "w": 780,
+          "h": 880
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "og-card",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/og-card/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/og-card/desktop-960.avif",
+            "w": 960
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/og-card/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/og-card/desktop-960.webp",
+            "w": 960
+          }
+        ],
+        "png": {
+          "src": "/landing/og-card/desktop.png",
+          "w": 1200,
+          "h": 630
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-02",
+      "commit": "b8eb0e1"
+    },
+    {
+      "id": "hero-conversation",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/hero-conversation/desktop-480.avif",
+            "w": 480
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/hero-conversation/desktop-480.webp",
+            "w": 480
+          }
+        ],
+        "png": {
+          "src": "/landing/hero-conversation/desktop.png",
+          "w": 640,
+          "h": 1262
+        }
+      },
+      "status": "render",
+      "component": "packages/web/src/views/landing/Hero.tsx#HeroConversation",
+      "textSources": [
+        "views/landing/conversations.ts#heroMessages",
+        "@legajo/bff/copy/templates#renderTemplate",
+        "@legajo/bff/copy/es-AR#importerEsAR",
+        "@legajo/bff/copy/buttons#BUTTON_LABELS",
+        "@legajo/bff/copy/en-gloss#glossTemplate"
+      ],
+      "replacedBy": "console-simulator",
+      "replaceIn": "WP-35"
+    },
+    {
+      "id": "tour-request",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/tour-request/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-request/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-request/desktop-1440.avif",
+            "w": 1440
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/tour-request/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-request/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-request/desktop-1440.webp",
+            "w": 1440
+          }
+        ],
+        "png": {
+          "src": "/landing/tour-request/desktop.png",
+          "w": 1716,
+          "h": 1070
+        }
+      },
+      "status": "render",
+      "component": "packages/web/src/views/landing/TourVisuals.tsx#StepVisual",
+      "textSources": [
+        "views/landing/conversations.ts#conversation",
+        "@legajo/bff/copy/templates#renderTemplate",
+        "@legajo/bff/copy/en-gloss#glossTemplate"
+      ],
+      "replacedBy": "console-simulator",
+      "replaceIn": "WP-35"
+    },
+    {
+      "id": "tour-delegate",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/tour-delegate/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-delegate/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-delegate/desktop-1440.avif",
+            "w": 1440
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/tour-delegate/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-delegate/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-delegate/desktop-1440.webp",
+            "w": 1440
+          }
+        ],
+        "png": {
+          "src": "/landing/tour-delegate/desktop.png",
+          "w": 1716,
+          "h": 1298
+        }
+      },
+      "status": "render",
+      "component": "packages/web/src/views/landing/TourVisuals.tsx#StepVisual",
+      "textSources": [
+        "views/landing/conversations.ts#conversation",
+        "@legajo/bff/copy/es-AR#importerEsAR",
+        "@legajo/bff/copy/buttons#BUTTON_LABELS",
+        "views/landing/copy-es.ts#tour.deferral.supplier",
+        "components/RuleChip.tsx#RuleChip"
+      ],
+      "replacedBy": "console-simulator",
+      "replaceIn": "WP-35"
+    },
+    {
+      "id": "tour-supplier",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/tour-supplier/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-supplier/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-supplier/desktop-1440.avif",
+            "w": 1440
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/tour-supplier/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-supplier/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-supplier/desktop-1440.webp",
+            "w": 1440
+          }
+        ],
+        "png": {
+          "src": "/landing/tour-supplier/desktop.png",
+          "w": 1716,
+          "h": 1156
+        }
+      },
+      "status": "render",
+      "component": "packages/web/src/views/landing/EmailThread.tsx#EmailThread",
+      "textSources": [
+        "@legajo/bff/copy/en#supplierEmailEn",
+        "views/landing/supplier-replies.json"
+      ],
+      "replacedBy": "console-mailbox",
+      "replaceIn": "WP-35"
+    },
+    {
+      "id": "tour-reader",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/tour-reader/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-reader/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-reader/desktop-1440.avif",
+            "w": 1440
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/tour-reader/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-reader/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-reader/desktop-1440.webp",
+            "w": 1440
+          }
+        ],
+        "png": {
+          "src": "/landing/tour-reader/desktop.png",
+          "w": 1716,
+          "h": 430
+        }
+      },
+      "status": "render",
+      "component": "packages/web/src/views/landing/SceneVisuals.tsx#ReaderCard",
+      "textSources": [
+        "@legajo/bff/copy/observation-labels#OBSERVATION_LABELS",
+        "views/landing/scenes.ts#READINGS"
+      ],
+      "replacedBy": "console-dossier-reading",
+      "replaceIn": "WP-34"
+    },
+    {
+      "id": "tour-owner",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/tour-owner/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-owner/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-owner/desktop-1440.avif",
+            "w": 1440
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/tour-owner/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-owner/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-owner/desktop-1440.webp",
+            "w": 1440
+          }
+        ],
+        "png": {
+          "src": "/landing/tour-owner/desktop.png",
+          "w": 1716,
+          "h": 1820
+        }
+      },
+      "status": "render",
+      "component": "packages/web/src/views/landing/TourVisuals.tsx#StepVisual",
+      "textSources": [
+        "@legajo/bff/copy/en#supplierEmailEn",
+        "@legajo/bff/copy/templates#renderTemplate",
+        "@legajo/bff/copy/observation-labels#OBSERVATION_LABELS"
+      ],
+      "replacedBy": "console-dossier",
+      "replaceIn": "WP-34"
+    },
+    {
+      "id": "tour-eta",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/tour-eta/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-eta/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-eta/desktop-1440.avif",
+            "w": 1440
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/tour-eta/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-eta/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-eta/desktop-1440.webp",
+            "w": 1440
+          }
+        ],
+        "png": {
+          "src": "/landing/tour-eta/desktop.png",
+          "w": 1716,
+          "h": 1502
+        }
+      },
+      "status": "render",
+      "component": "packages/web/src/views/landing/SceneVisuals.tsx#EtaTable",
+      "textSources": [
+        "views/landing/scenes.ts#ETA_MILESTONES",
+        "@legajo/bff/copy/templates#renderTemplate"
+      ],
+      "replacedBy": "console-clock",
+      "replaceIn": "WP-35"
+    },
+    {
+      "id": "tour-escalation",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/tour-escalation/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-escalation/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-escalation/desktop-1440.avif",
+            "w": 1440
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/tour-escalation/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-escalation/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-escalation/desktop-1440.webp",
+            "w": 1440
+          }
+        ],
+        "png": {
+          "src": "/landing/tour-escalation/desktop.png",
+          "w": 1716,
+          "h": 1534
+        }
+      },
+      "status": "render",
+      "component": "packages/web/src/views/landing/SceneVisuals.tsx#EscalationCard",
+      "textSources": [
+        "@legajo/bff/copy/es-AR#importerEsAR.guardrailRefusal",
+        "@legajo/bff/copy/templates#renderTemplate",
+        "@legajo/bff/copy/es-AR-firm#firmEsAR.escalationEmail"
+      ],
+      "replacedBy": "console-escalations",
+      "replaceIn": "WP-34"
+    },
+    {
+      "id": "tour-approval",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/tour-approval/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-approval/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-approval/desktop-1440.avif",
+            "w": 1440
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/tour-approval/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/tour-approval/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/tour-approval/desktop-1440.webp",
+            "w": 1440
+          }
+        ],
+        "png": {
+          "src": "/landing/tour-approval/desktop.png",
+          "w": 1716,
+          "h": 1406
+        }
+      },
+      "status": "render",
+      "component": "packages/web/src/views/landing/SceneVisuals.tsx#ApprovalCard",
+      "textSources": [
+        "views/dossier/copy.ts#dossierCopy.approval.approve",
+        "@legajo/bff/copy/templates#renderTemplate"
+      ],
+      "replacedBy": "console-dossier-approval",
+      "replaceIn": "WP-34"
     }
-  }
+  ]
 }

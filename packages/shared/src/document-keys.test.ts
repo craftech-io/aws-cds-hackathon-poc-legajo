@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   documentsKeys,
+  guestKey,
+  guestWorldPrefix,
   mediaKeys,
+  parseGuestKey,
   parseSimMediaKey,
   parseSimMediaRef,
   parseUploadKey,
@@ -44,6 +47,11 @@ describe("Uploads keys", () => {
     expect(() => uploadsKeys.object("tok", "PACKING_LIST", "not-a-uuid")).toThrow(RangeError);
   });
 
+  it("accepts a base64url token that starts with - or _, and nothing else outside base64url", () => {
+    for (const token of ["_iggMeFtTEew", "-x9Q"]) expect(parseUploadKey(uploadsKeys.object(token, "PACKING_LIST", UUID))?.token).toBe(token);
+    for (const token of ["a/b", "", "tok.en"]) expect(() => uploadsKeys.linkPrefix(token)).toThrow(RangeError);
+  });
+
   it("parses nothing that is not exactly an upload of a document type", () => {
     for (const key of [
       `uploads/tok/BILL_OF_LADING/${UUID}.pdf`,
@@ -84,5 +92,27 @@ describe("Seed keys (docs/seed-spec.md §1)", () => {
     expect(seedKeys.worldTemplate("guest")).toBe("worlds/guest.json");
     expect(seedKeys.readerCatalog).toBe("reader/catalog.json");
     expect(seedKeys.batchInputs).toBe("metrics/batch-inputs.jsonl");
+  });
+});
+
+describe("[FL-109] guest world keys (ADR-0015 §4)", () => {
+  const PUBLIC = { guestKind: "PUBLIC", firmId: "firm-guest-41", epoch: 3 } as const;
+
+  it("prefix every Documents and Media key of a guest world with guest/<pub|res>/<firmId>/e<epoch>/", () => {
+    expect(guestWorldPrefix(PUBLIC)).toBe("guest/pub/firm-guest-41/e3/");
+    expect(guestWorldPrefix({ guestKind: "RESERVED", firmId: "firm-guest-07", epoch: 1 })).toBe("guest/res/firm-guest-07/e1/");
+    expect(guestKey(documentsKeys.version("op-4471", "PACKING_LIST", 1, SHA), PUBLIC)).toBe("guest/pub/firm-guest-41/e3/ops/op-4471/PACKING_LIST/v001-3f7a9c0e.pdf");
+    expect(() => guestWorldPrefix({ ...PUBLIC, epoch: 0 })).toThrow(RangeError);
+    expect(() => guestWorldPrefix({ ...PUBLIC, firmId: "../firm" })).toThrow();
+  });
+
+  it("parse back to their world; simulator media keeps resolving and upload keys never take the prefix", () => {
+    const media = guestKey(mediaKeys.simulator("msg-01J9ZQX", 1), PUBLIC);
+    expect(parseGuestKey(media)).toEqual({ ...PUBLIC, rest: "sim/msg-01J9ZQX/1.pdf" });
+    expect(parseSimMediaKey(media)).toEqual({ guest: PUBLIC, messageId: "msg-01J9ZQX", index: 1 });
+    expect(parseSimMediaRef(simMediaRef(media))).toBe(media);
+    expect(parseUploadKey(guestKey(uploadsKeys.object("tok", "PACKING_LIST", UUID), PUBLIC))).toBeUndefined();
+    expect(parseGuestKey("guest/pub/firm-guest-41/e0/sim/x/1.pdf")).toBeUndefined();
+    expect(parseGuestKey("ops/op-4471/PACKING_LIST/v001-3f7a9c0e.pdf")).toBeUndefined();
   });
 });

@@ -1,6 +1,7 @@
 // Root router of the console: one key per feature (docs/tool-catalog.md "Procedimientos de la
 // consola"), each built from the procedures of ./trpc, plus the public health probe the interim
-// smoke and `SC-00` call (`GET /api/health`). The web client is typed against `AppRouter`.
+// smoke and `SC-00` call (`GET /api/health`) and the public sign-up. The web client is typed against
+// `AppRouter`.
 import { accountRouter } from "./account";
 import { auditRouter } from "./audit";
 import { clockRouter } from "./clock";
@@ -10,6 +11,7 @@ import { mailboxRouter } from "./mailbox";
 import { metricsRouter } from "./metrics";
 import { operationsRouter } from "./operations";
 import { registryRouter } from "./registry";
+import { signupRouter } from "./signup";
 import { type Context, createCallerFactory, publicProcedure, router } from "./trpc";
 
 export const appRouter = router({
@@ -23,6 +25,8 @@ export const appRouter = router({
   metrics: metricsRouter,
   operations: operationsRouter,
   registry: registryRouter,
+  /** The public sign-up (ADR-0015 §1): no token, one procedure per request, never in a batch. */
+  signup: signupRouter,
 });
 
 export type AppRouter = typeof appRouter;

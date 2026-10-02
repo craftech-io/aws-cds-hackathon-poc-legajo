@@ -1,6 +1,7 @@
+import { PASSWORD_POLICY } from "@legajo/shared/password-policy";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { groupSecret, missingPasswordRules, normalizeTotpCode, otpauthUri } from "./credentials";
-import { TOKENS_KEY, isExpired, loadTokens, refreshTokens, restoreSession, revokeSession, safeReturnTo, saveTokens, type TokenSet } from "./tokens";
+import { SessionEndedError, TOKENS_KEY, isExpired, loadTokens, refreshTokens, restoreSession, revokeSession, safeReturnTo, saveTokens, type TokenSet } from "./tokens";
 
 class MemoryStorage {
   readonly items = new Map<string, string>();
@@ -85,6 +86,18 @@ describe("token set in sessionStorage", () => {
     await revokeSession({ revoke: async () => Promise.reject(new Error("offline")) }, FRESH);
     expect(loadTokens()).toBeUndefined();
   });
+
+  it("[FL-108] a refresh in flight when the person signs out never writes a token back", async () => {
+    const stale = { ...FRESH, expiresAt: Date.now() - 1 };
+    saveTokens(stale);
+    let answer: (value: { IdToken: string; AccessToken: string; ExpiresIn: number }) => void = () => undefined;
+    const cognito = { refresh: () => new Promise<{ IdToken: string; AccessToken: string; ExpiresIn: number }>((resolve) => (answer = resolve)) };
+    const pending = refreshTokens(cognito, stale);
+    await revokeSession({ revoke: async () => undefined }, stale);
+    answer({ IdToken: "id-late", AccessToken: "access-late", ExpiresIn: 900 });
+    await expect(pending).rejects.toBeInstanceOf(SessionEndedError);
+    expect(loadTokens()).toBeUndefined();
+  });
 });
 
 describe("safeReturnTo", () => {
@@ -100,6 +113,17 @@ describe("credentials helpers", () => {
   it("lists the password rules still missing", () => {
     expect(missingPasswordRules("abc")).toEqual(["length", "upper", "number", "symbol"]);
     expect(missingPasswordRules("Fixture-Password-1!")).toEqual([]);
+  });
+
+  it("counts only the letters Cognito counts as lower and upper case", () => {
+    expect(missingPasswordRules("ÑANDÚ-AÑOS-2026")).toContain("lower");
+    expect(missingPasswordRules("ñandú-años-2026")).toContain("upper");
+  });
+
+  it("takes the minimum length from the pool's policy", () => {
+    const short = `Aa1!${"x".repeat(PASSWORD_POLICY.minLength - 5)}`;
+    expect(missingPasswordRules(short)).toEqual(["length"]);
+    expect(missingPasswordRules(`${short}x`)).toEqual([]);
   });
 
   it("accepts a six-digit code with spaces and nothing else", () => {

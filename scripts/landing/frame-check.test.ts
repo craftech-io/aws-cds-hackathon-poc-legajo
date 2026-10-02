@@ -1,5 +1,6 @@
-// A frame of the landing is refused when its text shows a forbidden term, a token or a key, and the
-// refusal never repeats what it found (docs/design-brief.md §9).
+// A frame of the landing is refused when its text shows a forbidden term, a token, a key, an upload
+// link with its token or an email outside the demo's domains, and the refusal never repeats what it
+// found (ADR-0016 §4, docs/design-brief.md §9).
 import { describe, expect, it } from "vitest";
 import { parseTerms } from "../lint/forbidden-terms";
 import { NEUTRAL_PHRASE, NEUTRAL_WORDS } from "../lint/neutral-words";
@@ -30,6 +31,13 @@ describe("landing frame check", () => {
     const [word = ""] = NEUTRAL_WORDS;
     const text = ["Legajo listo", `Probá la demo del ${word}`, `built on ${NEUTRAL_PHRASE.toUpperCase()}`].join("\n");
     expect(frameProblems(text, [])).toEqual([`the neutral word "${word}" on line 2`, `the neutral word "${NEUTRAL_PHRASE}" on line 3`]);
+  });
+
+  it("accepts the demo's own addresses and refuses any other email, without repeating it", () => {
+    expect(frameProblems("s***@sim.legajo.demo.craftech.io\nop-4471-k7p2q9@legajo.demo.craftech.io", [])).toEqual([]);
+    const problems = frameProblems("ok\nwrite to someone@example.com", []);
+    expect(problems).toEqual(["an email address outside the demo's domains on line 2"]);
+    expect(problems.join()).not.toMatch(/example/);
   });
 
   it("fails closed without the list for a console capture, and only warns for a local render", () => {

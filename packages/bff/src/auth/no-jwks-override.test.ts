@@ -61,7 +61,8 @@ const INJECTION_HEADERS = {
 
 function eventWith(token: string) {
   return {
-    headers: { authorization: `Bearer ${token}`, ...INJECTION_HEADERS },
+    // Behind OAC the token travels in X-Legajo-Auth; whatever `Authorization` says is never a key source either.
+    headers: { "x-legajo-auth": `Bearer ${token}`, authorization: `Bearer ${forger.idToken()}`, ...INJECTION_HEADERS },
     requestContext: { requestId: "req-no-jwks-0001" },
     rawQueryString: `jwks_uri=${encodeURIComponent("https://keys.attacker.invalid/jwks.json")}`,
     body: JSON.stringify({ jwks: forger.jwks }),

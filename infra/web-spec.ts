@@ -55,6 +55,83 @@ export function lambdaRouteFor(uri: string): EdgeFunction | undefined {
   return candidates[0]?.[0];
 }
 
+// ---- Origin protection (ADR-0015 §3.1, docs/architecture.md §10) --------------------------------
+
+/**
+ * `oac`: the Router signs every request to a Lambda route with SigV4 (CloudFront Origin Access
+ * Control for Lambda, configured per request by the Router's function); every Function attached with
+ * `url.router` gets an `AWS_IAM` URL and a permission for `cloudfront.amazonaws.com` with the
+ * distribution as SourceArn (SST_OAC_VERIFIED). A request straight to a Function URL is refused by
+ * Lambda before the function runs. The signature replaces the viewer's `Authorization`, so the console
+ * sends its id token in `X-Legajo-Auth` and every POST carries `x-amz-content-sha256`.
+ */
+export const ROUTER_PROTECTION = "oac";
+
+/** Second control behind OAC: the handlers of Bff and PublicWeb compare it first, in constant time. */
+export const ORIGIN_VERIFY_HEADER = "x-origin-verify";
+
+/** Routes whose origin request carries `X-Origin-Verify`: the two Lambda routes, nothing else. */
+export const ORIGIN_VERIFIED_PREFIXES: readonly string[] = Object.values(LAMBDA_ROUTES);
+
+/** The secret's shape (32 random bytes in base64, docs/architecture.md §3); anything else fails the deploy. */
+const ORIGIN_VERIFY_VALUE = /^[A-Za-z0-9+/_=-]{32,128}$/;
+
+/**
+ * Code injected at the start of the Router's viewer-request function: sets `X-Origin-Verify` on the
+ * Lambda routes (a value the viewer sent is overwritten) and removes it everywhere else, so the static
+ * bucket never sees it. A header set there is a viewer header for the origin request policy, which
+ * forwards it. The value never appears in a message: an invalid secret fails without echoing it.
+ */
+export function originVerifyInjection(value: string): string {
+  if (!ORIGIN_VERIFY_VALUE.test(value)) throw new Error("the OriginVerifyKey secret must be 32 to 128 base64 characters (openssl rand -base64 32)");
+  const tests = ORIGIN_VERIFIED_PREFIXES.map((prefix) => `legajoOriginUri === "${prefix}" || legajoOriginUri.indexOf("${prefix}/") === 0`).join(" || ");
+  return [
+    "const legajoOriginUri = event.request.uri;",
+    `if (${tests}) {`,
+    `  event.request.headers["${ORIGIN_VERIFY_HEADER}"] = { value: ${JSON.stringify(value)} };`,
+    "} else {",
+    `  delete event.request.headers["${ORIGIN_VERIFY_HEADER}"];`,
+    "}",
+  ].join("\n");
+}
+
+/**
+ * Origin request policy of the Router's cache behavior: SST's lazy Router sets CloudFront's managed
+ * AllViewerExceptHostHeader. It forwards every viewer header but Host (so `X-Legajo-Auth`,
+ * `x-amz-content-sha256` and the `X-Origin-Verify` the viewer-request function sets) and "all device
+ * type and viewer location headers", among them `CloudFront-Viewer-Address`, the viewer's IP and port
+ * (CloudFront Developer Guide, "Use managed origin request policies" and "Viewer location headers",
+ * read on 2026-10-02). infra/web.ts fails the deploy if the behavior ever carries another policy.
+ */
+export const ORIGIN_REQUEST_POLICY = {
+  id: "b689b0a8-53d0-40ab-baf2-68738e2966ac",
+  name: "Managed-AllViewerExceptHostHeader",
+  forwards: ["x-legajo-auth", "x-amz-content-sha256", ORIGIN_VERIFY_HEADER, "cloudfront-viewer-address"],
+} as const;
+
+/** What was read in the pinned SST (4.17.1) to rely on `protection: "oac"` (web-spec.test.ts re-reads it). */
+export const SST_OAC_VERIFIED = {
+  verifiedOn: "2026-10-02",
+  function: ".sst/platform/src/components/aws/function.ts",
+  router: ".sst/platform/src/components/aws/router.ts",
+  facts: [
+    "a url.router route of a Router with protection oac gets authorizationType AWS_IAM",
+    "lambda.Permission InvokeFunctionUrl and InvokeFunction for cloudfront.amazonaws.com with the distribution ARN as sourceArn",
+    "the route metadata carries originAccessControlConfig signingBehavior always, sigv4, originType lambda",
+    "the lazy Router's cache behavior uses the origin request policy b689b0a8-53d0-40ab-baf2-68738e2966ac",
+  ],
+} as const;
+
+/**
+ * Checks of the first deploy of the wave, registered in its PR (ADR-0015 §3.2 and §3.3,
+ * docs/architecture.md §15 step 6). A failure stops the wave and goes to `architect`.
+ */
+export const FIRST_DEPLOY_CHECKS = [
+  "WAF's challenge interstitial loads and resolves on /signup under the console's response headers policy; if the CSP blocks it, /signup gets its own cache behavior and policy (ADR-0015 §3.3)",
+  "a curl straight to the Function URL of Bff and of PublicWeb answers 403",
+  "an error of AuthCustomMessage fails the call with UserLambdaValidationException and Cognito sends no email; otherwise plan B of ADR-0015 §3.2 with an ADR",
+] as const;
+
 // ---- Budgets -----------------------------------------------------------------------------------
 
 /** CloudFront's ceiling for the origin response timeout without a quota increase. */

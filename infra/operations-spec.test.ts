@@ -131,6 +131,19 @@ vi.mock("./agentcore", async () => {
   };
 });
 vi.mock("./bff", () => ({ bff: fake.once("sst.aws.Function", "Bff"), qaDriver: fake.once("sst.aws.Function", "QaDriver") }));
+vi.mock("./leads", async () => {
+  const spec = await vi.importActual<typeof import("./leads-spec")>("./leads-spec");
+  const linked: Record<string, () => object> = {
+    Leads: () => fake.linkable("Leads", []), LeadNotice: () => fake.once("sst.aws.Function", "LeadNotice"),
+    Auth: () => fake.linkable("Auth", ["cognito-idp:AdminGetUser"]), GuestObjects: () => fake.linkable("GuestObjects", ["s3:DeleteObject", "s3:ListBucket"]),
+  };
+  return {
+    signupGrants: (fn: "WorldJanitor") => ({
+      link: spec.SIGNUP_GRANT_LINKS[fn].map((name) => linked[name]?.() ?? fake.once("sst.Linkable", name)),
+      permissions: [spec.leadsStatement(fn, "LeadsData.arn"), spec.cognitoStatement(fn, "UserPool.arn")],
+    }),
+  };
+});
 
 let operations: typeof import("./operations");
 let scheduler: typeof import("./scheduler");
@@ -320,15 +333,17 @@ describe("WorldJanitor", () => {
   it("12 minutes; WORLDS: its tables, Seed and Media, Platform only by name plus the fenced statement, timers and Memory", async () => {
     const janitor = await fnArgs("WorldJanitor");
     expect(janitor).toMatchObject({ handler: "packages/bff/src/handlers/world-janitor.handler", timeout: "720 seconds" });
-    expect(janitor.permissions).toEqual([fake.platformStatement]);
+    const { cognitoStatement, leadsStatement } = await vi.importActual<typeof import("./leads-spec")>("./leads-spec");
+    expect(janitor.permissions).toEqual([fake.platformStatement, leadsStatement("WorldJanitor", "LeadsData.arn"), cognitoStatement("WorldJanitor", "UserPool.arn")]);
     expect(linkNames(janitor.link)).toEqual([
       ...stored("WorldJanitor"),
-      ...["Platform", "Scheduler", "SessionTokenKey", "SeedOverrides", "Agent"],
+      ...["Platform", "Scheduler", "SessionTokenKey", "SeedOverrides", "Leads", "LeadNotice", "Auth", "GuestObjects", "Agent"],
     ]);
   });
 
-  it("resets idle guest worlds every night with its own event", async () => {
-    expect(await fake.args("sst.aws.Cron", "WorldJanitorNightly")).toEqual({ function: "WorldJanitor.arn", schedule: "cron(0 7 * * ? *)", event: { kind: "IDLE_GUEST_RESET" } });
+  it("has the nightly reset of idle guest worlds, disabled until WP-31, and the hourly GUEST_SWEEP", async () => {
+    expect(await fake.args("sst.aws.Cron", "WorldJanitorNightly")).toEqual({ function: "WorldJanitor.arn", schedule: "cron(0 7 * * ? *)", event: { kind: "IDLE_GUEST_RESET" }, enabled: false });
+    expect(await fake.args("sst.aws.Cron", "WorldJanitorGuestSweep")).toEqual({ function: "WorldJanitor.arn", schedule: "rate(1 hour)", event: { kind: "GUEST_SWEEP" } });
   });
 
   it("its resource policy admits MEMORY_PURGE only from the roles of Bff and QaDriver", async () => {

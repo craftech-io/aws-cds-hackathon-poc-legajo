@@ -19,6 +19,7 @@ export const EMAIL_SENDER_LINKS: Readonly<Record<SenderProfile, string>> = {
   SYSTEM: "EmailSenderSystem",
   SIMULATOR: "EmailSenderSimulator",
   QA: "EmailSenderQa",
+  LEAD_NOTICE: "EmailSenderLeadNotice",
 };
 export const INBOUND_MAIL_OPS_LINK = "InboundMailOps";
 export const QUARANTINE_LINK = "DocumentsQuarantine";

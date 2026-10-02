@@ -79,7 +79,7 @@ Idioma de este doc: español (Argentina). Los textos visibles van en §2 y §8, 
 | 11 | CTA final | `#start` | ¿Cómo lo pruebo? | "Probar la demo", "Ingresar", "Hablemos" y "Powered by Craftech" |
 
 El header fijo muestra: wordmark "Legajo listo", enlaces a `#tour`, `#guarantees`, `#integrations`, `#demo`, `#faq`
-(≥ 1024 px), toggle es/en, "Ingresar" (enlace) y el CTA primario (botón "Probar la demo"). En < 1024 px los enlaces van a un menú (`<details>` o botón con `aria-expanded`), y el CTA primario sigue
+(≥ 1280 px), toggle es/en, "Ingresar" (enlace) y el CTA primario (botón "Probar la demo"). En < 1280 px los enlaces van a un menú (`<details>` o botón con `aria-expanded`), y el CTA primario sigue
 visible.
 
 ### 1.3 Los 3 dolores
@@ -635,7 +635,8 @@ Los `@keyframes` viven dentro de `@theme` como hoy (`scene-in`, `scene-progress`
   texto centrado verticalmente); derecha, el **escenario** `position: sticky; top: calc(var(--header-h) + 2rem)`, alto
   `min(80vh, 44rem)`, con el visual del paso activo.
 - Paso activo: `IntersectionObserver` con `rootMargin: "-45% 0px -45% 0px"` sobre cada paso (una sola instancia). El paso
-  activo sube a opacidad 1 y los demás quedan en 0,45; su índice se refleja en `aria-current="step"`.
+  activo queda con el color pleno del texto y los demás se atenúan por color (`foam-muted`, contraste AA), nunca por
+  opacidad (el texto con opacidad 0,45 no pasa AA en axe); su índice se refleja en `aria-current="step"`.
 - Cambio de visual: `document.startViewTransition(() => setActive(i))` con `view-transition-name: tour-stage` en el
   escenario (crossfade + `translateY(12px)` en 480 ms `--ease-in-out-soft`). Sin soporte de View Transitions: el visual
   saliente hace `--animate-stage-out` y el entrante `--animate-stage-in`, superpuestos en una grilla de una celda.
@@ -732,7 +733,7 @@ texto del recorrido, la conversación completa y los valores finales de las meta
 
 | Sección | 360 px | 390 px | 768 px | 1024 px | 1440 px + |
 |---|---|---|---|---|---|
-| Header | Wordmark, CTA primario (compacto: "Probar"/"Try"), menú | Igual que 360 | Wordmark, toggle es/en, "Ingresar", "Probar la demo", menú | Wordmark, 4 enlaces, toggle, "Ingresar", "Probar la demo" | Igual que 1024, contenido centrado en `--container-content` |
+| Header | Wordmark, CTA primario (compacto: "Probar"/"Try"), menú | Igual que 360 | Wordmark, toggle es/en, "Ingresar", "Probar la demo", menú | Igual que 768 (los enlaces siguen en el menú: a 1024 px cinco enlaces más los controles desbordan) | Desde 1280 px: wordmark, los 5 enlaces, toggle, "Ingresar", "Probar la demo", contenido centrado en `--container-content` |
 | Hero | Una columna: eyebrow, título, lead, CTAs apilados a ancho completo, trust en lista; teléfono debajo, ancho ≤ 300 px | Igual, teléfono ≤ 320 px | Una columna con CTAs en fila; teléfono centrado ≤ 340 px | Dos columnas 7/5: texto a la izquierda, teléfono a la derecha | Igual, teléfono ≤ 380 px; fondo con grilla a sangre |
 | Problema | Tarjetas apiladas; línea de tiempo horizontal compacta (4 marcas) | Igual | 3 tarjetas en 2 + 1 | 3 tarjetas en fila; línea de tiempo a ancho completo | Igual |
 | Recorrido | Carrusel (§4.3) | Carrusel | Pasos apilados | Sticky de dos columnas 5/7 | Igual, escenario ≤ 44 rem de alto |
@@ -783,11 +784,19 @@ cuando son botones, enlaces del footer con padding); tipografía fluida con `cla
 | LCP | < 2,5 s en 4G lenta emulada (Lighthouse mobile, `simulate`) sobre `poc` | Lighthouse CI en el job de verificación post-deploy (no bloquea el deploy; falla el check de `qa`) |
 | CLS | < 0,05 | Idem |
 | INP | < 200 ms | Idem (TBT < 200 ms como proxy) |
-| JS del chunk de landing + acceso | ≤ 90 KB gzip (sin la consola, que es otro chunk) | `vite build` + script `scripts/landing/bundle-budget.ts` que falla por encima |
+| JS propio de landing + acceso | ≤ 90 KB gzip: el chunk de entrada y lo que importa de forma estática, sin la consola (otro chunk) ni el runtime de terceros | `vite build` + script `scripts/landing/bundle-budget.ts` que falla por encima |
+| JS de terceros que `/` descarga antes de pintar | ≤ 100 KB gzip: chunks `vendor-react` (React 19, `react-dom`, `scheduler`) y `vendor-data` (zod, tRPC), separados por `packages/web/vite.config.ts` | Idem (el script informa también el total de `/`) |
 | CSS total | ≤ 35 KB gzip | Idem |
 | Fuente | ≤ 45 KB (`latin` + `latin-ext`) | Idem |
 | Imágenes del hero | Ninguna imagen raster: el teléfono es HTML/CSS | — |
 | Imágenes bajo el pliegue | AVIF con fallback WebP, `srcset` por ancho (desktop 480, 960, 1440 y 1920; mobile 390 y 780, los de ADR-0016 §4), `sizes` por layout, `loading="lazy"`, `decoding="async"`, `width`/`height` del manifiesto | `render-visuals.ts`/`capture-console.ts` generan las variantes |
+
+Decisión del presupuesto de JS (integración de la etapa A2, 2026-10-02; la confirma `architect`): React 19 solo pesa
+unos 66 KB gzip y zod más tRPC unos 31 KB, así que ningún reparto de chunks deja "landing + acceso" en 90 KB contando el
+runtime. El presupuesto de 90 KB mide el código propio (el que crece con cada cambio de la landing y del acceso) y el
+runtime de terceros tiene su propio tope de 100 KB, que solo cambia con una actualización de dependencias. El medidor
+real de la experiencia sigue siendo el LCP de Lighthouse sobre `poc` de la fila de arriba. Al integrar A2: propio 82,4 KB,
+terceros 96,5 KB, total 179 KB gzip.
 
 Reglas: el LCP es el `h1` del hero (texto), así que no depende de imágenes; el manifiesto se pide después del primer
 render (ya es así); nada de JS bloqueante en `<head>` salvo el módulo de Vite; `preload` solo de la fuente `latin`;
@@ -907,8 +916,9 @@ con Escape, con X y con clic afuera, y verifica el foco devuelto.
 
 **Capturas de páginas reales servidas en local** (`render-visuals.ts`, ADR-0016 §4; estado `capture`, origen `local`,
 con rótulo "Entorno local, agente guionado" hasta que WP-36 las tome en `poc`): `upload-page` y `upload-done` (página
-real de carga, variante `mobile`) y `og-card` (la propia landing servida en local, recortada a 1200 × 630, es y en; es
-una captura de una página real, como pide ADR-0016 §1 para Open Graph, no un dibujo).
+real de carga, variante `mobile`) y `og-card` (la propia landing servida en local, recortada a 1200 × 630; es una
+captura de una página real, como pide ADR-0016 §1 para Open Graph, no un dibujo). `og-card` existe solo en español: el
+patrón `src` del manifiesto no lleva idioma y `og:image` es uno solo para las dos versiones.
 
 **Renders animados** (estado `render`: componente vivo en la página + un cuadro estático generado por
 `render-visuals.ts`, que es lo que el manifiesto sirve para "Ampliar", para `prefers-reduced-motion` y para la galería
@@ -1009,6 +1019,11 @@ replacedBy?, replaceIn? }`. Reglas:
 - `src` valida el patrón `^/landing/[a-z0-9-]+/(desktop|mobile)(-\d+)?\.(avif|webp|png)$`.
 - `moment` (momento del mundo) **no** va en el manifiesto: vive en `scripts/landing/captures.json` (§7.2), que es la
   entrada de `capture-console.ts`.
+- Una entrada de `captures.json` puede llevar `pending` (texto con el motivo y el WP que lo destraba) cuando la vista
+  todavía no se puede capturar porque falta una pieza de otra ola: `capture-console.ts` la saltea, `landing:check` la
+  informa como pendiente en vez de exigirla y los renders `zoom` que la nombran en `replacedBy` siguen con su cuadro
+  propio. Hoy: `console-simulator`, hasta que WP-33 registre `simulator.*` en `appRouter`; quien lo registra borra
+  `pending` y toma la captura con `--target local --only console-simulator`.
 
 **2. `scripts/landing/renders.json`** (fuera de `public/`; es la lista de renders que pidió el CTO): un objeto por render
 con los campos de ADR-0016 §3 más `policy` y `until`.
@@ -1329,7 +1344,7 @@ ningún texto de §8 contenga un número de límite escrito a mano.
 | Paso | UX |
 |---|---|
 | `/forgot` | Campo email o usuario; `ForgotPassword` desde el navegador (FL-107). **Cualquier** respuesta que no sea un error de red (éxito, `UserLambdaValidationException` por la cuota de emails de cuenta de ADR-0015 §3.2, `LimitExceededException`) muestra el mismo `forgot.sent` y pasa a `/forgot/reset`; con `PreventUserExistenceErrors` Cognito no revela nada, y la pantalla tampoco |
-| `/forgot/reset` | Código (mismo input de §8.3) + contraseña nueva con checklist; reenvío con la misma espera que el alta (`RESEND_COOLDOWN_SEC` de `guest-limits.ts`, hoy 60 s); éxito → `/login?reset=1`. El código vence a la hora (§8.10) |
+| `/forgot/reset` | Código (mismo input de §8.3) + contraseña nueva con checklist; reenvío con la misma espera que el alta (`RESEND_WAIT_SECONDS` de `guest-limits.ts`, hoy 60 s); éxito → `/login?reset=1`. El código vence a la hora (§8.10) |
 | Cuentas `GUEST` de las instrucciones privadas (`guest-NN`) | Sin email: la recuperación no aplica; el texto general lo cubre ("Si hay una cuenta…") |
 
 | Clave | es-AR | en |
@@ -1397,14 +1412,15 @@ escanea `public/legal/`).
 **Emails de cuenta** (ADR-0015 §7): los arma el trigger `AuthCustomMessage` con las plantillas de
 `packages/bff/src/auth-triggers/messages/` (se mudan desde `infra/auth-email.ts`) en el idioma de `locale` (o
 `ClientMetadata.lang`), y los envía Cognito desde `Legajo listo <no-reply@legajo.demo.craftech.io>` con el
-configuration set `…-email-poc`. Todas llevan `{####}`, "Si no lo pediste, ignorá este mensaje" y el pie
+configuration set `…-email-poc`. Todas llevan `{####}` en el cuerpo (nunca en el asunto: Cognito reemplaza el código
+solo en el cuerpo), "Si no lo pediste, ignorá este mensaje" y el pie
 "Legajo listo · Powered by Craftech · datos 100 % sintéticos" con el enlace a la política de privacidad. Sin enlaces
 fuera del dominio de la demo, sin nombres de roles, sin vocabulario de §2.0. Las cuotas por destinatario, dominio y
 total, el estado de rebote y el disyuntor (ADR-0015 §3.2) pueden hacer que un email no salga: la pantalla nunca lo dice.
 
 | Mensaje | Asunto es-AR | Asunto en | Cuerpo (resumen) |
 |---|---|---|---|
-| Código de alta (y su reenvío) | Tu código para Legajo listo: {####} | Your Legajo listo code: {####} | El código, que vence en 24 h, y "Si no lo pediste, ignorá este mensaje" |
+| Código de alta (y su reenvío) | Tu código para Legajo listo | Your Legajo listo code | El código, que vence en 24 h, y "Si no lo pediste, ignorá este mensaje" |
 | Recuperación de contraseña | Cambiá tu contraseña de Legajo listo | Change your Legajo listo password | El código, que vence en 1 h, y "Si no lo pediste, ignorá este mensaje: tu contraseña no cambia" |
 | Ya tenés una cuenta (`intent: "signup-existing"`) | Ya tenés una cuenta en Legajo listo | You already have a Legajo listo account | "Ya tenés una cuenta en Legajo listo; si fuiste vos, usá este código para entrar con la contraseña que acabás de elegir: {####}. Si no lo pediste, ignorá este mensaje: tu contraseña no cambia." |
 | Invitación del personal interno (`AdminCreateUser`) | Tu acceso a Legajo listo | Your Legajo listo access | Usuario, contraseña temporal `{####}` y el enlace a `/login`; nunca se envía a un `GUEST` público |

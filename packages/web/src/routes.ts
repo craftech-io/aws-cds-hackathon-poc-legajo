@@ -36,10 +36,23 @@ export const ROUTES: readonly ConsoleRoute[] = [
   { id: "audit", path: `${CONSOLE_PREFIX}/audit`, group: "control", roles: "ALL" },
 ];
 
-export const LOGIN_PATH = "/login";
-
-/** The public welcome page of the demo (views/landing). */
+/** The public landing of the demo (views/landing). */
 export const LANDING_PATH = "/";
+
+// Access screens (docs/landing-spec.md D-01, views/auth): one URL per screen, all `noindex`.
+export const SIGNUP_PATH = "/signup";
+export const SIGNUP_VERIFY_PATH = "/signup/verify";
+export const LOGIN_PATH = "/login";
+export const FORGOT_PATH = "/forgot";
+export const FORGOT_RESET_PATH = "/forgot/reset";
+/** "Preparando tu mundo": a guest without a live world waits here (ADR-0015 §4). */
+export const WELCOME_PATH = "/welcome";
+
+export const ACCESS_PATHS: readonly string[] = [SIGNUP_PATH, SIGNUP_VERIFY_PATH, LOGIN_PATH, FORGOT_PATH, FORGOT_RESET_PATH, WELCOME_PATH];
+
+/** Where a sign-out lands: the landing with its "Cerraste sesión" notice (FL-108). */
+export const SIGNED_OUT_PARAM = "signedOut";
+export const SIGNED_OUT_PATH = `${LANDING_PATH}?${SIGNED_OUT_PARAM}=1`;
 
 /** Where a sign-in lands when nothing asked for another view. */
 export const CONSOLE_HOME = `${CONSOLE_PREFIX}/operations`;

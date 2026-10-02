@@ -15,6 +15,13 @@
 //              world that is not an ACTIVE contact of the destination's supplier. To `qa-*@sim…`, or an
 //              `op-*@` address of a `qa-*` clock or of no operation at all (an unknown number or a tag
 //              that does not verify); an address of a demo, guest or `GLOBAL#firm-qa` world is refused.
+//   LEAD_NOTICE  From `avisos@legajo…`; to `<local>@craftech.io` with the domain exactly `craftech.io`
+//              (no subdomain, no look-alike suffix), the mailboxes of the `LeadNoticeTo` secret only
+//              (ADR-0015 §6). No clock: it never writes a pending mail (outbound.ts).
+//
+// A SYSTEM mail of a guest world (`GUEST#*`) reaches only the simulated mailboxes and SES's
+// simulator, never a registered demo recipient: a guest's product emails end in its demo mailbox
+// (ADR-0015 §4, "Solo datos sintéticos").
 //
 // A `From` that does not match its profile is `INVALID`; a recipient outside the profile's set is
 // `RECIPIENT_NOT_ALLOWED`. outbound/recipient-fence.ts (the pipeline) and the `QaDriver`'s
@@ -30,9 +37,13 @@ export type SimulatorPurpose =
   | { readonly kind: "REPLY"; readonly answered: { readonly from: string; readonly to: string } }
   | { readonly kind: "SEND_NOW"; readonly operationId: string };
 
+/** The only domain the lead notice may write to; a subdomain or a longer name is another domain. */
+export const LEAD_NOTICE_DOMAIN = "craftech.io";
+
 export type FenceIntent =
-  /** `operationId`: the operation a mail from its thread address is about (required with an `op-*` From). */
-  | { readonly profile: "SYSTEM"; readonly from: string; readonly to: string; readonly operationId?: string }
+  /** `operationId`: the operation a mail from its thread address is about (required with an `op-*` From); `clockId`: its world. */
+  | { readonly profile: "SYSTEM"; readonly from: string; readonly to: string; readonly operationId?: string; readonly clockId?: string }
+  | { readonly profile: "LEAD_NOTICE"; readonly from: string; readonly to: string }
   | { readonly profile: "SIMULATOR"; readonly from: string; readonly to: string; readonly purpose: SimulatorPurpose }
   | { readonly profile: "QA"; readonly from: string; readonly to: string };
 
@@ -49,6 +60,8 @@ export const FENCE_REASONS = [
   "QA_RECIPIENT",
   "QA_FROM",
   "QA_FROM_ACTIVE_CONTACT",
+  "LEAD_NOTICE_FROM",
+  "LEAD_NOTICE_RECIPIENT",
 ] as const;
 export type FenceReason = (typeof FENCE_REASONS)[number];
 
@@ -85,12 +98,21 @@ async function systemFromMatches(deps: FenceDeps, from: ParsedAddress, operation
   return resolution.status === "RESOLVED" && resolution.operation.operationId === operationId;
 }
 
-async function systemFence(deps: FenceDeps, from: ParsedAddress, to: ParsedAddress, operationId: string | undefined): Promise<FenceDecision> {
+async function systemFence(deps: FenceDeps, from: ParsedAddress, to: ParsedAddress, operationId: string | undefined, clockId: string | undefined): Promise<FenceDecision> {
   if (!(await systemFromMatches(deps, from, operationId))) return invalid("SYSTEM_FROM");
   if (parseThreadAddress(to.address) !== undefined) return notAllowed("SYSTEM_TO_THREAD");
   if (to.domain === SIM_MAIL_DOMAIN) return { allowed: true, from, to, awaiting: "SIMMAIL" };
-  if (to.domain === SES_MAILBOX_SIMULATOR_DOMAIN || deps.demoRecipients().includes(to.address)) return { allowed: true, from, to, awaiting: "SES_EVENT" };
+  if (to.domain === SES_MAILBOX_SIMULATOR_DOMAIN) return { allowed: true, from, to, awaiting: "SES_EVENT" };
+  const guestWorld = clockId !== undefined && parseClockId(clockId)?.scope === "GUEST";
+  if (!guestWorld && deps.demoRecipients().includes(to.address)) return { allowed: true, from, to, awaiting: "SES_EVENT" };
   return notAllowed("SYSTEM_RECIPIENT");
+}
+
+function leadNoticeFence(from: ParsedAddress, to: ParsedAddress): FenceDecision {
+  if (from.address !== NOTICES_ADDRESS) return invalid("LEAD_NOTICE_FROM");
+  if (to.domain !== LEAD_NOTICE_DOMAIN) return notAllowed("LEAD_NOTICE_RECIPIENT");
+  // Its bounces and complaints come back as SES events (channels/email/mail-status.ts); nothing waits for it.
+  return { allowed: true, from, to, awaiting: "SES_EVENT" };
 }
 
 async function simulatorFence(deps: FenceDeps, from: ParsedAddress, to: ParsedAddress, purpose: SimulatorPurpose): Promise<FenceDecision> {
@@ -135,7 +157,9 @@ export async function checkFence(deps: FenceDeps, intent: FenceIntent): Promise<
   if (isReserved(to.value)) return notAllowed("RESERVED_DOMAIN");
   switch (intent.profile) {
     case "SYSTEM":
-      return systemFence(deps, from.value, to.value, intent.operationId);
+      return systemFence(deps, from.value, to.value, intent.operationId, intent.clockId);
+    case "LEAD_NOTICE":
+      return leadNoticeFence(from.value, to.value);
     case "SIMULATOR":
       return simulatorFence(deps, from.value, to.value, intent.purpose);
     case "QA":

@@ -1,8 +1,9 @@
-// Entry of the local UI server that Playwright's `console` project starts
-// (packages/web/e2e/playwright.config.ts): Vite serves the console, and the back half (app.ts) answers
-// `/api`, `/u` and `/s3` on the same origin, as the Router does in the stage. Configuration comes
-// from the runner: the port, the placeholder pool of the build and the run's JWKS (never a key of a
-// real pool). It listens on 127.0.0.1 only.
+// Entry of the local UI server that Playwright's console and public-surface projects start
+// (packages/web/e2e/playwright.config.ts): Vite serves the web, and the back half (app.ts) answers
+// `/api`, `/u` and `/s3` on the same origin, as the Router does in the stage, plus the routes that
+// exist only here (the user pool's browser API and the test switches, auth/test-routes.ts).
+// Configuration comes from the runner: the port, the placeholder pool of the build and the run's JWKS
+// (never a key of a real pool). It listens on 127.0.0.1 only.
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { createServer as createViteServer } from "vite";

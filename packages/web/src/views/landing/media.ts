@@ -1,9 +1,9 @@
-// The landing's pictures at run time: public/landing/manifest.json (shape in manifest.ts) read once per
-// visit and parsed with zod, so a picture changes without touching code. If the manifest cannot be
-// read the landing simply shows no pictures.
+// The landing's pictures at run time: public/landing/manifest.json (version 2, manifest.ts) read once per
+// visit after the first render and parsed with zod, so a picture changes without touching code. If the
+// manifest cannot be read the landing simply shows no pictures and says so where the gallery would be.
 import { useEffect, useState } from "react";
 import { fetchWithRetry } from "../../lib/http";
-import { LandingManifest, type MediaId, type MediaItem, mediaIdsIn } from "./manifest";
+import { LandingManifest } from "./manifest";
 
 export const MANIFEST_URL = "/landing/manifest.json";
 
@@ -37,13 +37,4 @@ export function useLandingMedia(): MediaState {
     };
   }, []);
   return state;
-}
-
-export function mediaOf(state: MediaState, id: MediaId): MediaItem | undefined {
-  return state.status === "ready" ? state.manifest.media[id] : undefined;
-}
-
-/** Ids of the pictures the manifest has, in gallery order; none until it is read. */
-export function mediaIdsOf(state: MediaState): MediaId[] {
-  return state.status === "ready" ? mediaIdsIn(state.manifest) : [];
 }

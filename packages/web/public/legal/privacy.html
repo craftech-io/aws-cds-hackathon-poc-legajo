@@ -4,114 +4,169 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Política de privacidad · Legajo listo</title>
-<meta name="description" content="Política de privacidad de Legajo listo, prueba de concepto de Craftech con datos sintéticos. Privacy policy of Legajo listo, a Craftech proof of concept with synthetic data.">
+<meta name="description" content="Qué datos guarda Craftech cuando creás una cuenta en la demo de Legajo listo, para qué, dónde, por cuánto tiempo y cómo ejercer tus derechos. What data Craftech keeps when you create a Legajo listo demo account, why, where, for how long and how to exercise your rights.">
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg">
-<style>
-:root{color-scheme:light;--navy:#0b1f3a;--cyan:#12b5d9;--cyan-deep:#0a7f99;--cyan-soft:#d8f4fa;--ink:#111a2b;--slate:#5a6a80;--mist:#e4e9f0;--paper:#f5f7fa}
-*{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
-header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap}
-.lockup{display:flex;align-items:center;gap:12px;text-decoration:none}
-.brand{font-weight:700;font-size:18px;color:#fff;white-space:nowrap}.brand span{color:var(--cyan)}
-.badge{font-size:12px;color:var(--cyan-soft)}
-.badge a{color:var(--cyan-soft)}
-main{max-width:760px;margin:24px auto;padding:0 16px}
-article,section.version{background:#fff;border:1px solid var(--mist);border-radius:12px;box-shadow:0 1px 2px rgb(11 31 58/.06),0 4px 12px rgb(11 31 58/.06);padding:28px;margin-bottom:24px}
-h1{font-size:26px;line-height:1.25;margin:0 0 4px;color:var(--navy)}
-h2{font-size:18px;margin:28px 0 8px;color:var(--navy)}
-p,li{margin:0 0 10px}ul{padding-left:22px}
-.muted{color:var(--slate);font-size:14px}
-.notice{background:var(--cyan-soft);border-radius:10px;padding:12px 14px;margin:16px 0}
-a{color:var(--cyan-deep)}
-footer{max-width:760px;margin:0 auto 32px;padding:16px;font-size:13px;color:var(--slate)}
-.powered{display:inline-flex;align-items:center;gap:8px;margin-top:10px;color:var(--slate);text-decoration:none;font-size:12px}.powered img{display:block;height:20px;width:auto}
-</style>
+<link rel="stylesheet" href="/legal/legal.css">
 </head>
 <body>
-<header><a class="lockup" href="/"><span class="brand">Legajo <span>listo</span></span></a><div class="badge">Prueba de concepto · datos sintéticos · <a href="#en">English</a></div></header>
+<a class="skip" href="#es">Saltar al texto</a>
+<header class="band">
+<div class="band-inner">
+<a class="wordmark" href="/">Legajo <span>listo</span></a>
+<nav aria-label="Idioma / Language">
+<ul>
+<li><a href="#es" hreflang="es" lang="es">Español</a></li>
+<li><a href="#en" hreflang="en" lang="en">English</a></li>
+</ul>
+</nav>
+</div>
+</header>
 <main>
-<article>
-<h1>Política de privacidad</h1>
-<p class="muted">Última actualización: 26 de septiembre de 2026</p>
+<section id="es" lang="es" class="doc" aria-labelledby="es-title">
+<h1 id="es-title">Política de privacidad</h1>
+<p class="version"><span>Versión <strong data-legal-version="privacy">2026-10-02</strong></span><span>Vigente desde el <time datetime="2026-10-02">2 de octubre de 2026</time></span></p>
+<p class="summary">Legajo listo es una demo de Craftech que funciona con datos 100 % sintéticos. Esta política explica qué datos tuyos guardamos cuando creás una cuenta para probarla, para qué los usamos, dónde y por cuánto tiempo, y cómo pedir que los corrijamos o los borremos. Se aplica la Ley 25.326 de Protección de los Datos Personales de la Argentina, también si nos visitás desde otro país.</p>
 
-<div class="notice"><strong>Esto es una prueba de concepto.</strong> Legajo listo es una demo de Craftech que funciona con datos 100 % sintéticos: los estudios, importadores, proveedores, operaciones y documentos son inventados. Los mensajes solo llegan a buzones propios de la demo, al simulador de casillas de Amazon SES y a destinatarios de prueba registrados por el equipo.</div>
-
-<h2>1. Qué es Legajo listo</h2>
-<p>Legajo listo es un agente de coordinación para estudios de despachantes de aduana. Pide la factura comercial, el packing list y el certificado de origen de cada importación: al importador por WhatsApp (en esta demo, con un simulador de teléfono) y al proveedor extranjero por email. Cada documento pasa por un lector documental externo; el agente decide quién corrige cada observación y deja el legajo listo para que el despachante lo apruebe. La aprobación es siempre de una persona.</p>
-
-<h2>2. Quién es responsable</h2>
-<p>El responsable del tratamiento de los datos de esta demo es <strong>Craftech</strong> (<a href="https://craftech.io">craftech.io</a>), que la opera. En un uso productivo, cada estudio es responsable de los datos de sus clientes y proveedores y Craftech actúa como encargada del tratamiento, siguiendo sus instrucciones.</p>
-
-<h2>3. Qué datos tratamos y para qué</h2>
-<ul>
-<li><strong>Teléfono del importador y email de los contactos del proveedor</strong>, registrados por el estudio: para reconocer quién escribe y para responder por el mismo medio. Los registros técnicos no guardan teléfonos ni emails: usan un identificador derivado de la dirección.</li>
-<li><strong>Consentimiento para WhatsApp</strong>, con el texto aceptado, el medio y la fecha: sin él, el agente no escribe por WhatsApp.</li>
-<li><strong>Mensajes y documentos</strong> de cada operación: para completar el legajo. Antes de guardarse se enmascaran CUIT, DNI, CBU, tarjetas e IBAN. Nunca pedimos documentos de identidad, datos bancarios ni claves fiscales por chat.</li>
-<li><strong>Bitácora de decisiones</strong>: qué hizo el agente, qué regla aplicó y quién intervino, para que el estudio pueda auditarlo.</li>
+<h2 id="es-controller">1. Quién es responsable</h2>
+<p><strong>Craftech</strong> es responsable de la base de datos de las cuentas de esta demo y decide para qué se usan los datos.</p>
+<ul class="facts">
+<li><b>Razón social</b><span class="pending" data-pending="P-06">pendiente de publicación</span></li>
+<li><b>Domicilio</b><span class="pending" data-pending="P-06">pendiente de publicación</span></li>
+<li><b>Casilla de privacidad</b><span class="pending" data-pending="P-06">pendiente de publicación</span></li>
 </ul>
-<p>No vendemos datos ni los usamos para publicidad. No usamos cookies ni scripts de terceros en las páginas públicas.</p>
+<p>Por esa casilla atendemos los pedidos de acceso, rectificación, actualización y supresión, y el retiro del consentimiento de contacto (punto 6).</p>
 
-<h2>4. Dónde se procesan</h2>
-<p>Los datos se procesan en Amazon Web Services, región <code>us-east-1</code> (Virginia del Norte, Estados Unidos). Para un uso productivo, la transferencia internacional requiere el consentimiento del titular o las garantías que exige la Ley 25.326 (art. 12). Esta prueba de concepto procesa exclusivamente datos sintéticos.</p>
-
-<h2>5. Cómo dejar de recibir mensajes</h2>
+<h2 id="es-data">2. Qué datos guardamos</h2>
 <ul>
-<li><strong>WhatsApp</strong>: tocá <strong>No recibir avisos</strong> o respondé <strong>BAJA</strong>. Confirmamos la baja y el agente no vuelve a escribirte por ese canal.</li>
-<li>También podés pedírselo al estudio que te registró.</li>
+<li>Tu <strong>email</strong> y tu <strong>contraseña</strong>. La contraseña la guarda Amazon Cognito como un hash: Craftech no la ve ni la almacena.</li>
+<li>Tu <strong>nombre</strong>, tu <strong>empresa</strong> y tu <strong>cargo</strong>, solo si los escribiste: son opcionales.</li>
+<li>Tus dos <strong>consentimientos</strong> (términos y privacidad; contacto de Craftech), cada uno con la fecha, la versión del texto que aceptaste y el idioma.</li>
+<li>El <strong>idioma</strong> de la página, el <strong>origen de tu visita</strong> (los parámetros UTM y el sitio desde el que llegaste, sin ruta ni parámetros) y las fechas de <strong>alta</strong> y de tu <strong>último ingreso</strong>.</li>
+<li>Si un email de tu cuenta rebota o lo marcás como no deseado, <strong>ese estado</strong>, para no volver a escribirte.</li>
+<li>Datos técnicos para prevenir abusos: tu <strong>dirección IP convertida en un código no reversible</strong>, que guardamos <span data-limit="rate-counter-hours">48</span> horas, y la <strong>cookie técnica del filtro de bots</strong> de la página de alta, que no sirve para seguirte.</li>
 </ul>
+<p>Tu registro se guarda recién cuando verificás tu email con el código que te enviamos. Mientras completás el alta, los datos del formulario se guardan <span data-limit="signup-pending-hours">24</span> horas como máximo, y tu contraseña se guarda cifrada solo los segundos que tarda en crearse la cuenta.</p>
+<p>No usamos cookies de publicidad ni herramientas de analítica de terceros. El origen de tu visita queda en el almacenamiento de la pestaña, no en una cookie, hasta que enviás el formulario.</p>
 
-<h2>6. Tus derechos</h2>
-<p><strong>Argentina (Ley 25.326):</strong> podés pedir acceso a tus datos, su rectificación, actualización o supresión. La Agencia de Acceso a la Información Pública, órgano de control de la Ley 25.326, atiende las denuncias y reclamos por incumplimiento de las normas de protección de datos personales.</p>
-
-<h2>7. Inteligencia artificial</h2>
-<p>El agente usa un modelo de lenguaje de Amazon Bedrock con reglas y controles propios: una política de contacto escrita en código, filtros de contenido y un catálogo cerrado de acciones. No lee documentos por su cuenta (lo hace el lector documental), no da asesoramiento aduanero, impositivo ni legal y nunca aprueba un legajo.</p>
-
-<h2>8. Cambios</h2>
-<p>Si esta política cambia, publicamos la nueva versión en esta misma dirección con su fecha de actualización.</p>
-<p class="muted">Ver también los <a href="/legal/terms.html">términos y condiciones</a>.</p>
-</article>
-
-<section id="en" lang="en" class="version">
-<h1>Privacy policy</h1>
-<p class="muted">Last updated: 26 September 2026</p>
-
-<div class="notice"><strong>This is a proof of concept.</strong> Legajo listo is a Craftech demo that runs on 100% synthetic data: the firms, importers, suppliers, operations and documents are made up. Messages only reach the demo's own mailboxes, the Amazon SES mailbox simulator and test recipients registered by the team.</div>
-
-<h2>1. What Legajo listo is</h2>
-<p>Legajo listo is a coordination agent for customs brokerage firms. It asks for the commercial invoice, the packing list and the certificate of origin of every import: the importer on WhatsApp (in this demo, with a phone simulator) and the foreign supplier by email. Every document goes through an external document reader; the agent decides who must correct each observation and leaves the file ready for the customs broker to approve. Approval always belongs to a person.</p>
-
-<h2>2. Who is responsible</h2>
-<p>The controller of the data of this demo is <strong>Craftech</strong> (<a href="https://craftech.io">craftech.io</a>), which operates it. In production use, each firm is the controller of its clients' and suppliers' data and Craftech acts as a processor, following its instructions.</p>
-
-<h2>3. What data we process and why</h2>
+<h2 id="es-purpose">3. Para qué los usamos y con qué base</h2>
 <ul>
-<li><strong>The importer's phone and the email of the supplier's contacts</strong>, registered by the firm: to recognize who writes and to answer through the same channel. Technical logs keep no phone numbers or emails: they use an identifier derived from the address.</li>
-<li><strong>WhatsApp consent</strong>, with the accepted text, the medium and the date: without it, the agent does not write on WhatsApp.</li>
-<li><strong>Messages and documents</strong> of each operation: to complete the file. Tax ids, national ids, bank accounts, cards and IBANs are masked before they are stored. We never ask for identity documents, bank details or tax passwords in a chat.</li>
-<li><strong>Decision log</strong>: what the agent did, which rule applied and who intervened, so the firm can audit it.</li>
+<li>Para darte acceso a la demo: crear tu cuenta, verificar tu email, dejarte ingresar y preparar tu estudio ficticio.</li>
+<li>Para que Craftech te contacte por esta solución, solo si lo aceptaste. Cada alta confirmada genera un aviso interno a una casilla de Craftech con los datos del registro.</li>
+<li>Para proteger la demo de abusos: límites de uso, filtro de bots y control de rebotes.</li>
 </ul>
-<p>We do not sell data or use it for advertising. The public pages use no cookies and no third-party scripts.</p>
+<p>La base es tu consentimiento (Ley 25.326, art. 5), que das al crear la cuenta. Nunca vendemos ni cedemos tus datos, y no los usamos para publicidad.</p>
 
-<h2>4. Where it is processed</h2>
-<p>Data is processed on Amazon Web Services, region <code>us-east-1</code> (Northern Virginia, United States). In production use, the international transfer requires the data subject's consent or the safeguards required by Argentine Law 25,326 (section 12). This proof of concept processes synthetic data only.</p>
+<h2 id="es-where">4. Dónde se procesan</h2>
+<p>En Amazon Web Services (AWS), región <code>us-east-1</code> (Virginia del Norte, Estados Unidos), que actúa como encargado del tratamiento por cuenta de Craftech: ahí viven la cuenta (Amazon Cognito), el registro (Amazon DynamoDB) y los emails de la cuenta (Amazon SES). Esto implica una transferencia internacional de tus datos a los Estados Unidos, que te informamos acá y que aceptás al crear la cuenta.</p>
 
-<h2>5. How to stop receiving messages</h2>
+<h2 id="es-retention">5. Cuánto tiempo los guardamos</h2>
 <ul>
-<li><strong>WhatsApp</strong>: tap <strong>No recibir avisos</strong> (stop notices) or reply <strong>BAJA</strong>. We confirm it and the agent does not write to you on that channel again.</li>
-<li>You can also ask the firm that registered you.</li>
+<li><strong>Tu cuenta y tu registro</strong>: hasta <span data-limit="lead-retention-months">24</span> meses desde tu último ingreso (o desde el alta, si nunca ingresaste), o hasta que pidas el borrado.</li>
+<li><strong>Un alta sin verificar</strong>: <span data-limit="signup-pending-hours">24</span> horas.</li>
+<li><strong>El estado de rebote o de queja</strong> de tu email: <span data-limit="mail-status-months">24</span> meses desde el último evento.</li>
+<li><strong>La IP convertida en código</strong> y los contadores de límites: <span data-limit="rate-counter-hours">48</span> horas.</li>
+<li><strong>Tu mundo de demo y todo lo que cargaste en él</strong>, incluidos los PDF: hasta que vence (a las <span data-limit="world-idle-hours">24</span> horas sin uso o a las <span data-limit="world-max-hours">72</span> horas de creado, lo que llegue primero) o hasta que pidas el borrado. El respaldo técnico desaparece a más tardar <span data-limit="world-backup-days">4</span> días después.</li>
+<li><strong>Los registros técnicos</strong> (logs): <span data-limit="log-days">30</span> días, sin datos personales.</li>
 </ul>
 
-<h2>6. Your rights</h2>
-<p><strong>Argentina (Law 25,326):</strong> you may request access to your data and its rectification, update or deletion. The Agencia de Acceso a la Información Pública, the supervisory authority of Law 25,326, handles complaints about breaches of the personal data protection rules.</p>
+<h2 id="es-rights">6. Tus derechos y cómo ejercerlos</h2>
+<p>Tenés derecho a acceder a tus datos y a rectificarlos, actualizarlos o suprimirlos (Ley 25.326, arts. 14 a 16), en forma gratuita:</p>
+<ul>
+<li><strong>Acceso</strong>: te respondemos dentro de los 10 días corridos desde que lo pedís.</li>
+<li><strong>Rectificación, actualización o supresión</strong>: dentro de los 5 días hábiles.</li>
+<li><strong>Contacto</strong>: podés retirar el consentimiento de contacto cuando quieras, sin perder tu cuenta.</li>
+<li><strong>Borrado</strong>: podés pedir que borremos tu cuenta, tu registro y tu mundo de demo con todo lo que cargaste.</li>
+</ul>
+<p>Para cualquiera de estos pedidos, escribí desde el email de tu cuenta a la casilla de privacidad del punto 1.</p>
 
-<h2>7. Artificial intelligence</h2>
-<p>The agent uses a language model on Amazon Bedrock with its own rules and controls: a contact policy written in code, content filters and a closed catalog of actions. It does not read documents on its own (the document reader does), it gives no customs, tax or legal advice and it never approves a file.</p>
+<h2 id="es-authority">7. Autoridad de control</h2>
+<p class="legend">El titular de los datos personales tiene la facultad de ejercer el derecho de acceso a ellos en forma gratuita a intervalos no inferiores a seis meses, salvo que se acredite un interés legítimo al efecto, conforme lo establecido en el artículo 14, inciso 3, de la Ley 25.326. La Agencia de Acceso a la Información Pública, en su carácter de órgano de control de la Ley 25.326, tiene la atribución de atender las denuncias y reclamos que interpongan quienes resulten afectados en sus derechos por incumplimiento de las normas vigentes en materia de protección de datos personales.</p>
 
-<h2>8. Changes</h2>
-<p>If this policy changes, we publish the new version at this same address with its update date.</p>
-<p class="muted">See also the <a href="/legal/terms.html">terms and conditions</a>.</p>
+<h2 id="es-demo">8. Los datos dentro de la demo</h2>
+<p>Todo lo que ves dentro de la demo es sintético: los estudios, importadores, proveedores, operaciones y documentos son inventados. Te pedimos que no cargues datos reales tuyos, de tu estudio ni de terceros. Los emails que genera la demo llegan a buzones simulados que ves en la consola, nunca a una persona.</p>
+<p>En un uso productivo, cada estudio es responsable de los datos de sus clientes y proveedores, y Craftech actúa como encargado del tratamiento según sus instrucciones.</p>
+
+<h2 id="es-changes">9. Cambios en esta política</h2>
+<p>Si esta política cambia, publicamos la nueva versión en esta misma dirección, con su número de versión y su fecha de vigencia arriba. Tu registro conserva la versión que aceptaste.</p>
+<p class="muted">Ver también los <a href="/legal/terms.html#es">términos y condiciones</a>.</p>
+</section>
+
+<section id="en" lang="en" class="doc" aria-labelledby="en-title">
+<h1 id="en-title">Privacy policy</h1>
+<p class="version"><span>Version <strong data-legal-version="privacy">2026-10-02</strong></span><span>In force since <time datetime="2026-10-02">2 October 2026</time></span></p>
+<p class="summary">Legajo listo is a Craftech demo that runs on 100% synthetic data. This policy explains what data of yours we keep when you create an account to try it, why we use it, where and for how long, and how to ask us to correct or delete it. Argentine Personal Data Protection Law 25,326 applies, also if you visit us from another country.</p>
+
+<h2 id="en-controller">1. Who is responsible</h2>
+<p><strong>Craftech</strong> is the controller of the database of the accounts of this demo and decides what the data is used for.</p>
+<ul class="facts">
+<li><b>Legal name</b><span class="pending" data-pending="P-06">pending publication</span></li>
+<li><b>Address</b><span class="pending" data-pending="P-06">pending publication</span></li>
+<li><b>Privacy mailbox</b><span class="pending" data-pending="P-06">pending publication</span></li>
+</ul>
+<p>That mailbox handles requests for access, rectification, update and deletion, and the withdrawal of the contact consent (section 6).</p>
+
+<h2 id="en-data">2. What data we keep</h2>
+<ul>
+<li>Your <strong>email</strong> and your <strong>password</strong>. Amazon Cognito keeps the password as a hash: Craftech neither sees nor stores it.</li>
+<li>Your <strong>name</strong>, <strong>company</strong> and <strong>job title</strong>, only if you wrote them: they are optional.</li>
+<li>Your two <strong>consents</strong> (terms and privacy; contact from Craftech), each with its date, the version of the text you accepted and the language.</li>
+<li>The <strong>language</strong> of the page, the <strong>origin of your visit</strong> (the UTM parameters and the site you came from, without path or parameters) and the dates of your <strong>sign-up</strong> and of your <strong>last sign-in</strong>.</li>
+<li>If an email of your account bounces or you mark it as unwanted, <strong>that status</strong>, so we do not write to you again.</li>
+<li>Technical data to prevent abuse: your <strong>IP address turned into a code that cannot be reversed</strong>, kept for <span data-limit="rate-counter-hours">48</span> hours, and the <strong>technical cookie of the bot filter</strong> of the sign-up page, which cannot be used to track you.</li>
+</ul>
+<p>Your record is kept only once you verify your email with the code we send you. While you complete the sign-up, the form data is kept for <span data-limit="signup-pending-hours">24</span> hours at most, and your password is kept encrypted only for the seconds it takes to create the account.</p>
+<p>We use no advertising cookies and no third-party analytics. The origin of your visit stays in the tab's storage, not in a cookie, until you send the form.</p>
+
+<h2 id="en-purpose">3. Why we use it and on what basis</h2>
+<ul>
+<li>To give you access to the demo: create your account, verify your email, let you sign in and prepare your fictitious firm.</li>
+<li>For Craftech to contact you about this solution, only if you agreed to it. Every confirmed sign-up sends an internal notice with the record's data to a Craftech mailbox.</li>
+<li>To protect the demo from abuse: usage limits, the bot filter and bounce control.</li>
+</ul>
+<p>The basis is your consent (Law 25,326, section 5), which you give when you create the account. We never sell or hand over your data, and we do not use it for advertising.</p>
+
+<h2 id="en-where">4. Where it is processed</h2>
+<p>On Amazon Web Services (AWS), region <code>us-east-1</code> (Northern Virginia, United States), which acts as a processor on behalf of Craftech: the account (Amazon Cognito), the record (Amazon DynamoDB) and the account emails (Amazon SES) live there. This means an international transfer of your data to the United States, which we disclose here and which you accept when you create the account.</p>
+
+<h2 id="en-retention">5. How long we keep it</h2>
+<ul>
+<li><strong>Your account and your record</strong>: up to <span data-limit="lead-retention-months">24</span> months from your last sign-in (or from the sign-up, if you never signed in), or until you ask us to delete them.</li>
+<li><strong>A sign-up that was not verified</strong>: <span data-limit="signup-pending-hours">24</span> hours.</li>
+<li><strong>The bounce or complaint status</strong> of your email: <span data-limit="mail-status-months">24</span> months from the last event.</li>
+<li><strong>The IP turned into a code</strong> and the limit counters: <span data-limit="rate-counter-hours">48</span> hours.</li>
+<li><strong>Your demo world and everything you loaded into it</strong>, PDFs included: until it expires (after <span data-limit="world-idle-hours">24</span> hours without use or <span data-limit="world-max-hours">72</span> hours after it was created, whichever comes first) or until you ask us to delete it. The technical backup is gone at most <span data-limit="world-backup-days">4</span> days later.</li>
+<li><strong>Technical logs</strong>: <span data-limit="log-days">30</span> days, without personal data.</li>
+</ul>
+
+<h2 id="en-rights">6. Your rights and how to exercise them</h2>
+<p>You have the right to access your data and to have it rectified, updated or deleted (Law 25,326, sections 14 to 16), free of charge:</p>
+<ul>
+<li><strong>Access</strong>: we answer within 10 calendar days of your request.</li>
+<li><strong>Rectification, update or deletion</strong>: within 5 business days.</li>
+<li><strong>Contact</strong>: you can withdraw the contact consent at any time, without losing your account.</li>
+<li><strong>Deletion</strong>: you can ask us to delete your account, your record and your demo world with everything you loaded.</li>
+</ul>
+<p>For any of these requests, write from your account's email to the privacy mailbox of section 1.</p>
+
+<h2 id="en-authority">7. Supervisory authority</h2>
+<p class="legend">The data subject has the right to access their personal data free of charge at intervals of no less than six months, unless a legitimate interest is shown, as set out in section 14, subsection 3, of Law 25,326. The Agencia de Acceso a la Información Pública (Agency for Access to Public Information), as the supervisory authority of Law 25,326, has the power to handle the complaints and claims filed by anyone whose rights are affected by a breach of the rules in force on personal data protection.</p>
+
+<h2 id="en-demo">8. The data inside the demo</h2>
+<p>Everything you see inside the demo is synthetic: the firms, importers, suppliers, operations and documents are made up. Please do not load real data about yourself, your firm or anyone else. The emails the demo produces reach simulated mailboxes that you see in the console, never a person.</p>
+<p>In production use, each firm is the controller of its clients' and suppliers' data, and Craftech acts as a processor following its instructions.</p>
+
+<h2 id="en-changes">9. Changes to this policy</h2>
+<p>If this policy changes, we publish the new version at this same address, with its version number and the date it comes into force at the top. Your record keeps the version you accepted.</p>
+<p class="muted">See also the <a href="/legal/terms.html#en">terms and conditions</a>.</p>
 </section>
 </main>
-<footer>Legajo listo · Demo de Craftech con datos 100 % sintéticos / Craftech demo with 100% synthetic data · <a href="/legal/privacy.html">Privacidad</a> · <a href="/legal/terms.html">Términos</a><br><a class="powered" href="https://craftech.io" rel="noopener">Powered by <img src="/brand/logo-craftech-color.svg" alt="Craftech" width="62" height="20"></a></footer>
+<footer>
+<p>Legajo listo · <span lang="es">datos 100 % sintéticos</span> · <span lang="en">100% synthetic data</span></p>
+<ul>
+<li><a href="/legal/privacy.html">Privacidad · Privacy</a></li>
+<li><a href="/legal/terms.html">Términos · Terms</a></li>
+<li><a class="powered" href="https://craftech.io" rel="noopener">Powered by <img src="/brand/logo-craftech-color.svg" alt="Craftech" width="62" height="20"></a></li>
+</ul>
+</footer>
 </body>
 </html>

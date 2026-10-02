@@ -9,7 +9,11 @@ import {
   emailHash,
   hkdfSha256,
   hmacSha256Base64Url,
+  leadEmailHash,
   newNonce,
+  openSealed,
+  randomBase32,
+  sealSecret,
   newPublicToken,
   phoneHash,
   runtimeSessionId,
@@ -32,7 +36,7 @@ describe("HKDF subkeys", () => {
 
   it("derives one stable 32-byte subkey per fixed label, all different and none equal to the master", () => {
     const subkeys = SUBKEY_PURPOSES.map((purpose) => hex(deriveSubkey(MASTER, purpose)));
-    expect(SUBKEY_PURPOSES).toEqual(["session", "phone-hash", "email-hash", "nonce", "sim-envelope", "thread", "runtime-session"]);
+    expect(SUBKEY_PURPOSES).toEqual(["session", "phone-hash", "email-hash", "nonce", "sim-envelope", "thread", "runtime-session", "signup-ticket", "signup-seal", "lead-email", "rate", "form"]);
     expect(new Set(subkeys).size).toBe(SUBKEY_PURPOSES.length);
     for (const subkey of subkeys) expect(subkey).toMatch(/^[0-9a-f]{64}$/);
     expect(subkeys).not.toContain(Buffer.from(MASTER).toString("hex"));
@@ -115,5 +119,33 @@ describe("tokens and ids", () => {
     expect(safeEqual("abc", "abc")).toBe(true);
     expect(safeEqual("abc", "abd")).toBe(false);
     expect(safeEqual("abc", "abcd")).toBe(false);
+  });
+});
+
+describe("sign-up secrets (ADR-0015 §1)", () => {
+  const sealKey = deriveSubkey(MASTER, "signup-seal");
+
+  it("seals the password for one sign-up and opens it only there, with the same key", () => {
+    const sealed = sealSecret(sealKey, "Quince-Caballos-7", "SIGNUP#01J9ZQXA7Q2W3E4R5T6Y7V8H9G");
+    expect(sealed).toMatch(/^v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
+    expect(sealed).not.toContain("Quince");
+    expect(openSealed(sealKey, sealed, "SIGNUP#01J9ZQXA7Q2W3E4R5T6Y7V8H9G")).toBe("Quince-Caballos-7");
+    expect(() => openSealed(sealKey, sealed, "SIGNUP#OTHER")).toThrow();
+    expect(() => openSealed(deriveSubkey(MASTER, "form"), sealed, "SIGNUP#01J9ZQXA7Q2W3E4R5T6Y7V8H9G")).toThrow();
+    const [version, iv, body, tag] = sealed.split(".");
+    const flipped = `${version}.${iv}.${(body ?? "").startsWith("A") ? `B${(body ?? "").slice(1)}` : `A${(body ?? "").slice(1)}`}.${tag}`;
+    expect(() => openSealed(sealKey, flipped, "SIGNUP#01J9ZQXA7Q2W3E4R5T6Y7V8H9G")).toThrow();
+    expect(() => openSealed(sealKey, "plain", "x")).toThrow(RangeError);
+  });
+
+  it("hashes a lead's email with its own subkey, apart from the parties' email hash", () => {
+    const leadKey = deriveSubkey(MASTER, "lead-email");
+    expect(leadEmailHash(leadKey, " Ana@Example-Fict.com ")).toBe(leadEmailHash(leadKey, "ana@example-fict.com"));
+    expect(leadEmailHash(leadKey, "ana@example-fict.com")).not.toBe(emailHash(deriveSubkey(MASTER, "email-hash"), "ana@example-fict.com"));
+  });
+
+  it("draws random Crockford ids of the asked length", () => {
+    expect(randomBase32(26)).toMatch(/^[0-9A-HJKMNP-TV-Z]{26}$/);
+    expect(randomBase32(26)).not.toBe(randomBase32(26));
   });
 });

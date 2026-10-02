@@ -14,7 +14,8 @@
 //     virus scan on, TLS required;
 //   - the Functions InboundEmail, SimMail and ChannelEvents, whose handlers belong to WP-29 and WP-30;
 //   - the Linkables other modules link instead of spelling SES permissions: one sender per profile
-//     (`EmailSenderSystem`, `EmailSenderSimulator`, `EmailSenderQa`), the read of one route of the mail
+//     (`EmailSenderSystem`, `EmailSenderSimulator`, `EmailSenderQa`, `EmailSenderLeadNotice` for
+//     infra/leads.ts), the read of one route of the mail
 //     bucket (`InboundMailOps`, `InboundMailSim`) and the write of the quarantine
 //     (`DocumentsQuarantine`). `emailLinks(fn)` returns exactly the ones infra/iam-capabilities.ts
 //     declares for a function.
@@ -24,9 +25,10 @@
 // before `sst deploy` when a foreign set is active. The receipt APIs have no resource-level fence
 // beyond the set's ARN (infra/bootstrap/README.md, residual risks).
 //
-// The identity is not bound to a default configuration set: Cognito sends the console emails through
-// it (infra/auth.ts) and those must not reach ChannelEvents. Every SendEmail of the app names its set
-// (packages/bff/src/channels/email/outbound.ts) and IAM allows each profile only its own set.
+// The identity is not bound to a default configuration set: every SendEmail of the app names its set
+// (packages/bff/src/channels/email/outbound.ts) and IAM allows each profile only its own set. Cognito's
+// account emails (infra/auth.ts) name the email set in the pool's email configuration, so their
+// bounces and complaints reach ChannelEvents, which keeps Runtime/MAILSTATUS# (ADR-0015 §3.2).
 //
 // Why `aws.sesv2.*` and not `sst.aws.Email`: the component waits for DKIM inside the deploy (hours in a
 // delegated zone), binds its own configuration set and links `ses:*`. DKIM is checked after the deploy;

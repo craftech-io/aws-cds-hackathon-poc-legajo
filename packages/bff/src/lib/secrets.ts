@@ -7,7 +7,7 @@ import { z } from "zod";
 import { FirmId, ImporterId, ToolError } from "@legajo/shared";
 import { type SubkeyPurpose, deriveSubkey } from "./crypto";
 
-export const SECRET_NAMES = ["SessionTokenKey", "WabaId", "WhatsAppPhoneNumberId", "SeedOverrides"] as const;
+export const SECRET_NAMES = ["SessionTokenKey", "WabaId", "WhatsAppPhoneNumberId", "SeedOverrides", "OriginVerifyKey", "LeadNoticeTo"] as const;
 export type SecretName = (typeof SECRET_NAMES)[number];
 
 const SecretResource = z.object({ value: z.string().min(1) });

@@ -9,33 +9,11 @@ import { block, statementsOf, template } from "./bootstrap/template-text";
 import { BROWSER_BUCKETS, CONSOLE_CSP, bucketPrefix, browserBucketName, inboundMailBucketName } from "./ci-spec";
 import { LAMBDA_CAPABILITIES, expectedTables, type BucketName, type LambdaName } from "./iam-capabilities";
 import {
-  ABORT_MULTIPART_AFTER_DAYS,
-  BUCKET_SPECS,
-  MALWARE_MANAGED_RULE_PREFIX,
-  MALWARE_SCANNED_BUCKETS,
-  MALWARE_SCAN_EVENT,
-  MALWARE_SCAN_PRINCIPAL,
-  MALWARE_SCAN_RESULTS,
-  MALWARE_SCAN_TRUST_POLICY,
-  MOCK_TABLES,
-  PRIMARY_KEY,
-  QA_PREFIX,
-  QA_RETENTION_DAYS,
-  TABLE_SPECS,
-  TTL_ATTRIBUTE,
-  browserUploadCors,
-  inboundMailRoutes,
-  inboundRuleSetName,
-  lifecycleRules,
-  malwareScanEventPattern,
-  malwareScanRolePolicy,
-  sesDeliveryStatements,
-  storageFor,
-  tableFields,
-  type BucketNaming,
-  type BucketSpec,
-  type IndexSpec,
-  type StorageTable,
+  ABORT_MULTIPART_AFTER_DAYS, BUCKET_SPECS, FENCED_TABLES, GUEST_PUBLIC_PREFIX, GUEST_PUBLIC_RETENTION_DAYS, MALWARE_MANAGED_RULE_PREFIX,
+  MALWARE_SCANNED_BUCKETS, MALWARE_SCAN_EVENT, MALWARE_SCAN_PRINCIPAL, MALWARE_SCAN_RESULTS, MALWARE_SCAN_TRUST_POLICY, MOCK_TABLES, PRIMARY_KEY,
+  QA_PREFIX, QA_RETENTION_DAYS, TABLE_SPECS, TTL_ATTRIBUTE, browserUploadCors, fencedTableComponent, inboundMailRoutes, inboundRuleSetName,
+  lifecycleRules, malwareScanEventPattern, malwareScanRolePolicy, sesDeliveryStatements, storageFor, tableFields, type BucketNaming, type BucketSpec,
+  type IndexSpec, type StorageTable,
 } from "./storage-keys";
 
 const APP = "aws-cds-hackathon-poc-legajo";
@@ -88,15 +66,25 @@ function documentedTables(): Map<string, { indexes: Record<string, IndexSpec>; t
 describe("DynamoDB tables of docs/architecture.md §5", () => {
   const documented = documentedTables();
 
-  // Leads (ADR-0015 §6) is documented in §5 ahead of its table.
-  const DOCUMENTED_AHEAD = ["Leads"];
-
   it("declares every table of §5 except the two the mocks own", () => {
     expect(documented.size).toBe(11);
-    expect([...TABLES, ...MOCK_TABLES, ...DOCUMENTED_AHEAD].sort()).toEqual([...documented.keys()].sort());
+    expect([...TABLES, ...MOCK_TABLES].sort()).toEqual([...documented.keys()].sort());
   });
 
-  it.todo("[WP-51:pending] declares the Leads table of §5 (pk/sk, TTL expiresAt) with the removal policy of the other tables");
+  it("declares the Leads table of §5 like every other: PK/SK, TTL expiresAt, the stage's removal policy", () => {
+    expect(TABLE_SPECS.Leads).toEqual({ indexes: {}, ttl: true });
+    expect(tableFields(TABLE_SPECS.Leads)).toEqual({ PK: "string", SK: "string" });
+    expect(FENCED_TABLES).toEqual(["Leads"]);
+    // Same helper as the rest (same keys, encryption, TTL, no stream), under a component name that
+    // leaves `Resource.Leads` to the name-only Linkable of infra/leads.ts.
+    const source = infraSource("storage-tables.ts");
+    expect(fencedTableComponent("Leads")).toBe("LeadsData");
+    expect(source).toContain('export const leadsTable = table("Leads", fencedTableComponent("Leads"));');
+    expect(source).not.toMatch(/retain|protect|deletionProtection/);
+    // Nobody links it whole: it is out of `tables`, the map storageLinks reads.
+    const linked = source.slice(source.indexOf("export const tables = {"));
+    expect(linked).not.toContain("Leads");
+  });
 
   it.each(TABLES)("keeps the GSIs and the TTL of %s exactly as §5", (name) => {
     expect(TABLE_SPECS[name].indexes).toEqual(documented.get(name)?.indexes);
@@ -125,7 +113,7 @@ describe("DynamoDB tables of docs/architecture.md §5", () => {
   });
 
   it("creates one component per table of the spec, under its logical name", () => {
-    const created = [...infraSource("storage-tables.ts").matchAll(/\btable\("([A-Za-z]+)"\)/g)].map((match) => match[1]);
+    const created = [...infraSource("storage-tables.ts").matchAll(/\btable\("([A-Za-z]+)"[,)]/g)].map((match) => match[1]);
     expect(created.sort()).toEqual([...TABLES].sort());
   });
 });
@@ -138,18 +126,27 @@ function staticPrefix(key: string): string {
   return head.slice(0, head.lastIndexOf("/") + 1);
 }
 
-function documentedBuckets(): Map<string, { prefixes: string[]; expire?: number; qaExpire?: number }> {
-  const buckets = new Map<string, { prefixes: string[]; expire?: number; qaExpire?: number }>();
+interface DocumentedBucket {
+  readonly prefixes: string[];
+  readonly expire?: number;
+  readonly qaExpire?: number;
+  readonly guestExpire?: number;
+}
+
+function documentedBuckets(): Map<string, DocumentedBucket> {
+  const buckets = new Map<string, DocumentedBucket>();
   for (const [first = "", layout = "", , retention = ""] of rows(section("## 6. S3", "## 7."))) {
     const literal = /^`([^`]+)`/.exec(first)?.[1] ?? "";
     const name = literal === inboundMailBucketName(APP, ACCOUNT) ? "InboundMail" : literal;
     const prefixes = [...layout.replace(/\([^)]*\)/g, "").matchAll(/`([^`]*\/[^`]*)`/g)].map((match) => staticPrefix(match[1] ?? ""));
     const expire = /^(\d+) días?/.exec(retention)?.[1];
     const qaExpire = /`qa\/` (\d+) días?/.exec(retention)?.[1];
+    const guestExpire = /`guest\/pub\/` (\d+) días?/.exec(retention)?.[1];
     buckets.set(name, {
       prefixes,
       ...(expire ? { expire: Number(expire) } : {}),
       ...(qaExpire ? { qaExpire: Number(qaExpire) } : {}),
+      ...(guestExpire ? { guestExpire: Number(guestExpire) } : {}),
     });
   }
   return buckets;
@@ -166,6 +163,19 @@ describe("S3 buckets of docs/architecture.md §6", () => {
     const doc = documented.get(name);
     expect(spec(name).expireAfterDays).toBe(doc?.expire);
     if (doc?.qaExpire !== undefined) expect(spec(name).qaExpireAfterDays).toBe(doc.qaExpire);
+    expect(spec(name).guestPublicExpireAfterDays).toBe(doc?.guestExpire);
+  });
+
+  it("expires the objects of public guest worlds after 4 days in Documents and Media, the backstop of destroyWorld (ADR-0015 §4)", () => {
+    for (const name of ["Documents", "Media"] as const) {
+      const rule = lifecycleRules(spec(name)).find((candidate) => candidate.id === "expire-guest-pub");
+      expect(rule, name).toEqual({ id: "expire-guest-pub", status: "Enabled", filter: { prefix: GUEST_PUBLIC_PREFIX }, expiration: { days: GUEST_PUBLIC_RETENTION_DAYS } });
+    }
+    expect(GUEST_PUBLIC_PREFIX).toBe("guest/pub/");
+    expect(GUEST_PUBLIC_RETENTION_DAYS).toBe(4);
+    for (const name of BUCKETS.filter((bucket) => bucket !== "Documents" && bucket !== "Media")) {
+      expect(lifecycleRules(spec(name)).some((rule) => rule.filter.prefix === GUEST_PUBLIC_PREFIX), name).toBe(false);
+    }
   });
 
   it.each(BUCKETS)("keeps the key layout of %s as §6 states it", (name) => {
@@ -361,19 +371,22 @@ describe("malware scanning of Uploads and Media", () => {
 describe("storage each Lambda links", () => {
   it.each(LAMBDAS)("gives %s exactly the tables of its capabilities", (fn) => {
     const needs = storageFor(fn);
-    expect([...needs.tables, ...needs.mockTables].sort()).toEqual(Object.keys(expectedTables(fn)).sort());
+    expect([...needs.tables, ...needs.fencedTables, ...needs.mockTables].sort()).toEqual(Object.keys(expectedTables(fn)).sort());
+    for (const table of needs.fencedTables) expect(needs.tables as string[], fn).not.toContain(table);
     for (const table of needs.mockTables) expect(MOCK_TABLES).toContain(table);
   });
 
   it("links every table and bucket of this module to at least one Lambda", () => {
     const linked = LAMBDAS.map(storageFor);
-    for (const table of TABLES) expect(linked.some((needs) => needs.tables.includes(table)), table).toBe(true);
+    const reached = (table: StorageTable) => linked.some((needs) => (needs.tables as StorageTable[]).includes(table) || (needs.fencedTables as StorageTable[]).includes(table));
+    for (const table of TABLES) expect(reached(table), table).toBe(true);
     for (const bucket of BUCKETS) expect(linked.some((needs) => needs.buckets.includes(bucket)), bucket).toBe(true);
   });
 
   it("adds the buckets a capability brings and keeps the mail bucket away from the console", () => {
     expect(storageFor("WorldJanitor")).toEqual({
       tables: ["AuditLog", "Conversations", "Firms", "LegajoMetrics", "Operations", "Parties", "Runtime"],
+      fencedTables: ["Leads"],
       mockTables: ["Platform"],
       buckets: ["Media", "Seed"],
     });

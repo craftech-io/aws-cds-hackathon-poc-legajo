@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createTestIssuer, testContextDeps } from "../auth/testing";
 import { memoryStores } from "../connector/testing";
 import type { SignableRequest } from "../reader/signer";
+import { edgeHeaders, testEdgeGuard } from "../signup/testing";
 import { createHandler } from "./handler";
 import { type HealthCheck, HealthCheckError, cachedHealthCheck, functionUrlHealthCheck, healthReport } from "./health";
 import { appRouter } from "./index";
@@ -18,7 +19,7 @@ function probeEvent(headers: Record<string, string> = {}): APIGatewayProxyEventV
     routeKey: "$default",
     rawPath: "/api/health",
     rawQueryString: "",
-    headers,
+    headers: { ...edgeHeaders(), ...headers },
     isBase64Encoded: false,
     requestContext: {
       accountId: "anonymous",
@@ -45,13 +46,13 @@ function check(name: string, outcome: () => Promise<void>): HealthCheck {
 
 async function probe(checks: readonly HealthCheck[], headers?: Record<string, string>) {
   const deps = testContextDeps({ verifier: createTestIssuer().verifier(), stores: memoryStores(), health: checks });
-  const response = await createHandler(appRouter, createContextFactory(() => deps))(probeEvent(headers), lambdaContext);
+  const response = await createHandler(appRouter, createContextFactory(() => deps), testEdgeGuard)(probeEvent(headers), lambdaContext);
   return { status: response.statusCode, contentType: response.headers?.["content-type"], data: Probe.parse(JSON.parse(response.body ?? "{}")).result.data };
 }
 
 describe("GET /api/health", () => {
   it("answers without a principal, as the interim smoke expects (`result.data.ok === true`)", async () => {
-    const response = await probe([check("platform", () => Promise.resolve())], { authorization: "Bearer not-a-token" });
+    const response = await probe([check("platform", () => Promise.resolve())], { "x-legajo-auth": "Bearer not-a-token" });
     expect(response.status).toBe(200);
     expect(String(response.contentType)).toContain("application/json");
     expect(response.data).toEqual({ ok: true, service: "bff", checks: { platform: "ok" } });

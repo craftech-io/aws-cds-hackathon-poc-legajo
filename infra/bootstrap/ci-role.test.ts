@@ -202,9 +202,9 @@ describe("CloudFront parts of the Router (no tags, shared account)", () => {
     expect(statement("DenyCachePoliciesOfOtherProjects")).toContain(`NotResource: !Sub`);
   });
 
-  it("never updates or deletes response headers, origin request policies or origin access controls", () => {
+  it("never updates or deletes response headers or origin request policies", () => {
     const notOwned = statement("DenyCloudFrontPartsTheAppDoesNotOwn");
-    for (const part of ["ResponseHeadersPolicy", "OriginRequestPolicy", "OriginAccessControl"]) {
+    for (const part of ["ResponseHeadersPolicy", "OriginRequestPolicy"]) {
       for (const verb of ["Update", "Delete"]) {
         expect(notOwned).toContain(`cloudfront:${verb}${part}`);
         expect(allows.filter(({ body }) => body.includes(`cloudfront:${verb}${part}`))).toHaveLength(0);
@@ -213,8 +213,85 @@ describe("CloudFront parts of the Router (no tags, shared account)", () => {
     expect(notOwned).toContain('Resource: "*"');
   });
 
+  it("manages origin access controls only through the justified wildcard statement of ADR-0015 §9", () => {
+    const oac = statement("EdgeOriginAccessControls");
+    expect(oac).toContain("Effect: Allow");
+    for (const verb of ["Create", "Get", "Update", "Delete"]) {
+      expect(oac).toContain(`- cloudfront:${verb}OriginAccessControl`);
+      expect(statement("DenyCloudFrontPartsTheAppDoesNotOwn")).not.toContain(`cloudfront:${verb}OriginAccessControl`);
+      expect(allows.filter(({ body }) => body.includes(`cloudfront:${verb}OriginAccessControl`)).map(({ sid }) => sid)).toEqual(["EdgeOriginAccessControls"]);
+    }
+    expect(oac.match(/- cloudfront:/g)).toHaveLength(4);
+  });
+
+  it("adds the invoke permissions of OAC only on the functions named after this app", () => {
+    const invoke = statement("EdgeOacInvokePermissions");
+    expect(invoke).toContain("- lambda:AddPermission");
+    expect(invoke).toContain("- lambda:RemovePermission");
+    expect(invoke).toContain(`Resource: !Sub "arn:\${AWS::Partition}:lambda:\${Region}:\${AWS::AccountId}:${FUNCTION_FENCE.replace("function/", "function:")}`);
+    expect(invoke.match(/- lambda:/g)).toHaveLength(2);
+  });
+
   it("attaches the edge policy to the deploy role", () => {
     expect(block(template, "ManagedPolicyArns:", "Tags:")).toContain("- !Ref DeployEdgePolicy");
+  });
+});
+
+describe("AWS WAF of the edge (ADR-0015 §3.3 and §9)", () => {
+  const WEB_ACL = 'wafv2:us-east-1:${AWS::AccountId}:global/webacl/${AppName}-${DeployStage}-*/*"';
+
+  it("manages only the web ACLs named after this app and stage, scope CLOUDFRONT in us-east-1", () => {
+    const acl = statement("EdgeWebAclOfThisApp");
+    for (const action of ["CreateWebACL", "UpdateWebACL", "DeleteWebACL", "GetWebACL", "ListTagsForResource", "TagResource", "UntagResource"]) expect(acl).toContain(`- wafv2:${action}`);
+    expect(acl.match(/- wafv2:/g)).toHaveLength(7);
+    expect(acl).toContain(`Resource: !Sub "arn:\${AWS::Partition}:${WEB_ACL}`);
+    expect(template).not.toMatch(/wafv2:\*/);
+    expect(read("docs/architecture.md")).toContain("`arn:aws:wafv2:us-east-1:776805327629:global/webacl/aws-cds-hackathon-poc-legajo-poc-*/*`");
+  });
+
+  it("covers the fixed name of the web ACL (docs/architecture.md §1) with its ARN", () => {
+    expect(read("docs/architecture.md")).toContain("| Web ACL de WAF (scope `CLOUDFRONT`) | `aws-cds-hackathon-poc-legajo-poc-edge` |");
+    expect(allows.some(({ body }) => body.includes(WEB_ACL))).toBe(true);
+  });
+
+  it("reads AWS's managed rule groups through the justified wildcard statement only", () => {
+    const reads = statement("EdgeWafManagedRuleReads");
+    expect(reads).toContain("- wafv2:DescribeManagedRuleGroup");
+    expect(reads).toContain("- wafv2:ListAvailableManagedRuleGroups");
+    expect(reads.match(/- wafv2:/g)).toHaveLength(2);
+    expect(reads).toContain('Resource: "*"');
+  });
+
+  it("associates the web ACL through the distribution, never with wafv2:AssociateWebACL", () => {
+    expect(template).not.toContain("wafv2:AssociateWebACL");
+    expect(template).not.toMatch(/wafv2:(Put|Delete)LoggingConfiguration|wafv2:CreateRuleGroup|wafv2:CreateIPSet/);
+  });
+});
+
+/** Every Allow over `Resource: "*"`, each justified in infra/bootstrap/README.md ("Statements over every resource"). */
+const WILDCARD_SIDS = [
+  "TaggedAppResources",
+  "NoResourceLevelRuntime",
+  "HarnessImagePullBearerToken",
+  "DecryptPassphraseThroughSsm",
+  "CloudControlTransport",
+  "CreateTaggedAsThisApp",
+  "HarnessDependentCreates",
+  "NoResourceLevelDeploy",
+  "CloudFrontCreatesAndReads",
+  "EdgeOriginAccessControls",
+  "EdgeWafManagedRuleReads",
+  "DnsLookups",
+  "ReadLogsOfThisApp",
+] as const;
+
+describe("statements over every resource", () => {
+  it("are exactly WILDCARD_SIDS, each with its justification in the README", () => {
+    const wildcards = [...new Set(allows.filter(({ body }) => /Resource: "\*"/.test(body)).map(({ sid }) => sid))];
+    expect(wildcards.sort()).toEqual([...WILDCARD_SIDS].sort());
+    const readme = read("infra/bootstrap/README.md");
+    const section = readme.slice(readme.indexOf("### Statements over every resource"), readme.indexOf("## Apply"));
+    for (const sid of WILDCARD_SIDS) expect(section, sid).toContain(`\`${sid}\``);
   });
 });
 

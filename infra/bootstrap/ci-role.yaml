@@ -645,6 +645,37 @@ Resources:
               - cloudfront:DeleteCachePolicy
               - cloudfront:UpdateCachePolicy
             Resource: !Sub "arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:cache-policy/${RouterCachePolicyId}"
+          - Sid: EdgeOriginAccessControls
+            Effect: Allow
+            Action:
+              - cloudfront:CreateOriginAccessControl
+              - cloudfront:DeleteOriginAccessControl
+              - cloudfront:GetOriginAccessControl
+              - cloudfront:UpdateOriginAccessControl
+            Resource: "*"
+          - Sid: EdgeOacInvokePermissions
+            Effect: Allow
+            Action:
+              - lambda:AddPermission
+              - lambda:RemovePermission
+            Resource: !Sub "arn:${AWS::Partition}:lambda:${Region}:${AWS::AccountId}:function:${AppName}-${DeployStage}-*"
+          - Sid: EdgeWebAclOfThisApp
+            Effect: Allow
+            Action:
+              - wafv2:CreateWebACL
+              - wafv2:DeleteWebACL
+              - wafv2:GetWebACL
+              - wafv2:ListTagsForResource
+              - wafv2:TagResource
+              - wafv2:UntagResource
+              - wafv2:UpdateWebACL
+            Resource: !Sub "arn:${AWS::Partition}:wafv2:us-east-1:${AWS::AccountId}:global/webacl/${AppName}-${DeployStage}-*/*"
+          - Sid: EdgeWafManagedRuleReads
+            Effect: Allow
+            Action:
+              - wafv2:DescribeManagedRuleGroup
+              - wafv2:ListAvailableManagedRuleGroups
+            Resource: "*"
           - Sid: DenyCloudFrontFunctionsOfOtherProjects
             Effect: Deny
             Action:
@@ -668,8 +699,6 @@ Resources:
               - cloudfront:CreateKeyValueStore
               - cloudfront:DeleteKeyValueStore
               - cloudfront:UpdateKeyValueStore
-              - cloudfront:DeleteOriginAccessControl
-              - cloudfront:UpdateOriginAccessControl
               - cloudfront:DeleteOriginRequestPolicy
               - cloudfront:UpdateOriginRequestPolicy
               - cloudfront:DeleteResponseHeadersPolicy

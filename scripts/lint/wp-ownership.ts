@@ -69,7 +69,7 @@ export function parsePlan(markdown: string): Wave[] {
     .slice(1)
     .map((chunk) => {
       const title = (chunk.split("\n")[0] ?? "").trim();
-      const packages = [...chunk.matchAll(/\*\*(WP-\d+) · [^*]*\*\*([\s\S]*?)(?=\n\*\*WP-|$)/g)].map((match) => {
+      const packages = [...chunk.matchAll(/\*\*(WP-\d+) · (?:[^*`]|`[^`]*`)*\*\*([\s\S]*?)(?=\n\*\*WP-|$)/g)].map((match) => {
         const body = match[2] ?? "";
         const files = /Archivos:([\s\S]*?)(?:Aceptación:|$)/.exec(body)?.[1] ?? "";
         const paths = [...files.matchAll(/`([^`]+)`/g)].map((token) => token[1] ?? "").filter(isRepositoryPath).flatMap(expandBraces);

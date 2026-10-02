@@ -17,7 +17,8 @@ export interface FakeUserInit {
   readonly username?: string;
   readonly password: string;
   readonly role?: string;
-  readonly status?: "FORCE_CHANGE_PASSWORD" | "CONFIRMED";
+  /** `UNCONFIRMED`: signed up, email never verified (Cognito refuses the sign-in after the password). */
+  readonly status?: "FORCE_CHANGE_PASSWORD" | "CONFIRMED" | "UNCONFIRMED";
   /** Base32 TOTP secret; set = TOTP already enabled. */
   readonly totpSecret?: string;
 }
@@ -29,7 +30,7 @@ interface FakeUser {
   readonly username: string | undefined;
   readonly hasEmail: boolean;
   readonly role: string;
-  status: "FORCE_CHANGE_PASSWORD" | "CONFIRMED";
+  status: "FORCE_CHANGE_PASSWORD" | "CONFIRMED" | "UNCONFIRMED";
   srp: SrpVerifier;
   password: string;
   totpSecret: string | undefined;
@@ -260,6 +261,7 @@ export class FakeCognito implements CognitoApi {
         signature: responses.PASSWORD_CLAIM_SIGNATURE ?? "",
       }));
     if (!ok || !user) return fail("NotAuthorizedException", "Incorrect username or password.");
+    if (user.status === "UNCONFIRMED") return fail("UserNotConfirmedException", "User is not confirmed.");
     return this.afterPassword(user);
   }
 
@@ -312,8 +314,8 @@ export class FakeCognito implements CognitoApi {
     user.srp = await createVerifier(this.poolId, user.sub, proposedPassword);
   }
 
-  async forgotPassword(username: string): Promise<void> {
-    this.record("ForgotPassword", { username });
+  async forgotPassword(username: string, lang?: "es" | "en"): Promise<void> {
+    this.record("ForgotPassword", { username, ...(lang ? { lang } : {}) });
     const user = this.users.get(username.toLowerCase());
     if (!user) return;
     if (user.status === "FORCE_CHANGE_PASSWORD") fail("NotAuthorizedException", "User password cannot be reset in the current state.");

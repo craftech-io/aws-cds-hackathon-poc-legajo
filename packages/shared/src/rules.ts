@@ -23,6 +23,8 @@ export const CONTACT_POLICY_RULES = [
   "CP-WA-24H",
   "CP-NO-SENSITIVE-ASK",
   "CP-NO-FOREIGN-LINKS",
+  // ADR-0015 §4: an email of a guest world goes out only inside its quota (last: every other rule decides first).
+  "CP-WORLD-QUOTA",
 ] as const;
 export const ContactPolicyRuleId = z.enum(CONTACT_POLICY_RULES);
 export type ContactPolicyRuleId = z.infer<typeof ContactPolicyRuleId>;

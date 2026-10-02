@@ -70,6 +70,13 @@ export interface QuerySpec {
   readonly filter?: Predicates;
 }
 
+/** A whole-table read with a filter: only for the small `Leads` table (exports, sweeps, retention). */
+export interface ScanSpec {
+  readonly filter?: Predicates;
+  /** Maximum rows returned, counted after the filter. */
+  readonly limit?: number;
+}
+
 export interface WriteCondition extends Predicates {
   /** Fail with CONFLICT when the key already exists (create). */
   readonly ifNotExists?: boolean;
@@ -129,6 +136,8 @@ export interface TableClient {
   get(table: TableName, key: Key): Promise<Item | undefined>;
   /** Pages through the whole result (or until `limit`); GSIs are eventually consistent. */
   query(table: TableName, spec: QuerySpec): Promise<Item[]>;
+  /** Pages through the whole table (or until `limit`) with an optional filter; never on a large table. */
+  scan(table: TableName, spec?: ScanSpec): Promise<Item[]>;
   put(table: TableName, item: Item, condition?: WriteCondition): Promise<void>;
   /** Applies the spec, stamps `updatedAt`, bumps `version` and returns the stored row. */
   update(table: TableName, key: Key, spec: UpdateSpec, updatedAt: string, options?: UpdateOptions): Promise<Item>;

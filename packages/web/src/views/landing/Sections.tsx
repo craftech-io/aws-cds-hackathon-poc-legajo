@@ -1,140 +1,141 @@
-// The content sections of the landing: the problem, what is real and what is simulated
-// (docs/design-brief.md §7.2), what does not depend on the model, the console and the demo video,
-// plus the sign-in button. Each one reads its texts from copy in the page's language.
-import type { ReactNode } from "react";
-import { useSession } from "../../context/SessionContext";
-import { Link } from "../../lib/router";
-import { CONSOLE_HOME, LOGIN_PATH } from "../../routes";
-import { useLandingCopy } from "./lang";
-import { MediaFigure } from "./MediaFigure";
-import { CONSOLE_CAPTURE_IDS } from "./manifest";
-import { type MediaState, mediaIdsOf } from "./media";
+// Three sections of the landing (docs/landing-spec.md §1.3, §1.5 and §1.6): the three pains with the
+// "vessel on its way" line that fills as it scrolls in, what the product does for each party (an
+// accordion below 768 px, three columns above), and the six guarantees in code with the real rule ids
+// that enforce them (`RuleChip` takes the id from @legajo/shared, so a rule that disappears breaks
+// the typecheck).
+import type { RuleId } from "@legajo/shared";
+import { RuleChip } from "../../components/RuleChip";
+import { SectionShell } from "../../components/Section";
+import { Icon, type IconName } from "./icons";
+import { useLandingCopy, useRuleLabel, type LandingRuleId } from "./lang";
 
-type Tone = "light" | "white" | "dark";
-
-const BACKGROUND: Readonly<Record<Tone, string>> = { light: "bg-paper", white: "bg-white", dark: "bg-navy text-white" };
-
-export function LandingSection({ id, eyebrow, title, lead, tone = "light", children }: { readonly id?: string; readonly eyebrow?: string; readonly title: string; readonly lead?: string; readonly tone?: Tone; readonly children: ReactNode }) {
-  const dark = tone === "dark";
-  return (
-    <section id={id} aria-labelledby={id ? `${id}-title` : undefined} className={`scroll-mt-20 px-4 py-16 sm:px-8 sm:py-20 ${BACKGROUND[tone]}`}>
-      <div className="mx-auto max-w-6xl">
-        {eyebrow ? <p className={`text-xs font-semibold uppercase tracking-widest ${dark ? "text-cyan" : "text-cyan-deep"}`}>{eyebrow}</p> : null}
-        <h2 id={id ? `${id}-title` : undefined} className={`mt-2 max-w-3xl text-3xl font-semibold leading-tight sm:text-4xl ${dark ? "text-white" : "text-navy"}`}>
-          {title}
-        </h2>
-        {lead ? <p className={`mt-4 max-w-3xl text-lg ${dark ? "text-mist" : "text-slate"}`}>{lead}</p> : null}
-        <div className="mt-10">{children}</div>
-      </div>
-    </section>
-  );
-}
-
-/** "Ingresar": the login, or the console for a visitor already signed in. */
-export function SignInButton({ onDark = false }: { readonly onDark?: boolean }) {
-  const { cta } = useLandingCopy();
-  const { state } = useSession();
-  const signedIn = state.status === "authenticated";
-  return (
-    <Link
-      to={signedIn ? CONSOLE_HOME : LOGIN_PATH}
-      className={`inline-flex items-center justify-center rounded-md px-5 py-3 text-sm font-semibold transition-colors ${onDark ? "bg-cyan text-navy-deep hover:bg-white" : "bg-navy text-white hover:bg-navy-soft"}`}
-    >
-      {signedIn ? cta.goToConsole : cta.signIn} →
-    </Link>
-  );
-}
+const PAIN_ICONS: readonly IconName[] = ["chat", "documents", "eta"];
 
 export function ProblemSection() {
-  const { problem, nav } = useLandingCopy();
+  const { problem } = useLandingCopy();
   return (
-    <LandingSection id="problem" eyebrow={nav.problem} title={problem.title} lead={problem.lead} tone="white">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <SectionShell id="problem" eyebrow={problem.eyebrow} title={problem.title} lead={problem.lead} tone="light">
+      <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {problem.items.map((item, index) => (
-          <article key={item.title} className="rounded-card border border-mist bg-paper p-6">
-            <p className="text-sm font-semibold text-cyan-deep">0{index + 1}</p>
-            <h3 className="mt-2 text-lg font-semibold text-navy">{item.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate">{item.text}</p>
-          </article>
+          <li key={item.title} data-reveal="" style={{ ["--reveal-index" as string]: index }} className="rounded-panel border border-rule bg-white p-6 shadow-card md:last:col-span-2 lg:last:col-span-1">
+            <Icon name={PAIN_ICONS[index] ?? "document"} className="h-7 w-7 text-signal-ink" />
+            <h3 className="mt-4 font-display text-h3 font-semibold text-ink">{item.title}</h3>
+            <p className="mt-2 text-base leading-relaxed text-ink-muted">{item.text}</p>
+          </li>
         ))}
-      </div>
-    </LandingSection>
-  );
-}
-
-export function RealSection() {
-  const { real, nav } = useLandingCopy();
-  return (
-    <LandingSection id="real" eyebrow={nav.real} title={real.title} tone="white">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {Object.entries(real.columns).map(([key, column]) => (
-          <article key={key} className="rounded-card border border-mist bg-paper p-5">
-            <h3 className="text-sm font-semibold text-navy">{column.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate">{column.text}</p>
-          </article>
-        ))}
-      </div>
-    </LandingSection>
-  );
-}
-
-export function HowSection() {
-  const { how } = useLandingCopy();
-  return (
-    <LandingSection id="how" eyebrow={how.eyebrow} title={how.title} lead={how.lead} tone="dark">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {how.items.map((item) => (
-          <article key={item.title} className="rounded-card border border-navy-soft bg-navy-deep p-6">
-            <h3 className="text-lg font-semibold text-white">{item.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-mist">{item.text}</p>
-          </article>
-        ))}
-      </div>
-    </LandingSection>
-  );
-}
-
-export function ConsoleSection({ media }: { readonly media: MediaState }) {
-  const copy = useLandingCopy();
-  const present = mediaIdsOf(media);
-  const captures = present.filter((id) => CONSOLE_CAPTURE_IDS.includes(id));
-  const renders = present.filter((id) => !CONSOLE_CAPTURE_IDS.includes(id));
-  return (
-    <LandingSection id="console" eyebrow={copy.console.eyebrow} title={copy.console.title} lead={copy.console.lead}>
-      {captures.length > 0 ? (
-        <div className="grid gap-6 md:grid-cols-2">
-          {captures.map((id) => (
-            <MediaFigure key={id} media={media} id={id} captioned />
-          ))}
-        </div>
-      ) : media.status === "ready" ? (
-        <p className="max-w-3xl rounded-card border border-mist bg-white px-4 py-3 text-sm text-slate">{copy.console.pending}</p>
-      ) : null}
-      {renders.length > 0 ? (
-        <>
-          <h3 className="mt-10 text-lg font-semibold text-navy">{copy.console.uploadTitle}</h3>
-          <div className="mt-4 grid items-start gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {renders.map((id) => (
-              <MediaFigure key={id} media={media} id={id} captioned />
+      </ul>
+      <figure className="mt-12" aria-labelledby="problem-timeline">
+        <figcaption id="problem-timeline" className="font-display text-eyebrow font-semibold uppercase text-ink-muted">
+          {problem.timeline.label}
+        </figcaption>
+        <div className="relative mt-5">
+          <div aria-hidden="true" className="h-1 rounded-pill bg-rule" />
+          <div aria-hidden="true" data-timeline-fill="" className="absolute inset-x-0 top-0 h-1 origin-left rounded-pill bg-signal" />
+          <ol className="mt-3 grid grid-cols-4 text-xs font-semibold text-ink sm:text-sm">
+            {problem.timeline.marks.map((mark, index) => (
+              <li key={mark} className={`flex items-center gap-1.5 ${index === problem.timeline.marks.length - 1 ? "justify-end" : ""}`}>
+                {index === problem.timeline.marks.length - 1 ? <Icon name="ship" className="h-4 w-4 text-signal-ink" /> : null}
+                {mark}
+              </li>
             ))}
-          </div>
-        </>
-      ) : null}
-    </LandingSection>
+          </ol>
+        </div>
+      </figure>
+    </SectionShell>
   );
 }
 
-/** Renders nothing until the manifest names a video file (public/landing/manifest.json). */
-export function VideoSlot({ media }: { readonly media: MediaState }) {
-  const { video } = useLandingCopy();
-  if (media.status !== "ready" || media.manifest.video === null) return null;
-  const clip = media.manifest.video;
+type ActorKey = "importer" | "supplier" | "firm";
+
+const ACTORS: ReadonlyArray<{ readonly key: ActorKey; readonly icon: IconName }> = [
+  { key: "importer", icon: "chat" },
+  { key: "supplier", icon: "envelope" },
+  { key: "firm", icon: "documents" },
+];
+
+function ActorItems({ items }: { readonly items: readonly string[] }) {
   return (
-    <LandingSection id="video" title={video.title} tone="white">
-      <figure className="mx-auto max-w-4xl">
-        <video controls preload="none" playsInline className="aspect-video w-full rounded-card bg-navy shadow-card" src={clip.src} {...(clip.poster ? { poster: clip.poster } : {})} />
-        {clip.caption ? <figcaption className="mt-2 text-sm text-slate">{clip.caption}</figcaption> : null}
-      </figure>
-    </LandingSection>
+    <ul className="mt-4 space-y-2.5 text-base text-ink">
+      {items.map((item) => (
+        <li key={item} className="flex gap-2.5">
+          <Icon name="check" className="mt-1 h-4 w-4 text-glass-ink" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function CapabilitiesSection() {
+  const { capabilities } = useLandingCopy();
+  return (
+    <SectionShell id="capabilities" eyebrow={capabilities.eyebrow} title={capabilities.title} tone="alt">
+      <div className="flex flex-col gap-3 md:hidden">
+        {ACTORS.map(({ key, icon }, index) => (
+          <details key={key} open={index === 0} className="group rounded-panel border border-rule bg-white px-5 shadow-card">
+            <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 font-display text-h3 font-semibold text-ink">
+              <Icon name={icon} className="h-6 w-6 text-signal-ink" />
+              <span className="flex-1">{capabilities[key].title}</span>
+              <Icon name="chevronRight" className="h-5 w-5 text-ink-muted transition-transform group-open:rotate-90" />
+            </summary>
+            <div className="pb-5">
+              <p className="text-base text-ink-muted">{capabilities[key].lead}</p>
+              <ActorItems items={capabilities[key].items} />
+            </div>
+          </details>
+        ))}
+      </div>
+      <div className="hidden gap-4 md:grid md:grid-cols-3">
+        {ACTORS.map(({ key, icon }, index) => (
+          <article key={key} data-reveal="" style={{ ["--reveal-index" as string]: index }} className="rounded-panel border border-rule bg-white p-6 shadow-card">
+            <Icon name={icon} className="h-7 w-7 text-signal-ink" />
+            <h3 className="mt-4 font-display text-h3 font-semibold text-ink">{capabilities[key].title}</h3>
+            <p className="mt-2 text-base text-ink-muted">{capabilities[key].lead}</p>
+            <ActorItems items={capabilities[key].items} />
+          </article>
+        ))}
+      </div>
+    </SectionShell>
+  );
+}
+
+/** The rules behind each guarantee, in the order of the copy (§1.6). */
+const GUARANTEE_RULES: ReadonlyArray<readonly LandingRuleId[]> = [["CED-NO-APPROVE"], ["CP-OPTIN", "CP-HOURS-AR", "CP-HOURS-SUPPLIER", "CP-ONE-PER-DAY"], ["CP-NO-FOREIGN-LINKS"], [], [], []];
+const GUARANTEE_ICONS: readonly IconName[] = ["personCheck", "policy", "linkBroken", "reader", "lock", "mask"];
+
+function GuaranteeRule({ rule }: { readonly rule: LandingRuleId & RuleId }) {
+  const label = useRuleLabel(rule);
+  return <RuleChip ruleId={rule} tone="paper" {...(label ? { label } : {})} />;
+}
+
+export function GuaranteesSection() {
+  const { guarantees } = useLandingCopy();
+  return (
+    <SectionShell id="guarantees" eyebrow={guarantees.eyebrow} title={guarantees.title} lead={guarantees.lead} tone="light">
+      <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {guarantees.items.map((item, index) => {
+          const rules = GUARANTEE_RULES[index] ?? [];
+          return (
+            <li key={item.title} data-reveal="" style={{ ["--reveal-index" as string]: index }} className="flex flex-col rounded-panel border border-rule bg-white p-6 shadow-card">
+              <Icon name={GUARANTEE_ICONS[index] ?? "shield"} className="h-7 w-7 text-glass-ink" />
+              <h3 className="mt-4 font-display text-h3 font-semibold text-ink">{item.title}</h3>
+              <p className="mt-2 flex-1 text-base leading-relaxed text-ink-muted">{item.text}</p>
+              {rules.length > 0 ? (
+                <div className="mt-4">
+                  <p className="sr-only">{guarantees.ruleLabel}</p>
+                  <ul className="flex flex-wrap gap-2">
+                    {rules.map((rule) => (
+                      <li key={rule}>
+                        <GuaranteeRule rule={rule} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    </SectionShell>
   );
 }

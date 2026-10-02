@@ -1,8 +1,10 @@
-// What a picture of the landing may never show (docs/design-brief.md §9, docs/test-plan.md §7): a
-// term of the operator's external forbidden list, a token, a key or a word of the neutral list
-// (ADR-0014 §2). The capture and render scripts check the whole page's text before they write a
-// frame, and fail without writing it. Like `lint:forbidden`, a problem names the kind of leak and the
-// line, never the matched text or term; a neutral word is public, so it is named.
+// What a picture of the landing may never show (ADR-0016 §4, docs/test-plan.md §7): a term of the
+// operator's external forbidden list, a word of the neutral list (ADR-0014 §2), a JSON web token, an
+// AWS key, an upload link with its token, or an email address outside the demo's own domains (the
+// simulated mailboxes of sim.legajo.demo.craftech.io and the app's legajo.demo.craftech.io). The
+// capture and render scripts check the frame's text before they write it, and fail without writing
+// it. Like `lint:forbidden`, a problem names the kind of leak and the line, never the matched text or
+// term; a neutral word is public, so it is named.
 import { type ForbiddenTerm, findTerms, listFromEnv } from "../lint/forbidden-terms";
 import { findNeutralHits } from "../lint/neutral-words";
 
@@ -12,11 +14,20 @@ const LEAKS: ReadonlyArray<readonly [string, RegExp]> = [
   ["an upload link with its token", /\/u\/[A-Za-z0-9_-]{43}(?![A-Za-z0-9_-])/],
 ];
 
+/** Domains a frame may show addresses of: the simulated mailboxes and the app's own. */
+export const DEMO_EMAIL_DOMAINS = ["sim.legajo.demo.craftech.io", "legajo.demo.craftech.io"] as const;
+const EMAIL = /[\w.+*%-]+@([a-z0-9-]+(?:\.[a-z0-9-]+)+)/gi;
+
+function foreignEmail(line: string): boolean {
+  return [...line.matchAll(EMAIL)].some((match) => !(DEMO_EMAIL_DOMAINS as readonly string[]).includes((match[1] ?? "").toLowerCase()));
+}
+
 /** Problems of a frame's text: leaks by kind and line, forbidden terms by their position in the list, neutral words by name. */
 export function frameProblems(text: string, terms: readonly ForbiddenTerm[]): string[] {
   const problems: string[] = [];
   text.split("\n").forEach((line, index) => {
     for (const [what, pattern] of LEAKS) if (pattern.test(line)) problems.push(`${what} on line ${index + 1}`);
+    if (foreignEmail(line)) problems.push(`an email address outside the demo's domains on line ${index + 1}`);
   });
   for (const finding of findTerms("frame", text, terms)) problems.push(`term #${finding.term} of the forbidden list on line ${finding.line}`);
   for (const hit of findNeutralHits(text)) problems.push(`the neutral word "${hit.word}" on line ${hit.line}`);

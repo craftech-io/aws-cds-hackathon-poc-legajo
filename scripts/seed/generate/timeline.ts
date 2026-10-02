@@ -81,6 +81,8 @@ function outcomeOf(rule: ContactPolicyRuleId, flags: SendFlags): { result: "PASS
       return { result: "PASS", detail: "asks for no identity, bank or card data" };
     case "CP-NO-FOREIGN-LINKS":
       return { result: "PASS", detail: flags.template ? "no free text: approved template" : "no link or contact outside the turn's" };
+    case "CP-WORLD-QUOTA":
+      return { result: "SKIP", detail: "the seed's history is not counted against a guest world's quota" };
   }
 }
 

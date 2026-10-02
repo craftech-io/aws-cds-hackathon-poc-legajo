@@ -2,6 +2,7 @@
 // every tool returns instead of throwing (docs/tool-catalog.md, Convenciones).
 import { z } from "zod";
 import { ErrorCode, SendChannel } from "./enums";
+import { QuotaExceededKind } from "./guest-limits";
 
 // Detail codes that qualify an ErrorCode; the model only sees `code`, the reason feeds logs and
 // the turn retry (SESSION_EXPIRED) or the outbound pipeline (GROUNDING_FAIL).
@@ -13,6 +14,10 @@ export const ERROR_REASON = {
   GROUNDING_FAIL: "GROUNDING_FAIL",
   ROLE_NOT_ALLOWED: "ROLE_NOT_ALLOWED",
   OPERATION_NOT_IN_SESSION: "OPERATION_NOT_IN_SESSION",
+  /** A guest world's quota, or the daily budget of the public worlds, is spent (ADR-0015 §4). */
+  QUOTA_EXCEEDED: "QUOTA_EXCEEDED",
+  /** A guest's token names a world whose broker row is gone, inactive or leased again (ADR-0015 §4). */
+  GUEST_WORLD_GONE: "GUEST_WORLD_GONE",
 } as const;
 export type ErrorReason = (typeof ERROR_REASON)[keyof typeof ERROR_REASON];
 
@@ -99,6 +104,22 @@ export class ConnectorError extends Error {
   }
 }
 
+/**
+ * `QUOTA_EXCEEDED {kind, resetsAtReal}` of a guest world (ADR-0015 §4): the action had no effect and may
+ * run again at `resetsAtReal` (ISO instant, real time). The console answers it as tRPC
+ * `TOO_MANY_REQUESTS` with `data.quota`; a tool answers `POLICY_DENIED` with this reason.
+ */
+export class QuotaExceededError extends Error {
+  override readonly name = "QuotaExceededError";
+  readonly reason = ERROR_REASON.QUOTA_EXCEEDED;
+  constructor(
+    readonly kind: QuotaExceededKind,
+    readonly resetsAtReal: string,
+  ) {
+    super(`the demo reached its ${kind === "GLOBAL" ? "daily usage budget" : "limit"} until ${resetsAtReal}`);
+  }
+}
+
 const CONNECTOR_TO_TOOL: Readonly<Record<ConnectorErrorCode, ErrorCode>> = {
   NOT_FOUND: "NOT_FOUND",
   CONFLICT: "CONFLICT",
@@ -124,6 +145,7 @@ export function toToolFailure(error: unknown): ToolFailure {
   if (error instanceof ToolError) return error.toFailure();
   if (error instanceof ConnectorError) return fail(CONNECTOR_TO_TOOL[error.code], error.message, error.code);
   if (error instanceof ChannelError) return fail(CHANNEL_TO_TOOL[error.code], error.message, error.code);
+  if (error instanceof QuotaExceededError) return fail("POLICY_DENIED", error.message, error.reason);
   if (error instanceof z.ZodError) return fail("INVALID", "invalid input", "VALIDATION");
   return fail("UNAVAILABLE", "temporary failure, try again later");
 }

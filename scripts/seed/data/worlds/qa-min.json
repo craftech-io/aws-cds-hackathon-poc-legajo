@@ -104,6 +104,11 @@
             "detail": "no free text: approved template",
             "result": "PASS",
             "ruleId": "CP-NO-FOREIGN-LINKS"
+          },
+          {
+            "detail": "the seed's history is not counted against a guest world's quota",
+            "result": "SKIP",
+            "ruleId": "CP-WORLD-QUOTA"
           }
         ],
         "firmId": "firm-qa",
@@ -266,6 +271,11 @@
             "detail": "no free text: approved template",
             "result": "PASS",
             "ruleId": "CP-NO-FOREIGN-LINKS"
+          },
+          {
+            "detail": "the seed's history is not counted against a guest world's quota",
+            "result": "SKIP",
+            "ruleId": "CP-WORLD-QUOTA"
           }
         ],
         "firmId": "firm-qa",
@@ -492,6 +502,11 @@
             "detail": "no link or contact outside the turn's",
             "result": "PASS",
             "ruleId": "CP-NO-FOREIGN-LINKS"
+          },
+          {
+            "detail": "the seed's history is not counted against a guest world's quota",
+            "result": "SKIP",
+            "ruleId": "CP-WORLD-QUOTA"
           }
         ],
         "firmId": "firm-qa",
@@ -654,6 +669,11 @@
             "detail": "no link or contact outside the turn's",
             "result": "PASS",
             "ruleId": "CP-NO-FOREIGN-LINKS"
+          },
+          {
+            "detail": "the seed's history is not counted against a guest world's quota",
+            "result": "SKIP",
+            "ruleId": "CP-WORLD-QUOTA"
           }
         ],
         "firmId": "firm-qa",
@@ -843,6 +863,11 @@
             "detail": "no free text: approved template",
             "result": "PASS",
             "ruleId": "CP-NO-FOREIGN-LINKS"
+          },
+          {
+            "detail": "the seed's history is not counted against a guest world's quota",
+            "result": "SKIP",
+            "ruleId": "CP-WORLD-QUOTA"
           }
         ],
         "firmId": "firm-qa",
@@ -1005,6 +1030,11 @@
             "detail": "no free text: approved template",
             "result": "PASS",
             "ruleId": "CP-NO-FOREIGN-LINKS"
+          },
+          {
+            "detail": "the seed's history is not counted against a guest world's quota",
+            "result": "SKIP",
+            "ruleId": "CP-WORLD-QUOTA"
           }
         ],
         "firmId": "firm-qa",
@@ -1116,6 +1146,11 @@
             "detail": "no free text: approved template",
             "result": "PASS",
             "ruleId": "CP-NO-FOREIGN-LINKS"
+          },
+          {
+            "detail": "the seed's history is not counted against a guest world's quota",
+            "result": "SKIP",
+            "ruleId": "CP-WORLD-QUOTA"
           }
         ],
         "firmId": "firm-qa",
@@ -1227,6 +1262,11 @@
             "detail": "no free text: approved template",
             "result": "PASS",
             "ruleId": "CP-NO-FOREIGN-LINKS"
+          },
+          {
+            "detail": "the seed's history is not counted against a guest world's quota",
+            "result": "SKIP",
+            "ruleId": "CP-WORLD-QUOTA"
           }
         ],
         "firmId": "firm-qa",
@@ -1338,6 +1378,11 @@
             "detail": "no free text: approved template",
             "result": "PASS",
             "ruleId": "CP-NO-FOREIGN-LINKS"
+          },
+          {
+            "detail": "the seed's history is not counted against a guest world's quota",
+            "result": "SKIP",
+            "ruleId": "CP-WORLD-QUOTA"
           }
         ],
         "firmId": "firm-qa",

@@ -42,7 +42,7 @@ describe("shell procedures over tRPC (clock and account routers)", () => {
     expect(clock).toMatchObject({ mode: "PAUSED", simNow: "2026-10-14T10:30:00-03:00", busy: false });
     expect(sent[0]?.url).toMatch(/^\/api\/clock\.get\?batch=1/);
     expect(sent[0]?.method).toBe("GET");
-    expect(sent[0]?.headers.get("authorization")).toBe("Bearer id-token");
+    expect(sent[0]?.headers.get("x-legajo-auth")).toBe("Bearer id-token");
   });
 
   it("rejects an answer that does not have the contract's shape", async () => {

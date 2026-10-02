@@ -10,6 +10,7 @@ import {
   GetCommand,
   PutCommand,
   QueryCommand,
+  ScanCommand,
   TransactWriteCommand,
   UpdateCommand,
   type BatchWriteCommandInput,
@@ -19,8 +20,8 @@ import {
 import { ConnectorError } from "@legajo/shared";
 import { withRetry } from "../../lib/retry";
 import { tableName, type TableName } from "../../lib/resource";
-import { condition, keyCondition, omitEmpty, updateExpression } from "./expressions";
-import { MAX_TRANSACT_OPS, type Item, type Key, type QuerySpec, type TableClient, type TransactOp, type UpdateOptions, type UpdateSpec, type WriteCondition } from "../table-client";
+import { condition, keyCondition, omitEmpty, scanFilter, updateExpression } from "./expressions";
+import { MAX_TRANSACT_OPS, type Item, type Key, type QuerySpec, type ScanSpec, type TableClient, type TransactOp, type UpdateOptions, type UpdateSpec, type WriteCondition } from "../table-client";
 
 const BATCH_WRITE_MAX = 25;
 const BATCH_WRITE_ROUNDS = 5;
@@ -141,6 +142,32 @@ export class DynamoTableClient implements TableClient {
               ExclusiveStartKey: startKey,
               // GSIs only support eventually consistent reads.
               ConsistentRead: built.indexName === undefined,
+            }),
+          ),
+        true,
+      );
+      for (const row of output.Items ?? []) if (isItem(row)) items.push(row);
+      startKey = output.LastEvaluatedKey;
+    } while (startKey !== undefined && (spec.limit === undefined || items.length < spec.limit));
+    return spec.limit === undefined ? items : items.slice(0, spec.limit);
+  }
+
+  async scan(table: TableName, spec: ScanSpec = {}): Promise<Item[]> {
+    const built = scanFilter(spec.filter);
+    const items: Item[] = [];
+    let startKey: Record<string, unknown> | undefined;
+    do {
+      const output = await this.run(
+        table,
+        () =>
+          this.client.send(
+            new ScanCommand({
+              TableName: this.resolveName(table),
+              FilterExpression: built.expression,
+              ExpressionAttributeNames: built.expression === undefined ? undefined : omitEmpty(built.names),
+              ExpressionAttributeValues: built.expression === undefined ? undefined : omitEmpty(built.values),
+              ExclusiveStartKey: startKey,
+              ConsistentRead: true,
             }),
           ),
         true,

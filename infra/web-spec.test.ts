@@ -2,23 +2,33 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { API_PREFIX } from "../packages/bff/src/routers/handler";
+import { CONSOLE_CSP } from "./ci-spec";
 import {
   API_PATH,
   EDGE_BUDGETS,
+  FIRST_DEPLOY_CHECKS,
   LAMBDA_ROUTES,
   LEGAL_PAGES,
+  ORIGIN_REQUEST_POLICY,
+  ORIGIN_VERIFIED_PREFIXES,
+  ORIGIN_VERIFY_HEADER,
   PUBLIC_WEB_PATH,
+  ROUTER_PROTECTION,
   ROUTER_READ_TIMEOUT_MAX_SECONDS,
+  SST_OAC_VERIFIED,
   STATIC_FILE_OPTIONS,
   lambdaRouteFor,
   legalUrl,
+  originVerifyInjection,
   routeMatches,
   type EdgeFunction,
 } from "./web-spec";
 
 const EDGE_FUNCTIONS = Object.keys(LAMBDA_ROUTES) as EdgeFunction[];
-const web = readFileSync(resolve(process.cwd(), "infra/web.ts"), "utf8");
-const dns = readFileSync(resolve(process.cwd(), "infra/dns.ts"), "utf8");
+const read = (path: string): string => readFileSync(resolve(process.cwd(), path), "utf8");
+const web = read("infra/web.ts");
+const dns = read("infra/dns.ts");
+const adr = read("docs/adr/0015-alta-publica-de-invitados-y-leads.md");
 
 /** Mirrors SST's upload: entries are applied in reverse and a file keeps the first one that matches. */
 function optionFor(file: string) {
@@ -79,9 +89,83 @@ describe("router layout", () => {
     expect(legalUrl("legajo.demo.craftech.io", "privacy")).toBe("https://legajo.demo.craftech.io/legal/privacy.html");
   });
 
-  it("declares no inline routes, so bff.ts can attach its functions with url.router", () => {
+  it("declares no inline routes, so bff.ts can attach its functions with url.router (and OAC applies)", () => {
     expect(web).not.toMatch(/\broutes:/);
-    expect(web).toContain('protection: "none"');
+    expect(web).toContain("protection: ROUTER_PROTECTION,");
+  });
+});
+
+/** Runs the injected code on a viewer request, as the Router's CloudFront function does. */
+function viewerRequest(code: string, uri: string, headers: Record<string, { value: string }> = {}): Record<string, { value: string }> {
+  const event = { request: { uri, headers: { ...headers } } };
+  new Function("event", code)(event);
+  return event.request.headers;
+}
+
+describe("origin protection (ADR-0015 §3.1)", () => {
+  const SECRET = "c2VjcmV0LXRoYXQtaXMtMzItYnl0ZXMtbG9uZy0xMjM0NQ==";
+
+  it("puts both Function URLs, Bff and PublicWeb, behind OAC: AWS_IAM, only CloudFront with the distribution as SourceArn", () => {
+    expect(ROUTER_PROTECTION).toBe("oac");
+    expect(Object.keys(LAMBDA_ROUTES).sort()).toEqual(["bff", "publicWeb"]);
+    const fn = read(SST_OAC_VERIFIED.function);
+    expect(fn).toContain('(p) => p?.mode === "oac" || p?.mode === "oac-with-edge-signing"');
+    expect(fn).toContain('isIam ? "AWS_IAM" : "NONE"');
+    expect(fn).toMatch(/action: "lambda:InvokeFunctionUrl",\s*function: fn\.name,\s*principal: "cloudfront\.amazonaws\.com",\s*sourceArn: distributionArn,/);
+    expect(fn).toMatch(/action: "lambda:InvokeFunction",\s*function: fn\.name,\s*principal: "cloudfront\.amazonaws\.com",\s*sourceArn: distributionArn,\s*invokedViaFunctionUrl: true,/);
+    expect(fn).toMatch(/signingBehavior: "always",\s*signingProtocol: "sigv4",\s*originType: "lambda",/);
+    expect(read(".sst/platform/version").trim()).toBe("4.17.1");
+    expect(SST_OAC_VERIFIED.facts).toHaveLength(4);
+  });
+
+  it("forwards X-Legajo-Auth, x-amz-content-sha256 and CloudFront-Viewer-Address to the Lambda routes, and the deploy checks it", () => {
+    expect(read(SST_OAC_VERIFIED.router)).toContain(`originRequestPolicyId: "${ORIGIN_REQUEST_POLICY.id}"`);
+    expect(ORIGIN_REQUEST_POLICY.name).toBe("Managed-AllViewerExceptHostHeader");
+    for (const header of ["x-legajo-auth", "x-amz-content-sha256", "cloudfront-viewer-address", ORIGIN_VERIFY_HEADER]) expect(ORIGIN_REQUEST_POLICY.forwards).toContain(header);
+    expect(web).toContain("args.defaultCacheBehavior = withHeadersPolicy(args.defaultCacheBehavior, consoleHeadersPolicyId);");
+    expect(web).toContain('if (Reflect.get(resolved, "originRequestPolicyId") !== ORIGIN_REQUEST_POLICY.id) {');
+  });
+
+  it("sets X-Origin-Verify on /api/* and /u/*, overwriting what the viewer sent, and removes it everywhere else", () => {
+    const code = originVerifyInjection(SECRET);
+    expect(ORIGIN_VERIFIED_PREFIXES).toEqual([API_PATH, PUBLIC_WEB_PATH]);
+    for (const uri of ["/api", "/api/trpc/signup.start", "/u", "/u/abc123/presign"]) {
+      expect(viewerRequest(code, uri, { [ORIGIN_VERIFY_HEADER]: { value: "forged" } })[ORIGIN_VERIFY_HEADER], uri).toEqual({ value: SECRET });
+    }
+    for (const uri of ["/", "/signup", "/apix", "/upload-guide", "/legal/privacy.html"]) {
+      expect(viewerRequest(code, uri, { [ORIGIN_VERIFY_HEADER]: { value: "forged" } }), uri).not.toHaveProperty(ORIGIN_VERIFY_HEADER);
+    }
+    expect(web).toContain("const originVerifyCode = OriginVerifyKey.value.apply(originVerifyInjection);");
+    expect(web).toContain("edge: { viewerRequest: { injection: originVerifyCode, kvStore: bootstrapKvStoreArn } },");
+  });
+
+  it("keeps the Router's viewer-request function under CloudFront's 10 KB", () => {
+    // Measured on 2026-10-02 with SST 4.17.1: the whole function (SST's minified router, the domain
+    // block and this injection) is 9,288 of 10,240 bytes; the injection gets at most 600 of them.
+    expect(Buffer.byteLength(originVerifyInjection("A".repeat(128)))).toBeLessThan(600);
+    expect(read(".sst/platform/version").trim()).toBe("4.17.1");
+  });
+
+  it("fails the deploy on a malformed secret without echoing it", () => {
+    for (const bad of ["short", "has spaces in it and is long enough to pass the length", `${SECRET}";alert(1);//`]) {
+      let message = "";
+      try {
+        originVerifyInjection(bad);
+      } catch (error) {
+        message = String(error);
+      }
+      expect(message).toMatch(/OriginVerifyKey/);
+      expect(message).not.toContain(bad);
+    }
+  });
+
+  it("keeps the CSP of the console free of WAF domains: the challenge needs no SDK", () => {
+    expect(CONSOLE_CSP).not.toMatch(/awswaf|captcha/i);
+    expect(adr).toContain("la CSP **no** suma dominios de WAF");
+  });
+
+  it("lists the checks of the first deploy of the wave", () => {
+    expect(FIRST_DEPLOY_CHECKS.join("\n")).toMatch(/interstitial[\s\S]*\/signup[\s\S]*403[\s\S]*UserLambdaValidationException/);
   });
 });
 

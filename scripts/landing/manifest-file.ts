@@ -1,30 +1,32 @@
-// public/landing/manifest.json on disk, for the scripts that make the landing's pictures: each one
-// writes its PNG next to the manifest and records it there (size, render or capture, and where a
-// capture was taken), keeping the rest of the manifest as it was, in gallery order. The shape is the
-// landing's own (packages/web/src/views/landing/manifest.ts).
-import { readFileSync, writeFileSync } from "node:fs";
+// public/landing/manifest.json on disk (version 2, packages/web/src/views/landing/manifest.ts), for the
+// scripts that make the landing's pictures: each one writes its files under public/landing/<id>/ and
+// records its entry, keeping every other entry as it was, in the manifest's order.
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { LandingManifest, type MediaId, type MediaItem, withMedia } from "../../packages/web/src/views/landing/manifest";
+import { LandingManifest, type ManifestEntry, withEntry } from "../../packages/web/src/views/landing/manifest";
 
 export const WEB_DIR = join(import.meta.dirname, "../../packages/web");
-export const LANDING_DIR = join(WEB_DIR, "public/landing");
+export const PUBLIC_DIR = join(WEB_DIR, "public");
+export const LANDING_DIR = join(PUBLIC_DIR, "landing");
 export const MANIFEST_PATH = join(LANDING_DIR, "manifest.json");
-
-/** Largest picture the landing takes; a bigger one slows the public page for no gain. */
-export const MAX_PICTURE_BYTES = 400 * 1024;
+/** The render list the CTO asked for (ADR-0016 §3), outside public/. */
+export const RENDERS_PATH = join(import.meta.dirname, "renders.json");
 
 export function readManifest(path: string = MANIFEST_PATH): LandingManifest {
+  if (!existsSync(path)) return { version: 2, entries: [] };
   return LandingManifest.parse(JSON.parse(readFileSync(path, "utf8")));
 }
 
-/** Writes `<id>.png` into `dir` after checking its weight; returns its path inside public/. */
-export function writePicture(dir: string, id: MediaId, picture: Buffer): string {
-  if (picture.byteLength > MAX_PICTURE_BYTES) throw new Error(`${id}: ${Math.round(picture.byteLength / 1024)} KB, over the ${MAX_PICTURE_BYTES / 1024} KB budget`);
-  writeFileSync(join(dir, `${id}.png`), picture);
-  return `/landing/${id}.png`;
+export function writeManifest(manifest: LandingManifest, path: string = MANIFEST_PATH): void {
+  writeFileSync(path, `${JSON.stringify(LandingManifest.parse(manifest), null, 2)}\n`);
 }
 
-/** Records a picture written into public/landing in the manifest. */
-export function recordInManifest(id: MediaId, item: MediaItem, path: string = MANIFEST_PATH): void {
-  writeFileSync(path, `${JSON.stringify(withMedia(readManifest(path), id, item), null, 2)}\n`);
+/** Records one entry (a new picture, or a new version of one) in the manifest on disk. */
+export function recordEntry(entry: ManifestEntry, path: string = MANIFEST_PATH): void {
+  writeManifest(withEntry(readManifest(path), entry), path);
+}
+
+/** Where a manifest `src` lives on disk. */
+export function publicPath(src: string, publicDir: string = PUBLIC_DIR): string {
+  return join(publicDir, src);
 }

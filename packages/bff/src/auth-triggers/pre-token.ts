@@ -2,17 +2,20 @@
 // links only `Firms`). On every sign-in and every refresh it stamps into the id token what the BFF
 // and the console read (auth/principal.ts, packages/web/src/lib/auth-claims.ts):
 //
-//   custom:firmId   the tenant the invitation set (re-stamped once validated)
-//   custom:role     from the broker row the user's `sub` is bound to (`Firms/BROKER#`, GSI1), else
-//                   the highest-precedence console group (a guest's first sign-in, before its world
-//                   and its broker row exist)
-//   custom:isGuest  "true" for a GUEST, who acts as a broker only inside its own guest firm
+//   custom:firmId      staff: the tenant the invitation set (re-stamped once validated); a GUEST: only
+//                      the firm of its own broker row (`Firms/BROKER#`, GSI1 `SUB#<sub>`), never the
+//                      user attribute, so a guest without a world gets a token without a firm, good only
+//                      for `guestBootstrapProcedure` (ADR-0015 §4)
+//   custom:role        from the broker row the user's `sub` is bound to, else the highest-precedence
+//                      console group
+//   custom:isGuest     "true" for a GUEST, who acts as a broker only inside its own guest firm
+//   custom:worldLease  a GUEST's: the lease of the world its broker row was written for; the BFF
+//                      refuses a token whose lease is no longer the row's (403 `GUEST_WORLD_GONE`)
 //
-// A guest's access token also loses the `aws.cognito.signin.user.admin` scope: guest accounts are
-// shared through the private Devpost instructions, so Cognito itself must refuse ChangePassword,
-// AssociateSoftwareToken, SetUserMFAPreference, UpdateUserAttributes and DeleteUser with it (hiding
-// them in the console is not enough; docs/design-brief.md §7.1). SRP sign-in, refresh and
-// RevokeToken do not need that scope.
+// A guest's access token also loses the `aws.cognito.signin.user.admin` scope: guest accounts must
+// not change their password, MFA or attributes with it (ADR-0014 §7, ADR-0015 §1), so Cognito itself
+// refuses ChangePassword, AssociateSoftwareToken, SetUserMFAPreference, UpdateUserAttributes and
+// DeleteUser with it. SRP sign-in, refresh and RevokeToken do not need that scope.
 //
 // The groups are copied back unchanged: a V2_0 response that leaves `groupOverrideDetails` empty
 // suppresses them. An account that cannot be resolved (no valid firm, no console role, an inactive
@@ -22,14 +25,15 @@
 import { FirmId } from "@legajo/shared";
 import { z } from "zod";
 import { describeError } from "../auth/errors";
-import { resolveAccess, type AccessRefusal } from "../auth/principal";
+import { WORLD_LEASE_CLAIM, consoleRolesOf, isGuestFirm, resolveAccess, type AccessRefusal, type GuestRow } from "../auth/principal";
 import { brokerLookupOf, type BrokerLookup } from "../auth/staff";
-import { connector } from "../connector/index";
+import { type TableClient, connector, tableClient } from "../connector/index";
+import { Broker } from "../domain/firms";
 import { withDeadline } from "../lib/deadline";
 import { createLogger, type Logger } from "../lib/log";
 
 /** Claims this trigger owns in the id token. */
-export const STAMPED_CLAIMS = { firmId: "custom:firmId", role: "custom:role", isGuest: "custom:isGuest" } as const;
+export const STAMPED_CLAIMS = { firmId: "custom:firmId", role: "custom:role", isGuest: "custom:isGuest", worldLease: WORLD_LEASE_CLAIM } as const;
 
 // What the trigger reads of the event; everything else Cognito sends passes through untouched.
 const GroupConfiguration = z.looseObject({
@@ -68,7 +72,7 @@ export interface ClaimsAndScopeOverrideDetails {
   readonly groupOverrideDetails: z.infer<typeof GroupConfiguration>;
 }
 
-export type PreTokenRefusal = AccessRefusal | "NO_SUB" | "BROKER_INACTIVE";
+export type PreTokenRefusal = AccessRefusal | "NO_SUB" | "BROKER_INACTIVE" | "AMBIGUOUS_GUEST";
 
 export type PreTokenDecision =
   | { readonly outcome: "STAMPED"; readonly details: ClaimsAndScopeOverrideDetails }
@@ -88,8 +92,23 @@ function refused(refusal: PreTokenRefusal): PreTokenDecision {
   return { outcome: "REFUSED", refusal, details: REFUSED_DETAILS };
 }
 
+/** A guest's broker rows by its `sub`, in any firm (`Firms` GSI1 `SUB#<sub>`). */
+export type GuestRowsLookup = (sub: string) => Promise<GuestRow[]>;
+
+/** The lookup over the raw `Firms` rows (the broker row keeps `leaseId`, written with the world). */
+export function guestRowsOf(client: TableClient): GuestRowsLookup {
+  return async (sub) => {
+    const rows = await client.query("Firms", { index: "GSI1", hashValue: `SUB#${sub}`, filter: { equals: { entity: "Broker" } }, limit: 5 });
+    return rows.flatMap((row) => {
+      const broker = Broker.safeParse(row);
+      return broker.success ? [{ firmId: broker.data.firmId, active: broker.data.active, ...(broker.data.leaseId === undefined ? {} : { leaseId: broker.data.leaseId }) }] : [];
+    });
+  };
+}
+
 export interface PreTokenDeps {
   readonly brokers: BrokerLookup;
+  readonly guestRows: GuestRowsLookup;
   readonly log: Logger;
   /** Deadline of the broker read; Cognito gives the whole trigger 5 s. */
   readonly lookupTimeoutMs?: number;
@@ -97,11 +116,29 @@ export interface PreTokenDeps {
 
 const LOOKUP_TIMEOUT_MS = 3_500;
 
+const GUEST_SCOPE = { accessTokenGeneration: { scopesToSuppress: [ACCOUNT_ADMIN_SCOPE] } } as const;
+
+/** A GUEST: the firm and lease of its own broker row, or no firm at all (ADR-0015 §4). */
+async function decideGuest(sub: string, groupConfiguration: PreTokenEvent["request"]["groupConfiguration"], deps: PreTokenDeps): Promise<PreTokenDecision> {
+  const rows = await withDeadline("pre-token guest lookup", deps.lookupTimeoutMs ?? LOOKUP_TIMEOUT_MS, () => deps.guestRows(sub));
+  const guest = { [STAMPED_CLAIMS.role]: "GUEST", [STAMPED_CLAIMS.isGuest]: "true" };
+  if (rows.length === 0) {
+    return { outcome: "STAMPED", details: { idTokenGeneration: { claimsToAddOrOverride: guest, claimsToSuppress: [STAMPED_CLAIMS.firmId] }, ...GUEST_SCOPE, groupOverrideDetails: groupConfiguration } };
+  }
+  const [row] = rows;
+  if (rows.length > 1 || row === undefined) return refused("AMBIGUOUS_GUEST");
+  if (!row.active) return refused("BROKER_INACTIVE");
+  if (!isGuestFirm(row.firmId)) return refused("GUEST_OUTSIDE_GUEST_FIRM");
+  const claims = { ...guest, [STAMPED_CLAIMS.firmId]: row.firmId, ...(row.leaseId === undefined ? {} : { [STAMPED_CLAIMS.worldLease]: row.leaseId }) };
+  return { outcome: "STAMPED", details: { idTokenGeneration: { claimsToAddOrOverride: claims }, ...GUEST_SCOPE, groupOverrideDetails: groupConfiguration } };
+}
+
 /** The overrides for one token issuance. Rejects only when the broker directory cannot be read. */
 export async function decidePreToken(event: PreTokenEvent, deps: PreTokenDeps): Promise<PreTokenDecision> {
   const { userAttributes, groupConfiguration } = event.request;
   const sub = userAttributes.sub;
   if (sub === undefined || sub === "") return refused("NO_SUB");
+  if (consoleRolesOf(groupConfiguration.groupsToOverride)[0] === "GUEST") return decideGuest(sub, groupConfiguration, deps);
 
   const firm = FirmId.safeParse(userAttributes[STAMPED_CLAIMS.firmId]);
   if (!firm.success) return refused("NO_FIRM");
@@ -159,6 +196,7 @@ let defaults: PreTokenDeps | undefined;
 function defaultDeps(): PreTokenDeps {
   defaults ??= {
     brokers: brokerLookupOf(connector().firms),
+    guestRows: guestRowsOf(tableClient()),
     log: createLogger({ bindings: { service: "auth-pre-token" } }),
   };
   return defaults;

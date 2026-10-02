@@ -39,6 +39,7 @@ export const SOURCE_GLOBS: readonly string[] = [
   "packages/bff/src/leads/notice/**",
   "packages/reader-mock/src/**",
   "packages/platform-mock/src/**",
+  "packages/shared/src/consent-texts.ts",
   "infra/auth-email.ts",
   "scripts/channels/whatsapp-templates.ts",
   "scripts/seed/data/**",

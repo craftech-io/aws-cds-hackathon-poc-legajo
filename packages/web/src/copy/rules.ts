@@ -19,6 +19,7 @@ const CONTACT_POLICY: Readonly<Record<ContactPolicyRuleId, string>> = {
   "CP-WA-24H": "Ventana de 24 h",
   "CP-NO-SENSITIVE-ASK": "Sin pedido de datos sensibles",
   "CP-NO-FOREIGN-LINKS": "Sin enlaces ni contactos ajenos",
+  "CP-WORLD-QUOTA": "Límite de emails de la demo",
 };
 
 const TARGET_LABEL: Readonly<Record<ToolTarget, string>> = {

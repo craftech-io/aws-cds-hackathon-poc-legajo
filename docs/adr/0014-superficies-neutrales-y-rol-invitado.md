@@ -51,7 +51,8 @@ Modo fuentes (`npm run lint:neutral-surfaces`), archivos de texto (`.ts`, `.tsx`
 | `packages/bff/src/auth-triggers/messages/**` | Emails de cuenta de Cognito, es/en (ADR-0015) |
 | `packages/bff/src/leads/notice/**` | Aviso interno de lead (también es un email) |
 | `packages/reader-mock/src/**`, `packages/platform-mock/src/**` | Observaciones del lector y estados de la plataforma que la consola muestra |
-| `infra/auth-email.ts` | Descripciones de grupos de Cognito y plantilla de invitación del personal interno |
+| `packages/shared/src/consent-texts.ts` | Textos de las dos casillas de consentimiento del alta, es/en (ADR-0015 §8) |
+| `infra/auth-email.ts` | Descripciones de grupos de Cognito y nombre visible del remitente de los emails de cuenta (las plantillas se mudaron a `packages/bff/src/auth-triggers/messages/`) |
 | `scripts/channels/whatsapp-templates.ts` | Cuerpos que se envían a Meta |
 | `scripts/seed/data/**` | Textos del seed (el manifiesto del seed deja de llevar el nombre de la app: pasa a `"product": "legajo-listo"`) |
 | PDFs generados por el seed | Texto y metadatos, con la misma extracción que usa `lint:forbidden` |

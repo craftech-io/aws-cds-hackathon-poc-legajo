@@ -83,6 +83,13 @@ function predicateClauses(ph: Placeholders, predicates: Predicates | undefined):
   return clauses;
 }
 
+/** `FilterExpression` of a scan; `undefined` without predicates. */
+export function scanFilter(predicates: Predicates | undefined): Expression & { readonly expression: string | undefined } {
+  const ph = new Placeholders();
+  const clauses = predicateClauses(ph, predicates);
+  return { expression: clauses.length > 0 ? clauses.join(" AND ") : undefined, names: ph.names, values: ph.values };
+}
+
 export interface ConditionExpression extends Expression {
   readonly expression: string | undefined;
 }

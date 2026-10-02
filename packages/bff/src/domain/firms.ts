@@ -76,6 +76,8 @@ export const Broker = defineEntity({
   /** Seeded empty; `console:invite` fills it and a seed reload keeps it (docs/seed-spec.md §4). */
   cognitoSub: z.string().max(128).default(""),
   active: z.boolean().default(true),
+  /** A guest world's broker row: the lease of the world it was written for (ADR-0015 §4); a token naming another is refused. */
+  leaseId: z.string().min(1).max(64).optional(),
 });
 export type Broker = z.output<typeof Broker>;
 

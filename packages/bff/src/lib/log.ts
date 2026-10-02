@@ -48,6 +48,7 @@ export const MASK = {
   amount: "[amount]",
   name: "[name]",
   omitted: "[omitted]",
+  redacted: "[redacted]",
   number: "[number]",
 } as const;
 
@@ -56,8 +57,10 @@ export const MASK = {
 const OMITTED_KEYS = new Set([
   "event", "rawevent", "records", "record", "payload", "toolresult", "toolresults", "output", "body", "text", "html", "transcript",
   "message_body", "mime", "content", "attachments", "sessiontoken", "token", "authorization", "secret", "signature", "tasktoken", "password",
-  "key", "subkey", "overrides", "seedoverrides",
+  "key", "subkey", "overrides", "seedoverrides", "passwordsealed", "newpassword", "confirmationcode", "ticket", "formtoken",
 ]);
+// What a visitor types into the sign-up form besides the email (ADR-0015 §6, FL-121): never logged, whatever its type.
+const LEAD_KEYS = new Set(["company", "jobtitle", "website", "referrer", "utm"]);
 const ADDRESS_KEYS = new Set(["address", "to", "from", "recipient", "sender", "destination", "replyto", "cc", "bcc"]);
 // "name" is masked too: log a tool or resource under `tool`, `target` or `resource`, never `name`.
 const NAME_KEYS = new Set(["name", "displayname", "firstname", "lastname", "fullname", "contactname"]);
@@ -115,6 +118,7 @@ function redactError(error: Error, depth: number): Record<string, unknown> {
 
 function redactByKey(lowered: string, value: unknown): string | undefined {
   if (OMITTED_KEYS.has(lowered)) return MASK.omitted;
+  if (LEAD_KEYS.has(lowered)) return MASK.redacted;
   const marker = KEY_MARKERS.get(lowered);
   if (marker !== undefined) return marker;
   if (ADDRESS_KEYS.has(lowered)) return typeof value === "string" && value.includes("@") ? MASK.email : MASK.phone;

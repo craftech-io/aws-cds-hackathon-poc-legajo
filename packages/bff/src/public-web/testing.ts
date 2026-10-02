@@ -12,6 +12,7 @@ import { createLogger } from "../lib/log";
 import { APP_ORIGIN } from "./deps";
 import { type PublicWebDeps, type PublicWebHandler, createPublicWebHandler } from "./handler";
 import { s3PdfPresigner } from "./presign";
+import { edgeHeaders, testEdgeGuard } from "../signup/testing";
 
 /** A 32-byte base64url token, as `newPublicToken` makes them. */
 export const TOKEN = "Zq3v9Kf0mX2bR7wLpT4yNc8hJd1sGa6eUo5iQkVxWtY";
@@ -51,7 +52,7 @@ export async function publicWebWorld(options: WorldOptions = {}): Promise<Public
     loggerFor: (correlationId) => createLogger({ correlationId, level: "debug", sink: (line) => lines.push(line) }),
     ...options.deps,
   };
-  return { stores, deps, handler: createPublicWebHandler(deps), logs: () => lines.map((line) => JSON.parse(line) as Record<string, unknown>) };
+  return { stores, deps, handler: createPublicWebHandler(deps, testEdgeGuard), logs: () => lines.map((line) => JSON.parse(line) as Record<string, unknown>) };
 }
 
 /** The link `create_upload_link` would write for the certificate and the packing list of 4471. */
@@ -84,7 +85,7 @@ let requestSequence = 0;
 
 export function publicEvent(method: string, path: string, options: EventOptions = {}): APIGatewayProxyEventV2 {
   const json = options.body === undefined ? undefined : typeof options.body === "string" ? options.body : JSON.stringify(options.body);
-  const headers = { ...(json === undefined ? {} : { "content-type": "application/json", origin: APP_ORIGIN }), ...options.headers };
+  const headers = { ...edgeHeaders(), ...(json === undefined ? {} : { "content-type": "application/json", origin: APP_ORIGIN }), ...options.headers };
   requestSequence += 1;
   return {
     version: "2.0",

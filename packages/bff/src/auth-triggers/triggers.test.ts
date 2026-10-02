@@ -6,13 +6,14 @@ import { brokerLookupOf } from "../auth/staff";
 import { seedBrokers } from "../auth/testing";
 import { memoryStores } from "../connector/testing";
 import { createLogger } from "../lib/log";
-import { ACCOUNT_ADMIN_SCOPE, type ClaimsAndScopeOverrideDetails, createPreTokenHandler, type PreTokenDeps } from "./pre-token";
+import { ACCOUNT_ADMIN_SCOPE, type ClaimsAndScopeOverrideDetails, createPreTokenHandler, guestRowsOf, type PreTokenDeps } from "./pre-token";
 
 const DIEGO = "0b7f0e2e-0000-4000-8000-000000000001";
 const MARTINA = "0b7f0e2e-0000-4000-8000-000000000002";
 const GUEST = "0b7f0e2e-0000-4000-8000-000000000003";
 const GONE = "0b7f0e2e-0000-4000-8000-00000000dead";
 const PABLO = "0b7f0e2e-0000-4000-8000-000000000004";
+const MISPLACED_GUEST = "0b7f0e2e-0000-4000-8000-000000000005";
 
 interface EventInput {
   readonly sub?: string;
@@ -61,9 +62,10 @@ describe("Cognito pre token generation (V2_0)", () => {
       { firmId: "firm-delta", brokerId: "brk-delta-martina", role: "ANALYST", sub: MARTINA },
       { firmId: "firm-delta", brokerId: "brk-delta-gone", role: "BROKER", sub: GONE, active: false },
       { firmId: "firm-norte", brokerId: "brk-norte-pablo", role: "BROKER", sub: PABLO },
+      { firmId: "firm-delta", brokerId: "brk-delta-guest", role: "GUEST", sub: MISPLACED_GUEST },
     ]);
     lines = [];
-    deps = { brokers: brokerLookupOf(stores.connector.firms), log: createLogger({ level: "debug", sink: (line) => void lines.push(line) }) };
+    deps = { brokers: brokerLookupOf(stores.connector.firms), guestRows: guestRowsOf(stores.client), log: createLogger({ level: "debug", sink: (line) => void lines.push(line) }) };
     const handler = createPreTokenHandler(() => deps);
     run = async (event) => (await handler(event)) as TriggerResult;
   });
@@ -86,12 +88,11 @@ describe("Cognito pre token generation (V2_0)", () => {
     }
   });
 
-  it("stamps a guest from its group on the first sign-in, before its world and broker row exist", async () => {
+  it("[FL-105] stamps a guest without a firm on the first sign-in, before its world and broker row exist", async () => {
     const result = await run(cognitoEvent({ sub: GUEST, firmId: "firm-guest-01", groups: ["GUEST"] }));
-    expect(result.response.claimsAndScopeOverrideDetails.idTokenGeneration.claimsToAddOrOverride).toEqual({
-      "custom:firmId": "firm-guest-01",
-      "custom:role": "GUEST",
-      "custom:isGuest": "true",
+    expect(result.response.claimsAndScopeOverrideDetails.idTokenGeneration).toEqual({
+      claimsToAddOrOverride: { "custom:role": "GUEST", "custom:isGuest": "true" },
+      claimsToSuppress: ["custom:firmId"],
     });
   });
 
@@ -116,7 +117,7 @@ describe("Cognito pre token generation (V2_0)", () => {
     ["no firm", { firmId: "" }, "NO_FIRM"],
     ["a firm id that is not firm-<slug>", { firmId: "Estudio Delta" }, "NO_FIRM"],
     ["no console group and no broker row", { sub: GUEST, groups: ["Admins"] }, "NO_ROLE"],
-    ["a guest outside a guest firm", { sub: GUEST, firmId: "firm-delta", groups: ["GUEST"] }, "GUEST_OUTSIDE_GUEST_FIRM"],
+    ["a guest whose broker row is outside a guest firm", { sub: MISPLACED_GUEST, firmId: "firm-delta", groups: ["GUEST"] }, "GUEST_OUTSIDE_GUEST_FIRM"],
     ["no sub", { sub: "" }, "NO_SUB"],
   ])("issues a token without tenant, role or groups for %s", async (_label, input, refusal) => {
     const result = await run(cognitoEvent(input));

@@ -1,7 +1,7 @@
 // The token set of the console session. Tokens live in sessionStorage: they die with the tab and
 // never reach localStorage, where any script of the origin would outlive the session. Passwords and
 // TOTP secrets are never stored anywhere: they exist only in the memory of the form that uses them.
-// The id token is what the BFF expects in the Authorization header (principal from the id token).
+// The id token is what the BFF expects in `X-Legajo-Auth` (principal from the id token, lib/trpc.ts).
 import { z } from "zod";
 import type { AuthenticationResult, CognitoApi } from "./cognito";
 
@@ -66,14 +66,25 @@ export function isExpired(tokens: TokenSet, now = Date.now()): boolean {
 // the silent-refresh timer racing the page load) gets the same answer instead of a second request.
 const refreshing = new Map<string, Promise<TokenSet>>();
 
+// Bumped by every sign-out: a refresh that started before it must not write a fresh id token back
+// into sessionStorage afterwards (the BFF verifies id tokens offline, so it would stay usable).
+let generation = 0;
+
+/** Thrown by a refresh whose session was signed out while it was in flight. */
+export class SessionEndedError extends Error {
+  override readonly name = "SessionEndedError";
+}
+
 export async function refreshTokens(cognito: Pick<CognitoApi, "refresh">, current: TokenSet, now: () => number = Date.now): Promise<TokenSet> {
   const refreshToken = current.refreshToken;
   if (!refreshToken) throw new Error("no refresh token");
   const pending = refreshing.get(refreshToken);
   if (pending) return pending;
+  const started = generation;
   const request = cognito
     .refresh(refreshToken)
     .then((result) => {
+      if (started !== generation) throw new SessionEndedError("the session was signed out during the refresh");
       const tokens = tokenSetOf(result, now(), refreshToken);
       saveTokens(tokens);
       return tokens;
@@ -81,6 +92,12 @@ export async function refreshTokens(cognito: Pick<CognitoApi, "refresh">, curren
     .finally(() => refreshing.delete(refreshToken));
   refreshing.set(refreshToken, request);
   return request;
+}
+
+/** Drops every refresh in flight: whatever they answer is never saved. */
+export function cancelRefreshes(): void {
+  generation += 1;
+  refreshing.clear();
 }
 
 /** Tokens usable right now: stored and fresh, or refreshed if a refresh token exists. */
@@ -101,10 +118,12 @@ export async function restoreSession(cognito: Pick<CognitoApi, "refresh">): Prom
 }
 
 /**
- * Ends the session: the refresh token (and the access tokens issued from it) is revoked at Cognito,
- * then the local copy goes. A failed revocation still signs out locally; the tokens expire on their own.
+ * Ends the session: refreshes in flight are dropped, the local copy goes, and the refresh token (and
+ * the access tokens issued from it) is revoked at Cognito. A failed revocation still signs out
+ * locally; the tokens expire on their own.
  */
 export async function revokeSession(cognito: Pick<CognitoApi, "revoke">, tokens: TokenSet | undefined): Promise<void> {
+  cancelRefreshes();
   clearTokens();
   if (!tokens?.refreshToken) return;
   try {

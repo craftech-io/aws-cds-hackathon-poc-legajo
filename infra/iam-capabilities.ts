@@ -18,7 +18,8 @@ export type TableName =
   | "Runtime"
   | "LegajoMetrics"
   | "ReaderCatalog"
-  | "Platform";
+  | "Platform"
+  | "Leads";
 
 export type BucketName = "Documents" | "Uploads" | "Media" | "Seed" | "InboundMail";
 
@@ -32,7 +33,14 @@ export type CapabilityName =
   | "MOCK_READER"
   | "MOCK_PLATFORM"
   | "MEMORY_ADMIN"
-  | "WORLDS";
+  | "WORLDS"
+  | "LEADS"
+  | "SIGNUP_ADMIN"
+  | "SIGNUP_DISPATCH"
+  | "LEAD_NOTICE"
+  | "MAIL_STATUS"
+  | "GUEST_CLEANUP"
+  | "QA_SIGNUP";
 
 export interface Capability {
   readonly actions: readonly string[];
@@ -97,6 +105,41 @@ export const CAPABILITIES: Readonly<Record<CapabilityName, Capability>> = {
     tables: WORLD_TABLES,
     buckets: { Seed: "read", Media: "write" },
     fence: "Platform with ForAllValues:StringLike dynamodb:LeadingKeys per role (WORLDS_LEADING_KEYS); Seed pdfs/* and worlds/*; Media sim/*",
+  },
+  // ---- Public signup and leads (ADR-0015, docs/architecture.md §14) ----
+  LEADS: {
+    actions: [],
+    tables: { Leads: "write" },
+    fence: "Leads only through the name-only Linkable `Leads` plus the role's own statement (infra/leads-spec.ts LEADS_ACCESS); never linked whole",
+  },
+  SIGNUP_ADMIN: {
+    actions: ["cognito-idp:AdminGetUser", "cognito-idp:AdminListGroupsForUser", "cognito-idp:AdminAddUserToGroup"],
+    fence: "the app's user pool ARN; AdminAddUserToGroup only with the literal group GUEST and only on a user with no group (fenced in code and test)",
+  },
+  SIGNUP_DISPATCH: {
+    actions: ["lambda:InvokeFunction"],
+    fence: "InvokeFunction only of SignupDispatch, asynchronously (InvocationType Event)",
+  },
+  LEAD_NOTICE: {
+    actions: ["lambda:InvokeFunction"],
+    fence: "InvokeFunction only of LeadNotice, asynchronously (InvocationType Event)",
+  },
+  MAIL_STATUS: {
+    actions: [],
+    tables: { Runtime: "write" },
+    fence: "Runtime PutItem/UpdateItem of MAILSTATUS#, RL#MAILBAD# and MAILBREAKER; subkey lead-email of SessionTokenKey; never Leads",
+  },
+  GUEST_CLEANUP: {
+    actions: ["cognito-idp:ListUsers", "cognito-idp:AdminDeleteUser", "s3:DeleteObject", "s3:ListBucket"],
+    fence:
+      "the app's user pool ARN, AdminDeleteUser only of UNCONFIRMED users without groups or of a lead being deleted (fenced in code); DeleteObject and ListBucket only under guest/* of Documents and Media, uploads/* of Uploads and poc/ops/*, poc/sim/* of the mail bucket (infra/leads-spec.ts GUEST_OBJECT_PREFIXES)",
+  },
+  QA_SIGNUP: {
+    actions: ["cognito-idp:AdminGetUser", "cognito-idp:AdminDeleteUser", "cognito-idp:ListUsers", "lambda:InvokeFunction", "s3:ListBucket"],
+    tables: { Leads: "write" },
+    buckets: { InboundMail: "read" },
+    fence:
+      "signup.readCode, lead.inspect and lead.purge of SC-26 (docs/test-plan.md §4.1): GetObject and ListBucket of poc/sim/* of the mail bucket; Leads GetItem, Query, DeleteItem and PutItem; the app's user pool ARN; InvokeFunction of WorldJanitor; only the qa-signup-<runId>-* mailboxes of its own run (fenced in code)",
   },
 };
 
@@ -168,9 +211,10 @@ export const LAMBDA_CAPABILITIES = {
     fence: "ses:FromAddress *@sim.legajo.demo.craftech.io; ses:Recipients op-*@legajo.demo.craftech.io; configuration set …-sim-poc; InboundMail poc/sim/*",
   },
   ChannelEvents: {
-    capabilities: [],
+    capabilities: ["MAIL_STATUS"],
     tables: { Conversations: "write", Runtime: "write" },
     actions: ["sqs:SendMessage"],
+    fence: "no Leads: the bounce state of a recipient lives in Runtime/MAILSTATUS#",
   },
   FeedEvents: {
     capabilities: [],
@@ -187,6 +231,7 @@ export const LAMBDA_CAPABILITIES = {
     capabilities: [],
     tables: { Runtime: "write", AuditLog: "write" },
     buckets: { Uploads: "write" },
+    fence: "secret OriginVerifyKey; Function URL AWS_IAM, only cloudfront.amazonaws.com with the distribution as SourceArn (OAC)",
   },
   ScheduleDispatch: {
     capabilities: [],
@@ -195,14 +240,42 @@ export const LAMBDA_CAPABILITIES = {
     fence: "InvokeFunction only of SimMail",
   },
   Bff: {
-    capabilities: ["MOCK_PLATFORM", "WORLDS"],
+    capabilities: ["MOCK_PLATFORM", "WORLDS", "LEADS", "SIGNUP_ADMIN", "SIGNUP_DISPATCH", "LEAD_NOTICE"],
     tables: { Firms: "write", Parties: "write", Operations: "write", Conversations: "write", AuditLog: "write", Runtime: "write", LegajoMetrics: "write", Reference: "read" },
     buckets: { Documents: "read", Media: "write" },
     actions: ["sqs:SendMessage", "lambda:InvokeFunction"],
-    fence: "InvokeFunction only of InboundWhatsApp and WorldJanitor; no SES, no EUM Social, no Guardrails",
+    fence: "InvokeFunction only of InboundWhatsApp, WorldJanitor, SignupDispatch and LeadNotice; no SES, no EUM Social, no Guardrails; Function URL AWS_IAM, only cloudfront.amazonaws.com with the distribution as SourceArn (OAC)",
+  },
+  SignupDispatch: {
+    capabilities: [],
+    tables: { Leads: "write", Runtime: "write" },
+    actions: ["cognito-idp:ListUsers", "cognito-idp:AdminGetUser", "cognito-idp:AdminListGroupsForUser", "cognito-idp:AdminDeleteUser"],
+    fence:
+      "Leads GetItem, UpdateItem and DeleteItem of SIGNUP# only (never writes a lead); Runtime GetItem of MAILSTATUS# and MAILBREAKER, UpdateItem of RL#; the app's user pool ARN, AdminDeleteUser only of UNCONFIRMED users without groups (fenced in code); no InvokeFunction of LeadNotice; invoked asynchronously only by Bff, no retries, reserved concurrency 2",
   },
   WorldJanitor: {
-    capabilities: ["WORLDS"],
+    capabilities: ["WORLDS", "LEADS", "SIGNUP_ADMIN", "LEAD_NOTICE", "GUEST_CLEANUP"],
+  },
+  AuthPreToken: {
+    capabilities: [],
+    tables: { Firms: "read" },
+    fence: "Firms BROKER# rows and GSI1; invoked only by cognito-idp.amazonaws.com with the pool as SourceArn",
+  },
+  AuthPreSignUp: {
+    capabilities: [],
+    fence: "no table: HMAC of the signup ticket with the subkey signup-ticket of SessionTokenKey; invoked only by cognito-idp.amazonaws.com with the pool as SourceArn",
+  },
+  AuthCustomMessage: {
+    capabilities: [],
+    tables: { Runtime: "write" },
+    fence: "Runtime UpdateItem of RL#MAIL…, GetItem of MAILSTATUS# and MAILBREAKER; subkeys rate and lead-email of SessionTokenKey; no Leads; invoked only by cognito-idp.amazonaws.com with the pool as SourceArn",
+  },
+  LeadNotice: {
+    capabilities: [],
+    tables: { Leads: "write" },
+    actions: ["ses:SendEmail"],
+    fence:
+      "Leads GetItem and UpdateItem of noticeStatus; secret LeadNoticeTo; ses:FromAddress avisos@legajo.demo.craftech.io, ses:Recipients *@craftech.io, configuration set …-email-poc; no Runtime, no Conversations (LEAD_NOTICE is a profile without a clock); invoked asynchronously only by Bff and WorldJanitor",
   },
   PolicyAudit: {
     capabilities: [],
@@ -220,7 +293,7 @@ export const LAMBDA_CAPABILITIES = {
     fence: "PutEvents only to the Feeds bus",
   },
   QaDriver: {
-    capabilities: ["MOCK_PLATFORM", "MOCK_READER", "WORLDS"],
+    capabilities: ["MOCK_PLATFORM", "MOCK_READER", "WORLDS", "QA_SIGNUP"],
     tables: {
       Firms: "write",
       Parties: "write",

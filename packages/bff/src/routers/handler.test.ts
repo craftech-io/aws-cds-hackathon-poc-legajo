@@ -4,6 +4,7 @@ import { z } from "zod";
 import { AUTH_REASON } from "../auth/errors";
 import { createTestIssuer, seedBrokers, testContextDeps } from "../auth/testing";
 import { memoryStores } from "../connector/testing";
+import { edgeHeaders, testEdgeGuard } from "../signup/testing";
 import { createHandler, stripApiPrefix } from "./handler";
 import { appRouter } from "./index";
 import { brokerProcedure, createContextFactory, firmProcedure, recentLoginProcedure, router } from "./trpc";
@@ -14,11 +15,14 @@ const BROKER_SUB = "7f1c9d2e-0000-4000-8000-000000000001";
 const INACTIVE_SUB = "7f1c9d2e-0000-4000-8000-00000000dead";
 // Users whose `sub` has no broker row: their role is the token's.
 const UNBOUND_SUB = "7f1c9d2e-0000-4000-8000-00000000beef";
+// A guest is never unbound: its world's broker row has to exist (ADR-0015 §4).
+const GUEST_SUB = "7f1c9d2e-0000-4000-8000-00000000c0de";
 
 const stores = memoryStores();
 await seedBrokers(stores, [
   { firmId: "firm-delta", brokerId: "brk-delta-diego", role: "BROKER", sub: BROKER_SUB },
   { firmId: "firm-delta", brokerId: "brk-delta-gone", role: "BROKER", sub: INACTIVE_SUB, active: false },
+  { firmId: "firm-guest-01", brokerId: "brk-guest-01", role: "GUEST", sub: GUEST_SUB },
 ]);
 const deps = testContextDeps({ verifier: issuer.verifier(), stores, lines });
 
@@ -44,7 +48,7 @@ function functionUrlEvent(rawPath: string, headers: Record<string, string> = {})
     routeKey: "$default",
     rawPath,
     rawQueryString: "",
-    headers,
+    headers: { ...edgeHeaders(), ...headers },
     isBase64Encoded: false,
     requestContext: {
       accountId: "anonymous",
@@ -76,7 +80,7 @@ const lambdaContext: LambdaContext = {
   succeed: () => undefined,
 };
 
-const handler = createHandler(testRouter, createContextFactory(() => deps));
+const handler = createHandler(testRouter, createContextFactory(() => deps), testEdgeGuard);
 
 async function call(rawPath: string, headers?: Record<string, string>) {
   const response = await handler(functionUrlEvent(rawPath, headers), lambdaContext);
@@ -87,7 +91,7 @@ describe("BFF Lambda handler", () => {
   it("serves /api/<procedure> behind the Router and /<procedure> on the Function URL", async () => {
     const authorization = `Bearer ${issuer.idToken()}`;
     for (const path of ["/api/session.whoami", "/session.whoami"]) {
-      const response = await call(path, { authorization });
+      const response = await call(path, { "x-legajo-auth": authorization });
       expect(response.status).toBe(200);
       expect(response.body.result?.data).toEqual({ firmId: "firm-delta", role: "BROKER", brokerId: "brk-delta-diego" });
       expect(response.headers["cache-control"]).toBe("no-store");
@@ -95,7 +99,7 @@ describe("BFF Lambda handler", () => {
   });
 
   it("answers HTTP 401 with the reason and the correlation id when the token has no firm", async () => {
-    const response = await call("/api/session.whoami", { authorization: `Bearer ${issuer.idToken({ "custom:firmId": undefined })}` });
+    const response = await call("/api/session.whoami", { "x-legajo-auth": `Bearer ${issuer.idToken({ "custom:firmId": undefined })}` });
     expect(response.status).toBe(401);
     expect(response.body.error?.data).toMatchObject({ code: "UNAUTHORIZED", reason: AUTH_REASON.PRINCIPAL_INCOMPLETE, correlationId: "req-handler-0001" });
   });
@@ -107,19 +111,19 @@ describe("BFF Lambda handler", () => {
   });
 
   it("refuses an inactive broker, an analyst on broker procedures and an old sign-in on approvals", async () => {
-    const inactive = await call("/api/session.whoami", { authorization: `Bearer ${issuer.idToken({ sub: INACTIVE_SUB })}` });
+    const inactive = await call("/api/session.whoami", { "x-legajo-auth": `Bearer ${issuer.idToken({ sub: INACTIVE_SUB })}` });
     expect(inactive.status).toBe(403);
     expect(inactive.body.error?.data).toMatchObject({ reason: AUTH_REASON.BROKER_INACTIVE });
-    const analyst = await call("/api/session.brokerOnly", { authorization: `Bearer ${issuer.idToken({ sub: UNBOUND_SUB, "custom:role": "ANALYST", "cognito:groups": ["ANALYST"] })}` });
+    const analyst = await call("/api/session.brokerOnly", { "x-legajo-auth": `Bearer ${issuer.idToken({ sub: UNBOUND_SUB, "custom:role": "ANALYST", "cognito:groups": ["ANALYST"] })}` });
     expect(analyst.status).toBe(403);
     expect(analyst.body.error?.data).toMatchObject({ reason: AUTH_REASON.ROLE_NOT_ALLOWED });
     const guest = await call("/api/session.brokerOnly", {
-      authorization: `Bearer ${issuer.idToken({ sub: UNBOUND_SUB, "custom:firmId": "firm-guest-01", "custom:role": "GUEST", "cognito:groups": ["GUEST"] })}`,
+      "x-legajo-auth": `Bearer ${issuer.idToken({ sub: GUEST_SUB, "custom:firmId": "firm-guest-01", "custom:role": "GUEST", "cognito:groups": ["GUEST"] })}`,
     });
     expect(guest.status).toBe(200);
     const old = Math.floor(Date.now() / 1000) - 16 * 60;
     const stale = await handler(
-      { ...functionUrlEvent("/api/session.approve", { authorization: `Bearer ${issuer.idToken({ auth_time: old })}`, "content-type": "application/json" }), body: "{}", requestContext: { ...functionUrlEvent("/").requestContext, http: { ...functionUrlEvent("/").requestContext.http, method: "POST" } } },
+      { ...functionUrlEvent("/api/session.approve", { "x-legajo-auth": `Bearer ${issuer.idToken({ auth_time: old })}`, "content-type": "application/json" }), body: "{}", requestContext: { ...functionUrlEvent("/").requestContext, http: { ...functionUrlEvent("/").requestContext.http, method: "POST" } } },
       lambdaContext,
     );
     expect(stale.statusCode).toBe(403);
@@ -128,7 +132,7 @@ describe("BFF Lambda handler", () => {
 
   it("never sends a stack trace and logs unexpected failures with the correlation id", async () => {
     lines.length = 0;
-    const response = await handler(functionUrlEvent("/api/session.boom", { authorization: `Bearer ${issuer.idToken()}` }), lambdaContext);
+    const response = await handler(functionUrlEvent("/api/session.boom", { "x-legajo-auth": `Bearer ${issuer.idToken()}` }), lambdaContext);
     expect(response.statusCode).toBe(500);
     expect(response.body).not.toContain("stack");
     expect(lines.map((line) => z.looseObject({ message: z.string(), correlationId: z.string() }).parse(JSON.parse(line)))).toContainEqual(
@@ -137,7 +141,7 @@ describe("BFF Lambda handler", () => {
   });
 
   it("the console router answers the public health probe and 404 for an unknown procedure", async () => {
-    const bff = createHandler(appRouter, createContextFactory(() => deps));
+    const bff = createHandler(appRouter, createContextFactory(() => deps), testEdgeGuard);
     const health = await bff(functionUrlEvent("/api/health"), lambdaContext);
     expect(health.statusCode).toBe(200);
     expect(ResponseBody.parse(JSON.parse(health.body ?? "{}")).result?.data).toEqual({ ok: true, service: "bff", checks: {} });

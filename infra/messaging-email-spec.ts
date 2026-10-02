@@ -7,7 +7,8 @@
 // (the mail bucket policy trusts exactly those rules), actions from iam-capabilities.ts.
 //
 // IAM half of the recipient fence (docs/architecture.md §13-§14): one send statement per sender
-// profile (`SYSTEM` pipeline and escalations, `SIMULATOR` SimMail, `QA` QaDriver), linked as a Linkable.
+// profile (`SYSTEM` pipeline and escalations, `SIMULATOR` SimMail, `QA` QaDriver, `LEAD_NOTICE` the
+// internal notice of a new lead to `@craftech.io`, ADR-0015 §6), linked as a Linkable.
 // Each fences `ses:FromAddress`, every recipient (`ForAllValues:StringLike ses:Recipients`, with a
 // `Null` guard so a request without the key is denied instead of passing vacuously) and the set. What
 // IAM cannot express (a `SIMULATOR` From that is an ACTIVE contact of the operation, a `QA` recipient
@@ -190,7 +191,7 @@ export const quarantineObjectArns = (bucket: string): string[] => [s3ObjectsArn(
 
 // ---- Sending ------------------------------------------------------------------------------------------
 
-export const SENDER_PROFILES = ["SYSTEM", "SIMULATOR", "QA"] as const;
+export const SENDER_PROFILES = ["SYSTEM", "SIMULATOR", "QA", "LEAD_NOTICE"] as const;
 export type SenderProfile = (typeof SENDER_PROFILES)[number];
 
 /**
@@ -208,6 +209,13 @@ export interface SenderSpec {
 
 const OPERATION_THREADS = `op-*@${EMAIL_DOMAINS.app}`;
 
+/**
+ * The only domain the lead notice reaches (ADR-0015 §6). The recipients come from the secret
+ * `LeadNoticeTo`, never from the code; the client's fence wants `<local>@craftech.io` exactly, and IAM
+ * repeats it: `*@craftech.io` cannot match a subdomain (`x@mail.craftech.io` ends otherwise).
+ */
+export const LEAD_NOTICE_DOMAIN = "craftech.io";
+
 export const SENDERS: Readonly<Record<SenderProfile, SenderSpec>> = {
   SYSTEM: {
     linkName: "EmailSenderSystem",
@@ -224,12 +232,14 @@ export const SENDERS: Readonly<Record<SenderProfile, SenderSpec>> = {
     recipients: [OPERATION_THREADS, `${QA_PARTY_PREFIX}*@${EMAIL_DOMAINS.sim}`],
     demoRecipients: false,
   },
+  // A profile without a clock: no PENDING#/MAIL#, no X-Legajo-Mail-Id, no Message (ADR-0015 §6).
+  LEAD_NOTICE: { linkName: "EmailSenderLeadNotice", configurationSet: "email", fromAddresses: [NOTICES_ADDRESS], recipients: [`*@${LEAD_NOTICE_DOMAIN}`], demoRecipients: false },
 };
 
 export const SEND_ACTIONS: readonly string[] = CAPABILITIES.SEND_EMAIL.actions;
 
 /** Functions that send without the SEND_EMAIL capability, each with its own profile (§14 rows). */
-const DIRECT_SENDERS: Readonly<Partial<Record<LambdaName, SenderProfile>>> = { SimMail: "SIMULATOR", QaDriver: "QA" };
+const DIRECT_SENDERS: Readonly<Partial<Record<LambdaName, SenderProfile>>> = { SimMail: "SIMULATOR", QaDriver: "QA", LeadNotice: "LEAD_NOTICE" };
 
 /** The sender Linkable a function links: SYSTEM for every holder of SEND_EMAIL (PIPELINE included). */
 export function senderProfileOf(fn: LambdaName): SenderProfile | undefined {
@@ -313,7 +323,8 @@ export type LateLinkName = keyof typeof LATE_LINKS;
 /**
  * `handler`: its file belongs to the WP that owns the code (docs/build-plan.md §2). `reservedConcurrency`:
  * docs/architecture.md §12. `linkedBuckets`: linked whole (mail bucket and quarantine go through their
- * Linkables). `sessionTokenKey`: links the master key for the HKDF subkeys `thread` and `email-hash`.
+ * Linkables). `sessionTokenKey`: links the master key for the HKDF subkeys `thread`, `email-hash` and
+ * (ChannelEvents) `lead-email`.
  */
 export interface EmailFunctionSpec {
   readonly handler: string;
@@ -337,10 +348,12 @@ export const EMAIL_FUNCTIONS: Readonly<Record<EmailFunction, EmailFunctionSpec>>
     description: "SES receipt rule sim-*: supplier simulator and demo mailbox, only for our own verified mail.",
     timeoutSeconds: 60, memoryMb: 1024, reservedConcurrency: 5, linkedBuckets: ["Seed"], lateLinks: ["Scheduler"], sessionTokenKey: true,
   },
+  // The master key for the subkey `lead-email`: a bounce or complaint of an account email or of the
+  // lead notice marks Runtime/MAILSTATUS#<emailHash> (ADR-0015 §3.2), never Leads.
   ChannelEvents: {
     handler: "packages/bff/src/handlers/channel-events.handler",
-    description: "SES delivery events of the email configuration set: message status, pendings, EMAIL_EVENT.",
-    timeoutSeconds: 30, memoryMb: 256, linkedBuckets: [], lateLinks: ["OperationEvents"], sessionTokenKey: false,
+    description: "SES delivery events of the email configuration set: message status, pendings, EMAIL_EVENT, bounce state of a recipient.",
+    timeoutSeconds: 30, memoryMb: 256, linkedBuckets: [], lateLinks: ["OperationEvents"], sessionTokenKey: true,
   },
 };
 

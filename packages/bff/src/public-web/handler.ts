@@ -1,12 +1,16 @@
-// Lambda entry of `PublicWeb` (docs/architecture.md §11, Function URL `NONE` behind the Router on
-// `/u/*`): the importer's upload page, with no login. The token in the path is the only credential;
-// every decision derives the firm, operation, importer and world from the link row, never from the
-// request. infra/bff.ts points at `packages/bff/src/public-web/handler.handler`; the local UI server
-// (tests/ui-server) mounts `createPublicWebHandler` with the in-memory connector and an S3 emulator.
+// Lambda entry of `PublicWeb` (docs/architecture.md §11, Function URL behind the Router on `/u/*`
+// with OAC): the importer's upload page, with no login. The first step of every route is the
+// distribution's `X-Origin-Verify`, compared in constant time (403 without it, ADR-0015 §3.1); after
+// it, the token in the path is the only credential, and every decision derives the firm, operation,
+// importer and world from the link row, never from the request. infra/bff.ts points at
+// `packages/bff/src/public-web/handler.handler`; the local UI server (tests/ui-server) mounts
+// `createPublicWebHandler` with the in-memory connector, an S3 emulator and a test guard.
 import { ConnectorError, operationNumberOf } from "@legajo/shared";
 import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 import type { Connector } from "../connector/index";
-import { type Logger, correlationIdFrom } from "../lib/log";
+import { type Logger, correlationIdFrom, createLogger } from "../lib/log";
+import { isOriginVerified } from "../lib/viewer-ip";
+import { type EdgeGuard, lambdaEdgeGuard } from "../signup/edge";
 import { type ActionContext, done, presign } from "./actions";
 import { recordAccess, recordRefusal } from "./audit";
 import type { ErrorPageKind } from "./copy";
@@ -85,8 +89,20 @@ async function dispatch(ctx: ActionContext, route: Exclude<Route, { kind: "NONE"
   return route.kind === "PRESIGN" ? presign(ctx, state) : done(ctx, state);
 }
 
-export function createPublicWebHandler(deps: PublicWebDeps): PublicWebHandler {
+function originVerified(edge: EdgeGuard, event: APIGatewayProxyEventV2): boolean {
+  try {
+    return isOriginVerified(event.headers, edge.originVerifyKey());
+  } catch {
+    return false;
+  }
+}
+
+export function createPublicWebHandler(deps: PublicWebDeps, edge: EdgeGuard): PublicWebHandler {
   return async (event) => {
+    if (!originVerified(edge, event)) {
+      createLogger({ bindings: { service: "public-web" } }).warn("public_web.edge.refused", { reason: "ORIGIN_NOT_VERIFIED" });
+      return jsonError(403, "FORBIDDEN", "ORIGIN_NOT_VERIFIED");
+    }
     const request = requestOf(event);
     const correlationId = correlationIdFrom(request.requestId);
     const log = deps.loggerFor(correlationId);
@@ -106,7 +122,7 @@ let lambdaHandler: PublicWebHandler | undefined;
 
 export const handler: PublicWebHandler = async (event) => {
   try {
-    lambdaHandler ??= createPublicWebHandler(defaultPublicWebDeps());
+    lambdaHandler ??= createPublicWebHandler(defaultPublicWebDeps(), lambdaEdgeGuard);
   } catch {
     // A missing link or secret: the page says "try later" instead of a CloudFront error.
     return errorPage(503, "unavailable");

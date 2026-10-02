@@ -1,23 +1,21 @@
-// Scene 3 as the demo mailbox shows it: the email thread with the supplier, in plain text, with the
-// reader's result after each email that carried PDFs. Subjects, the sender's name and the simulated
+// The email thread with the supplier as the demo mailbox shows it (conversations.ts): plain text, the
+// operation's address on every email, in English. Subjects, the sender's name and the simulated
 // supplier's replies are the real texts of packages/bff/src/copy; the bodies the agent writes are
-// examples and say so. The reader's result is what the external reader returns (ADR-0003).
-import { Fragment } from "react";
-import { Badge } from "../../components/Badge";
+// examples and say so. A step of the tour shows the part of the thread it is about.
 import { STORY, SUPPLIER_THREAD, type EmailView } from "./conversations";
+import { Icon } from "./icons";
 import { useLandingCopy } from "./lang";
-import { READINGS } from "./scenes";
 
 function EmailCard({ email }: { readonly email: EmailView }) {
   const copy = useLandingCopy();
   const outgoing = email.direction === "out";
   return (
-    <li className={`overflow-hidden rounded-card border bg-white shadow-card ${outgoing ? "border-mist" : "border-cyan-soft"}`}>
-      <div className="space-y-0.5 border-b border-mist bg-paper px-4 py-2 text-xs text-slate">
-        <p className="break-all">
+    <li className={`overflow-hidden rounded-card border bg-white text-ink shadow-card ${outgoing ? "border-rule" : "border-glass"}`}>
+      <div className="space-y-0.5 border-b border-rule bg-manifest px-4 py-2 text-xs text-ink-muted">
+        <p className="wrap-anywhere">
           <span className="font-semibold text-ink">{copy.email.from}:</span> {email.from}
         </p>
-        <p className="break-all">
+        <p className="wrap-anywhere">
           <span className="font-semibold text-ink">{copy.email.to}:</span> {email.to}
         </p>
         <p className="text-ink">
@@ -28,13 +26,13 @@ function EmailCard({ email }: { readonly email: EmailView }) {
       <pre lang="en" className="whitespace-pre-wrap px-4 py-3 font-sans text-xs leading-relaxed text-ink">
         {email.body}
       </pre>
-      <div className="flex flex-wrap items-center gap-2 px-4 pb-3 text-xs text-slate">
-        <Badge tone={email.source === "agent" ? "brand" : "neutral"}>{email.source === "agent" ? copy.email.agent : copy.email.simulator}</Badge>
+      <div className="flex flex-wrap items-center gap-2 px-4 pb-3 text-xs text-ink-muted">
+        <span className={`rounded-pill px-2.5 py-0.5 font-semibold ${email.source === "agent" ? "bg-manifest-deep text-signal-ink" : "bg-manifest-deep text-glass-ink"}`}>
+          {email.source === "agent" ? copy.email.agent : copy.email.simulator}
+        </span>
         {email.attachments.map((file) => (
-          <span key={file} className="inline-flex items-center gap-1 rounded-md border border-mist px-2 py-0.5 font-mono text-ink">
-            <span aria-hidden="true" className="rounded bg-danger px-1 text-white">
-              PDF
-            </span>
+          <span key={file} className="inline-flex items-center gap-1 rounded-md border border-rule px-2 py-0.5 font-mono text-ink">
+            <Icon name="document" className="h-3.5 w-3.5" />
             {file}
           </span>
         ))}
@@ -43,43 +41,13 @@ function EmailCard({ email }: { readonly email: EmailView }) {
   );
 }
 
-function ReaderCard({ after }: { readonly after: EmailView["id"] }) {
-  const { story } = useLandingCopy();
-  const { labels, reader } = story;
-  const readings = READINGS.filter((reading) => reading.after === after);
-  if (readings.length === 0) return null;
-  return (
-    <li className="rounded-card border border-info bg-info-soft px-4 py-3 text-xs text-ink">
-      <p className="font-semibold text-info">{reader.title}</p>
-      <ul className="mt-2 space-y-1.5">
-        {readings.map((reading) => (
-          <li key={`${reading.docType}-${reading.version}`} className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="font-semibold">
-              {labels.docType[reading.docType]} · {reader.version(reading.version)}
-            </span>
-            <Badge tone={reading.status === "VALID" ? "success" : "warning"}>{labels.docStatus[reading.status]}</Badge>
-            {reading.status === "WITH_OBSERVATION" ? (
-              <span className="w-full text-slate">
-                {story.observation("GROSS_WEIGHT_MISMATCH")}: {story.kg(STORY.grossWeightKg.found)} {reader.found} · {story.kg(STORY.grossWeightKg.expected)} {reader.expected} ·{" "}
-                {reader.responsible}: {labels.party.SUPPLIER}
-              </span>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </li>
-  );
-}
-
-export function EmailThread() {
+/** The emails of `ids`, in the thread's order. */
+export function EmailThread({ ids }: { readonly ids: readonly EmailView["id"][] }) {
   const { email } = useLandingCopy();
   return (
-    <ol aria-label={email.threadLabel} className="space-y-3">
-      {SUPPLIER_THREAD.map((item) => (
-        <Fragment key={item.id}>
-          <EmailCard email={item} />
-          <ReaderCard after={item.id} />
-        </Fragment>
+    <ol aria-label={`${email.threadLabel} · ${STORY.supplierName}`} className="space-y-3">
+      {SUPPLIER_THREAD.filter((item) => ids.includes(item.id)).map((item) => (
+        <EmailCard key={item.id} email={item} />
       ))}
     </ol>
   );

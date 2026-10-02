@@ -53,7 +53,8 @@ export interface CognitoApi {
   mfaMethods(accessToken: string): Promise<readonly string[]>;
   /** The signed-in user changes its own password (never offered to a guest). */
   changePassword(accessToken: string, previousPassword: string, proposedPassword: string): Promise<void>;
-  forgotPassword(username: string): Promise<void>;
+  /** `lang` picks the language of the email (`ClientMetadata.lang`, read by the CustomMessage trigger). */
+  forgotPassword(username: string, lang?: "es" | "en"): Promise<void>;
   confirmForgotPassword(username: string, code: string, newPassword: string): Promise<void>;
   refresh(refreshToken: string): Promise<AuthenticationResult>;
   revoke(refreshToken: string): Promise<void>;
@@ -138,8 +139,8 @@ export function createCognitoApi(config: CognitoApiConfig): CognitoApi {
     async changePassword(accessToken, previousPassword, proposedPassword) {
       await call("ChangePassword", { AccessToken: accessToken, PreviousPassword: previousPassword, ProposedPassword: proposedPassword }, Empty, false);
     },
-    async forgotPassword(username) {
-      await call("ForgotPassword", { ClientId: clientId, Username: username }, z.looseObject({}), false);
+    async forgotPassword(username, lang) {
+      await call("ForgotPassword", { ClientId: clientId, Username: username, ...(lang ? { ClientMetadata: { lang } } : {}) }, z.looseObject({}), false);
     },
     async confirmForgotPassword(username, code, newPassword) {
       await call("ConfirmForgotPassword", { ClientId: clientId, Username: username, ConfirmationCode: code, Password: newPassword }, Empty, false);

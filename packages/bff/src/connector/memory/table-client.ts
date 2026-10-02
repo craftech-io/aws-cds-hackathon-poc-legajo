@@ -13,6 +13,7 @@ import {
   type Predicates,
   type QuerySpec,
   type RangeCondition,
+  type ScanSpec,
   type TableClient,
   type TransactOp,
   type UpdateOptions,
@@ -178,6 +179,11 @@ export class MemoryTableClient implements TableClient {
     if (spec.descending) matches.reverse();
     const limited = spec.limit === undefined ? matches : matches.slice(0, spec.limit);
     return limited.map(clone);
+  }
+
+  async scan(table: TableName, spec: ScanSpec = {}): Promise<Item[]> {
+    const matches = [...this.rows(table).values()].filter((item) => matchesPredicates(item, spec.filter)).sort((a, b) => (rowId(a) < rowId(b) ? -1 : rowId(a) > rowId(b) ? 1 : 0));
+    return (spec.limit === undefined ? matches : matches.slice(0, spec.limit)).map(clone);
   }
 
   async put(table: TableName, item: Item, cond?: WriteCondition): Promise<void> {

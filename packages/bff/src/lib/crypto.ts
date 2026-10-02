@@ -6,13 +6,31 @@
 // HKDF-SHA256 subkey with a fixed label, so a value leaked for one purpose (a simulated-envelope
 // signature in a log, a phone hash) says nothing about the others. The thread tag of an operation
 // address is computed by `computeThreadTag` of @legajo/shared with the `thread` subkey.
-import { createHash, createHmac, hkdfSync, randomBytes, timingSafeEqual } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, createHmac, hkdfSync, randomBytes, timingSafeEqual } from "node:crypto";
 import { normalizeEmail, normalizePhone } from "@legajo/shared";
 
 export type SecretKey = string | Uint8Array;
 
-/** Fixed labels of the subkeys (HKDF `info`); changing one invalidates every value derived with it. */
-export const SUBKEY_PURPOSES = ["session", "phone-hash", "email-hash", "nonce", "sim-envelope", "thread", "runtime-session"] as const;
+/**
+ * Fixed labels of the subkeys (HKDF `info`); changing one invalidates every value derived with it.
+ * The public sign-up adds five (ADR-0015 §9): `signup-ticket` (the ticket `AuthPreSignUp` checks),
+ * `signup-seal` (the password in transit to `SignupDispatch`), `lead-email` (`Leads/EMAIL#` and
+ * `Runtime/MAILSTATUS#`), `rate` (IP and domain of the rate-limit counters) and `form` (`formShownAt`).
+ */
+export const SUBKEY_PURPOSES = [
+  "session",
+  "phone-hash",
+  "email-hash",
+  "nonce",
+  "sim-envelope",
+  "thread",
+  "runtime-session",
+  "signup-ticket",
+  "signup-seal",
+  "lead-email",
+  "rate",
+  "form",
+] as const;
 export type SubkeyPurpose = (typeof SUBKEY_PURPOSES)[number];
 
 /** HKDF salt shared by every subkey of the app; public by design (RFC 5869 §3.1). */
@@ -68,6 +86,47 @@ export function phoneHash(phoneHashKey: SecretKey, rawPhone: string): string {
 /** `emailHash` of `Parties GSI2` and of `ADDR#<hash>` (key: `email-hash` subkey), lower-cased address. */
 export function emailHash(emailHashKey: SecretKey, rawEmail: string): string {
   return hmacSha256Hex(emailHashKey, normalizeEmail(rawEmail));
+}
+
+/** `emailHash` of `Leads/EMAIL#` and `Runtime/MAILSTATUS#` (key: `lead-email` subkey, never `email-hash`). */
+export function leadEmailHash(leadEmailKey: SecretKey, rawEmail: string): string {
+  return hmacSha256Hex(leadEmailKey, normalizeEmail(rawEmail));
+}
+
+const SEAL_VERSION = "v1";
+const SEAL_IV_BYTES = 12;
+const SEAL_TAG_BYTES = 16;
+
+/**
+ * AES-256-GCM of a short secret (the sign-up password on its way to `SignupDispatch`, ADR-0015 §1):
+ * `v1.<iv>.<ciphertext>.<tag>` in base64url. `context` is bound as additional data, so a sealed value
+ * copied to another sign-up does not open there.
+ */
+export function sealSecret(sealKey: Uint8Array, plaintext: string, context: string, random: (size: number) => Uint8Array = randomBytes): string {
+  if (sealKey.length !== 32) throw new RangeError("the seal key must have 32 bytes");
+  const iv = random(SEAL_IV_BYTES);
+  const cipher = createCipheriv("aes-256-gcm", sealKey, iv, { authTagLength: SEAL_TAG_BYTES });
+  cipher.setAAD(Buffer.from(context, "utf8"));
+  const body = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+  return [SEAL_VERSION, Buffer.from(iv).toString("base64url"), body.toString("base64url"), cipher.getAuthTag().toString("base64url")].join(".");
+}
+
+/** Opens a value of `sealSecret`; a tampered value, another context or another key throws. */
+export function openSealed(sealKey: Uint8Array, sealed: string, context: string): string {
+  const [version, iv, body, tag, extra] = sealed.split(".");
+  if (version !== SEAL_VERSION || iv === undefined || body === undefined || tag === undefined || extra !== undefined) throw new RangeError("not a sealed value");
+  const decipher = createDecipheriv("aes-256-gcm", sealKey, Buffer.from(iv, "base64url"), { authTagLength: SEAL_TAG_BYTES });
+  decipher.setAAD(Buffer.from(context, "utf8"));
+  decipher.setAuthTag(Buffer.from(tag, "base64url"));
+  return Buffer.concat([decipher.update(Buffer.from(body, "base64url")), decipher.final()]).toString("utf8");
+}
+
+/** Random id of `length` Crockford base32 characters (a sign-up id: 26 characters, 130 bits). */
+export function randomBase32(length: number, random: (size: number) => Uint8Array = randomBytes): string {
+  const bytes = random(length);
+  let out = "";
+  for (const byte of bytes) out += CROCKFORD[byte & 31] ?? "0";
+  return out;
 }
 
 export interface RuntimeSessionInput {

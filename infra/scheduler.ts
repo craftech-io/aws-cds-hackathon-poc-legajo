@@ -20,16 +20,22 @@
 //                          invocation role, only towards scheduler.amazonaws.com.
 //
 // WorldJanitor. The world factory's background worker (capability WORLDS, Platform fenced to
-// POP#firm-guest-* by infra/mocks.ts). Two entries:
+// POP#firm-guest-* by infra/mocks.ts) and the sweeper of the public signup (ADR-0015 §5: LEADS,
+// SIGNUP_ADMIN, LEAD_NOTICE and GUEST_CLEANUP, applied with `signupGrants("WorldJanitor")` of
+// infra/leads.ts). Its entries:
 //   - MEMORY_PURGE, invoked asynchronously by Bff and QaDriver after "Reiniciar demo" or world.destroy:
 //     the second pass and the listings of the Memory purge, up to 10 minutes (docs/architecture.md
 //     §9.3), hence the 12-minute timeout. Its resource policy names those two roles; within one
 //     account an identity policy alone also invokes, so the fence that counts is that no other role
 //     of the app holds lambda:InvokeFunction on it (infra/iam-capabilities.ts).
-//   - The nightly reset of guest worlds idle for 24 real hours, at 04:00 ART (docs/architecture.md §8):
-//     an EventBridge rule on the default bus (`sst.aws.Cron`), cron(0 7 * * ? *) in UTC, since
-//     Argentina keeps UTC−3 all year. A rule and not a Scheduler schedule: the CI deploy role creates
-//     tagged rules, while schedules are created only by the code, inside the group above.
+//   - GUEST_SWEEP every hour: UNCONFIRMED users without groups older than 24 h, verified signups to
+//     finalize, PENDING lead notices, the 24-month retention of leads and (WP-31) expired public guest
+//     worlds.
+//   - The nightly reset of reserved guest worlds idle for 24 real hours, at 04:00 ART
+//     (docs/architecture.md §8): cron(0 7 * * ? *) in UTC, since Argentina keeps UTC−3 all year. The
+//     rule exists DISABLED until WP-31 makes the handler accept IDLE_GUEST_RESET and enables it.
+//   Both are EventBridge rules on the default bus (`sst.aws.Cron`), not Scheduler schedules: the CI
+//   deploy role creates tagged rules, while schedules are created only by the code, inside the group.
 //
 // Cost: per schedule invocation and per Lambda run; nothing bills while every world is paused.
 //
@@ -43,10 +49,12 @@
 //   aws --profile craftech-demos lambda get-policy --function-name <WorldJanitor name>
 //     → events.amazonaws.com from the nightly rule, and the Bff and QaDriver roles
 //   aws --profile craftech-demos events list-rule-names-by-target --target-arn <WorldJanitor ARN>
-//     → the nightly rule, ScheduleExpression cron(0 7 * * ? *)
+//     → the hourly GUEST_SWEEP rule (rate(1 hour), ENABLED) and the nightly rule (cron(0 7 * * ? *),
+//       DISABLED until WP-31)
 
 import { CAPABILITIES, type LambdaName } from "./iam-capabilities";
 import { lateLinks, links } from "./late-links";
+import { signupGrants } from "./leads";
 import { simMail } from "./messaging-email";
 import { mockLinks, mockPermissions } from "./mocks";
 import { OperationEvents } from "./operations";
@@ -81,6 +89,11 @@ export const WORLD_JANITOR = {
   nightlySchedule: "cron(0 7 * * ? *)",
   /** Input of the nightly run (packages/bff/src/handlers/world-janitor.ts validates it with zod). */
   nightlyEvent: { kind: "IDLE_GUEST_RESET" },
+  /** Disabled until WP-31: today the handler accepts MEMORY_PURGE and GUEST_SWEEP only. */
+  nightlyEnabled: false,
+  /** The signup and guest-world sweep (ADR-0015 §5). */
+  guestSweepSchedule: "rate(1 hour)",
+  guestSweepEvent: { kind: "GUEST_SWEEP" },
 } as const;
 
 /** Callers of the asynchronous MEMORY_PURGE, by the export of infra/bff.ts (WP-32) that creates each one. */
@@ -163,8 +176,11 @@ export const Scheduler = new sst.Linkable("Scheduler", {
 
 // ---- WorldJanitor ----------------------------------------------------------------------------------
 
+/** Leads, LeadNotice, the pool and the guest objects (infra/leads.ts, docs/architecture.md §14). */
+const janitorSignup = signupGrants("WorldJanitor");
+
 export const worldJanitor = new sst.aws.Function("WorldJanitor", {
-  description: "Continues the Memory purge of a reset or destroyed world (MEMORY_PURGE) and resets idle guest worlds nightly.",
+  description: "Memory purge of a reset or destroyed world, hourly sweep of the public signup and guest worlds, nightly reset of reserved guests.",
   handler: SCHEDULER_HANDLERS.WorldJanitor,
   timeout: `${WORLD_JANITOR.timeoutSeconds} seconds`,
   // Reloads world templates from Seed and rewrites every item of a world.
@@ -172,16 +188,23 @@ export const worldJanitor = new sst.aws.Function("WorldJanitor", {
   link: links(
     // WORLDS: its tables, Seed and Media, Platform's name (never the table: its statement comes from
     // mockPermissions), the timers, and the key that derives a new epoch's hashes and thread tags.
-    [...storageLinks("WorldJanitor"), ...mockLinks("WorldJanitor"), Scheduler, SessionTokenKey, SeedOverrides],
+    [...storageLinks("WorldJanitor"), ...mockLinks("WorldJanitor"), Scheduler, SessionTokenKey, SeedOverrides, ...janitorSignup.link],
     lateLinks("scheduler", "agentcore", () => import("./agentcore"), SCHEDULER_LATE_LINKS.agentcore),
   ),
-  permissions: mockPermissions("WorldJanitor"),
+  permissions: [...mockPermissions("WorldJanitor"), ...janitorSignup.permissions],
 });
 
 export const worldJanitorNightly = new sst.aws.Cron("WorldJanitorNightly", {
   function: worldJanitor.arn,
   schedule: WORLD_JANITOR.nightlySchedule,
   event: WORLD_JANITOR.nightlyEvent,
+  enabled: WORLD_JANITOR.nightlyEnabled,
+});
+
+export const worldJanitorGuestSweep = new sst.aws.Cron("WorldJanitorGuestSweep", {
+  function: worldJanitor.arn,
+  schedule: WORLD_JANITOR.guestSweepSchedule,
+  event: WORLD_JANITOR.guestSweepEvent,
 });
 
 /**

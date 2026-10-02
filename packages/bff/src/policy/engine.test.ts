@@ -18,12 +18,12 @@ function denied(decision: PolicyDecision) {
 describe("contact policy engine: order and outcome", () => {
   afterEach(() => vi.useRealTimers());
 
-  it("allows a clean template to the importer, checking all 14 rules in order and listing the ones that passed", () => {
+  it("allows a clean template to the importer, checking every rule in order and listing the ones that passed", () => {
     const decision = evaluate(toImporter());
     expect(decision).toMatchObject({ outcome: "ALLOW", allowed: true, deferred: false, reply: false, window: { state: "CLOSED" } });
     expect(decision.evaluated.map((entry) => entry.ruleId)).toEqual([...CONTACT_POLICY_RULES]);
     expect(decision.ruleIds).toEqual(["CP-CONTROL-BROKER", "CP-KIND-CHANNEL", "CP-RECIPIENT-FENCE", "CP-OPTIN", "CP-OPTOUT", "CP-APPROVED-SCOPE", "CP-HOURS-AR", "CP-ONE-PER-DAY", "CP-WA-24H", "CP-NO-SENSITIVE-ASK", "CP-NO-FOREIGN-LINKS"]);
-    expect(decision.evaluated.filter((entry) => entry.result === "SKIP").map((entry) => entry.ruleId)).toEqual(["CP-SUPPLIER-AUTH", "CP-BOUNCED-CONTACT", "CP-HOURS-SUPPLIER"]);
+    expect(decision.evaluated.filter((entry) => entry.result === "SKIP").map((entry) => entry.ruleId)).toEqual(["CP-SUPPLIER-AUTH", "CP-BOUNCED-CONTACT", "CP-HOURS-SUPPLIER", "CP-WORLD-QUOTA"]);
     expect(toPolicyResult(decision)).toEqual({ allowed: true, ruleIds: decision.ruleIds });
   });
 
@@ -187,7 +187,8 @@ describe("CP-NO-SENSITIVE-ASK and CP-NO-FOREIGN-LINKS", () => {
 
   it("takes the foreign-links verdict of the verifier for free text", () => {
     expect(denied(evaluate(toSupplier({ foreignLinks: { allowed: false, detail: "a link that is not the turn's" } })))).toEqual({ outcome: "DENY", ruleIds: ["CP-NO-FOREIGN-LINKS"], errorCode: "GROUNDING_FAIL" });
-    expect(evaluate(toSupplier()).evaluated.at(-1)).toEqual({ ruleId: "CP-NO-FOREIGN-LINKS", result: "SKIP", detail: "checked by outbound/verify.ts on the rendered text" });
-    expect(evaluate(toImporter()).evaluated.at(-1)?.result).toBe("PASS");
+    const foreignLinks = (decision: ReturnType<typeof evaluate>) => decision.evaluated.find((entry) => entry.ruleId === "CP-NO-FOREIGN-LINKS");
+    expect(foreignLinks(evaluate(toSupplier()))).toEqual({ ruleId: "CP-NO-FOREIGN-LINKS", result: "SKIP", detail: "checked by outbound/verify.ts on the rendered text" });
+    expect(foreignLinks(evaluate(toImporter()))?.result).toBe("PASS");
   });
 });

@@ -2,10 +2,13 @@
 // place the intake, the upload page, the phone simulator, the world factory, the seed loader and the
 // `QaDriver` agree on them. Keys are always built by code, never from an external file name. In QA
 // worlds every key of Documents, Uploads and Media carries the `qa/<runId>/` prefix (the only prefix
-// the `QaDriver` may delete).
+// the `QaDriver` may delete). In guest worlds every key of Documents and Media carries
+// `guest/<pub|res>/<firmId>/e<epoch>/` (ADR-0015 §4): destroying a world deletes that prefix, and the
+// lifecycle rule of `guest/pub/` is the backstop.
 import { z } from "zod";
+import { type GuestKind } from "./enums";
 import { DocType } from "./enums-dossier";
-import { padVersion } from "./ids";
+import { FirmId, padVersion } from "./ids";
 
 // Ids of our own and of AWS or Meta (a live `wamid` is base64, so `=` and `+` appear); never a slash.
 const SAFE_SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._=+-]*$/;
@@ -29,7 +32,39 @@ export function worldKey(key: string, qaRunId?: string): string {
   return qaRunId === undefined ? key : `qa/${segment(qaRunId)}/${key}`;
 }
 
-function splitWorldKey(key: string): { qaRunId?: string; rest: string } {
+/** The guest world a Documents or Media key belongs to (ADR-0015 §4). */
+export interface GuestKeyScope {
+  readonly guestKind: GuestKind;
+  readonly firmId: string;
+  /** World epoch of the clock: a reset or a new owner of the slot writes under a new prefix. */
+  readonly epoch: number;
+}
+
+const GUEST_ACCESS: Readonly<Record<GuestKind, "pub" | "res">> = { PUBLIC: "pub", RESERVED: "res" };
+
+/** `guest/pub/firm-guest-41/e3/`: everything a guest world wrote, deleted whole by `destroyWorld`. */
+export function guestWorldPrefix(scope: GuestKeyScope): string {
+  if (!Number.isInteger(scope.epoch) || scope.epoch < 1) throw new RangeError(`invalid world epoch ${scope.epoch}`);
+  return `guest/${GUEST_ACCESS[scope.guestKind]}/${segment(FirmId.parse(scope.firmId))}/e${scope.epoch}/`;
+}
+
+/** `<key>` of a guest world under its prefix. */
+export function guestKey(key: string, scope: GuestKeyScope): string {
+  return `${guestWorldPrefix(scope)}${key}`;
+}
+
+const GUEST_PREFIX = /^guest\/(pub|res)\/(firm-[a-z0-9]+(?:-[a-z0-9]+)*)\/e([1-9][0-9]*)\/(.+)$/;
+
+/** The guest scope of a key, or `undefined` for a key of any other world. */
+export function parseGuestKey(key: string): (GuestKeyScope & { readonly rest: string }) | undefined {
+  const match = GUEST_PREFIX.exec(key);
+  if (!match) return undefined;
+  return { guestKind: match[1] === "pub" ? "PUBLIC" : "RESERVED", firmId: match[2] ?? "", epoch: Number(match[3]), rest: match[4] ?? "" };
+}
+
+function splitWorldKey(key: string): { qaRunId?: string; guest?: GuestKeyScope; rest: string } {
+  const guest = parseGuestKey(key);
+  if (guest !== undefined) return { guest: { guestKind: guest.guestKind, firmId: guest.firmId, epoch: guest.epoch }, rest: guest.rest };
   const match = /^qa\/([A-Za-z0-9][A-Za-z0-9._=+-]*)\/(.+)$/.exec(key);
   return match ? { qaRunId: match[1] ?? "", rest: match[2] ?? "" } : { rest: key };
 }
@@ -44,12 +79,18 @@ export const documentsKeys = {
   unrecognized: (operationId: string, docVersionId: string): string => `unrecognized/${segment(operationId)}/${segment(docVersionId)}.pdf`,
 } as const;
 
+/** An upload link token is base64url: it may start with `-` or `_`, which a generic segment may not. */
+function tokenSegment(token: string): string {
+  if (!/^[A-Za-z0-9_-]+$/.test(token)) throw new RangeError("expected a base64url upload token");
+  return token;
+}
+
 export const uploadsKeys = {
   /** Prefix a pre-signed POST of the upload link may write under. */
-  linkPrefix: (token: string): string => `uploads/${segment(token)}/`,
+  linkPrefix: (token: string): string => `uploads/${tokenSegment(token)}/`,
   object: (token: string, docType: DocType, uuid: string): string => {
     if (!UUID_ONLY.test(uuid)) throw new RangeError("expected a lower-case UUID");
-    return `uploads/${segment(token)}/${DocType.parse(docType)}/${uuid}.pdf`;
+    return `uploads/${tokenSegment(token)}/${DocType.parse(docType)}/${uuid}.pdf`;
   },
 } as const;
 
@@ -71,8 +112,9 @@ const UPLOAD_OBJECT = new RegExp(`^uploads/([A-Za-z0-9_-]+)/(${DOC_TYPES})/(${UU
 
 /** Parses an object key of Uploads; `DocumentIntake` then checks the token is live and owns the key. */
 export function parseUploadKey(key: string): UploadKey | undefined {
-  const { qaRunId, rest } = splitWorldKey(key);
-  const match = UPLOAD_OBJECT.exec(rest);
+  const { qaRunId, guest, rest } = splitWorldKey(key);
+  // Upload links write `uploads/<token>/…` in every world; the link row names the world.
+  const match = guest === undefined ? UPLOAD_OBJECT.exec(rest) : null;
   if (!match) return undefined;
   const parsed = { token: match[1] ?? "", docType: DocType.parse(match[2]), uuid: match[3] ?? "" };
   return qaRunId === undefined ? parsed : { qaRunId, ...parsed };
@@ -80,6 +122,7 @@ export function parseUploadKey(key: string): UploadKey | undefined {
 
 export interface SimMediaKey {
   readonly qaRunId?: string;
+  readonly guest?: GuestKeyScope;
   readonly messageId: string;
   readonly index: number;
 }
@@ -87,10 +130,11 @@ export interface SimMediaKey {
 const SIM_MEDIA_OBJECT = /^sim\/([A-Za-z0-9][A-Za-z0-9._-]*)\/(\d+)\.pdf$/;
 
 export function parseSimMediaKey(key: string): SimMediaKey | undefined {
-  const { qaRunId, rest } = splitWorldKey(key);
+  const { qaRunId, guest, rest } = splitWorldKey(key);
   const match = SIM_MEDIA_OBJECT.exec(rest);
   if (!match) return undefined;
   const parsed = { messageId: match[1] ?? "", index: Number(match[2]) };
+  if (guest !== undefined) return { guest, ...parsed };
   return qaRunId === undefined ? parsed : { qaRunId, ...parsed };
 }
 

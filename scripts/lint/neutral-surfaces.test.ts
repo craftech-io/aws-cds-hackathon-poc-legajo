@@ -95,6 +95,7 @@ const ROW_SAMPLES: Readonly<Record<string, string>> = {
   "packages/bff/src/leads/notice/**": "packages/bff/src/leads/notice/template.ts",
   "packages/reader-mock/src/**": "packages/reader-mock/src/catalog.ts",
   "packages/platform-mock/src/**": "packages/platform-mock/src/schema.ts",
+  "packages/shared/src/consent-texts.ts": "packages/shared/src/consent-texts.ts",
   "infra/auth-email.ts": "infra/auth-email.ts",
   "scripts/channels/whatsapp-templates.ts": "scripts/channels/whatsapp-templates.ts",
   "scripts/seed/data/**": "scripts/seed/data/worlds/guest.json",

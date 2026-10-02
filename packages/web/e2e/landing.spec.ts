@@ -1,20 +1,30 @@
-// FL-089 · the bilingual landing and the legal pages of the demo (docs/flows-catalog.md), on the UI
-// server's Vite: the story with the real texts, "Powered by Craftech", the synthetic-data notice and
-// the block of what is real and what is simulated, the es/en switch, the scenes, the gallery with zoom
-// (buttons, keys, swipe, Escape), the sign-in button to the login and the two legal pages. Every
-// request stays on the machine.
-import { readFileSync } from "node:fs";
-import { type Page, expect, test } from "@playwright/test";
-import { LANDING_COPY } from "../src/views/landing/copy.ts";
-import { LandingManifest, mediaIdsIn } from "../src/views/landing/manifest.ts";
-import { SCENES } from "../src/views/landing/scenes.ts";
-import { loginCopy } from "../src/views/login/copy.ts";
-import { RAW_CODE, blockExternalRequests, expectAccessibleBasics } from "./support/assertions";
+// FL-089 · the commercial landing, bilingual (docs/landing-spec.md §1.2, §2, §5.4), in the six projects of
+// docs/test-plan.md §3: the eleven sections in order with one `h1`, the language switch that changes the
+// document's `lang`, its title and every text and keeps the choice, "Probar la demo" in the header, the
+// hero and the closing, the questions operable with the keyboard, the footer's legal pages, the static
+// robots.txt and no `noindex` on `/`. The page's text is checked against the neutral words of ADR-0014
+// (the list frame-check.ts applies to every capture) and every request stays on the machine.
+import { type Page, type TestInfo, expect, test } from "@playwright/test";
+import { findNeutralHits } from "../../../scripts/lint/neutral-words.ts";
+import { LANDING_COPY, type LandingCopy } from "../src/views/landing/copy.ts";
+import { blockExternalRequests } from "./support/assertions";
 
-const es = LANDING_COPY.es;
-const en = LANDING_COPY.en;
-const manifest = LandingManifest.parse(JSON.parse(readFileSync(new URL("../public/landing/manifest.json", import.meta.url), "utf8")));
-const pictures = mediaIdsIn(manifest).length;
+const SECTION_ORDER = ["top", "problem", "tour", "capabilities", "guarantees", "impact", "integrations", "demo", "faq", "gallery", "start"];
+
+function langOf(info: TestInfo): "es" | "en" {
+  return /(^|-)en(-|$)/.test(info.project.name) ? "en" : "es";
+}
+
+function inLang(path: string, lang: "es" | "en"): string {
+  return lang === "en" ? `${path}${path.includes("?") ? "&" : "?"}lang=en` : path;
+}
+
+async function openLanding(page: Page, info: TestInfo): Promise<LandingCopy> {
+  const lang = langOf(info);
+  await page.goto(inLang("/", lang));
+  await expect(page.getByRole("heading", { level: 1, name: LANDING_COPY[lang].hero.title })).toBeVisible();
+  return LANDING_COPY[lang];
+}
 
 let blocked: string[];
 
@@ -26,138 +36,67 @@ test.afterEach(() => {
   expect(blocked, "requests that tried to leave the machine").toEqual([]);
 });
 
-/** No enum value or id a person would read; the story's email addresses are what a reader sees. */
-async function expectNoRawCodesOnLanding(page: Page): Promise<void> {
-  const text = (await page.locator("body").innerText()).replace(/[\w.+*-]+@[\w.-]+/g, "");
-  expect(text).not.toMatch(RAW_CODE);
-}
-
-function heroTitle(page: Page, lang: "es" | "en") {
-  return page.getByRole("heading", { level: 1, name: LANDING_COPY[lang].hero.title });
-}
-
-test.describe("[FL-089] landing bilingüe y páginas legales", () => {
-  test("[FL-089] the landing tells the story in Spanish, Powered by Craftech, with synthetic data and what is real and what is simulated", async ({ page }) => {
-    await page.goto("/");
-    await expect(heroTitle(page, "es")).toBeVisible();
-    await expect(page.locator("html")).toHaveAttribute("lang", "es-AR");
-    await expect(page.getByText("Legajo listo", { exact: true }).first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /Powered by/ }).first()).toHaveAttribute("href", "https://craftech.io");
-    await expect(page.getByText(es.hero.note)).toBeVisible();
-    await expect(page.getByText(es.footer.synthetic)).toBeVisible();
-
-    const real = page.getByRole("region", { name: es.real.title });
-    for (const column of Object.values(es.real.columns)) await expect(real.getByRole("heading", { name: column.title })).toBeVisible();
-    await expect(real).toContainText(es.real.columns.simulated.text);
-    // The phone is always labelled a simulator.
-    await expect(page.getByText(es.phone.simulator).first()).toBeVisible();
-
-    await expectAccessibleBasics(page);
-    await expectNoRawCodesOnLanding(page);
-  });
-
-  test("[FL-089] the switch turns the page to English and keeps it in the address, so a shared link opens in it", async ({ page }) => {
-    await page.goto("/");
-    await page.getByRole("button", { name: es.lang.switchLabel }).click();
-    await expect(heroTitle(page, "en")).toBeVisible();
-    await expect(page).toHaveURL(/\/\?lang=en$/);
-    await expect(page.locator("html")).toHaveAttribute("lang", "en");
-    await expect(page.getByRole("region", { name: en.real.title })).toContainText(en.real.columns.simulated.text);
-    // WhatsApp stays in Spanish, with its English gloss shown on the English page.
-    await expect(page.getByRole("button", { name: en.phone.glossToggle }).first()).toHaveAttribute("aria-pressed", "true");
-    await expectAccessibleBasics(page);
-    await expectNoRawCodesOnLanding(page);
-
-    await page.reload();
-    await expect(heroTitle(page, "en")).toBeVisible();
-    await page.getByRole("button", { name: en.lang.switchLabel }).click();
-    await expect(heroTitle(page, "es")).toBeVisible();
-    await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/);
-    await expect(page.getByRole("button", { name: es.phone.glossToggle }).first()).toHaveAttribute("aria-pressed", "false");
-  });
-
-  test("[FL-089] the scenes of the story move by tab, by previous and next, and by keyboard", async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/#story");
-    const tabs = page.getByRole("tablist", { name: es.story.tabsLabel }).getByRole("tab");
-    const panel = page.getByRole("tabpanel");
-    await expect(tabs).toHaveCount(SCENES.length);
-    await expect(tabs.first()).toHaveAttribute("aria-selected", "true");
-    await expect(panel.getByRole("heading", { name: es.story.scenes.request.title })).toBeVisible();
-    // With reduced motion nothing advances on its own.
-    await expect(panel.getByRole("button", { name: es.story.play })).toHaveAttribute("aria-pressed", "false");
-
-    await tabs.nth(1).click();
-    await expect(panel.getByRole("heading", { name: es.story.scenes.delegate.title })).toBeVisible();
-    await expect(panel.getByText(es.story.deferrals.supplierHours)).toBeVisible();
-    await expect(panel.getByText("CP-HOURS-SUPPLIER")).toBeVisible();
-
-    await panel.getByRole("button", { name: new RegExp(es.story.next) }).click();
-    await expect(tabs.nth(2)).toHaveAttribute("aria-selected", "true");
-    await expect(panel.getByRole("list", { name: es.email.threadLabel })).toBeVisible();
-    await panel.getByRole("button", { name: new RegExp(es.story.previous) }).click();
-    await expect(panel.getByRole("heading", { name: es.story.scenes.delegate.title })).toBeVisible();
-
-    await tabs.nth(1).focus();
-    await page.keyboard.press("ArrowRight");
-    await expect(tabs.nth(2)).toBeFocused();
-    await expect(tabs.nth(2)).toHaveAttribute("aria-selected", "true");
-    await page.keyboard.press("End");
-    await expect(panel.getByRole("heading", { name: es.story.scenes.policy.title })).toBeVisible();
-    await expect(panel.getByText("CED-NO-APPROVE")).toBeVisible();
-    await expectAccessibleBasics(page);
-  });
-
-  test("[FL-089] the gallery zooms a picture and walks it with buttons, keys and a swipe, and Escape closes it", async ({ page }) => {
-    expect(pictures, "the gallery needs two pictures to walk").toBeGreaterThanOrEqual(2);
-    await page.goto("/#console");
-    const section = page.getByRole("region", { name: es.console.title });
-    await section.getByRole("button", { name: new RegExp(`^${es.zoom.open}`) }).first().click();
-    const dialog = page.getByRole("dialog");
-    await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText(es.zoom.counter(1, pictures));
-
-    await page.keyboard.press("ArrowRight");
-    await expect(dialog).toContainText(es.zoom.counter(2, pictures));
-    await page.keyboard.press("ArrowLeft");
-    await expect(dialog).toContainText(es.zoom.counter(1, pictures));
-    await dialog.getByRole("button", { name: es.zoom.next }).click();
-    await expect(dialog).toContainText(es.zoom.counter(2, pictures));
-    await dialog.getByRole("button", { name: es.zoom.previous }).click();
-    await expect(dialog).toContainText(es.zoom.counter(1, pictures));
-
-    // A swipe to the left on a touch screen shows the next picture.
-    const picture = dialog.getByRole("img");
-    await picture.dispatchEvent("pointerdown", { pointerType: "touch", isPrimary: true, clientX: 320, clientY: 400 });
-    await picture.dispatchEvent("pointerup", { pointerType: "touch", isPrimary: true, clientX: 120, clientY: 400 });
-    await expect(dialog).toContainText(es.zoom.counter(2, pictures));
-
-    await page.keyboard.press("Escape");
-    await expect(dialog).toBeHidden();
-  });
-
-  test("[FL-089] the hero's sign-in button opens the login", async ({ page }) => {
-    await page.goto("/");
-    await page.getByRole("main").getByRole("link", { name: `${es.cta.signIn} →` }).first().click();
-    await expect(page).toHaveURL(/\/login$/);
-    await expect(page.getByRole("heading", { level: 1, name: loginCopy.credentials.title })).toBeVisible();
-  });
-
-  test("[FL-089] the legal pages of the demo answer in Spanish and English, from the landing's footer", async ({ page }) => {
-    const pages = [
-      { link: es.footer.privacy, path: "/legal/privacy.html", titles: ["Política de privacidad", "Privacy policy"] },
-      { link: es.footer.terms, path: "/legal/terms.html", titles: ["Términos y condiciones", "Terms and conditions"] },
-    ] as const;
-    for (const legal of pages) {
-      await page.goto("/");
-      await page.getByRole("navigation", { name: es.footer.legal }).getByRole("link", { name: legal.link }).click();
-      await expect(page).toHaveURL(new RegExp(`${legal.path.replace(/\./g, "\\.")}$`));
-      await expect(page.getByRole("heading", { level: 1, name: legal.titles[0] })).toBeVisible();
-      await expect(page.locator("#en").getByRole("heading", { level: 1, name: legal.titles[1] })).toBeVisible();
-      await expect(page.getByRole("link", { name: /Powered by/ })).toHaveAttribute("href", "https://craftech.io");
-      expect(await page.locator("script").count()).toBe(0);
-      const response = await page.request.get(legal.path);
-      expect(response.status()).toBe(200);
+test.describe("[FL-089] landing comercial bilingüe", () => {
+  test("[FL-089] shows the eleven sections in order, one page heading, its language and the synthetic-data notes", async ({ page }, info) => {
+    const copy = await openLanding(page, info);
+    expect(await page.locator("main > section").evaluateAll((sections) => sections.map((section) => section.id))).toEqual(SECTION_ORDER);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(page.locator("html")).toHaveAttribute("lang", copy.meta.code);
+    await expect(page).toHaveTitle(copy.meta.title);
+    await expect(page.getByText(copy.hero.note)).toBeVisible();
+    await expect(page.getByText(copy.footer.synthetic)).toBeVisible();
+    for (const section of ["problem", "tour", "guarantees", "impact", "integrations", "demo", "faq", "gallery"] as const) {
+      await expect(page.locator(`#${section}`).getByRole("heading", { level: 2 })).toHaveText(copy[section].title);
     }
+    expect(findNeutralHits(await page.locator("body").innerText())).toEqual([]);
+  });
+
+  test("[FL-089] the switch turns every text to the other language, with its lang and title, and keeps the choice", async ({ page }, info) => {
+    const lang = langOf(info);
+    const other = lang === "es" ? "en" : "es";
+    const copy = await openLanding(page, info);
+    const toggle = page.getByRole("button", { name: copy.lang.switchLabel }).first();
+    if (!(await toggle.isVisible())) await page.getByRole("button", { name: copy.nav.menu }).click();
+    await page.getByRole("button", { name: copy.lang.switchLabel }).first().click();
+    const next = LANDING_COPY[other];
+    await expect(page.getByRole("heading", { level: 1, name: next.hero.title })).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("lang", next.meta.code);
+    await expect(page).toHaveTitle(next.meta.title);
+    await expect(page.locator("#impact h2")).toHaveText(next.impact.title);
+    expect(new URL(page.url()).searchParams.get("lang")).toBe(other === "en" ? "en" : null);
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1, name: next.hero.title }), "the last choice wins without a parameter").toBeVisible();
+  });
+
+  test("[FL-089] 'Probar la demo' is the call to action of the header, the hero and the closing, all to /signup", async ({ page }, info) => {
+    const copy = await openLanding(page, info);
+    await expect(page.getByRole("banner").getByRole("link", { name: copy.cta.try })).toHaveAttribute("href", "/signup");
+    await expect(page.locator("#top").getByRole("link", { name: copy.hero.primary })).toHaveAttribute("href", "/signup");
+    await expect(page.locator("#start").getByRole("link", { name: copy.closing.try })).toHaveAttribute("href", "/signup");
+    const robots = await page.locator('meta[name="robots"]').count();
+    expect(robots, "/ is indexable").toBe(0);
+  });
+
+  test("[FL-089] serves the static robots.txt: the landing and the legal pages indexable, access and console out", async ({ page }) => {
+    const response = await page.request.get("/robots.txt");
+    expect(response.status()).toBe(200);
+    const body = await response.text();
+    for (const line of ["Allow: /", "Allow: /legal/", "Disallow: /app/", "Disallow: /signup", "Disallow: /login", "Disallow: /forgot", "Disallow: /welcome"]) expect(body).toContain(line);
+  });
+
+  test("[FL-089] opens and closes the six questions with the keyboard, and links the legal pages from the footer", async ({ page }, info) => {
+    const copy = await openLanding(page, info);
+    const questions = page.locator("#faq details");
+    await expect(questions).toHaveCount(6);
+    const first = questions.first();
+    await first.locator("summary").focus();
+    await page.keyboard.press("Enter");
+    await expect(first).toHaveAttribute("open", "");
+    await expect(first).toContainText(copy.faq.data.a);
+    await page.keyboard.press("Enter");
+    await expect(first).not.toHaveAttribute("open", "");
+    const legal = page.getByRole("contentinfo").getByRole("navigation", { name: copy.footer.legal });
+    await expect(legal.getByRole("link", { name: copy.footer.privacy })).toHaveAttribute("href", "/legal/privacy.html");
+    await expect(legal.getByRole("link", { name: copy.footer.terms })).toHaveAttribute("href", "/legal/terms.html");
   });
 });

@@ -26,6 +26,8 @@ export interface Principal {
   readonly brokerId?: string;
   /** `origin_jti` of the sign-in: the same across refreshes, another one for another session. */
   readonly originJti?: string;
+  /** A guest's `custom:worldLease`: the lease of the world its broker row was written for (ADR-0015 §4). */
+  readonly worldLease?: string;
 }
 
 // `ConsoleRole` is declared in precedence order, BROKER first.
@@ -109,7 +111,92 @@ export function principalFromClaims(claims: IdTokenClaims): Principal {
     isGuestClaim: claims["custom:isGuest"],
   });
   const originJti = claims.origin_jti;
-  return { sub: claims.sub, username: claims["cognito:username"], authTime: claims.auth_time, ...access, ...(originJti === undefined ? {} : { originJti }) };
+  const worldLease = stringClaim(claims, WORLD_LEASE_CLAIM);
+  return {
+    sub: claims.sub,
+    username: claims["cognito:username"],
+    authTime: claims.auth_time,
+    ...access,
+    ...(originJti === undefined ? {} : { originJti }),
+    ...(access.isGuest && worldLease !== undefined ? { worldLease } : {}),
+  };
+}
+
+/** Claim the pre-token trigger stamps on a guest whose broker row exists (auth-triggers/pre-token.ts). */
+export const WORLD_LEASE_CLAIM = "custom:worldLease";
+
+function stringClaim(claims: IdTokenClaims, name: string): string | undefined {
+  const value: unknown = claims[name];
+  return typeof value === "string" && value.length > 0 && value.length <= 64 ? value : undefined;
+}
+
+/**
+ * A guest before its world exists (ADR-0015 §4, `guestBootstrapProcedure`): a verified token whose
+ * role is GUEST, with or without a firm. Everything comes from the token; `email` only to key the lead.
+ */
+export interface GuestBootstrap {
+  readonly sub: string;
+  readonly username: string;
+  readonly authTime: number;
+  readonly email?: string;
+  readonly firmId?: FirmId;
+  readonly worldLease?: string;
+  readonly originJti?: string;
+}
+
+/** The guest of a verified token, or `undefined` when the token is not a guest's. */
+export function guestFromClaims(claims: IdTokenClaims): GuestBootstrap | undefined {
+  const groups = consoleRolesOf(claims["cognito:groups"]);
+  const role = ConsoleRole.safeParse(claims["custom:role"]);
+  const isGuest = claims["custom:isGuest"] === "true" || (role.success ? role.data === "GUEST" : groups[0] === "GUEST");
+  if (!isGuest) return undefined;
+  const firm = FirmId.safeParse(claims["custom:firmId"]);
+  if (firm.success && !isGuestFirm(firm.data)) return undefined;
+  const worldLease = stringClaim(claims, WORLD_LEASE_CLAIM);
+  return {
+    sub: claims.sub,
+    username: claims["cognito:username"],
+    authTime: claims.auth_time,
+    ...(typeof claims.email === "string" && claims.email !== "" ? { email: claims.email } : {}),
+    ...(firm.success ? { firmId: firm.data } : {}),
+    ...(worldLease === undefined ? {} : { worldLease }),
+    ...(claims.origin_jti === undefined ? {} : { originJti: claims.origin_jti }),
+  };
+}
+
+/** The guest of a principal built on the server (`serverContext`), for the same bootstrap path. */
+export function guestOfPrincipal(principal: Principal): GuestBootstrap | undefined {
+  if (!principal.isGuest) return undefined;
+  return {
+    sub: principal.sub,
+    username: principal.username,
+    authTime: principal.authTime,
+    firmId: principal.firmId,
+    ...(principal.worldLease === undefined ? {} : { worldLease: principal.worldLease }),
+    ...(principal.originJti === undefined ? {} : { originJti: principal.originJti }),
+  };
+}
+
+/** What a guest's broker row must say for its token to act on the world (ADR-0015 §4, fails closed). */
+export interface GuestRow {
+  readonly firmId: string;
+  readonly active: boolean;
+  readonly leaseId?: string;
+}
+
+export type GuestRowRefusal = "NO_ROW" | "INACTIVE" | "OTHER_FIRM" | "OTHER_LEASE";
+
+/**
+ * The row found by `SUB#<sub>` has to exist, be active, name the token's firm and carry the token's
+ * world lease; otherwise the world the token was issued for is gone (destroyed, or the slot leased
+ * again) and every call with a firm answers 403 `GUEST_WORLD_GONE`.
+ */
+export function guestRowRefusal(principal: Pick<Principal, "firmId" | "worldLease">, row: GuestRow | undefined): GuestRowRefusal | undefined {
+  if (row === undefined) return "NO_ROW";
+  if (!row.active) return "INACTIVE";
+  if (row.firmId !== principal.firmId) return "OTHER_FIRM";
+  if (row.leaseId !== principal.worldLease) return "OTHER_LEASE";
+  return undefined;
 }
 
 /**

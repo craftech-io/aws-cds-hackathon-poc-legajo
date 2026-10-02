@@ -3,8 +3,10 @@
 // size, asks `POST <page>/presign` for a pre-signed POST, sends the file straight to storage with
 // progress (XMLHttpRequest, because `fetch` reports no upload progress) and keeps the returned key;
 // "Listo" sends the keys to `POST <page>/done` and shows the confirmation. Texts arrive in the
-// `data-texts` attribute (copy.ts); the token is only ever read from the page's own path. Plain ES2017
-// without template literals, so it can live in a raw string here.
+// `data-texts` attribute (copy.ts); the token is only ever read from the page's own path. Every POST
+// to the page carries `x-amz-content-sha256` with the SHA-256 of its body: CloudFront signs the origin
+// request (OAC) and Lambda refuses an unsigned body (ADR-0015 §3.1). Plain ES2017 without template
+// literals, so it can live in a raw string here.
 import { createHash } from "node:crypto";
 
 export const UPLOAD_PAGE_SCRIPT = String.raw`(function () {
@@ -28,13 +30,22 @@ export const UPLOAD_PAGE_SCRIPT = String.raw`(function () {
     item.setAttribute("data-state", state);
   }
 
+  function sha256Hex(text) {
+    return window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)).then(function (buffer) {
+      return Array.prototype.map.call(new Uint8Array(buffer), function (byte) { return ("0" + byte.toString(16)).slice(-2); }).join("");
+    });
+  }
+
   function postJson(path, body) {
-    return fetch(base + path, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-      credentials: "omit",
-      cache: "no-store"
+    var payload = JSON.stringify(body);
+    return sha256Hex(payload).then(function (hash) {
+      return fetch(base + path, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-amz-content-sha256": hash },
+        body: payload,
+        credentials: "omit",
+        cache: "no-store"
+      });
     }).then(function (response) {
       return response.json().then(
         function (data) { return { status: response.status, data: data }; },

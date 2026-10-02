@@ -1,0 +1,83 @@
+{
+  "hero-conversation": {
+    "component": "packages/web/src/views/landing/Hero.tsx#HeroConversation",
+    "textSources": ["views/landing/conversations.ts#heroMessages", "@legajo/bff/copy/templates#renderTemplate", "@legajo/bff/copy/es-AR#importerEsAR", "@legajo/bff/copy/buttons#BUTTON_LABELS", "@legajo/bff/copy/en-gloss#glossTemplate"],
+    "replacedBy": "console-simulator",
+    "replaceIn": "WP-35",
+    "reason": "El canal de WhatsApp está en modo simulado: el hero lo muestra como ilustración animada, siempre rotulada «Simulador», y «Ampliar» abre la captura del simulador de la consola",
+    "policy": "zoom",
+    "until": "Queda por diseño; «Ampliar» abre console-simulator. SC-24 en verde en poc y console-simulator con origin poc (WP-36)"
+  },
+  "tour-request": {
+    "component": "packages/web/src/views/landing/TourVisuals.tsx#StepVisual",
+    "textSources": ["views/landing/conversations.ts#conversation", "@legajo/bff/copy/templates#renderTemplate", "@legajo/bff/copy/en-gloss#glossTemplate"],
+    "replacedBy": "console-simulator",
+    "replaceIn": "WP-35",
+    "reason": "El canal de WhatsApp está en modo simulado: el paso 1 lo muestra con la plantilla aprobada y «Ampliar» abre el simulador de la consola",
+    "policy": "zoom",
+    "until": "Queda por diseño; «Ampliar» abre console-simulator. SC-24 en verde en poc y console-simulator con origin poc (WP-36)"
+  },
+  "tour-delegate": {
+    "component": "packages/web/src/views/landing/TourVisuals.tsx#StepVisual",
+    "textSources": ["views/landing/conversations.ts#conversation", "@legajo/bff/copy/es-AR#importerEsAR", "@legajo/bff/copy/buttons#BUTTON_LABELS", "views/landing/copy-es.ts#tour.deferral.supplier", "components/RuleChip.tsx#RuleChip"],
+    "replacedBy": "console-simulator",
+    "replaceIn": "WP-35",
+    "reason": "El canal de WhatsApp está en modo simulado y el paso combina el teléfono con la regla de horario que difiere el email",
+    "policy": "zoom",
+    "until": "Queda por diseño; «Ampliar» abre console-simulator. SC-24 en verde en poc y console-simulator con origin poc (WP-36)"
+  },
+  "tour-supplier": {
+    "component": "packages/web/src/views/landing/EmailThread.tsx#EmailThread",
+    "textSources": ["@legajo/bff/copy/en#supplierEmailEn", "views/landing/supplier-replies.json"],
+    "replacedBy": "console-mailbox",
+    "replaceIn": "WP-35",
+    "reason": "El buzón de la demo no tiene todavía el hilo real con el proveedor en poc: faltan salida y SimMail (ola 3, etapa B)",
+    "policy": "swap",
+    "until": "SC-24 en verde en poc y console-mailbox con origin poc (WP-36)"
+  },
+  "tour-reader": {
+    "component": "packages/web/src/views/landing/SceneVisuals.tsx#ReaderCard",
+    "textSources": ["@legajo/bff/copy/observation-labels#OBSERVATION_LABELS", "views/landing/scenes.ts#READINGS"],
+    "replacedBy": "console-dossier-reading",
+    "replaceIn": "WP-34",
+    "reason": "La vista del detalle del legajo todavía no muestra en poc una lectura real del lector: falta el intake (ola 3, etapa B)",
+    "policy": "swap",
+    "until": "SC-24 en verde en poc y console-dossier-reading con origin poc (WP-36)"
+  },
+  "tour-owner": {
+    "component": "packages/web/src/views/landing/TourVisuals.tsx#StepVisual",
+    "textSources": ["@legajo/bff/copy/en#supplierEmailEn", "@legajo/bff/copy/templates#renderTemplate", "@legajo/bff/copy/observation-labels#OBSERVATION_LABELS"],
+    "replacedBy": "console-dossier",
+    "replaceIn": "WP-34",
+    "reason": "El paso combina dos partes (el pedido de corrección al proveedor y el aviso al importador) que la consola muestra en vistas distintas",
+    "policy": "zoom",
+    "until": "Queda por diseño; «Ampliar» abre console-dossier. SC-24 en verde en poc y console-dossier con origin poc (WP-36)"
+  },
+  "tour-eta": {
+    "component": "packages/web/src/views/landing/SceneVisuals.tsx#EtaTable",
+    "textSources": ["views/landing/scenes.ts#ETA_MILESTONES", "@legajo/bff/copy/templates#renderTemplate"],
+    "replacedBy": "console-clock",
+    "replaceIn": "WP-35",
+    "reason": "El reloj de poc todavía no reprograma hitos por un cambio de ETA real: faltan reloj y feeds (ola 3, etapa B)",
+    "policy": "swap",
+    "until": "SC-24 en verde en poc y console-clock con origin poc (WP-36)"
+  },
+  "tour-escalation": {
+    "component": "packages/web/src/views/landing/SceneVisuals.tsx#EscalationCard",
+    "textSources": ["@legajo/bff/copy/es-AR#importerEsAR.guardrailRefusal", "@legajo/bff/copy/templates#renderTemplate", "@legajo/bff/copy/es-AR-firm#firmEsAR.escalationEmail"],
+    "replacedBy": "console-escalations",
+    "replaceIn": "WP-34",
+    "reason": "Los escalamientos de poc todavía no nacen de un bloqueo real del guardrail: faltan turnos y worker (ola 3, etapa B)",
+    "policy": "swap",
+    "until": "SC-24 en verde en poc y console-escalations con origin poc (WP-36)"
+  },
+  "tour-approval": {
+    "component": "packages/web/src/views/landing/SceneVisuals.tsx#ApprovalCard",
+    "textSources": ["views/dossier/copy.ts#dossierCopy.approval.approve", "@legajo/bff/copy/templates#renderTemplate"],
+    "replacedBy": "console-dossier-approval",
+    "replaceIn": "WP-34",
+    "reason": "Aprobar en poc necesita el legajo completo por el recorrido real: faltan salida e intake (ola 3, etapa B)",
+    "policy": "swap",
+    "until": "SC-24 en verde en poc y console-dossier-approval con origin poc (WP-36)"
+  }
+}

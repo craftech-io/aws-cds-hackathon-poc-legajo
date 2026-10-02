@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /legal/
+Disallow: /app/
+Disallow: /signup
+Disallow: /login
+Disallow: /forgot
+Disallow: /welcome

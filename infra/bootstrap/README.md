@@ -35,7 +35,7 @@ The demos account is SHARED with other projects, so every statement is scoped to
   ARN    fixed names: the receipt rule set <app>-inbound, the inbound mail bucket
          <BucketPrefix>-inbound-mail-<account>, the WhatsApp topic <app>-wa-inbound, the
          configuration sets <app>-email-poc and <app>-sim-poc, the QA driver <app>-poc-qa-driver,
-         the Router key-value store and cache policy.
+         the web ACL <app>-poc-edge, the Router key-value store and cache policy.
 ```
 
 What each group of statements is for:
@@ -53,6 +53,27 @@ What each group of statements is for:
 | `HarnessUnderlyingRuntime` | The runtime AgentCore creates under the Harness, named `harness_<AgentNamePrefix>*` |
 | `CloudControlTransport` | `awsnative.*` resources go through the Cloud Control API, IAM prefix `cloudformation` |
 | Edge policy | CloudFront functions `<app>-poc-*`, the bootstrap key-value store and the declared cache policy only |
+| `EdgeWebAclOfThisApp` | The web ACL of ADR-0015 §3.3, only `global/webacl/<app>-poc-*/*` in us-east-1 (scope `CLOUDFRONT`); the association with the distribution goes through `cloudfront:UpdateDistribution`, already fenced by tag |
+| `EdgeOacInvokePermissions` | `lambda:AddPermission`/`RemovePermission` for `cloudfront.amazonaws.com` on the functions `<app>-poc-*` (OAC of `Bff` and `PublicWeb`), by name, so it does not wait for the tag to be visible |
+
+### Statements over every resource (`WILDCARD_SIDS`)
+
+`ci-role.test.ts` fails when an `Allow` with `Resource: "*"` is not in this list, which it mirrors:
+
+| Statement | Why it cannot name a resource |
+|---|---|
+| `TaggedAppResources` (deploy role and boundary) | Fenced by the `sst:app` tag of the resource instead |
+| `CreateTaggedAsThisApp` | A create has no resource yet; fenced by the request tag |
+| `HarnessDependentCreates` | AgentCore creates the runtime and Memory under the Harness; region condition |
+| `NoResourceLevelDeploy`, `NoResourceLevelRuntime` | Listings and reads with no resource-level permission |
+| `CloudFrontCreatesAndReads` | CloudFront creates and the account-wide reads of policies have no resource-level permission |
+| `EdgeOriginAccessControls` | Origin access controls carry no tag and an opaque id: no fence by resource exists. SST's lazy Router (4.17.1) configures OAC per request inside its function and creates no OAC resource, so these actions are a reserve for the provider; ADR-0015 §9 keeps them |
+| `EdgeWafManagedRuleReads` | `DescribeManagedRuleGroup` and `ListAvailableManagedRuleGroups` read AWS's managed rule groups (the IP reputation list), which have no resource of the account |
+| `DecryptPassphraseThroughSsm` | KMS through SSM only, of this account (`kms:ViaService`, `kms:CallerAccount`) |
+| `CloudControlTransport` | The Cloud Control API authorizes by the type, not the resource; region condition |
+| `DnsLookups` | `route53:GetChange` and `ListHostedZones` have no resource-level permission |
+| `HarnessImagePullBearerToken` | STS bearer token, only for `ecr-public.amazonaws.com` |
+| `ReadLogsOfThisApp` (qa-runner) | Fenced by the `sst:app` tag of the log group |
 
 ## Apply
 
@@ -80,7 +101,9 @@ aws --profile craftech-demos cloudformation deploy \
 ```
 
 The same command applies every later change. Edit statements, not the `Description` of a managed
-policy: IAM cannot change it in place and the replacement fails with `already exists`.
+policy: IAM cannot change it in place and the replacement fails with `already exists`. The public
+signup (wave 3) adds the `wafv2` and OAC statements: the operator applies the template again before
+the first deploy of that wave.
 
 The SST bootstrap of the account and the stage passphrase are created by the operator's first
 `npx sst secret set ... --stage poc` (step 3), never by CI.
@@ -102,8 +125,9 @@ aws --profile craftech-demos iam simulate-principal-policy \
   --resource-arns <arn of a table of another project>
 ```
 
-Repeat with `cloudfront:UpdateFunction` on a function ARN of another project and with
-`budgets:ModifyBudget` on another budget. `simulate-principal-policy` does not model every
+Repeat with `cloudfront:UpdateFunction` on a function ARN of another project, with
+`budgets:ModifyBudget` on another budget and with `wafv2:UpdateWebACL` on a web ACL of another
+project (`arn:aws:wafv2:us-east-1:776805327629:global/webacl/<other>/<id>`). `simulate-principal-policy` does not model every
 condition key, so a real deploy is the final check.
 
 ## Residual risks
@@ -120,9 +144,15 @@ Stated instead of hidden.
   the SES mailbox simulator; the registered demo recipients of `SeedOverrides` are fenced in code
   (the recipient fence of the SES client), not in IAM, because the secret is not readable at
   deploy time.
-- **Public Function URLs.** `Bff` and `PublicWeb` answer on Function URLs with `AuthType NONE`
-  behind the Router; each one authenticates on its own (id token, upload token). Their names are
-  fenced by `DenyPublicFunctionUrlsBesidesTheEdge`.
+- **Function URLs of the edge.** Since the public signup (ADR-0015 §3.1) the Router uses OAC:
+  `Bff` and `PublicWeb` answer on `AWS_IAM` Function URLs that only CloudFront, for this
+  distribution, may invoke; each handler also checks `X-Origin-Verify` first and then its own
+  token. `DenyPublicFunctionUrlsBesidesTheEdge` still keeps `AuthType NONE` off every other
+  function. The value of `X-Origin-Verify` is readable inside the account in the code of the
+  Router's viewer-request function (`cloudfront:DescribeFunction`).
+- **Origin access controls.** The four OAC actions cannot be fenced by resource
+  (`EdgeOriginAccessControls`); the deploy role could change another project's OAC. The pinned
+  Router creates none, so a later ADR can drop them.
 - **Tag on create.** A service authorizes `TagResource` during a create call with the request tags
   only, which IAM cannot tell apart from tagging an existing untagged resource. A resource of
   another SST app carries its own `sst:app`, which the role cannot overwrite

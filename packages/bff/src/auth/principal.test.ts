@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { memoryStores } from "../connector/testing";
 import { AUTH_REASON } from "./errors";
 import { IdTokenClaims } from "./jwt";
-import { QA_PRINCIPAL, consoleRolesOf, isGuestFirm, isSignInFresh, principalFromClaims, qaPrincipal, resolveAccess, withBrokerRow } from "./principal";
+import { QA_PRINCIPAL, consoleRolesOf, guestFromClaims, guestOfPrincipal, isGuestFirm, isSignInFresh, principalFromClaims, qaPrincipal, resolveAccess, withBrokerRow } from "./principal";
 import { brokerLookupOf, createBrokerDirectory } from "./staff";
 import { seedBrokers } from "./testing";
 
@@ -125,5 +125,27 @@ describe("broker directory", () => {
     expect(await lookup.findBySub("firm-delta", "sub-diego")).toEqual({ brokerId: "brk-delta-diego", role: "BROKER", active: true });
     expect(await lookup.findBySub("firm-norte", "sub-diego")).toBeUndefined();
     expect(await lookup.findBySub("firm-norte", "sub-pablo")).toEqual({ brokerId: "brk-norte-pablo", role: "BROKER", active: false });
+  });
+});
+
+describe("a guest's principal (ADR-0015 §4)", () => {
+  const guest = (overrides: Record<string, unknown> = {}) => claims({ "cognito:groups": ["GUEST"], "custom:role": "GUEST", "custom:isGuest": "true", "custom:firmId": undefined, email: "ana@despachos-del-sur.com.ar", ...overrides });
+
+  it("without a firm is no firm principal, but is a guest for the bootstrap procedures", () => {
+    expect(() => principalFromClaims(guest())).toThrowError(incomplete);
+    expect(guestFromClaims(guest())).toEqual({ sub: "sub-1", username: "sub-1", authTime: NOW, email: "ana@despachos-del-sur.com.ar" });
+  });
+
+  it("with its world: firm and lease from the token; the lease is never read for staff", () => {
+    const principal = principalFromClaims(guest({ "custom:firmId": "firm-guest-41", "custom:worldLease": "lease-1" }));
+    expect(principal).toMatchObject({ firmId: "firm-guest-41", isGuest: true, worldLease: "lease-1" });
+    expect(guestOfPrincipal(principal)).toMatchObject({ firmId: "firm-guest-41", worldLease: "lease-1" });
+    expect(principalFromClaims(claims({ "custom:worldLease": "lease-1" }))).not.toHaveProperty("worldLease");
+    expect(guestOfPrincipal(principalFromClaims(claims()))).toBeUndefined();
+  });
+
+  it("staff and a guest token naming a firm that is not a guest firm are not bootstrap guests", () => {
+    expect(guestFromClaims(claims())).toBeUndefined();
+    expect(guestFromClaims(guest({ "custom:firmId": "firm-delta" }))).toBeUndefined();
   });
 });

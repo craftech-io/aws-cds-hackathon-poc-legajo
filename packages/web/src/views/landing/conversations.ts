@@ -1,26 +1,29 @@
-// The story of operation 4471 as the parties read it (docs/design-brief.md §4), built from the real
+// The story of operation 4471 as the parties read it (docs/landing-spec.md §1.4), built from the real
 // texts of packages/bff/src/copy: every WhatsApp template is rendered by `renderTemplate`, every fixed
 // text and button comes from the importer pack and its English gloss, the supplier subjects from the
-// English texts, and the simulated supplier's replies from supplier-replies.json, which
+// English texts, the firm's escalation email from its Spanish texts, and the simulated supplier's
+// replies from supplier-replies.json, which
 // scripts/landing/supplier-replies.ts writes from copy/en-supplier-sim.ts (that module also carries the
 // hostile bodies of the injection behaviour, which never ship in the public page; landing.test.ts
 // fails if the file drifts). Only what the model writes in a real turn (a free reply to the importer,
 // the body of an email to the supplier) is an example written here, and the landing labels it so. All
 // names are the fictitious ones of docs/seed-spec.md.
-import { type DocType, type WaButtonAction, type WhatsAppTemplateName, maskEmail } from "@legajo/shared";
+import { type DocType, STAGE_DOMAIN, type WaButtonAction, type WhatsAppTemplateName, maskEmail } from "@legajo/shared";
 import { BUTTON_LABELS } from "@legajo/bff/copy/buttons";
 import { DISPATCH_GLOSSARY } from "@legajo/bff/copy/dispatch-glossary";
 import { supplierEmailEn } from "@legajo/bff/copy/en";
 import { BUTTON_GLOSS, DISPATCH_GLOSS, glossTemplate, importerGloss } from "@legajo/bff/copy/en-gloss";
 import { docTypeOfEsAR, importerEsAR, missingDocumentsEsAR } from "@legajo/bff/copy/es-AR";
+import { firmEsAR } from "@legajo/bff/copy/es-AR-firm";
 import { OBSERVATION_LABELS } from "@legajo/bff/copy/observation-labels";
 import { TEMPLATES, renderTemplate } from "@legajo/bff/copy/templates";
 import { z } from "zod";
-import supplierReplies from "./supplier-replies.json";
+import supplierReplies from "./supplier-replies.json" with { type: "json" };
 
 /** Facts of the main story (docs/seed-spec.md §7, `op-4471`), all fictitious. */
 export const STORY = {
   firmName: "Estudio Delta",
+  importerName: "Norpampa Insumos SRL",
   operationNumber: "4471",
   vessel: "Austral Aurora",
   etaText: "22/10",
@@ -56,6 +59,8 @@ export interface WaMessageView {
   readonly time: string;
   readonly source: WaSource;
   readonly buttons: readonly WaButtonView[];
+  /** The importer tapped a button of the message before (its bubble repeats the button's text). */
+  readonly tap: boolean;
 }
 
 export const CONVERSATION_IDS = ["request", "delegate", "noAction", "question", "eta", "approval"] as const;
@@ -82,20 +87,21 @@ export function templateMessage(name: WhatsAppTemplateName, params: readonly str
     time,
     source: "template",
     buttons: rendered.buttons.map((item) => ({ ...button(item.action, "template", item.type === "URL"), text: item.text })),
+    tap: false,
   };
 }
 
 function tap(action: WaButtonAction, kind: "template" | "interactive", time: string): WaMessageView {
   const label = button(action, kind);
-  return { from: "importer", text: label.text, gloss: label.gloss, time, source: "importer", buttons: [] };
+  return { from: "importer", text: label.text, gloss: label.gloss, time, source: "importer", buttons: [], tap: true };
 }
 
 function importerText(text: string, gloss: string, time: string): WaMessageView {
-  return { from: "importer", text, gloss, time, source: "importer", buttons: [] };
+  return { from: "importer", text, gloss, time, source: "importer", buttons: [], tap: false };
 }
 
 function firmText(source: "fixed" | "agent", text: string, gloss: string, time: string, buttons: readonly WaButtonView[] = []): WaMessageView {
-  return { from: "firm", text, gloss, time, source, buttons };
+  return { from: "firm", text, gloss, time, source, buttons, tap: false };
 }
 
 /** "el peso bruto del packing list": what the supplier has to correct, as the template names it. */
@@ -114,10 +120,6 @@ const AGENT_EXAMPLES = {
   arrived: {
     es: "Llegaron el certificado de origen y el packing list corregido. El legajo de la operación 4471 ya está completo para que lo revise el estudio.",
     en: "The certificate of origin and the corrected packing list arrived. The file of operation 4471 is complete for the firm to review.",
-  },
-  checklist: {
-    es: "Sí. Según el checklist del estudio, el certificado de origen va firmado por la entidad que lo emite. El que mandó el proveedor ya está validado.",
-    en: "Yes. According to the firm's checklist, the certificate of origin is signed by the entity that issues it. The one the supplier sent is already validated.",
   },
 } as const;
 
@@ -153,10 +155,9 @@ const CONVERSATIONS: Readonly<Record<ConversationId, ConversationView>> = {
     id: "question",
     day: "16/10",
     messages: [
-      importerText("¿El certificado tiene que estar firmado?", "Does the certificate have to be signed?", "09:20"),
-      firmText("agent", AGENT_EXAMPLES.checklist.es, AGENT_EXAMPLES.checklist.en, "09:20"),
-      importerText("¿Qué posición arancelaria va?", "Which tariff classification applies?", "09:24"),
-      firmText("fixed", importerEsAR.guardrailRefusal, importerGloss.guardrailRefusal, "09:24"),
+      importerText("¿Qué posición arancelaria va?", "Which tariff classification applies?", "10:24"),
+      firmText("fixed", importerEsAR.guardrailRefusal, importerGloss.guardrailRefusal, "10:24"),
+      templateMessage("legajo_escalado", [STORY.operationNumber, STORY.firmName], "10:25"),
     ],
   },
   eta: {
@@ -181,6 +182,30 @@ export function conversation(id: ConversationId): ConversationView {
 
 /** The English gloss of the two dispatch statuses of the story, for a test that compares them. */
 export const DISPATCH_STORY_GLOSS = { naranja: DISPATCH_GLOSS["CANAL_ASIGNADO#NARANJA"], liberado: DISPATCH_GLOSS.LIBERADO } as const;
+
+/** The hero's script: the first request and the delegation to the supplier, in that order (§4.4). */
+export function heroMessages(): readonly WaMessageView[] {
+  return [...CONVERSATIONS.request.messages, ...CONVERSATIONS.delegate.messages];
+}
+
+/**
+ * The escalation email the broker receives for the tariff question of step 7, as `firmEsAR` writes it
+ * for a denied topic (`OUT_OF_CHECKLIST`): its subject and the lines that name the operation and the
+ * reason. The rest of the body depends on the dossier at that moment, so the landing does not show it.
+ */
+const escalation = firmEsAR.escalationEmail({
+  operationNumber: STORY.operationNumber,
+  importerName: STORY.importerName,
+  supplierName: STORY.supplierName,
+  reason: "OUT_OF_CHECKLIST",
+  summary: "",
+  dossierStatus: "OPEN",
+  etaText: STORY.newEtaText,
+  documents: [],
+  attempts: [],
+  consoleUrl: `https://${STAGE_DOMAIN}/app/operations`,
+});
+export const ESCALATION_EMAIL = { subject: escalation.subject, lines: escalation.body.split("\n").slice(0, 2) } as const;
 
 // ---- Email with the supplier ------------------------------------------------------------------
 

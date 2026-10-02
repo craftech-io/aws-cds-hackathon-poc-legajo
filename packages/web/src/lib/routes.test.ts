@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CONSOLE_HOME, NAV_ROUTES, ROUTES, dossierPath, navActive, routeAllows, routeOf } from "../routes";
+import { ACCESS_PATHS, CONSOLE_HOME, CONSOLE_PREFIX, NAV_ROUTES, ROUTES, SIGNED_OUT_PATH, WELCOME_PATH, dossierPath, navActive, routeAllows, routeOf } from "../routes";
 
 function route(id: string) {
   const found = ROUTES.find((candidate) => candidate.id === id);
@@ -42,5 +42,20 @@ describe("console routes (docs/design-brief.md §6)", () => {
       for (const role of ["BROKER", "ANALYST", "GUEST"] as const) expect(routeAllows(candidate, role)).toBe(true);
       expect(routeAllows(candidate, undefined)).toBe(false);
     }
+  });
+});
+
+describe("[FL-101] public access routes (docs/landing-spec.md D-01)", () => {
+  it("[FL-101] has one URL per access screen, outside the console", () => {
+    expect(ACCESS_PATHS).toEqual(["/signup", "/signup/verify", "/login", "/forgot", "/forgot/reset", "/welcome"]);
+    for (const path of ACCESS_PATHS) {
+      expect(path.startsWith(CONSOLE_PREFIX)).toBe(false);
+      expect(routeOf(path)).toBeUndefined();
+    }
+    expect(WELCOME_PATH).toBe("/welcome");
+  });
+
+  it("[FL-108] lands a sign-out on the landing with its notice", () => {
+    expect(SIGNED_OUT_PATH).toBe("/?signedOut=1");
   });
 });

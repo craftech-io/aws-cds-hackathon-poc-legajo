@@ -1,9 +1,12 @@
 // The account menu of the header: change the password and turn on the verification code for
-// brokers and analysts, sign out for everyone. A guest sees only "Cerrar sesión": its password is
-// permanent and it never gets TOTP (docs/design-brief.md §7.1; the BFF refuses both as well).
+// brokers and analysts, sign out for everyone. A guest never sees the password change nor TOTP (it
+// changes its password only through recovery, ADR-0015 §1; the BFF refuses both as well); it sees the
+// usage of its demo instead (UsageIndicator). Signing out revokes the refresh token and lands on the
+// landing's "Cerraste sesión" (FL-108).
 import { useEffect, useId, useRef, useState } from "react";
 import { usePrincipal, useSession } from "../../context/SessionContext";
 import { copy } from "../../copy/console";
+import { UsageIndicator } from "./UsageIndicator";
 
 const ITEM_CLASS = "block w-full rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-paper";
 
@@ -58,6 +61,7 @@ export function AccountMenu() {
               </button>
             </>
           )}
+          {principal.isGuest ? <UsageIndicator /> : null}
           <button type="button" className={ITEM_CLASS} onClick={choose(signOut)}>
             {copy.app.signOut}
           </button>

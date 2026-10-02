@@ -1,77 +1,74 @@
-// Cognito user pool of the console (docs/architecture.md §10, docs/build-plan.md WP-11). Every value
-// the pool and its web client take lives in infra/auth-email.ts as plain data, checked by
-// infra/auth-email.test.ts; this module only turns it into resources.
+// Cognito user pool of the console and the public signup (docs/architecture.md §10, ADR-0015 §1 and
+// §3, docs/build-plan.md WP-11 and WP-51). Every value the pool, its web client and its triggers take
+// lives in infra/auth-spec.ts (checked by auth-spec.test.ts) and the visible texts and the sender in
+// infra/auth-email.ts (auth-email.test.ts); this module only turns them into resources.
 //
-// Who gets in. Nobody signs up: `allowAdminCreateUserOnly`, and the operator creates every user with
-// AdminCreateUser through `npm run console:invite` (scripts/console/invite.ts), which sets the group
-// and `custom:firmId`. Sign-in names: email is an alias, so brokers and analysts sign in with the
-// email the invitation verified, and guests (`guest-01..NN`, `guest-test`) with a plain username and
-// no email at all. Cognito refuses an email-shaped username while email is an alias, so the invite
-// script generates the username of an invited broker.
+// Who gets in. Internal staff and reserved guests only by AdminCreateUser (`npm run console:invite`).
+// Anyone through `/signup`, but never by calling SignUp from the browser: `SignupDispatch`
+// (infra/leads.ts) signs up with a ticket `AuthPreSignUp` checks, so `AllowAdminCreateUserOnly` is
+// `false` only because that trigger is wired here (auth-spec.ts `userPoolSettings`).
 //
-// Tenancy. Groups BROKER, GUEST and ANALYST; `custom:firmId` is readable by the web client and never
-// writable by it (WEB_CLIENT_SETTINGS.writeAttributes). The pre token generation trigger (event
-// V2_0, packages/bff/src/auth-triggers/pre-token.ts) adds `firmId`, the role and `isGuest` from
-// `Firms/BROKER#`; Cognito waits at most 5 s for it, hence the explicit timeout.
+// Triggers (handlers of WP-50, packages/bff/src/auth-triggers/), each invocable only by
+// cognito-idp.amazonaws.com with this pool as SourceArn (SST's permission), 5 s, no reserved
+// concurrency:
+//   AuthPreSignUp      HMAC of the signup ticket (subkey `signup-ticket`), no table
+//   AuthCustomMessage  the account emails es/en with the quotas, bounce state and breaker of ADR-0015
+//                      §3.2 (Runtime `RL#MAIL…`, `MAILSTATUS#`, `MAILBREAKER`), never Leads
+//   AuthPreToken       V2_0: firmId, role, isGuest and worldLease from Firms/BROKER#; no admin scope
+//                      for a GUEST (no password change, no TOTP, no attribute change)
 //
-// Sign-in surface. The console's own screen (packages/web/src/views/login) speaks USER_SRP_AUTH,
-// REFRESH_TOKEN_AUTH, the challenges, ForgotPassword and RevokeToken to the Cognito API. The pool has
-// no domain and the client no OAuth flow, so there is no hosted UI. MFA is optional TOTP (no SMS):
-// brokers and analysts may turn it on; guest accounts are created with it off and the console hides it.
-//
-// Email. Cognito sends the invitation and the code message with its service-linked role
-// (AWSServiceRoleForAmazonCognitoIdpEmailService, created by the first deploy that sets DEVELOPER),
-// from `Legajo listo <no-reply@legajo.demo.craftech.io>` through the SES identity of
-// infra/messaging-email.ts, once that identity exists and is verified; until then from Cognito's
-// default sender with the same templates, and the deploy log says so (auth-email.ts `emailSenderFor`).
-// These emails bypass the app's SES client and its recipient fence: the only recipients are the
-// addresses the operator passes to console:invite (guests get no email).
+// Email. Cognito sends what AuthCustomMessage returns, with its service-linked role, from
+// `Legajo listo <no-reply@legajo.demo.craftech.io>` through the SES identity of
+// infra/messaging-email.ts and the email configuration set (bounces reach ChannelEvents), once the
+// identity exists and is verified; until then from Cognito's default sender (auth-email.ts
+// `emailSenderFor`). First deploy check (ADR-0015 §3.2): an error of AuthCustomMessage must fail the
+// call with UserLambdaValidationException and Cognito must NOT send the email; otherwise stop and
+// escalate to `architect` (plan B: CustomEmailSender with KMS, never without an ADR).
 //
 // Verify:
 //   aws --profile craftech-demos cognito-idp describe-user-pool --user-pool-id <id>
-//     AdminCreateUserConfig.AllowAdminCreateUserOnly = true · AliasAttributes = [email] ·
-//     MfaConfiguration = OPTIONAL · UserPoolTier = ESSENTIALS · SchemaAttributes has custom:firmId ·
-//     LambdaConfig.PreTokenGenerationConfig.LambdaVersion = V2_0 · no Domain ·
-//     EmailConfiguration.EmailSendingAccount = DEVELOPER (once the SES identity is verified)
+//     AdminCreateUserConfig.AllowAdminCreateUserOnly = false · LambdaConfig.PreSignUp, CustomMessage ·
+//     PreTokenGenerationConfig.LambdaVersion = V2_0 · AliasAttributes = [email] · MfaConfiguration = OPTIONAL ·
+//     UserPoolTier = ESSENTIALS · EmailConfiguration.EmailSendingAccount = DEVELOPER and ConfigurationSet
+//     aws-cds-hackathon-poc-legajo-email-poc (once the SES identity is verified) · no Domain
 //   aws --profile craftech-demos cognito-idp list-groups --user-pool-id <id>        BROKER, GUEST, ANALYST
 //   aws --profile craftech-demos cognito-idp describe-user-pool-client --user-pool-id <id> --client-id <clientId>
-//     ExplicitAuthFlows = [ALLOW_USER_SRP_AUTH, ALLOW_REFRESH_TOKEN_AUTH] · AllowedOAuthFlowsUserPoolClient = false ·
+//     ExplicitAuthFlows = [ALLOW_USER_SRP_AUTH, ALLOW_REFRESH_TOKEN_AUTH] · PreventUserExistenceErrors = ENABLED ·
 //     AccessTokenValidity = IdTokenValidity = 15 (minutes) · RefreshTokenValidity = 12 (hours)
 
+import { CONSOLE_GROUPS, CONSOLE_GROUP_NAMES, emailSenderFor, type ConsoleGroup, type EmailConfiguration, type EmailSenderChoice } from "./auth-email";
 import {
   AUTH_LINK_ACTIONS,
-  CONSOLE_GROUPS,
-  CONSOLE_GROUP_NAMES,
-  LOGIN_PATH,
+  COGNITO_TRIGGERS,
+  PRE_TOKEN_GENERATION_VERSION,
+  TRIGGER_KEYS,
   WEB_CLIENT_SETTINGS,
   WEB_ENV_NAMES,
-  emailSenderFor,
   userPoolSettings,
-  type ConsoleGroup,
-  type EmailConfiguration,
-  type EmailSenderChoice,
-} from "./auth-email";
-import { appDomain, appUrl } from "./dns";
-import { lateLinks } from "./late-links";
-
-/** Handler of the trigger (WP-14); the path is the contract with packages/bff. */
-const PRE_TOKEN_HANDLER = "packages/bff/src/auth-triggers/pre-token.handler";
+  type TriggerKey,
+} from "./auth-spec";
+import { appDomain } from "./dns";
+import { lateLinks, links, type LinkList } from "./late-links";
+import { configurationSetName } from "./messaging-email-spec";
+import { SessionTokenKey } from "./secrets";
 
 function applySender(choice: EmailSenderChoice): EmailConfiguration {
   if (choice.warning) $util.log.warn(choice.warning);
   return choice.configuration;
 }
 
+const emailSet = configurationSetName($app.name, $app.stage, "email");
+
 // The identity is read live on every deploy: the resource's own state would keep the "not verified
 // yet" of its creation. `dependsOn` skips the read while the identity is still being created.
 function senderConfiguration(identity: unknown): $util.Output<EmailConfiguration> {
-  if (identity === undefined) return $util.output(applySender(emailSenderFor(undefined, appDomain)));
+  if (identity === undefined) return $util.output(applySender(emailSenderFor(undefined, appDomain, emailSet)));
   if (!aws.sesv2.EmailIdentity.isInstance(identity)) {
     throw new Error("infra/messaging-email.ts exports emailIdentity, but it is not an aws.sesv2.EmailIdentity.");
   }
   return aws.sesv2
     .getEmailIdentityOutput({ emailIdentity: identity.emailIdentity }, { dependsOn: [identity] })
-    .apply((live) => applySender(emailSenderFor({ domain: live.emailIdentity, arn: live.arn, verified: live.verifiedForSendingStatus }, appDomain)));
+    .apply((live) => applySender(emailSenderFor({ domain: live.emailIdentity, arn: live.arn, verified: live.verifiedForSendingStatus }, appDomain, emailSet)));
 }
 
 // The SES identity belongs to infra/messaging-email.ts (`emailIdentity`), which sst.config.ts
@@ -79,27 +76,44 @@ function senderConfiguration(identity: unknown): $util.Output<EmailConfiguration
 // whatever the order.
 const emailConfiguration = $util.output(import("./messaging-email").then((module) => senderConfiguration(Reflect.get(module, "emailIdentity"))));
 
-/** Adds `firmId`, the role and `isGuest` to the tokens; reads only `Firms` (its broker rows and GSI1). */
-export const preTokenTrigger = new sst.aws.Function("AuthPreToken", {
-  description: "Cognito pre token generation (V2_0): firmId, role and isGuest from Firms/BROKER#.",
-  handler: PRE_TOKEN_HANDLER,
-  link: lateLinks("auth", "storage-tables", () => import("./storage-tables"), ["Firms"]),
-  timeout: "5 seconds",
-  memory: "256 MB",
-});
+/** Tables through their SST link, taken late from storage-tables.ts (a trigger never links Leads). */
+const tableLinks = (tables: readonly string[]): LinkList => lateLinks("auth", "storage-tables", () => import("./storage-tables"), tables);
+
+/** What each trigger links (docs/architecture.md §14): exactly its row, no more. */
+const TRIGGER_LINKS: Readonly<Record<TriggerKey, () => LinkList>> = {
+  preSignUp: () => links([SessionTokenKey]),
+  customMessage: () => links([SessionTokenKey], tableLinks(["Runtime"])),
+  preTokenGeneration: () => tableLinks(["Firms"]),
+};
+
+function trigger(key: TriggerKey): sst.aws.Function {
+  const spec = COGNITO_TRIGGERS[key];
+  return new sst.aws.Function(spec.fn, {
+    description: spec.description,
+    handler: spec.handler,
+    link: TRIGGER_LINKS[key](),
+    timeout: `${spec.timeoutSeconds} seconds` as const,
+    memory: `${spec.memoryMb} MB` as const,
+  });
+}
+
+export const triggerFunctions = Object.fromEntries(TRIGGER_KEYS.map((key) => [key, trigger(key)])) as Record<TriggerKey, sst.aws.Function>;
+/** Kept by name for the modules and tests that read it. */
+export const preTokenTrigger = triggerFunctions.preTokenGeneration;
 
 export const userPool = new sst.aws.CognitoUserPool("UserPool", {
   aliases: ["email"],
   mfa: "optional",
   softwareToken: true,
   triggers: {
-    preTokenGeneration: preTokenTrigger.arn,
-    // V2_0 also shapes the access token; it needs the ESSENTIALS feature plan (userPoolSettings).
-    preTokenGenerationVersion: "v2",
+    preSignUp: triggerFunctions.preSignUp.arn,
+    customMessage: triggerFunctions.customMessage.arn,
+    preTokenGeneration: triggerFunctions.preTokenGeneration.arn,
+    preTokenGenerationVersion: PRE_TOKEN_GENERATION_VERSION,
   },
   transform: {
     userPool: {
-      ...userPoolSettings({ loginUrl: `${appUrl}${LOGIN_PATH}`, brandUrl: `${appUrl}/brand` }),
+      ...userPoolSettings(TRIGGER_KEYS),
       emailConfiguration,
     },
   },
@@ -129,7 +143,8 @@ export const issuerUrl = $interpolate`https://cognito-idp.${region}.amazonaws.co
 /**
  * What a Lambda needs to know about the pool (packages/bff/src/auth/config.ts reads it with
  * `readLinked("Auth", …)`). Linking the pool itself would grant `cognito-idp:*`; this link grants
- * only AUTH_LINK_ACTIONS on this pool. Users are created by the operator's script, never by a Lambda.
+ * only AUTH_LINK_ACTIONS on this pool. The signup's admin actions are fenced statements of
+ * infra/leads.ts (`signupGrants`), never a link.
  */
 export const Auth = new sst.Linkable("Auth", {
   properties: {

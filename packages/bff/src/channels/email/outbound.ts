@@ -14,6 +14,11 @@
 //      does not wait for a mail that never left.
 //
 // It returns the SES message id (`providerMessageId`); the caller persists its own `Message OUT`.
+//
+// `LEAD_NOTICE` (the internal notice of a new lead, ADR-0015 §6) is the one profile without a clock:
+// fence (exact `@craftech.io`), checked headers and `SendEmail`, but no pending mail, no
+// `X-Legajo-Mail-Id`, no audit row and no `Message` to record; its state is `Leads/LEAD.noticeStatus`.
+// Every other profile needs its `clockId` and is refused (`INVALID`) without one.
 import { SESv2Client, SendEmailCommand, type SendEmailCommandInput } from "@aws-sdk/client-sesv2";
 import { z } from "zod";
 import { ChannelError, ClockId, FirmId, MessageId, OperationId, OperationNumber, type MailAwaiting, type SenderProfile } from "@legajo/shared";
@@ -64,20 +69,35 @@ const SimulatorPurposeSchema: z.ZodType<SimulatorPurpose> = z.discriminatedUnion
   z.object({ kind: z.literal("SEND_NOW"), operationId: OperationId }).strict(),
 ]);
 
+const LeadNoticeRequest = z
+  .object({
+    profile: z.literal("LEAD_NOTICE"),
+    from: z.object({ address: z.string(), displayName: z.string().min(1).max(200).optional() }).strict(),
+    to: z.string(),
+    subject: z.string().min(1).max(400),
+    text: z.string().min(1).max(MAX_OUTBOUND_TEXT_CHARS),
+    lang: z.enum(["en", "es"]),
+    kind: TagValue,
+  })
+  .strict();
+
 export const EmailSendRequest = z.discriminatedUnion("profile", [
+  LeadNoticeRequest,
   SendBase.extend({ profile: z.literal("SYSTEM") }).strict(),
   SendBase.extend({ profile: z.literal("SIMULATOR"), purpose: SimulatorPurposeSchema, attachments: z.array(Attachment).max(5).default([]), autoReply: z.boolean().default(false) }).strict(),
   SendBase.extend({ profile: z.literal("QA"), attachments: z.array(Attachment).max(5).default([]), autoReply: z.boolean().default(false) }).strict(),
 ]);
 export type EmailSendRequest = z.input<typeof EmailSendRequest>;
-type ParsedRequest = z.output<typeof EmailSendRequest>;
+type ParsedRequest = Exclude<z.output<typeof EmailSendRequest>, { profile: "LEAD_NOTICE" }>;
+type ParsedLeadNotice = z.output<typeof LeadNoticeRequest>;
 
 export type EmailSendResult =
   | {
       readonly status: "SENT";
       readonly providerMessageId: string;
       readonly rfcMessageId: string;
-      readonly mailId: string;
+      /** Absent for `LEAD_NOTICE`, which has no pending mail. */
+      readonly mailId?: string;
       readonly awaiting: MailAwaiting;
       readonly from: string;
       readonly to: string;
@@ -107,7 +127,7 @@ export interface EmailClientDeps {
 
 function intentOf(request: ParsedRequest): FenceIntent {
   if (request.profile === "SIMULATOR") return { profile: "SIMULATOR", from: request.from.address, to: request.to, purpose: request.purpose };
-  if (request.profile === "SYSTEM") return { profile: "SYSTEM", from: request.from.address, to: request.to, ...(request.operationId === undefined ? {} : { operationId: request.operationId }) };
+  if (request.profile === "SYSTEM") return { profile: "SYSTEM", from: request.from.address, to: request.to, clockId: request.clockId, ...(request.operationId === undefined ? {} : { operationId: request.operationId }) };
   return { profile: "QA", from: request.from.address, to: request.to };
 }
 
@@ -186,9 +206,48 @@ export function createEmailClient(deps: EmailClientDeps): EmailClient {
     };
   }
 
+  /** The lead notice: fence, headers and SES only; nothing of a world is read or written. */
+  async function sendLeadNotice(request: ParsedLeadNotice): Promise<EmailSendResult> {
+    const refused = (code: "INVALID" | "RECIPIENT_NOT_ALLOWED", reason: string): EmailSendResult => {
+      deps.log.warn("email refused before SES", { profile: request.profile, code, reason });
+      return { status: "REFUSED", code, reason };
+    };
+    try {
+      assertHeaderValue("Subject", request.subject);
+      if (request.from.displayName !== undefined) assertHeaderValue("From", request.from.displayName);
+    } catch (error) {
+      if (error instanceof ChannelError) return refused("INVALID", "HEADER_INVALID");
+      throw error;
+    }
+    const fence = await checkFence(deps.fence, { profile: "LEAD_NOTICE", from: request.from.address, to: request.to });
+    if (!fence.allowed) return refused(fence.code, fence.reason);
+    let providerMessageId: string | undefined;
+    try {
+      providerMessageId = (
+        await ses().send(
+          new SendEmailCommand({
+            FromEmailAddress: request.from.displayName === undefined ? fence.from.address : formatMailbox(request.from.displayName, fence.from),
+            Destination: { ToAddresses: [fence.to.address] },
+            Content: { Simple: simpleContent({ subject: request.subject, text: request.text, lang: request.lang }) },
+            ConfigurationSetName: deps.configurationSet(request.profile),
+            EmailTags: [
+              { Name: "stage", Value: TagValue.parse(deps.stage) },
+              { Name: "kind", Value: request.kind },
+            ],
+          }),
+        )
+      ).MessageId;
+    } catch (error) {
+      throw error instanceof ChannelError ? error : sesError(error);
+    }
+    if (providerMessageId === undefined) throw new ChannelError("SEND_FAILED", "EMAIL", "SES returned no message id", { retryable: false });
+    return { status: "SENT", providerMessageId, rfcMessageId: sesRfcMessageId(providerMessageId), awaiting: fence.awaiting, from: fence.from.address, to: fence.to.address };
+  }
+
   async function send(input: EmailSendRequest): Promise<EmailSendResult> {
     const parsed = EmailSendRequest.safeParse(input);
     if (!parsed.success) throw new ChannelError("INVALID", "EMAIL", "invalid email request", { cause: parsed.error });
+    if (parsed.data.profile === "LEAD_NOTICE") return sendLeadNotice(parsed.data);
     const request = parsed.data;
     const mailId = request.mailId ?? deps.newMailId();
     let headers: Array<{ Name: string; Value: string }>;

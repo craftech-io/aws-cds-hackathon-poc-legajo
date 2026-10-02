@@ -86,7 +86,7 @@ describe("names shared with the bootstrap template", () => {
     );
     const web = infraSource("web.ts");
     expect(web).toContain("aws.cloudfront.KeyValueStore.get(\"RouterBootstrapKvStore\", routerKeyValueStoreName($app.name, $app.stage))");
-    expect(web).toMatch(/viewerRequest: \{ injection: "", kvStore: bootstrapKvStoreArn \}/);
+    expect(web).toMatch(/viewerRequest: \{ injection: originVerifyCode, kvStore: bootstrapKvStoreArn \}/);
   });
 
   it("names the Router key-value store as the template creates it", () => {

@@ -22,7 +22,7 @@ interface Answer {
 /** One tRPC query as the console would send it, with the persona's own signed id token. */
 async function query(request: APIRequestContext, persona: PersonaName, procedure: string, input: unknown): Promise<Answer> {
   const url = `${UI_SERVER_URL}/api/${procedure}?input=${encodeURIComponent(JSON.stringify(input))}`;
-  const response = await request.get(url, { headers: { authorization: `Bearer ${idTokenFor(persona)}` } });
+  const response = await request.get(url, { headers: { "x-legajo-auth": `Bearer ${idTokenFor(persona)}` } });
   return { status: response.status(), body: await response.text() };
 }
 

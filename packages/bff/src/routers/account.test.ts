@@ -1,8 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { ConnectorError } from "@legajo/shared";
-import { START_SIM } from "../connector/testing";
+import { createTestIssuer, testContextDeps } from "../auth/testing";
+import { REAL_NOW, memoryStores } from "../connector/testing";
+import { testAccessDeps } from "../signup/testing";
+import { createConsoleCaller } from "./index";
+import { serverContext } from "./trpc";
 import { otherSessionOf } from "./account";
-import { DIEGO, SUBS, consoleWorld, principalOf } from "./testing";
+import { DIEGO, SUBS, consoleWorld, principalOf, seedConsoleWorld } from "./testing";
 
 const GUEST_CLOCK = "GUEST#firm-guest-01";
 const guest = (originJti: string) => principalOf("firm-guest-01", "GUEST", SUBS.guest, "brk-guest-01", { originJti });
@@ -15,8 +19,7 @@ describe("account router", () => {
   });
 
   it("[FL-079] tells a guest when another session used the world in the last two hours", async () => {
-    const first = await consoleWorld({ now: new Date("2026-09-26T15:00:00.000Z") });
-    await first.stores.connector.world.createClock({ clockId: GUEST_CLOCK, firmId: "firm-guest-01", mode: "PAUSED", pausedSimNow: START_SIM, startAtSim: START_SIM, worldEpoch: 1 });
+    const first = await consoleWorld({ now: new Date("2026-09-26T15:00:00.000Z"), guestWorld: true });
     const opened = await first.caller(guest("jti-a")).account.session();
     expect(opened).toMatchObject({ isGuest: true, worldReady: true, otherSession: null, canChangePassword: false, canSetUpMfa: false });
     expect((await first.caller(guest("jti-a")).account.session()).otherSession).toBeNull();
@@ -79,9 +82,13 @@ describe("account router", () => {
     expect((await second.account.session()).otherSession).toBeNull();
   });
 
-  it("[FL-079] says so when the guest world does not exist yet", async () => {
-    const world = await consoleWorld();
-    expect(await world.caller(guest("jti-a")).account.session()).toMatchObject({ firm: null, worldReady: false, otherSession: null });
+  it("[FL-079] [FL-105] says so when the guest world does not exist yet, with its state instead of a refusal", async () => {
+    const stores = memoryStores();
+    await seedConsoleWorld(stores);
+    const deps = testContextDeps({ verifier: createTestIssuer().verifier(), stores, now: () => new Date(REAL_NOW) });
+    const access = testAccessDeps(stores);
+    const session = await createConsoleCaller(serverContext({ principal: guest("jti-a"), deps, access: () => access })).account.session();
+    expect(session).toMatchObject({ firm: null, firmId: null, role: "GUEST", worldReady: false, otherSession: null, world: "NONE", guestKind: "RESERVED", canChangePassword: false });
   });
 
   it("[FL-079] forgets another session after two idle hours", () => {

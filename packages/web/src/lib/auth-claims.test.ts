@@ -58,6 +58,15 @@ describe("principal from the id token", () => {
     expect(principalFromIdToken(jwt({ ...base, "custom:isGuest": "true", "cognito:groups": ["BROKER"] })).isGuest).toBe(true);
   });
 
+  it("[FL-105] reads a public guest before its world: guest role, its email, no firm yet", () => {
+    const guest = principalFromIdToken(
+      jwt({ ...base, email: "qa-signup-claims-a@sim.legajo.demo.craftech.io", "cognito:username": "usr-01jclaimstest000000000000", "cognito:groups": ["GUEST"], "custom:role": "GUEST", "custom:isGuest": "true", "custom:worldLease": "lease-1" }),
+    );
+    expect(guest).toMatchObject({ role: "GUEST", isGuest: true });
+    expect(guest.firmId).toBeUndefined();
+    expect(signInNameOf(guest)).toBe("qa-signup-claims-a@sim.legajo.demo.craftech.io");
+  });
+
   it("prefers the email to sign in again and the name to show", () => {
     const principal = principalFromIdToken(jwt({ ...base, name: "Diego Ferreyra" }));
     expect(signInNameOf(principal)).toBe("diego.ferreyra@example.test");

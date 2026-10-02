@@ -30,6 +30,7 @@ import {
 } from "./rules";
 import { type EvaluationMode, type PolicyDecision, type PolicyInput, PolicyInput as PolicyInputSchema, type RuleCheck, type RuleEvaluation } from "./types";
 import { checkWindow, windowAt } from "./window";
+import { checkWorldQuota } from "./world-quota";
 
 type TimeRule = (ctx: PolicyContext, at: Date) => RuleCheck;
 
@@ -58,6 +59,7 @@ const RULES: Readonly<Record<ContactPolicyRuleId, RuleEntry>> = {
   "CP-WA-24H": { check: checkWindow },
   "CP-NO-SENSITIVE-ASK": { check: checkSensitiveAsk },
   "CP-NO-FOREIGN-LINKS": { check: checkForeignLinks },
+  "CP-WORLD-QUOTA": { check: checkWorldQuota },
 };
 
 const TIME_RULES: readonly TimeRule[] = CONTACT_POLICY_RULES.flatMap((ruleId) => {

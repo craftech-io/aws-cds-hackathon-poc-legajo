@@ -1,7 +1,8 @@
 // The authenticated console: the view of the route inside the shell, with the no-access, not-found
 // and forbidden screens, the firm and world-clock providers every view reads, and the security
-// prompts. Loaded lazily by app.tsx, so the landing and the login do not download the views; each
-// view (views/<id>/View.tsx) is its own chunk too, and so is the guided-tour panel.
+// prompts. Loaded lazily by app.tsx, so the landing and the access screens do not download the views;
+// each view (views/<id>/View.tsx) is its own chunk too, and so is the guided-tour panel. A guest never
+// gets here without a firm (app.tsx sends it to `/welcome`); staff without one see "no access".
 import { type ComponentType, type LazyExoticComponent, Suspense, lazy } from "react";
 import { FullScreenMessage } from "./components/FullScreenMessage";
 import { LoadingBlock } from "./components/RemoteBlock";
@@ -12,7 +13,8 @@ import { WorldClockProvider } from "./context/WorldClockContext";
 import { copy } from "./copy/console";
 import { Link, Redirect, useRouter } from "./lib/router";
 import { CONSOLE_HOME, CONSOLE_PREFIX, type RouteId, routeAllows, routeOf } from "./routes";
-import { SecurityPrompts } from "./views/login/SecurityPrompts";
+import { useNoIndex } from "./views/auth/AuthLang";
+import { SecurityPrompts } from "./views/auth/SecurityPrompts";
 
 const VIEWS: Readonly<Record<RouteId, LazyExoticComponent<ComponentType>>> = {
   operations: lazy(() => import("./views/operations/View")),
@@ -63,6 +65,8 @@ function NoAccess({ onSignOut }: { readonly onSignOut: () => void }) {
 }
 
 export default function ConsoleRoutes() {
+  // The console is never indexed (robots.txt disallows /app/ as well; ADR-0016 §1).
+  useNoIndex();
   const { path } = useRouter();
   const { signOut } = useSession();
   const principal = usePrincipal();

@@ -1,28 +1,27 @@
-// Client-side checks that mirror the pool (infra/auth.ts `passwordPolicy`) so a person learns what
-// is missing before the request goes out, and the otpauth URI the authenticator app scans. Cognito
-// still enforces the policy; these are for the form, not for security.
-
-export const PASSWORD_MIN_LENGTH = 12;
+// Client-side checks that mirror the pool so a person learns what is missing before the request
+// goes out, and the otpauth URI the authenticator app scans. The policy and its checks have one
+// source, packages/shared/src/password-policy.ts (the pool in infra/auth.ts and the BFF's
+// `signup.start` use it too). Cognito still enforces it; these are for the form, not for security.
+import { type PasswordRule as PolicyRule, passwordProblems } from "@legajo/shared/password-policy";
 
 export type PasswordRule = "length" | "lower" | "upper" | "number" | "symbol";
 
-const RULES: ReadonlyArray<readonly [PasswordRule, (password: string) => boolean]> = [
-  ["length", (password) => [...password].length >= PASSWORD_MIN_LENGTH],
-  ["lower", (password) => /\p{Ll}/u.test(password)],
-  ["upper", (password) => /\p{Lu}/u.test(password)],
-  ["number", (password) => /\d/.test(password)],
-  // Cognito's symbol set: ^ $ * . [ ] { } ( ) ? " ! @ # % & / \ , > < ' : ; | _ ~ ` = + - and space.
-  ["symbol", (password) => /[\^$*.[\]{}()?"!@#%&/\\,><':;|_~`=+\- ]/.test(password)],
-];
+const CHECKLIST: Readonly<Record<Exclude<PolicyRule, "EDGE_SPACE">, PasswordRule>> = {
+  LENGTH: "length",
+  LOWERCASE: "lower",
+  UPPERCASE: "upper",
+  NUMBER: "number",
+  SYMBOL: "symbol",
+};
 
-/** Rules of the pool's policy the password does not meet yet (empty = acceptable). */
+/** Items of the checklist the password does not meet yet (empty = acceptable but for edge spaces). */
 export function missingPasswordRules(password: string): PasswordRule[] {
-  return RULES.filter(([, test]) => !test(password)).map(([rule]) => rule);
+  return passwordProblems(password).flatMap((problem) => (problem === "EDGE_SPACE" ? [] : [CHECKLIST[problem]]));
 }
 
 /** Cognito rejects leading and trailing spaces in a password. */
 export function hasOuterSpaces(password: string): boolean {
-  return password !== password.trim();
+  return passwordProblems(password).includes("EDGE_SPACE");
 }
 
 export function normalizeEmail(email: string): string {

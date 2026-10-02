@@ -7,6 +7,11 @@ import { SrpError } from "./srp";
 export type AuthFlowErrorCode =
   /** Sign-in name or password not accepted (never says which, nor whether the account exists). */
   | "INVALID_CREDENTIALS"
+  /**
+   * The password is right but the email was never verified. Cognito answers this only after the
+   * password proof, so it reveals nothing to somebody who does not know the password.
+   */
+  | "UNCONFIRMED"
   /** A TOTP or reset code that is wrong or expired. */
   | "INVALID_CODE"
   /** The new password does not meet the pool's policy. */
@@ -26,15 +31,10 @@ export type FlowStep = "credentials" | "challenge" | "setup" | "reset" | "change
 
 const THROTTLED = new Set(["LimitExceededException", "TooManyRequestsException", "TooManyFailedAttemptsException"]);
 const BAD_CODE = new Set(["CodeMismatchException", "ExpiredCodeException", "EnableSoftwareTokenMFAException"]);
-// Refusals of the email + password step. PasswordResetRequired and UserNotConfirmed would reveal
-// that the account exists, so they are reported as a plain rejection too.
-const REJECTED = new Set([
-  "NotAuthorizedException",
-  "UserNotFoundException",
-  "PasswordResetRequiredException",
-  "UserNotConfirmedException",
-  "InvalidParameterException",
-]);
+// Refusals of the email + password step. PasswordResetRequired would reveal that the account exists,
+// so it is reported as a plain rejection too. UserNotConfirmed comes only with the right password
+// (docs/landing-spec.md §8.4), so the sign-in can send the person to verify the email.
+const REJECTED = new Set(["NotAuthorizedException", "UserNotFoundException", "PasswordResetRequiredException", "InvalidParameterException"]);
 
 export function errorCodeOf(error: unknown, step: FlowStep): AuthFlowErrorCode {
   if (error instanceof SrpError) return "INVALID_CREDENTIALS";
@@ -44,6 +44,7 @@ export function errorCodeOf(error: unknown, step: FlowStep): AuthFlowErrorCode {
   if (type === "InvalidPasswordException") return step === "credentials" ? "INVALID_CREDENTIALS" : "WEAK_PASSWORD";
   switch (step) {
     case "credentials":
+      if (type === "UserNotConfirmedException") return "UNCONFIRMED";
       return REJECTED.has(type) ? "INVALID_CREDENTIALS" : "UNAVAILABLE";
     case "challenge":
     case "setup":
@@ -51,7 +52,7 @@ export function errorCodeOf(error: unknown, step: FlowStep): AuthFlowErrorCode {
       // A challenge session that expired or was already used answers NotAuthorized.
       return type === "NotAuthorizedException" ? "SESSION_EXPIRED" : "UNAVAILABLE";
     case "reset":
-      if (BAD_CODE.has(type) || REJECTED.has(type)) return "INVALID_CODE";
+      if (BAD_CODE.has(type) || REJECTED.has(type) || type === "UserNotConfirmedException") return "INVALID_CODE";
       return "UNAVAILABLE";
     case "change":
       // A wrong current password answers NotAuthorized, like a sign-in with the wrong one.

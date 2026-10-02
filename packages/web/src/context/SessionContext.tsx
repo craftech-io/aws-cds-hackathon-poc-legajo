@@ -1,16 +1,23 @@
 // Session of the console: Cognito tokens, the principal decoded from the id token, the tRPC client
 // that carries it, and the security prompts of the console (sign in again to approve, enrol the
 // optional TOTP, change the password; the last two never for a guest). Tokens live only in
-// sessionStorage (lib/auth/tokens.ts). React Context + useState only (CLAUDE.md: no state libraries).
+// sessionStorage (lib/auth/tokens.ts). Two refusals concern the whole console, whatever view made the
+// call: a guest whose world is gone goes to `/welcome`, and a usage quota opens `QuotaNotice`
+// (ADR-0015 §4). Signing out lands on the landing's "Cerraste sesión" (FL-108). React Context +
+// useState only (CLAUDE.md: no state libraries).
+import type { QuotaExceededData } from "@legajo/shared/signup";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { type CognitoApi, createCognitoApi } from "../lib/auth/cognito";
 import { type SrpClient, createSrpClient } from "../lib/auth/srp";
-import { type TokenSet, clearTokens, isExpired, refreshTokens, restoreSession, revokeSession, saveTokens } from "../lib/auth/tokens";
+import { type TokenSet, clearTokens, isExpired, refreshTokens, restoreSession, saveTokens } from "../lib/auth/tokens";
 import { principalFromIdToken, type Principal } from "../lib/auth-claims";
 import { readAuthEnv, type AuthEnv } from "../lib/env";
 import { useRouter } from "../lib/router";
-import { createConsoleClient, type ConsoleClient } from "../lib/trpc";
-import { LOGIN_PATH } from "../routes";
+import { type ConsoleRefusal, createConsoleClient, type ConsoleClient } from "../lib/trpc";
+import { CONSOLE_PREFIX, WELCOME_PATH } from "../routes";
+import { currentLang } from "../views/auth/lang";
+import { quotaOfRefusal } from "../views/auth/quota";
+import { endSession, signedOutHref } from "../views/auth/session";
 
 export type SessionState =
   | { readonly status: "loading" }
@@ -36,10 +43,15 @@ export interface SessionValue {
   readonly auth: AuthServices | undefined;
   readonly trpc: ConsoleClient;
   readonly prompt: SecurityPrompt | undefined;
+  /** The last usage quota a call ran into, until the person dismisses it (QuotaNotice). */
+  readonly quota: QuotaExceededData | undefined;
   /** Stores the tokens of a finished sign-in (or step-up) and opens the session. */
   completeSignIn(tokens: TokenSet): void;
-  /** Revokes the refresh token, clears the session and goes to the login screen. */
+  /** New tokens now (a guest whose world became ready: the new id token names its firm); the new principal. */
+  refreshSession(): Promise<Principal | undefined>;
+  /** Drops refreshes in flight, clears the tokens, revokes the refresh token, goes to the landing. */
   signOut(): void;
+  dismissQuota(): void;
   /** The BFF refused the token: drop it and send the user through the login with a way back. */
   expireSession(): void;
   openPrompt(prompt: SecurityPrompt): void;
@@ -65,11 +77,28 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
   );
   const [state, setState] = useState<SessionState>(() => (envResult.ok ? { status: "loading" } : { status: "unconfigured", missing: envResult.missing }));
   const [prompt, setPrompt] = useState<SecurityPrompt | undefined>(undefined);
+  const [quota, setQuota] = useState<QuotaExceededData | undefined>(undefined);
 
-  // The client reads the token through a ref so it never rebuilds on refresh.
+  // The client reads the token and the router through refs so it never rebuilds on refresh.
   const tokensRef = useRef<TokenSet | undefined>(undefined);
   tokensRef.current = state.status === "authenticated" ? state.tokens : undefined;
-  const trpc = useMemo(() => createConsoleClient(() => tokensRef.current?.idToken), []);
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
+  const trpc = useMemo(
+    () =>
+      createConsoleClient({
+        getIdToken: () => tokensRef.current?.idToken,
+        onRefusal: (refusal: ConsoleRefusal) => {
+          if (refusal.reason === "GUEST_WORLD_GONE") navigateRef.current(WELCOME_PATH, { replace: true });
+          // `/welcome` tells its own quota (world preparations); the console's notice is for the console.
+          else if (refusal.reason === "QUOTA_EXCEEDED" && window.location.pathname.startsWith(CONSOLE_PREFIX)) {
+            const exceeded = quotaOfRefusal(refusal.data);
+            if (exceeded) setQuota(exceeded);
+          }
+        },
+      }),
+    [],
+  );
 
   useEffect(() => {
     if (!auth) return;
@@ -111,14 +140,28 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
     setState(authenticated(tokens));
   }, []);
 
+  const refreshSession = useCallback(async (): Promise<Principal | undefined> => {
+    const tokens = tokensRef.current;
+    if (!auth || !tokens?.refreshToken) return undefined;
+    try {
+      const next = authenticated(await refreshTokens(auth.cognito, { ...tokens, expiresAt: 0 }));
+      setState(next);
+      return next.status === "authenticated" ? next.principal : undefined;
+    } catch {
+      return undefined;
+    }
+  }, [auth]);
+
   const signOut = useCallback(() => {
     const tokens = tokensRef.current;
     setPrompt(undefined);
+    setQuota(undefined);
     setState({ status: "anonymous" });
-    if (auth) void revokeSession(auth.cognito, tokens);
-    else clearTokens();
-    navigate(LOGIN_PATH, { replace: true });
+    void endSession(auth?.cognito, tokens);
+    navigate(signedOutHref(currentLang(new URLSearchParams(window.location.search))), { replace: true });
   }, [auth, navigate]);
+
+  const dismissQuota = useCallback(() => setQuota(undefined), []);
 
   const expireSession = useCallback(() => {
     clearTokens();
@@ -132,8 +175,8 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
   const openPrompt = useCallback((next: SecurityPrompt) => setPrompt(isGuest && next !== "stepUp" ? undefined : next), [isGuest]);
 
   const value = useMemo<SessionValue>(
-    () => ({ state, env, auth, trpc, prompt, completeSignIn, signOut, expireSession, openPrompt, closePrompt }),
-    [state, env, auth, trpc, prompt, completeSignIn, signOut, expireSession, openPrompt, closePrompt],
+    () => ({ state, env, auth, trpc, prompt, quota, completeSignIn, refreshSession, signOut, dismissQuota, expireSession, openPrompt, closePrompt }),
+    [state, env, auth, trpc, prompt, quota, completeSignIn, refreshSession, signOut, dismissQuota, expireSession, openPrompt, closePrompt],
   );
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }

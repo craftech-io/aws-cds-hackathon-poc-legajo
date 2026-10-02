@@ -1,6 +1,5 @@
-// Texts of the public landing, in Spanish (Argentina) and English with a switch (docs/design-brief.md
-// §7 and §10). Each language lives in its own file with the same type; landing.test.ts checks that
-// both carry the same keys and the "what is real and what is simulated" block of §7.2.
+// Texts of the public landing in Spanish (Argentina) and English (docs/landing-spec.md §2). Each language
+// lives in its own file with the same type; landing.test.ts checks that both carry the same keys.
 import { en } from "./copy-en";
 import { es } from "./copy-es";
 

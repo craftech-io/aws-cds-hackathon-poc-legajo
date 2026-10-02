@@ -34,6 +34,19 @@ export type MockTable = (typeof MOCK_TABLES)[number];
 /** Tables this module creates. */
 export type StorageTable = Exclude<TableName, MockTable>;
 
+/**
+ * Tables this module creates that no Lambda ever links whole: an SST link grants `dynamodb:*` on the
+ * table, and `Leads` holds real addresses (ADR-0015 §6). Each role reaches it through the name-only
+ * Linkable `Leads` plus its own statement (infra/leads-spec.ts `LEADS_ACCESS`).
+ */
+export const FENCED_TABLES = ["Leads"] as const satisfies readonly StorageTable[];
+export type FencedTable = (typeof FENCED_TABLES)[number];
+/** Tables of this module a Lambda links whole (`Resource.<Name>`, `dynamodb:*` on the table). */
+export type LinkedTable = Exclude<StorageTable, FencedTable>;
+
+/** Component name of a fenced table: `Resource.<Name>` belongs to its name-only Linkable. */
+export const fencedTableComponent = (name: FencedTable): string => `${name}Data`;
+
 export const PRIMARY_KEY = { hashKey: "PK", rangeKey: "SK" } as const;
 
 /** TTL attribute of every table that expires items: epoch seconds (Number). */
@@ -87,6 +100,9 @@ export const TABLE_SPECS = {
   Runtime: { indexes: {}, ttl: true },
   // Dossier KPIs per world or batch.
   LegajoMetrics: { indexes: {}, ttl: true },
+  // Leads of the public signup, outside the demo (ADR-0015 §6): `EMAIL#<emailHash>`/`LEAD`,
+  // `SIGNUP#<signupId>`/`PENDING` (TTL 24 h) and `DELETED#<leadId>`/`TOMB`. No GSI: every read is by key.
+  Leads: { indexes: {}, ttl: true },
 } as const satisfies Record<StorageTable, TableSpec>;
 
 /** Attribute definitions of a table: its primary key and the keys of its GSIs, all strings. */
@@ -104,6 +120,14 @@ export function tableFields(spec: TableSpec): Record<string, "string"> {
 /** Prefix of every key a QA world writes (docs/architecture.md §6); the QaDriver deletes only there. */
 export const QA_PREFIX = "qa/";
 export const QA_RETENTION_DAYS = 2;
+
+/**
+ * Prefix of every key a public guest world writes in `Documents` and `Media` (ADR-0015 §4,
+ * packages/shared/src/document-keys.ts). `destroyWorld` deletes it; the lifecycle rule is the backstop:
+ * the longest TTL of a public world (72 h) plus a margin.
+ */
+export const GUEST_PUBLIC_PREFIX = "guest/pub/";
+export const GUEST_PUBLIC_RETENTION_DAYS = 4;
 export const ABORT_MULTIPART_AFTER_DAYS = 7;
 
 /**
@@ -121,6 +145,8 @@ export interface BucketSpec {
   readonly expireAfterDays?: number;
   /** Objects under `qa/` expire after this many days (where the bucket keeps them longer). */
   readonly qaExpireAfterDays?: number;
+  /** Objects of public guest worlds (`guest/pub/`) expire after this many days, as a backstop of `destroyWorld`. */
+  readonly guestPublicExpireAfterDays?: number;
   /** The browser POSTs to it with a presigned form from the console origin (CORS). */
   readonly browserUploads: boolean;
 }
@@ -141,13 +167,20 @@ export function inboundMailRoutes(stage: string): InboundMailRoute[] {
 }
 
 export const BUCKET_SPECS = {
-  Documents: { naming: { kind: "sst" }, prefixes: ["ops/", "quarantine/", "unrecognized/"], qaExpireAfterDays: QA_RETENTION_DAYS, browserUploads: false },
+  Documents: {
+    naming: { kind: "sst" },
+    prefixes: ["ops/", "quarantine/", "unrecognized/"],
+    qaExpireAfterDays: QA_RETENTION_DAYS,
+    guestPublicExpireAfterDays: GUEST_PUBLIC_RETENTION_DAYS,
+    browserUploads: false,
+  },
   Uploads: { naming: { kind: "browser", purpose: "uploads" }, prefixes: ["uploads/"], expireAfterDays: 1, browserUploads: true },
   Media: {
     naming: { kind: "browser", purpose: "media" },
     prefixes: ["wa/", "sim/"],
     expireAfterDays: 90,
     qaExpireAfterDays: QA_RETENTION_DAYS,
+    guestPublicExpireAfterDays: GUEST_PUBLIC_RETENTION_DAYS,
     browserUploads: true,
   },
   Seed: { naming: { kind: "sst" }, prefixes: ["pdfs/", "reader/", "metrics/", "worlds/"], browserUploads: false },
@@ -178,6 +211,9 @@ export function lifecycleRules(spec: BucketSpec): LifecycleRule[] {
   if (spec.expireAfterDays !== undefined) rules.push({ id: "expire", status: "Enabled", filter: {}, expiration: { days: spec.expireAfterDays } });
   if (spec.qaExpireAfterDays !== undefined) {
     rules.push({ id: "expire-qa", status: "Enabled", filter: { prefix: QA_PREFIX }, expiration: { days: spec.qaExpireAfterDays } });
+  }
+  if (spec.guestPublicExpireAfterDays !== undefined) {
+    rules.push({ id: "expire-guest-pub", status: "Enabled", filter: { prefix: GUEST_PUBLIC_PREFIX }, expiration: { days: spec.guestPublicExpireAfterDays } });
   }
   return rules;
 }
@@ -321,19 +357,23 @@ export function expectedBuckets(fn: LambdaName): BucketName[] {
 
 export interface StorageNeeds {
   /** Tables of this module to link. */
-  readonly tables: StorageTable[];
+  readonly tables: LinkedTable[];
+  /** Tables of this module reached only through a name-only Linkable and a fenced statement. */
+  readonly fencedTables: FencedTable[];
   /** Tables of the mocks (infra/mocks.ts) the caller links on its own. */
   readonly mockTables: MockTable[];
   readonly buckets: BucketName[];
 }
 
 const isMockTable = (name: TableName): name is MockTable => (MOCK_TABLES as readonly TableName[]).includes(name);
+const isFencedTable = (name: TableName): name is FencedTable => (FENCED_TABLES as readonly TableName[]).includes(name);
 
 /** What a function links from storage, exactly as iam-capabilities.ts declares it. */
 export function storageFor(fn: LambdaName): StorageNeeds {
   const tables = (Object.keys(expectedTables(fn)) as TableName[]).sort();
   return {
-    tables: tables.filter((name): name is StorageTable => !isMockTable(name)),
+    tables: tables.filter((name): name is LinkedTable => !isMockTable(name) && !isFencedTable(name)),
+    fencedTables: tables.filter(isFencedTable),
     mockTables: tables.filter(isMockTable),
     buckets: expectedBuckets(fn),
   };

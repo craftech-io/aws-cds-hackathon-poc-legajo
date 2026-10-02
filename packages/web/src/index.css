@@ -1,11 +1,14 @@
 @import "tailwindcss";
 
 /*
- * Palette of Legajo listo (console, landing and login). Every colour used in JSX comes from these tokens
- * (`bg-navy`, `text-cyan`, `border-mist`, …); hex values live only here.
+ * Palette of Legajo listo. Every colour used in JSX comes from these tokens (`bg-navy`, `text-cyan`,
+ * `bg-harbor-950`, …); hex values live only here. The console keeps its palette (navy, cyan, …); the
+ * landing and the public sign-in screens add the "harbour at night, file paper" identity
+ * (docs/landing-spec.md §3), with the contrast ratios that section verifies.
  */
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
   --color-navy: #0b1f3a;
@@ -34,13 +37,138 @@
   /* Craftech's navy, for the text wordmark that stands in while its logo file is missing. */
   --color-craftech: #122d45;
 
+  /* Public surfaces (landing-spec §3.2): dark harbour bands, warm paper, a signal and a sea-glass accent. */
+  --color-harbor-950: #06131f;
+  --color-harbor-900: #0b2233;
+  --color-harbor-800: #123248;
+  --color-harbor-700: #1c4763;
+  --color-foam: #e8f1f6;
+  --color-foam-muted: #9fb5c4;
+  --color-signal: #ff8a3d;
+  --color-signal-ink: #a4480d;
+  --color-glass: #5fd3c6;
+  --color-glass-ink: #0f766e;
+  --color-manifest: #faf7f2;
+  --color-manifest-deep: #f1ebe0;
+  --color-rule: #e3dccf;
+  --color-ink-muted: #4d5d72;
+
+  /* Fluid type scale (landing-spec §3.3). */
+  --text-display: clamp(2.25rem, 1.55rem + 3.1vw, 4.25rem);
+  --text-display--line-height: 1.04;
+  --text-display--letter-spacing: -0.025em;
+  --text-h2: clamp(1.75rem, 1.35rem + 1.8vw, 2.75rem);
+  --text-h2--line-height: 1.1;
+  --text-h2--letter-spacing: -0.02em;
+  --text-h3: clamp(1.2rem, 1.1rem + 0.5vw, 1.5rem);
+  --text-h3--line-height: 1.25;
+  --text-h3--letter-spacing: -0.01em;
+  --text-lead: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+  --text-lead--line-height: 1.55;
+  --text-counter: clamp(2.75rem, 2rem + 3.4vw, 4.5rem);
+  --text-counter--line-height: 1;
+  --text-counter--letter-spacing: -0.03em;
+  --text-eyebrow: 0.75rem;
+  --text-eyebrow--line-height: 1.4;
+  --text-eyebrow--letter-spacing: 0.14em;
+
+  /* Spacing and containers (landing-spec §3.4). */
+  --spacing-gutter: clamp(1rem, 0.6rem + 1.8vw, 2rem);
+  --spacing-section: clamp(4rem, 2.8rem + 5vw, 8rem);
+  --container-content: 72rem;
+  --container-tour: 80rem;
+  --container-prose: 65ch;
+  --container-auth: 28rem;
+
   --radius-card: 0.75rem;
+  --radius-panel: 1.25rem;
+  --radius-phone: 2.25rem;
+  --radius-pill: 9999px;
 
-  /* Landing: the progress of the current demo scene and the entrance of its visual. */
-  --animate-scene-progress: scene-progress 9s linear forwards;
-  --animate-scene-in: scene-in 400ms ease-out;
+  --shadow-card: 0 1px 2px rgb(11 31 58 / 0.06), 0 4px 12px rgb(11 31 58 / 0.06);
+  --shadow-raised: 0 2px 4px rgb(6 19 31 / 0.08), 0 12px 28px rgb(6 19 31 / 0.12);
+  --shadow-float: 0 24px 60px rgb(0 0 0 / 0.35);
 
-  @keyframes scene-progress {
+  /* Motion (landing-spec §4.2): only transform and opacity move. */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-snap: cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  --duration-fast: 150ms;
+  --duration-base: 280ms;
+  --duration-slow: 480ms;
+  --duration-counter: 1200ms;
+  --animate-reveal-up: reveal-up var(--duration-slow) var(--ease-out-soft) both;
+  --animate-bubble-in: bubble-in var(--duration-base) var(--ease-snap) both;
+  --animate-typing-dot: typing-dot 1s ease-in-out infinite;
+  --animate-stage-in: stage-in var(--duration-slow) var(--ease-in-out-soft) both;
+  --animate-stage-out: stage-out var(--duration-slow) var(--ease-in-out-soft) both;
+
+  @keyframes reveal-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes bubble-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes typing-dot {
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: translateY(0);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+  }
+
+  @keyframes stage-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes stage-out {
+    from {
+      opacity: 1;
+      transform: none;
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-12px) scale(0.98);
+    }
+  }
+
+  @keyframes route-fill {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes timeline-fill {
     from {
       transform: scaleX(0);
     }
@@ -48,23 +176,42 @@
       transform: scaleX(1);
     }
   }
+}
 
-  @keyframes scene-in {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  --shadow-card: 0 1px 2px rgb(11 31 58 / 0.06), 0 4px 12px rgb(11 31 58 / 0.06);
+/* Title font of the public surfaces, self-hosted (public/fonts/OFL.txt), Latin subsets only. */
+@font-face {
+  font-family: "Space Grotesk Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300 700;
+  src: url("/fonts/space-grotesk-latin-ext-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Space Grotesk Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300 700;
+  src: url("/fonts/space-grotesk-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Metric-matched fallback while the title font loads, so the swap does not move the layout. */
+@font-face {
+  font-family: "Space Grotesk Fallback";
+  src: local("Arial");
+  size-adjust: 104%;
+  ascent-override: 88%;
+  descent-override: 26%;
+  line-gap-override: 0%;
 }
 
 @layer base {
   html {
     color-scheme: light;
+    scroll-behavior: smooth;
+    scroll-padding-top: var(--header-h, 4.5rem);
   }
 
   body {
@@ -75,13 +222,119 @@
     @apply outline-2 outline-offset-2 outline-cyan;
   }
 
-  html {
-    scroll-behavior: smooth;
-  }
-
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
     }
+  }
+
+  html[data-motion="off"] {
+    scroll-behavior: auto;
+  }
+}
+
+/*
+ * Public surfaces (`data-surface="public"` on the root of the landing and of the sign-in screens):
+ * the title font with its fallback, the focus ring by background, and motion that stops entirely
+ * with reduced motion or with "Pausar animaciones" (landing-spec §4.7).
+ */
+@layer components {
+  [data-surface="public"] {
+    --font-display: "Space Grotesk Variable", "Space Grotesk Fallback", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  [data-surface="public"] :focus-visible {
+    outline-color: var(--color-harbor-950);
+  }
+
+  [data-surface="public"] [data-tone="dark"] :focus-visible {
+    outline-color: var(--color-glass);
+  }
+
+  /* The faint file grid behind the hero (gradients, no image). */
+  .harbor-grid {
+    background-image:
+      linear-gradient(to right, var(--color-harbor-900) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-harbor-900) 1px, transparent 1px);
+    background-size: 3rem 3rem;
+    background-position: center top;
+  }
+
+  /* The dotted route line of the tour (a static pattern; only its progress layer scales). */
+  .route-dots {
+    background-image: linear-gradient(to bottom, var(--color-harbor-700) 50%, transparent 50%);
+    background-size: 2px 10px;
+  }
+
+  /* The steps of the tour are the scroll timeline of the route line's progress. */
+  .tour-steps {
+    view-timeline-name: --tour-steps;
+  }
+
+  /* A section's content rises into view once (scroll-driven where supported, IntersectionObserver otherwise). */
+  @media (prefers-reduced-motion: no-preference) {
+    html:not([data-motion="off"]) [data-reveal="pending"] {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    html:not([data-motion="off"]) [data-reveal="shown"] {
+      animation: var(--animate-reveal-up);
+      animation-delay: calc(var(--reveal-index, 0) * 60ms);
+    }
+
+    @supports (animation-timeline: view()) {
+      html:not([data-motion="off"]) [data-reveal] {
+        opacity: 1;
+        transform: none;
+        animation: reveal-up linear both;
+        animation-timeline: view();
+        animation-range: entry 10% cover 30%;
+      }
+
+      html:not([data-motion="off"]) [data-route-progress] {
+        transition: none;
+        animation: route-fill linear both;
+        animation-timeline: --tour-steps;
+        animation-range: contain 0% contain 100%;
+      }
+
+      html:not([data-motion="off"]) [data-timeline-fill] {
+        animation: timeline-fill linear both;
+        animation-timeline: view();
+        animation-range: entry 20% cover 45%;
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-surface="public"] *,
+    [data-surface="public"] *::before,
+    [data-surface="public"] *::after {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  html[data-motion="off"] [data-surface="public"] *,
+  html[data-motion="off"] [data-surface="public"] *::before,
+  html[data-motion="off"] [data-surface="public"] *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* The tour stage swaps its visual with a cross-fade when View Transitions exist. */
+  [data-tour-stage] {
+    view-transition-name: tour-stage;
+  }
+
+  ::view-transition-old(tour-stage) {
+    animation: var(--animate-stage-out);
+  }
+
+  ::view-transition-new(tour-stage) {
+    animation: var(--animate-stage-in);
   }
 }

@@ -53,6 +53,14 @@ describe("sign in with email and password (USER_SRP_AUTH)", () => {
     expect((await run(INITIAL_STATE, { type: "signIn", login: "reset@example.test", password: PASSWORD })).error).toBe("INVALID_CREDENTIALS");
   });
 
+  it("[FL-106] sends a right password on an unverified account to verify the email, and a wrong one to the generic error", async () => {
+    await cognito.addUser({ email: "pending@example.test", password: PASSWORD, status: "UNCONFIRMED" });
+    const right = await run(INITIAL_STATE, { type: "signIn", login: "Pending@Example.test", password: PASSWORD });
+    expect(right).toEqual({ state: { step: "credentials", unconfirmed: "pending@example.test" }, error: "UNCONFIRMED" });
+    const wrong = await run(INITIAL_STATE, { type: "signIn", login: "pending@example.test", password: "Wrong-Fixture-1!" });
+    expect(wrong).toEqual({ state: INITIAL_STATE, error: "INVALID_CREDENTIALS" });
+  });
+
   it("tells throttling and outages apart from a rejection", async () => {
     cognito.failNext = { operation: "InitiateAuth", type: "TooManyRequestsException" };
     expect((await run(INITIAL_STATE, { type: "signIn", login: "a@example.test", password: PASSWORD })).error).toBe("TOO_MANY_ATTEMPTS");
@@ -152,6 +160,28 @@ describe("forgot password (ForgotPassword → ConfirmForgotPassword)", () => {
     expect(unknown.state.step).toBe("forgotConfirm");
     expect(known.error).toBeUndefined();
     expect(unknown.error).toBeUndefined();
+  });
+
+  it("[FL-107] answers the quota of account emails and throttling like a success, and keeps the step only offline", async () => {
+    for (const type of ["UserLambdaValidationException", "LimitExceededException", "InvalidParameterException"]) {
+      cognito.failNext = { operation: "ForgotPassword", type };
+      expectStep(await run({ step: "forgotRequest" }, { type: "requestReset", email: "any@example.test" }), "forgotConfirm");
+    }
+    cognito.failNext = { operation: "ForgotPassword" };
+    expect(await run({ step: "forgotRequest" }, { type: "requestReset", email: "any@example.test" })).toEqual({ state: { step: "forgotRequest" }, error: "UNAVAILABLE" });
+  });
+
+  it("[FL-107] asks for the email in the person's language and sends another code on request", async () => {
+    await cognito.addUser({ email: "lang@example.test", password: PASSWORD });
+    const confirm = expectStep(await run({ step: "forgotRequest" }, { type: "requestReset", email: "lang@example.test", lang: "en" }), "forgotConfirm");
+    const first = cognito.sentResetCode("lang@example.test");
+    expectStep(await run(confirm, { type: "resendReset", lang: "en" }), "forgotConfirm");
+    expect(cognito.calls.filter((call) => call.operation === "ForgotPassword").map((call) => JSON.parse(call.payload) as unknown)).toEqual([
+      { username: "lang@example.test", lang: "en" },
+      { username: "lang@example.test", lang: "en" },
+    ]);
+    expect(cognito.sentResetCode("lang@example.test")).toBeDefined();
+    expect(first).toBeDefined();
   });
 
   it("treats an invited account still on its temporary password the same way", async () => {

@@ -255,6 +255,7 @@ Módulo puro `packages/bff/src/policy/` con el reloj de la operación inyectado;
 | 12 | `CP-WA-24H` | Fuera de la ventana de 24 h solo plantillas aprobadas | WhatsApp |
 | 13 | `CP-NO-SENSITIVE-ASK` | Ningún texto pide documentos de identidad, datos bancarios ni claves fiscales por chat (política de Meta); los documentos van por link o email | Todo texto |
 | 14 | `CP-NO-FOREIGN-LINKS` | Ningún texto libre lleva enlaces, dominios, emails, teléfonos ni tiras de dígitos con forma de cuenta que no sean el link de carga del turno, el dominio del stage o un contacto registrado enmascarado (se verifica en `outbound/verify.ts`, §5.5) | Todo texto libre |
+| 15 | `CP-WORLD-QUOTA` | En un mundo de invitado (`GUEST#*`), un email sale solo dentro de su cuota de emails salientes y del presupuesto global de mundos públicos (ADR-0015 §4, `packages/shared/src/guest-limits.ts`); se evalúa al final y falla cerrado si falta el veredicto | Email de un mundo `GUEST#*` |
 
 **Acuse de una carga por link.** Subir por `/u/<token>` no es un mensaje del importador: Meta no abre la ventana de 24 h por eso y el saliente que sigue no es una respuesta (`CP-HOURS-AR` aplica). La recepción la confirma la propia página al tocar "Listo" ("Recibimos los archivos…", determinista). En el turno `UPLOAD_COMPLETED`:
 

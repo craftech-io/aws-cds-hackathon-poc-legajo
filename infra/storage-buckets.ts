@@ -9,7 +9,9 @@
 //
 // Every bucket: private (BlockPublicAccess on all four settings), HTTPS enforced by the SST component's
 // policy, SSE-S3 declared explicitly, incomplete multipart uploads aborted after 7 days, `qa/` gone in
-// two days wherever QA writes, and `forceDestroy` (SST's default) so removing the stage empties them.
+// two days wherever QA writes, `guest/pub/` (public guest worlds) gone in four days in Documents and
+// Media as the backstop of `destroyWorld` (ADR-0015 §4), and `forceDestroy` (SST's default) so
+// removing the stage empties them.
 // Component names stay at 16 characters or fewer: S3 cannot be fenced by tag, so the CI deploy role
 // reaches buckets by the name prefix, and SST truncates the app name inside a longer bucket name past
 // that prefix.

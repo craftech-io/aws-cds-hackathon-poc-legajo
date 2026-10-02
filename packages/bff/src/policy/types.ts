@@ -145,6 +145,8 @@ export const PolicyInput = z.object({
   fence: PolicyVerdict.optional(),
   /** `CP-NO-FOREIGN-LINKS` verdict of outbound/verify.ts for the free text. */
   foreignLinks: PolicyVerdict.optional(),
+  /** `CP-WORLD-QUOTA`: the world of the send and, in a guest world, the verdict of policy/world-quota.ts. */
+  worldQuota: z.object({ clockId: z.string().min(1).max(128), allowed: z.boolean().optional(), detail: z.string().max(300).optional() }).optional(),
   /** National holidays of Argentina (`Reference/REF#HOLIDAY#AR`); required for WhatsApp to the importer. */
   holidays: PolicyHolidays.optional(),
 });

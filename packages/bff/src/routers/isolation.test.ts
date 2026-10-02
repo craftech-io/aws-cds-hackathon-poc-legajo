@@ -9,6 +9,7 @@ import { createTestIssuer, seedBrokers, testContextDeps } from "../auth/testing"
 import type { MemoryStores } from "../connector/index";
 import { hashOf, importerFixture, memoryStores, operationFixture, seedDemoSlice, supplierFixture } from "../connector/testing";
 import type { ContextDeps } from "./deps";
+import { edgeHeaders, testEdgeGuard } from "../signup/testing";
 import { createHandler } from "./handler";
 import { createConsoleCaller } from "./index";
 import { createCallerFactory, createContextFactory, firmProcedure, recentLoginProcedure, router, serverContext } from "./trpc";
@@ -69,7 +70,7 @@ function functionUrlEvent(path: string, input: unknown, token: string): APIGatew
     routeKey: "$default",
     rawPath: path,
     rawQueryString,
-    headers: { authorization: `Bearer ${token}`, "x-correlation-id": "console-isolation-01" },
+    headers: { ...edgeHeaders(), "x-legajo-auth": `Bearer ${token}`, "x-correlation-id": "console-isolation-01" },
     isBase64Encoded: false,
     requestContext: {
       accountId: "anonymous",
@@ -105,7 +106,7 @@ describe("[FL-082] firm isolation of the console", () => {
   const denials = (firmId: string) => stores.connector.audit.listByDecision(firmId, "DENY");
 
   it("[FL-082] answers 403 with no data to a broker of firm-norte asking for an operation of firm-delta, and logs DENY CROSS_FIRM in firm-norte", async () => {
-    const handler = createHandler(testRouter, createContextFactory(() => deps));
+    const handler = createHandler(testRouter, createContextFactory(() => deps), testEdgeGuard);
     const token = issuer.idToken({ sub: PABLO_SUB, "custom:firmId": "firm-norte" });
     const response = await handler(functionUrlEvent("/api/operations.get", { operationId: "op-4471" }, token), lambdaContext);
 
@@ -130,7 +131,7 @@ describe("[FL-082] firm isolation of the console", () => {
   });
 
   it("[FL-082] lets the same broker read its own firm's operation", async () => {
-    const handler = createHandler(testRouter, createContextFactory(() => deps));
+    const handler = createHandler(testRouter, createContextFactory(() => deps), testEdgeGuard);
     const token = issuer.idToken({ sub: PABLO_SUB, "custom:firmId": "firm-norte" });
     const response = await handler(functionUrlEvent("/api/operations.get", { operationId: "op-5501" }, token), lambdaContext);
     expect(response.statusCode).toBe(200);
@@ -180,11 +181,13 @@ describe("[FL-082] firm isolation of the console", () => {
   });
 
   it("[FL-082] keeps a guest inside its own guest world", async () => {
+    // A guest acts only while its world's broker row exists (ADR-0015 §4).
+    await seedBrokers(stores, [{ firmId: "firm-guest-01", brokerId: "brk-guest-01", role: "GUEST", sub: guest.sub }]);
     expect(await as(guest).anything({ clockId: "GUEST#firm-guest-01" })).toBe("ran");
     expect(await refusalOf(as(guest).anything({ clockId: "GUEST#firm-guest-02" }))).toMatchObject({ reason: AUTH_REASON.CROSS_FIRM });
     expect(await refusalOf(as(guest).operations.get({ operationId: "op-4471" }))).toMatchObject({ reason: AUTH_REASON.CROSS_FIRM });
     const [decision] = await denials("firm-guest-01");
-    expect(decision).toMatchObject({ actor: "SYSTEM", detail: { sub: guest.sub, role: "GUEST" } });
+    expect(decision).toMatchObject({ actor: "BROKER:brk-guest-01", detail: { role: "GUEST" } });
   });
 
   it("[FL-082] runs the same fence for the QaDriver's createCaller with a principal built on the server (SC-20/3)", async () => {

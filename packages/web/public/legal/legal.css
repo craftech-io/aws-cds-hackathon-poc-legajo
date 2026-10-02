@@ -1,0 +1,305 @@
+/*
+ * Static legal pages (/legal/privacy.html, /legal/terms.html): no script, no third-party request,
+ * readable from 360 px. They live outside the Vite build, so the colours repeat the values of the
+ * landing tokens of packages/web/src/index.css (docs/landing-spec.md §3.2); every pair of text and
+ * background used here meets WCAG 2.2 AA (4.5:1).
+ */
+:root {
+  color-scheme: light;
+  --harbor-950: #06131f;
+  --harbor-800: #123248;
+  --foam: #e8f1f6;
+  --foam-muted: #9fb5c4;
+  --signal: #ff8a3d;
+  --signal-ink: #a4480d;
+  --glass: #5fd3c6;
+  --glass-ink: #0f766e;
+  --manifest: #faf7f2;
+  --manifest-deep: #f1ebe0;
+  --rule: #e3dccf;
+  --ink: #111a2b;
+  --ink-muted: #4d5d72;
+  --white: #ffffff;
+  --gutter: clamp(1rem, 0.6rem + 1.8vw, 2rem);
+  --radius-panel: 1.25rem;
+  --radius-card: 0.75rem;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--manifest);
+  color: var(--ink);
+  font: 1rem/1.6 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--signal-ink);
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--glass-ink);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+.skip {
+  position: absolute;
+  left: var(--gutter);
+  top: -4rem;
+  z-index: 1;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-card);
+  background: var(--white);
+  color: var(--ink);
+}
+
+.skip:focus {
+  top: 0.75rem;
+}
+
+.band {
+  background: var(--harbor-950);
+  color: var(--foam);
+}
+
+.band-inner {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 0.875rem var(--gutter);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.wordmark {
+  display: inline-block;
+  padding: 0.5rem 0;
+  line-height: 1.75rem;
+  color: var(--foam);
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.wordmark span {
+  color: var(--signal);
+}
+
+.band nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.band nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--harbor-800);
+  border-radius: 9999px;
+  color: var(--foam);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.band nav a:hover {
+  border-color: var(--foam-muted);
+}
+
+.band :focus-visible {
+  outline-color: var(--glass);
+}
+
+main {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 1rem + 2vw, 2.5rem) var(--gutter);
+}
+
+.doc {
+  margin: 0 0 clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  padding: clamp(1.25rem, 0.8rem + 2vw, 2.25rem);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-panel);
+  background: var(--white);
+  scroll-margin-top: 1rem;
+}
+
+.doc > * {
+  max-width: 65ch;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.75rem, 1.35rem + 1.8vw, 2.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  margin: 2rem 0 0.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+  font-size: clamp(1.125rem, 1.05rem + 0.4vw, 1.3rem);
+  line-height: 1.3;
+  scroll-margin-top: 1rem;
+}
+
+p,
+li {
+  margin: 0 0 0.625rem;
+}
+
+ul {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.version {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin: 0.75rem 0 1.25rem;
+  color: var(--ink-muted);
+  font-size: 0.9375rem;
+}
+
+.version strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.summary {
+  margin: 0 0 0.5rem;
+  padding: 0.875rem 1rem;
+  border-left: 4px solid var(--glass-ink);
+  border-radius: 0 var(--radius-card) var(--radius-card) 0;
+  background: var(--manifest-deep);
+}
+
+.facts {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.facts li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.facts li:last-child {
+  border-bottom: 0;
+}
+
+.facts b {
+  display: block;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.pending {
+  display: inline-block;
+  padding: 0 0.5rem;
+  border: 1px dashed var(--ink-muted);
+  border-radius: 0.375rem;
+  background: var(--manifest-deep);
+  color: var(--ink);
+}
+
+.legend {
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--manifest);
+}
+
+.muted {
+  color: var(--ink-muted);
+  font-size: 0.9375rem;
+}
+
+code {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+footer {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 0 var(--gutter) 2.5rem;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+}
+
+footer ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+.powered {
+  gap: 0.5rem;
+  color: var(--ink-muted);
+  text-decoration: none;
+}
+
+.powered img {
+  display: block;
+  height: 1.25rem;
+  width: auto;
+}
+
+@media print {
+  .band nav,
+  .skip {
+    display: none;
+  }
+
+  .doc {
+    border: 0;
+    padding: 0;
+  }
+}
