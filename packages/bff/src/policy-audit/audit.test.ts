@@ -145,13 +145,35 @@ describe("[FL-060] policy audit", () => {
     expect(reevaluateSend({ operation, message: { ...toSupplier, kind: "APPROVAL_NOTICE" }, authorization, contact }).map((breach) => breach.ruleId)).toEqual(["CP-KIND-CHANNEL", "CP-SUPPLIER-AUTH"]);
   });
 
-  it("[FL-060] runs daily over the named firms and on demand only over a QA world", async () => {
+  async function firm(firmId: string, kind: "DEMO" | "GUEST" | "QA"): Promise<void> {
+    await stores.client.put("Firms", {
+      PK: `FIRM#${firmId}`,
+      SK: "META",
+      entity: "Firm",
+      createdAt: REAL_NOW,
+      updatedAt: REAL_NOW,
+      version: 1,
+      firmId,
+      name: `Estudio ${firmId}`,
+      kind,
+      ...(kind === "GUEST" ? { guestKind: "PUBLIC" } : {}),
+      mailboxAddress: `estudio-${firmId}@sim.legajo.demo.craftech.io`,
+      businessHours: { timezone: "America/Argentina/Buenos_Aires", from: "09:00", to: "18:00", weekdays: ["MON", "TUE", "WED", "THU", "FRI"] },
+      active: true,
+    });
+  }
+
+  it("[FL-060] runs daily over every DEMO and GUEST firm listed at run time, and on demand only over a QA world", async () => {
     await send(toImporter, false);
+    await firm(FIRM, "DEMO");
+    await firm("firm-guest-31", "GUEST");
+    await firm("firm-qa", "QA");
     const handler = createPolicyAuditHandler(deps());
-    const daily = await handler({ kind: "DAILY", firmIds: [FIRM, "firm-norte"] });
-    expect(daily).toMatchObject({ violations: 1, reports: [{ firmId: FIRM, messagesChecked: 1 }, { firmId: "firm-norte", messagesChecked: 0 }] });
+    const daily = await handler({ kind: "DAILY" });
+    expect(daily).toMatchObject({ violations: 1, reports: [{ firmId: FIRM, messagesChecked: 1 }, { firmId: "firm-guest-31", messagesChecked: 0 }] });
+    expect(daily.reports).toHaveLength(2);
     await expect(handler({ kind: "WORLD", firmId: FIRM, clockId: CLOCK })).rejects.toThrow(/QA firms/);
-    await expect(handler({ kind: "DAILY", firmIds: [FIRM], extra: true })).rejects.toThrow();
+    await expect(handler({ kind: "DAILY", firmIds: [FIRM] })).rejects.toThrow();
     expect(await handler({ kind: "WORLD", firmId: "firm-qa", clockId: "qa-812-sc20" })).toMatchObject({ violations: 0, reports: [{ firmId: "firm-qa", clockId: "qa-812-sc20", operations: 0 }] });
   });
 
@@ -198,7 +220,9 @@ describe("[FL-060] policy audit", () => {
     await send(toImporter, false);
     const { operations } = stores.connector;
     const broken = { ...operations, listOperations: async (firmId: string, options?: Parameters<typeof operations.listOperations>[1]) => (firmId === "firm-norte" ? Promise.reject(new Error("AccessDenied")) : operations.listOperations(firmId, options)) };
+    await firm(FIRM, "DEMO");
+    await firm("firm-norte", "DEMO");
     const handler = createPolicyAuditHandler({ ...deps(), data: { ...stores.connector, operations: broken } });
-    expect(await handler({ kind: "DAILY", firmIds: ["firm-norte", FIRM] })).toMatchObject({ failedFirms: ["firm-norte"], violations: 1, reports: [{ firmId: FIRM }] });
+    expect(await handler({ kind: "DAILY" })).toMatchObject({ failedFirms: ["firm-norte"], violations: 1, reports: [{ firmId: FIRM }] });
   });
 });

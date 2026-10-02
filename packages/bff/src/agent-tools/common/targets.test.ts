@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { GATEWAY_TOOLS, type GatewayToolName, ToolTarget, gatewayActionName } from "@legajo/shared";
+import { GATEWAY_TOOLS, type GatewayToolName, ToolError, ToolTarget, gatewayActionName } from "@legajo/shared";
 import { CLOCK, FIRM, REAL_NOW } from "../../connector/testing";
-import { createGatewayTargets, gatewayTargetsPort } from "./targets";
+import { gatewayContext } from "./principal";
+import { type GatewayTargetPorts, createGatewayTargets, gatewayTargetsPort } from "./targets";
 import { OPERATION, toolWorld } from "./testing";
 
 /** The smallest input each tool accepts from the Gateway, besides `sessionToken`. */
@@ -23,8 +24,19 @@ const MINIMAL_INPUT: { readonly [T in GatewayToolName]: Readonly<Record<string, 
   request_approval: { summary: "All three documents are valid." },
 };
 
-describe("the five targets as the Gateway reaches them (wave 2: every tool answers UNAVAILABLE behind the wrapper)", () => {
-  it("routes each of the 15 Gateway actions to its target and answers UNAVAILABLE after every guard passed", async () => {
+/** Ports that never leave the test: a send, a schedule or a reading answers UNAVAILABLE. */
+const offline = (what: string) => () => {
+  throw new ToolError("UNAVAILABLE", `${what} is not part of this test`);
+};
+const OFFLINE_PORTS: GatewayTargetPorts = {
+  messaging: { outbound: offline("the outbound pipeline") },
+  handoff: { send: offline("the outbound pipeline"), agentMode: "SCRIPTED" },
+  followups: { scheduler: { put: offline("a schedule"), delete: offline("a schedule") }, dispatcher: { dispatch: offline("a timer") } },
+  documents: { reader: offline("the reader"), sourceUrl: offline("a source URL"), newToken: () => "test-token-0123456789abcdefghijklmnopqrstuv" },
+};
+
+describe("the five targets as the Gateway reaches them", () => {
+  it("routes each of the 15 Gateway actions to its own tool behind every guard", async () => {
     const world = await toolWorld();
     // The importer's message that holds the proposed address (LAM-OP-SCOPE reads it).
     await world.stores.connector.conversations.appendMessage({
@@ -44,44 +56,37 @@ describe("the five targets as the Gateway reaches them (wave 2: every tool answe
       sentAtSim: "2026-10-14T10:30:00-03:00",
       sentAtReal: REAL_NOW,
     });
-    const port = gatewayTargetsPort(createGatewayTargets(world.deps));
+    const port = gatewayTargetsPort(createGatewayTargets(world.deps, OFFLINE_PORTS));
     const turn = await world.openTurn("IMPORTER_MESSAGE");
+    const reached: string[] = [];
     for (const target of ToolTarget.options) {
       for (const tool of GATEWAY_TOOLS[target]) {
+        const before = world.logs.length;
         const response = await port.invoke({ target, action: gatewayActionName(tool), input: { sessionToken: turn.token, ...MINIMAL_INPUT[tool] } });
-        expect(response, tool).toMatchObject({ ok: false, error: { code: "UNAVAILABLE" } });
+        expect(response, tool).not.toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
+        const calls = world.logs.slice(before).map((line) => JSON.parse(line) as Record<string, unknown>).filter((line) => line["message"] === "tool.call");
+        expect(calls.map((line) => line["tool"]), tool).toEqual([tool]);
+        reached.push(tool);
       }
     }
-    const pending = world.logs.map((line) => JSON.parse(line) as Record<string, unknown>).filter((line) => line["message"] === "tool.not_implemented");
-    expect(pending.map((line) => [line["tool"], line["owner"]])).toEqual([
-      ["get_operation", "WP-26"],
-      ["get_dossier", "WP-26"],
-      ["assign_responsible", "WP-26"],
-      ["get_counterpart_profile", "WP-26"],
-      ["get_checklist", "WP-26"],
-      ["get_dispatch_status", "WP-26"],
-      ["read_document", "WP-26"],
-      ["create_upload_link", "WP-26"],
-      ["send_whatsapp", "WP-25"],
-      ["send_email", "WP-25"],
-      ["propose_supplier_contact", "WP-25"],
-      ["schedule_followup", "WP-27"],
-      ["estimate_delay_risk", "WP-27"],
-      ["escalate_to_broker", "WP-27"],
-      ["request_approval", "WP-27"],
-    ]);
-    // Failures are not facts: nothing grounds a message yet.
-    expect(await world.stores.connector.runtime.listTurnResults(turn.turnId)).toEqual([]);
+    expect(reached).toHaveLength(15);
   });
 
-  it("keeps every guard on the placeholders: a field Cedar forbids is still refused, and nothing runs without a session", async () => {
+  it("refuses an action the Gateway names outside the target that receives it", async () => {
     const world = await toolWorld();
-    const port = gatewayTargetsPort(createGatewayTargets(world.deps));
+    const targets = createGatewayTargets(world.deps, OFFLINE_PORTS);
+    const turn = await world.openTurn("IMPORTER_MESSAGE");
+    const misrouted = await targets.handoff.handle({ sessionToken: turn.token }, gatewayContext("operations___get_operation"));
+    expect(misrouted).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
+  });
+
+  it("keeps every guard: a field Cedar forbids is still refused, and nothing runs without a session", async () => {
+    const world = await toolWorld();
+    const port = gatewayTargetsPort(createGatewayTargets(world.deps, OFFLINE_PORTS));
     const turn = await world.openTurn("DOCUMENT_READ");
     const approve = await port.invoke({ target: "handoff", action: "handoff___request_approval", input: { sessionToken: turn.token, summary: "Ready.", decision: "APPROVED" } });
     expect(approve).toMatchObject({ ok: false, error: { code: "INVALID" } });
     const noSession = await port.invoke({ target: "operations", action: "operations___get_dossier", input: {} });
     expect(noSession).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
-    expect(world.logs.some((line) => line.includes("tool.not_implemented"))).toBe(false);
   });
 });

@@ -5,8 +5,10 @@
 // `process.env`); every AWS client carries its deadline and retry budget.
 //
 // The modules the driver drives but does not own (world factory, clock, channel entries, SES client,
-// supplier simulator, worker, recipient fence, metrics batch) are ports: until each one is deployed
-// with this function, its actions answer UNAVAILABLE / NOT_WIRED (qa-driver/ports.ts).
+// supplier simulator, worker, recipient fence, metrics batch) are ports: the supplier simulator is wired
+// (`supplier.sendNow` invokes `SimMail` synchronously); until each of the others is wired with this
+// function, its actions answer UNAVAILABLE / NOT_WIRED (qa-driver/ports.ts).
+import { ToolError } from "@legajo/shared";
 import { connector, tableClient } from "../connector/index";
 import { runtimeSessionId } from "../lib/crypto";
 import { createLogger } from "../lib/log";
@@ -21,6 +23,24 @@ import { type MemoryIdentity, buildHandlers } from "../qa-driver/handlers";
 import { type QaPorts, unwiredPorts } from "../qa-driver/ports";
 import { browserUpload } from "../qa-driver/upload";
 import { s3DocumentUrlSigner } from "../routers/document-url";
+import { lambdaSimMailInvoker } from "../sim-mail/invoke";
+
+/** `supplier.sendNow` over `SimMail` (`sim_reply`, mode `SEND_NOW`): a refusal is the step's error. */
+function simMailPort(): QaPorts["simMail"] {
+  const simMail = lambdaSimMailInvoker();
+  return {
+    async sendNow(input) {
+      const result = await simMail.sendNow({ ...input, docTypes: [...input.docTypes] });
+      if (result.status === "REFUSED") throw new ToolError(result.code, `SimMail refused the send: ${result.reason}`, result.reason);
+    },
+  };
+}
+
+/** The ports wired in this deployment; the others answer NOT_WIRED until their modules land. */
+function stagePorts(): QaPorts {
+  const unwired = unwiredPorts();
+  return { ...unwired, simMail: simMailPort() };
+}
 
 /** Harness identity of an operation: `<importerId>-e<worldEpoch>` and the keyed session id (docs/architecture.md §9.1). */
 export const harnessMemoryIdentity: MemoryIdentity = {
@@ -32,7 +52,7 @@ export const harnessMemoryIdentity: MemoryIdentity = {
   },
 };
 
-export function createDefaultQaDriver(ports: QaPorts = unwiredPorts()): QaDriver {
+export function createDefaultQaDriver(ports: QaPorts = stagePorts()): QaDriver {
   const now = () => new Date();
   const platform = platformClient();
   return createQaDriver({

@@ -21,6 +21,7 @@ export interface FirmWords {
   readonly readyLead: string;
   readonly readySummaryHeading: string;
   readonly readyFooter: string;
+  readonly completedByFirm: string;
   readonly guardrailSummary: FirmTexts["guardrailSummary"];
 }
 
@@ -62,6 +63,7 @@ export function buildFirmTexts(words: FirmWords, labels: Labels): FirmTexts {
       body: escalationBody(words, labels, p),
     }),
     readyForReviewEmail: (p) => ({ subject: words.readySubject(p.operationNumber), body: readyBody(words, p) }),
+    completedByFirm: words.completedByFirm,
     guardrailSummary: words.guardrailSummary,
   };
 }

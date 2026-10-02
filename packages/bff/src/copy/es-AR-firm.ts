@@ -21,6 +21,7 @@ const firmWordsEsAR: FirmWords = {
   readyLead: "Los tres documentos quedaron válidos y el legajo está listo para revisión.",
   readySummaryHeading: "Cómo se resolvió cada observación:",
   readyFooter: "La aprobación es del despachante: revisá documentos, lecturas y observaciones en la consola y aprobá desde ahí.",
+  completedByFirm: "El estudio resolvió desde la consola lo que quedaba pendiente.",
   guardrailSummary: {
     promptAttack: "posible inyección",
     cardData: "datos de tarjeta",

@@ -22,6 +22,14 @@ export function firmsRepo(ctx: RepoContext): FirmsPort {
       return requireEntity(Firm, "Firm", await client.get(TABLE, firmKey(firmId)), TABLE, `firm ${firmId}`);
     },
 
+    async listFirms(kinds) {
+      const wanted = new Set(kinds);
+      const rows = await client.scan(TABLE, { filter: { equals: { entity: "Firm" } } });
+      return parseEntities(Firm, "Firm", rows, TABLE)
+        .filter((firm) => wanted.has(firm.kind))
+        .sort((a, b) => a.firmId.localeCompare(b.firmId));
+    },
+
     async findFirm(firmId) {
       return optionalEntity(Firm, "Firm", await client.get(TABLE, firmKey(firmId)), TABLE);
     },

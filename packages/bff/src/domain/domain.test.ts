@@ -3,7 +3,6 @@ import { EntityName, ZonedInstant, clockTtlSeconds, entryAt, isExpired, utcInsta
 import { parseDocVersionId, isBlocking } from "./documents";
 import { Firm, matrixDefault } from "./firms";
 import { canTransitionDossier } from "./operations";
-import { isUsableContact } from "./parties";
 import { ENTITIES, checkEntityItem, entitiesOf } from "./registry";
 import { parseTimerKey, timerKeyOf } from "./timers";
 
@@ -89,13 +88,10 @@ describe("dossier rules", () => {
     expect(matrixDefault(matrix, "CERTIFICATE_OF_ORIGIN", "INCOTERM_MISMATCH")).toEqual({ responsible: "BROKER" });
   });
 
-  it("blocks only open blocking observations and writes only to confirmed ACTIVE contacts", () => {
+  it("blocks only open blocking observations", () => {
     expect(isBlocking({ severity: "BLOCKING", status: "CORRECTION_REQUESTED" })).toBe(true);
     expect(isBlocking({ severity: "BLOCKING", status: "WAIVED_BY_BROKER" })).toBe(false);
     expect(isBlocking({ severity: "WARNING", status: "OPEN" })).toBe(false);
-    expect(isUsableContact({ status: "ACTIVE", confirmedAt: "2026-10-15T10:07:00-03:00" })).toBe(true);
-    expect(isUsableContact({ status: "ACTIVE", confirmedAt: undefined })).toBe(false);
-    expect(isUsableContact({ status: "PENDING_CONFIRMATION", confirmedAt: undefined })).toBe(false);
   });
 });
 

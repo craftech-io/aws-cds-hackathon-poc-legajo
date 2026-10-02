@@ -102,6 +102,8 @@ export const Operation = defineEntity({
   threadAddress: EmailAddress,
   threadTag: ThreadTag,
   dispatch: Dispatch.default({ status: "NONE", history: [] }),
+  /** Set by the `ARRIVAL` milestone when the dossier is incomplete at the ETA (FL-071): "en riesgo". */
+  atRisk: z.boolean().optional(),
   /** Raised after every G1 block of the Harness: the next turn starts a clean session (§9.1). */
   sessionEpoch: z.number().int().nonnegative().default(0),
   /** Operation override of the supplier's simulated behaviour (QA and console). */

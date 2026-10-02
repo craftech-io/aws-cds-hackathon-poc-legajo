@@ -107,6 +107,8 @@ export interface ReadyForReviewEmailParams {
 export interface FirmTexts {
   readonly escalationEmail: (params: EscalationEmailParams) => EmailText;
   readonly readyForReviewEmail: (params: ReadyForReviewEmailParams) => EmailText;
+  /** `request_approval` summary when a decision of the firm left the dossier complete (worker caller). */
+  readonly completedByFirm: string;
   /** Fixed `summary` of the escalation that follows a G1 block (docs/architecture.md §9.1). */
   readonly guardrailSummary: {
     readonly promptAttack: string;

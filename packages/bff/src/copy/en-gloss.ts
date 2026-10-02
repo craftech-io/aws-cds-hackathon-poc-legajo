@@ -99,6 +99,7 @@ export const firmGloss: FirmTexts = buildFirmTexts(
     readyLead: "The three documents are valid and the dossier is ready for review.",
     readySummaryHeading: "How each observation was resolved:",
     readyFooter: "Approval belongs to the customs broker: review documents, readings and observations in the console and approve there.",
+    completedByFirm: "The firm resolved what was pending from the console.",
     guardrailSummary: {
       promptAttack: "possible injection",
       cardData: "card data",

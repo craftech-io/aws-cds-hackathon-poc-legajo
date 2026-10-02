@@ -18,6 +18,7 @@ import { createHash, randomInt } from "node:crypto";
 import { chmodSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { BrokerId, FirmId, type ConsoleRole } from "@legajo/shared";
+import { GUEST_SLOTS } from "@legajo/shared/guest-limits";
 import { parseFlags } from "../channels/cli-args";
 
 export const CREDENTIALS_FILE = "guest-credentials.local.json";
@@ -71,7 +72,9 @@ export function planInvite(args: InviteArgs): InvitePlan {
   if (args.guestTest) return { kind: "GUEST", username: "guest-test", firmId: "firm-guest-test", password: "FROM_ENV", resetPassword: args.resetPassword === true };
   if (args.guest !== undefined) {
     const number = Number(args.guest);
-    if (!Number.isInteger(number) || number < 1 || number > 99) throw new RangeError("--guest takes a number from 1 to 99");
+    // Only the reserved slots: a public slot (31–90) may be leased to a visitor's world (ADR-0015 §4).
+    const { first, last } = GUEST_SLOTS.reserved;
+    if (!Number.isInteger(number) || number < first || number > last) throw new RangeError(`--guest takes a reserved slot from ${first} to ${last}`);
     const nn = String(number).padStart(2, "0");
     return { kind: "GUEST", username: `guest-${nn}`, firmId: `firm-guest-${nn}`, password: "GENERATE", resetPassword: args.resetPassword === true };
   }

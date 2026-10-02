@@ -134,11 +134,6 @@ export const SupplierContact = defineEntity({
 });
 export type SupplierContact = z.output<typeof SupplierContact>;
 
-/** The agent writes only to an ACTIVE contact that someone confirmed (`CP-SUPPLIER-AUTH`). */
-export function isUsableContact(contact: Pick<SupplierContact, "status" | "confirmedAt">): boolean {
-  return contact.status === "ACTIVE" && contact.confirmedAt !== undefined;
-}
-
 export function contactStatusAt(contact: Pick<SupplierContact, "statusHistory">, atSim: string): SupplierContactStatus | undefined {
   return entryAt(contact.statusHistory, atSim)?.status;
 }

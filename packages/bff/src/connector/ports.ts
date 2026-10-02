@@ -33,6 +33,8 @@ export type IdentityLookup<T> =
 
 export interface FirmsPort {
   getFirm(firmId: string): Promise<Firm>;
+  /** Every firm of the given kinds (a small table: the daily `PolicyAudit` lists DEMO and GUEST firms). */
+  listFirms(kinds: readonly Firm["kind"][]): Promise<Firm[]>;
   findFirm(firmId: string): Promise<Firm | undefined>;
   getSettings(firmId: string): Promise<FirmSettings>;
   getBroker(firmId: string, brokerId: string): Promise<Broker>;
@@ -166,7 +168,7 @@ export interface DispatchChange {
   readonly expectedVersion?: number;
 }
 
-export type OperationPatch = Partial<Pick<Operation, "simBehaviour" | "simBehaviourParams" | "simState" | "vessel" | "carrier">>;
+export type OperationPatch = Partial<Pick<Operation, "simBehaviour" | "simBehaviourParams" | "simState" | "vessel" | "carrier" | "atRisk">>;
 
 export type NewEscalation = Omit<NewEntity<typeof Escalation>, "escalationId" | "status">;
 

@@ -1,11 +1,19 @@
-// Stub created by WP-21 (docs/build-plan.md, "Reglas del plan"): Lambda entry of `FeedEvents`, the
-// target of the `Feeds` bus rule of infra/feeds.ts (CarrierEtaChanged and CustomsStatusChanged of the
-// platform mock). WP-29 replaces this file with the entry that validates the event, resolves the
-// operation by firm and number and enqueues ETA_CHANGED or DISPATCH_STATUS
-// (docs/architecture-integrations.md §6). Until then it answers UNAVAILABLE and logs no detail.
-import { createLogger } from "../lib/log";
+// Lambda entry of `FeedEvents` (docs/architecture-integrations.md §6), the target of the `Feeds` bus
+// rule of infra/feeds.ts (`CarrierEtaChanged`, `CustomsStatusChanged` of the platform mock). The work is
+// feeds/feed-events.ts; its ports are built on the first invocation of a container (feeds/stage.ts), so
+// importing this module reads nothing. A failure to enqueue throws, and EventBridge delivers the event
+// again (the duplicate mark is written only after the queue took it).
+import { type FeedEventsDeps, type FeedOutcome, processFeedEvent } from "../feeds/feed-events";
+import { stageFeedEventsDeps } from "../feeds/stage";
+import { type Logger, createLogger, newCorrelationId } from "../lib/log";
 
-export async function handler(_event: unknown): Promise<{ readonly status: "UNAVAILABLE" }> {
-  createLogger({ bindings: { service: "feed-events" } }).warn("FeedEvents entry not built yet (WP-29): feed event ignored");
-  return { status: "UNAVAILABLE" };
+export type FeedEventsHandler = (event: unknown) => Promise<{ readonly status: FeedOutcome }>;
+
+export function createFeedEventsHandler(depsFor: (log: Logger) => FeedEventsDeps, newLog: () => Logger = () => createLogger({ correlationId: newCorrelationId(), bindings: { service: "feed-events" } })): FeedEventsHandler {
+  return async (event) => {
+    const log = newLog();
+    return { status: await processFeedEvent(event, depsFor(log)) };
+  };
 }
+
+export const handler: FeedEventsHandler = createFeedEventsHandler((log) => stageFeedEventsDeps(log));

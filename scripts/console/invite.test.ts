@@ -44,7 +44,8 @@ describe("console:invite", () => {
     expect(brokerUsername("a@b.co")).toMatch(/^b[0-9a-f]{8}$/);
     expect(() => planInvite(parseInviteArgs(["--guest", "3"]))).toThrow(/--stage poc/);
     expect(() => planInvite(parseInviteArgs(["--stage", "poc", "--guest", "3", "--guest-test"]))).toThrow(/choose one/);
-    expect(() => planInvite(parseInviteArgs(["--stage", "poc", "--guest", "100"]))).toThrow(/1 to 99/);
+    expect(() => planInvite(parseInviteArgs(["--stage", "poc", "--guest", "100"]))).toThrow(/1 to 30/);
+    expect(() => planInvite(parseInviteArgs(["--stage", "poc", "--guest", "45"]))).toThrow(/reserved slot/);
     expect(() => planInvite(parseInviteArgs(["--stage", "poc", "--email", "x@sim.legajo.demo.craftech.io", "--firm", "firm-guest-01", "--broker", "brk-guest-01"]))).toThrow(/guest firms/);
     expect(() => parseInviteArgs(["--stage", "poc", "--jugde", "3"])).toThrow(/unknown argument/);
   });

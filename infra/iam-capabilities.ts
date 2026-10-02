@@ -192,7 +192,7 @@ export const LAMBDA_CAPABILITIES = {
   },
   InboundWhatsApp: {
     capabilities: ["SEND_WHATSAPP"],
-    tables: { Parties: "write", Runtime: "write", Conversations: "write", Operations: "write", AuditLog: "write" },
+    tables: { Parties: "write", Runtime: "write", Conversations: "write", Operations: "write", AuditLog: "write", Firms: "read", Reference: "read" },
     buckets: { Media: "write" },
     actions: ["social-messaging:GetWhatsAppMessageMedia", "sqs:SendMessage"],
   },
@@ -205,7 +205,7 @@ export const LAMBDA_CAPABILITIES = {
   },
   SimMail: {
     capabilities: ["TIMERS"],
-    tables: { Conversations: "write", Operations: "read", Parties: "read", Runtime: "write", AuditLog: "write" },
+    tables: { Conversations: "write", Operations: "write", Parties: "read", Runtime: "write", AuditLog: "write" },
     buckets: { InboundMail: "read", Seed: "read" },
     actions: ["ses:SendEmail"],
     fence: "ses:FromAddress *@sim.legajo.demo.craftech.io; ses:Recipients op-*@legajo.demo.craftech.io; configuration set …-sim-poc; InboundMail poc/sim/*",
@@ -235,7 +235,7 @@ export const LAMBDA_CAPABILITIES = {
   },
   ScheduleDispatch: {
     capabilities: [],
-    tables: { Operations: "read" },
+    tables: { Operations: "write", Runtime: "write", AuditLog: "write" },
     actions: ["sqs:SendMessage", "lambda:InvokeFunction"],
     fence: "InvokeFunction only of SimMail",
   },

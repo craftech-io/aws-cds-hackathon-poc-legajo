@@ -1,12 +1,14 @@
-// Stub created by WP-24 (docs/build-plan.md, "Reglas del plan"): Lambda entry of `OperationWorker`,
-// which infra/operations.ts subscribes to OperationEvents.fifo (batch 1). WP-28 replaces this file with
-// the worker of docs/architecture.md §7 (intake, timers, agent turns, console sends, feeds). Until then
-// it processes nothing and answers UNAVAILABLE by failing: a queue consumer that returned would delete
-// the event, so it goes back to the queue and, after its second receive, to OperationEventsDlq.fifo,
-// where the DLQ alarm shows it. Its log line carries no part of the event.
-import { createLogger } from "../lib/log";
+// Lambda entry of `OperationWorker` (docs/architecture.md §7), which infra/operations.ts subscribes to
+// `OperationEvents.fifo` (batch 1, reserved concurrency 5, visibility 720 s, `maxReceiveCount 2`). The
+// worker itself is worker/worker.ts; its dependencies are built on the first invocation of a container
+// (worker/production.ts), so importing this module reads nothing.
+import type { SQSEvent } from "aws-lambda";
+import { type LambdaContextLike, type OperationWorker, createOperationWorker } from "../worker/worker";
+import { productionWorkerDeps } from "../worker/production";
 
-export async function handler(_event: unknown): Promise<never> {
-  createLogger({ bindings: { service: "operation-worker" } }).warn("OperationWorker entry not built yet (WP-28): event left on the queue");
-  throw new Error("UNAVAILABLE: OperationWorker entry not built yet (WP-28)");
+let worker: OperationWorker | undefined;
+
+export async function handler(event: SQSEvent, context?: LambdaContextLike): Promise<void> {
+  worker ??= createOperationWorker(productionWorkerDeps());
+  await worker(event, context);
 }

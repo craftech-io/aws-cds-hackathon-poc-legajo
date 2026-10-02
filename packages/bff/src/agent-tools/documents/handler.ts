@@ -1,11 +1,14 @@
-// Implementations of the `documents` tools behind `createToolHandler`. WP-26 owns this file from wave 3
-// (docs/build-plan.md §4) and replaces each entry with the real tool; until then every one answers
-// `UNAVAILABLE` after the wrapper's session, scope, trigger and strict-input checks.
+// Implementations of the `documents` tools behind `createToolHandler` (docs/tool-catalog.md, target
+// `documents`): the reader's reading of a version and the importer's upload link.
 import type { Implementations } from "../common/context";
-import { notYetImplemented } from "../common/not-implemented";
+import type { DocumentToolPorts } from "./ports";
+import { readDocument } from "./read-document";
 import type { DOCUMENTS_TOOLS } from "./schema";
+import { createUploadLink } from "./upload-link";
 
-export const documentsImplementations: Implementations<typeof DOCUMENTS_TOOLS> = {
-  read_document: notYetImplemented("WP-26"),
-  create_upload_link: notYetImplemented("WP-26"),
-};
+export function documentsImplementations(ports: DocumentToolPorts): Implementations<typeof DOCUMENTS_TOOLS> {
+  return {
+    read_document: readDocument(ports),
+    create_upload_link: createUploadLink(ports),
+  };
+}

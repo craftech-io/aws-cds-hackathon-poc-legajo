@@ -15,7 +15,6 @@ import { expectedBuckets, inboundRuleSetName, receiptRuleArn, sesDeliveryStateme
 
 const read = (path: string): string => readFileSync(resolve(process.cwd(), path), "utf8");
 const stripComments = (source: string): string => source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-
 const architecture = read("docs/architecture.md");
 const integrations = read("docs/architecture-integrations.md");
 const bootstrap = read("infra/bootstrap/ci-role.yaml");
