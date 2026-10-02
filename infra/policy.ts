@@ -44,6 +44,10 @@ import {
 import { tagList } from "./tags";
 import type { ToolTarget } from "../packages/shared/src/tools";
 
+// Cedar policy names are unique in the whole account (another app of the demos account already owns
+// CED_KILL_SWITCH): every policy of this app carries this prefix; rules and tests keep the bare ids.
+export const CEDAR_NAME_PREFIX = "legajo_poc_";
+
 /** How the Gateway applies the engine. The POC enforces from the first deploy. */
 export const GATEWAY_POLICY_ENGINE_MODE = "ENFORCE" as const;
 
@@ -118,7 +122,7 @@ export function attachGatewayPolicies(args: AttachGatewayPoliciesArgs): Record<s
       `Policy${step.definition.name.replace(/_/g, "")}`,
       {
         policyEngineId,
-        name: step.definition.name,
+        name: `${CEDAR_NAME_PREFIX}${step.definition.name}`,
         description: step.definition.description,
         enforcementMode: step.definition.enforcementMode,
         validationMode: step.definition.validationMode,
