@@ -8,7 +8,8 @@ import type { AttemptLine, DocumentLine, EscalationEmailParams } from "../copy/t
 import type { Message } from "../domain/conversations";
 import type { Document } from "../domain/documents";
 import type { Operation } from "../domain/operations";
-import { type EscalationDeps, argentinaText, consoleUrlOf } from "./ports";
+import { consoleUrlOf } from "../outbound/links";
+import { type EscalationDeps, argentinaText } from "./ports";
 
 /** A message counts as tried once it left (or was handed to the transport). */
 const LEFT: ReadonlySet<Message["status"]> = new Set(["SENT", "DELIVERED", "READ", "DELAYED", "BOUNCED", "COMPLAINED", "QUEUED"]);

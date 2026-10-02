@@ -9,8 +9,13 @@
 import { STAGE_DOMAIN, maskEmail } from "@legajo/shared";
 import type { PolicyVerdict } from "../policy/types";
 
+/** The dossier of an operation in the console (packages/web/src/routes.ts `dossierPath`): the one link a firm's email carries. */
+export function consoleUrlOf(operationId: string): string {
+  return `https://${STAGE_DOMAIN}/app/operations/${encodeURIComponent(operationId)}`;
+}
+
 export interface LinkAllowance {
-  /** Upload links (`https://<stage>/u/<token>`) the text may carry. */
+  /** Upload links (`https://<stage>/u/<token>`) the text may carry, and the operation's console link in a firm's email. */
   readonly links: readonly string[];
   /** Registered contact addresses whose masked form the text may carry. */
   readonly contacts: readonly string[];

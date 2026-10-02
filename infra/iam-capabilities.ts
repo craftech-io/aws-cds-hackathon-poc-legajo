@@ -171,7 +171,7 @@ export const LAMBDA_CAPABILITIES = {
   },
   ToolOperations: {
     capabilities: [],
-    tables: { Operations: "write", Parties: "write", Firms: "read", Reference: "read", Runtime: "write", AuditLog: "write" },
+    tables: { Operations: "write", Parties: "write", Firms: "read", Reference: "read", Runtime: "write", AuditLog: "write", Conversations: "read" },
   },
   ToolDocuments: {
     capabilities: ["MOCK_READER"],
@@ -180,15 +180,15 @@ export const LAMBDA_CAPABILITIES = {
   },
   ToolMessaging: {
     capabilities: ["PIPELINE"],
-    tables: { Operations: "write", Parties: "write", Conversations: "write", Runtime: "write", AuditLog: "write", Reference: "read" },
+    tables: { Operations: "write", Parties: "write", Conversations: "write", Runtime: "write", AuditLog: "write", Reference: "read", Firms: "read" },
   },
   ToolFollowups: {
     capabilities: ["TIMERS"],
-    tables: { Operations: "write", Firms: "read", Runtime: "write", AuditLog: "write" },
+    tables: { Operations: "write", Firms: "read", Runtime: "write", AuditLog: "write", Parties: "read", Reference: "read" },
   },
   ToolHandoff: {
     capabilities: ["PIPELINE"],
-    tables: { Operations: "write", Firms: "read", Conversations: "write", Runtime: "write", AuditLog: "write" },
+    tables: { Operations: "write", Firms: "read", Conversations: "write", Runtime: "write", AuditLog: "write", Parties: "read", LegajoMetrics: "write", Reference: "read" },
   },
   InboundWhatsApp: {
     capabilities: ["SEND_WHATSAPP"],

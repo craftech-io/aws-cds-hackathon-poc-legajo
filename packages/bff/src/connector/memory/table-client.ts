@@ -130,8 +130,27 @@ function applyUpdate(existing: Item | undefined, key: Key, spec: UpdateSpec, upd
 
 export class MemoryTableClient implements TableClient {
   private tables = new Map<TableName, Map<string, Item>>();
+  private linked: ReadonlySet<TableName> | undefined;
+  /** Every access to a table outside `linkOnly`, as `<table>`, in order (a caught error still lands here). */
+  readonly unlinkedAccesses: TableName[] = [];
+
+  /**
+   * Test seam: behave like a Lambda that links only `tables` (lib/resource.ts throws on any other
+   * `Resource.<Table>`); `undefined` lifts the restriction. `dump` is never restricted.
+   */
+  linkOnly(tables: Iterable<TableName> | undefined): void {
+    this.linked = tables === undefined ? undefined : new Set(tables);
+  }
 
   private rows(table: TableName): Map<string, Item> {
+    if (this.linked !== undefined && !this.linked.has(table)) {
+      this.unlinkedAccesses.push(table);
+      throw new ConnectorError("UNAVAILABLE", `resource "${table}" is not linked to this function`, table);
+    }
+    return this.stored(table);
+  }
+
+  private stored(table: TableName): Map<string, Item> {
     let rows = this.tables.get(table);
     if (!rows) {
       rows = new Map();
@@ -142,7 +161,7 @@ export class MemoryTableClient implements TableClient {
 
   /** Test helper: every stored row of a table, in key order. */
   dump(table: TableName): Item[] {
-    return [...this.rows(table).values()].map(clone).sort((a, b) => (rowId(a) < rowId(b) ? -1 : rowId(a) > rowId(b) ? 1 : 0));
+    return [...this.stored(table).values()].map(clone).sort((a, b) => (rowId(a) < rowId(b) ? -1 : rowId(a) > rowId(b) ? 1 : 0));
   }
 
   clear(): void {
@@ -213,6 +232,8 @@ export class MemoryTableClient implements TableClient {
   // leaves nothing behind, like TransactWriteItems.
   async transact(ops: readonly TransactOp[]): Promise<void> {
     if (ops.length > MAX_TRANSACT_OPS) throw new ConnectorError("VALIDATION", `a transaction takes at most ${MAX_TRANSACT_OPS} operations`);
+    // An unlinked table fails before the transaction starts, as `Resource.<Table>` does in a Lambda.
+    for (const op of ops) this.rows(op.table);
     const snapshot = new Map([...this.tables].map(([table, rows]) => [table, new Map(rows)] as const));
     try {
       for (const op of ops) {

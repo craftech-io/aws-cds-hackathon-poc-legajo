@@ -350,11 +350,11 @@ El worker lee el stream hasta `end_turn`; guarda `metadata.usage` en `LegajoMetr
 
 | Target | Lambda | Tools | Tablas / recursos |
 |---|---|---|---|
-| `operations` | `ToolOperations` | `get_operation`, `get_dossier`, `assign_responsible`, `get_counterpart_profile`, `get_checklist`, `get_dispatch_status` | `Operations`, `Parties`, `Firms`, `Reference`, `Runtime`, `AuditLog` |
+| `operations` | `ToolOperations` | `get_operation`, `get_dossier`, `assign_responsible`, `get_counterpart_profile`, `get_checklist`, `get_dispatch_status` | `Operations`, `Parties`, `Firms`, `Reference`, `Runtime`, `AuditLog`, `Conversations` (lectura) |
 | `documents` | `ToolDocuments` | `read_document`, `create_upload_link` | `Operations`, `Runtime`, `Documents` (lectura), Function URL de `ReaderMock` |
 | `messaging` | `ToolMessaging` | `send_whatsapp`, `send_email`, `propose_supplier_contact` | Pipeline de salida (§14) |
-| `followups` | `ToolFollowups` | `schedule_followup`, `estimate_delay_risk` | `Operations`, `Firms`, `Runtime`, `AuditLog`; temporizadores |
-| `handoff` | `ToolHandoff` | `escalate_to_broker`, `request_approval` | `Operations`, `Firms`, `Conversations`, `AuditLog`; pipeline de salida (email al buzón del estudio, `legajo_escalado`) |
+| `followups` | `ToolFollowups` | `schedule_followup`, `estimate_delay_risk` | `Operations`, `Firms`, `Runtime`, `AuditLog`, `Parties` y `Reference` (lectura); temporizadores |
+| `handoff` | `ToolHandoff` | `escalate_to_broker`, `request_approval` | `Operations`, `Firms`, `Conversations`, `Runtime`, `AuditLog`, `LegajoMetrics`, `Parties` y `Reference` (lectura); pipeline de salida (email al buzón del estudio, `legajo_escalado`) |
 
 Gateway `aws-cds-hackathon-poc-legajo-poc`, herramienta del Harness `legajo-tools`, nombres de acción Cedar `<target>___<tool>`. `GatewayTarget` en cadena de `dependsOn` con `ignoreChanges` en `metadataConfiguration`, `targetConfiguration` y `description` (el digest del schema va en la descripción). Schemas JSON restringidos a `type`, `properties`, `required`, `items`, `description`; los `enum` bajan a `description` y zod valida dentro de la Lambda con `.strict()` (una clave desconocida → `INVALID`). Políticas Cedar (`infra/policy.ts`, texto en `infra/policy-rules.ts`): una política por statement, calificada con el ARN del Gateway; **permits por target creados antes que cualquier forbid** y cada forbid con `dependsOn` de todos los permits; cada statement < 10.000 caracteres. `infra/policy-rules.test.ts` verifica además que todo `context.input.<campo>` que cita un statement existe en el schema generado de esa tool y que todo forbid que lo lee lo protege con `context.input has <campo>`.
 
@@ -437,7 +437,7 @@ Borrado: "Reiniciar demo", `WorldJanitor` y `world.destroy` borran los eventos (
 
 ## 14. IAM de mínimo privilegio
 
-Todo con `link` y `sst.aws.permission`; sin `*` en `Resource` salvo justificación escrita al lado. Todo rol del app bajo el path `/aws-cds-hackathon-poc-legajo/` con la boundary. La tabla sale de `infra/iam-capabilities.ts` (una lista de capacidades por Lambda); `infra/iam-capabilities.test.ts` deriva de ahí las acciones esperadas, las compara con las políticas generadas por cada módulo de infra y falla ante cualquier deriva.
+Todo con `link` y `sst.aws.permission`; sin `*` en `Resource` salvo justificación escrita al lado. Todo rol del app bajo el path `/aws-cds-hackathon-poc-legajo/` con la boundary. La tabla sale de `infra/iam-capabilities.ts` (una lista de capacidades por Lambda); `infra/iam-capabilities.test.ts` deriva de ahí las acciones esperadas, las compara con las políticas generadas por cada módulo de infra y falla ante cualquier deriva; `packages/bff/src/agent-tools/common/linked-tables.test.ts` corre las tools de cada target del Gateway sobre el conector en memoria limitado a las tablas que su Lambda linkea (`MemoryTableClient.linkOnly`, igual que `Resource.<Tabla>` sin link) y falla ante cualquier acceso a otra tabla, aunque el código lo capture.
 
 Capacidades compartidas:
 
@@ -457,11 +457,11 @@ Capacidades compartidas:
 | Gateway | `lambda:InvokeFunction`; `bedrock-agentcore:{GetPolicyEngine,AuthorizeAction,PartiallyAuthorizeActions}` (evaluar Cedar) | Las 5 Lambdas target; el policy engine del stage y el Gateway |
 | Memory (ejecución) | `bedrock:{InvokeModel,InvokeModelWithResponseStream}` (extracción de las tres estrategias con override de prompt, que exigen `memoryExecutionRoleArn`) | Perfil de inferencia + los ARNs de foundation model; rol `<app>-<stage>-memory` con trust de `bedrock-agentcore.amazonaws.com` y `aws:SourceAccount` |
 | `OperationWorker` | `bedrock-agentcore:{InvokeHarness,InvokeAgentRuntime}`; `bedrock:ApplyGuardrail` (G1 pre-filtro); `PIPELINE`; `MOCK_READER`; DynamoDB de sus tablas; S3 `Documents` (lectura y escritura), `Uploads`, `Media` y bucket de correo (lectura); `sqs:SendMessage` a la cola; `sqs:ChangeMessageVisibility` solo sobre `OperationEvents.fifo` (camino rápido de `POISON` a la DLQ, §7; declarado en `infra/iam-capabilities.ts`) | ARNs por `link` |
-| `ToolOperations` | DynamoDB `Operations`, `Parties`, `Firms`, `Reference`, `Runtime`, `AuditLog` | |
+| `ToolOperations` | DynamoDB `Operations`, `Parties`, `Firms`, `Reference`, `Runtime`, `AuditLog`, `Conversations` (lectura: ventana de 24 h de `get_counterpart_profile`) | |
 | `ToolDocuments` | DynamoDB `Operations`, `Runtime`, `AuditLog`; S3 `Documents` (lectura, para prefirmar la URL del lector); `MOCK_READER` | |
-| `ToolMessaging` | DynamoDB `Operations`, `Parties`, `Conversations`, `Runtime`, `AuditLog`, `Reference`; `PIPELINE` | |
-| `ToolFollowups` | DynamoDB `Operations`, `Firms`, `Runtime`, `AuditLog`; `TIMERS` | |
-| `ToolHandoff` | DynamoDB `Operations`, `Firms`, `Conversations`, `Runtime`, `AuditLog`; `PIPELINE` | |
+| `ToolMessaging` | DynamoDB `Operations`, `Parties`, `Conversations`, `Runtime`, `AuditLog`, `Reference`, `Firms` (lectura: contexto del pipeline de salida); `PIPELINE` | |
+| `ToolFollowups` | DynamoDB `Operations`, `Firms`, `Runtime`, `AuditLog`, `Parties` y `Reference` (lectura: horario del proveedor y feriados); `TIMERS` | |
+| `ToolHandoff` | DynamoDB `Operations`, `Firms`, `Conversations`, `Runtime`, `AuditLog`, `LegajoMetrics` (fila del KPI), `Parties` y `Reference` (lectura: partes del reporte y contexto del pipeline de salida); `PIPELINE` | |
 | `InboundWhatsApp` | DynamoDB `Parties`, `Runtime`, `Conversations`, `Operations`, `AuditLog`, lectura de `Firms` y `Reference` (feriados y plantillas de las respuestas fijas, que van por el pipeline de salida); `social-messaging:GetWhatsAppMessageMedia` y `SEND_WHATSAPP` (respuestas fijas); S3 `Media` (escritura y borrado de media fuera de límites); `sqs:SendMessage` | |
 | `InboundEmail` | S3 lectura de `…/poc/ops/*` del bucket de correo; S3 `Documents` escritura en `quarantine/*`; DynamoDB `Operations`, `Parties`, `Conversations`, `Runtime`, `AuditLog`; `sqs:SendMessage` | |
 | `SimMail` | S3 lectura de `…/poc/sim/*` y de `Seed`; DynamoDB `Conversations`, `Operations` (incluido `GSI2`, para verificar la dirección de destino del perfil `SIMULATOR`), `Parties` (lectura), `Runtime`, `AuditLog`; secreto `SessionTokenKey` (subclave `thread`); `ses:SendEmail` con `ses:FromAddress` = `*@sim.legajo.demo.craftech.io` (la cerca fina es de datos: el `From` tiene que ser un contacto `ACTIVE` del proveedor de la operación destinataria, lo verifica el cliente de SES con la lectura de `Parties`), `ses:Recipients` = `op-*@legajo.demo.craftech.io` y configuration set `…-sim-poc`; `TIMERS` | |

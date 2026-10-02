@@ -134,4 +134,15 @@ describe("MemoryTableClient", () => {
     await client.batchDelete("Reference", [{ PK: "REF#HOLIDAY#AR", SK: "2026-10-12" }]);
     expect(client.dump("Reference").map((row) => row.SK)).toEqual(["2026-11-23"]);
   });
+
+  it("linkOnly answers like an unlinked Resource: UNAVAILABLE outside the linked tables, recorded even when caught; dump stays open", async () => {
+    client.linkOnly(["Parties"]);
+    expect(await client.get("Parties", { PK: "IMP#imp-a", SK: "META" })).toBeDefined();
+    await expect(client.get("Firms", { PK: "FIRM#firm-delta", SK: "META" })).rejects.toMatchObject({ code: "UNAVAILABLE" });
+    await expect(client.transact([{ op: "check", table: "Operations", key: { PK: "OP#op-1", SK: "META" }, condition: { ifExists: true } }])).rejects.toMatchObject({ code: "UNAVAILABLE" });
+    expect(client.dump("Reference")).toEqual([]);
+    expect(client.unlinkedAccesses).toEqual(["Firms", "Operations"]);
+    client.linkOnly(undefined);
+    expect(await client.get("Firms", { PK: "FIRM#firm-delta", SK: "META" })).toBeUndefined();
+  });
 });

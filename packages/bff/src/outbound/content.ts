@@ -9,7 +9,7 @@ import type { Message } from "../domain/conversations";
 import type { SendContext } from "./context";
 import type { OutboundDeps } from "./deps";
 import { GuardrailUnavailableError, groundingSourceOf, queryOf } from "./grounding";
-import type { LinkAllowance } from "./links";
+import { type LinkAllowance, consoleUrlOf } from "./links";
 import type { OutboundRequest } from "./types";
 import { outputsOf, requiredSupplierContent, type VerifyFailure, verifyContent } from "./verify";
 
@@ -48,7 +48,9 @@ export async function allowanceOf(deps: OutboundDeps, context: SendContext): Pro
   for (const output of outputsOf(context.results)) {
     for (const value of Object.values(output as Record<string, unknown>)) if (typeof value === "string" && /^[\d\s-]{8,}$/.test(value)) numbers.add(value.replace(/\D/g, ""));
   }
-  return { links: turnUploadLinks(context), contacts: contacts.map((contact) => contact.email), numbers };
+  // The firm's emails (escalation report, dossier ready for review) point at the operation's own dossier in the console.
+  const links = context.counterpart === "FIRM" ? [...turnUploadLinks(context), consoleUrlOf(context.operation.operationId)] : turnUploadLinks(context);
+  return { links, contacts: contacts.map((contact) => contact.email), numbers };
 }
 
 /** The importer's (or the supplier's) message a `REPLY` answers: the one named, or the last inbound. */

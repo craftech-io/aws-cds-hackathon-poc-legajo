@@ -2,7 +2,6 @@
 // connector: the one outbound pipeline (outbound/pipeline.ts `sendOutbound`, bound to the stage's
 // `OutboundDeps`), real time and a logger. Every message to the firm's mailbox and every notice to the
 // importer goes through the pipeline (ADR-0011): never a direct SES or WhatsApp call from here.
-import { STAGE_DOMAIN } from "@legajo/shared";
 import type { Connector } from "../connector/connector";
 import type { Logger } from "../lib/log";
 import { sha256Hex } from "../lib/crypto";
@@ -18,11 +17,6 @@ export interface EscalationDeps {
   /** Real time: `openedAtReal`, the real day of the `UNTRUSTED_SENDER` cap. */
   readonly wallClock: () => Date;
   readonly log: Logger;
-}
-
-/** The dossier of an operation in the console (packages/web/src/routes.ts `dossierPath`). */
-export function consoleUrlOf(operationId: string): string {
-  return `https://${STAGE_DOMAIN}/app/operations/${encodeURIComponent(operationId)}`;
 }
 
 /** "15/10 10:00": a simulated instant on Argentina's wall clock (the firm reads it). */
