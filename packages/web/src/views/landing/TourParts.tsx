@@ -1,7 +1,9 @@
 // Pieces every shape of the tour shares (docs/landing-spec.md §4.3): the text of a step (its number,
-// channel, title, simulated time and story), the render label and the "Ampliar" button that opens the
-// console capture of the step (or the render's frame while the capture does not exist).
+// channel, title, simulated time and story), the render label, the English gloss toggle of a step that
+// shows the importer's phone, and the "Ampliar" button that opens the console capture of the step (or
+// the render's frame while the capture does not exist).
 import { useGallery } from "./gallery";
+import { GlossToggle } from "./gloss";
 import { Icon } from "./icons";
 import { useLandingCopy } from "./lang";
 import type { TourStep } from "./tour-steps";
@@ -42,17 +44,20 @@ export function VisualFooter({ step }: { readonly step: TourStep }) {
         <Icon name="route" className="h-3.5 w-3.5 text-glass" />
         {tour.renderBadge}
       </span>
-      {canZoom ? (
-        <button
-          type="button"
-          onClick={() => gallery?.open(step.render, step.capture)}
-          aria-label={`${tour.enlarge}: ${media.items[step.capture].alt}`}
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-pill border border-harbor-700 px-3 font-semibold text-foam hover:border-foam-muted"
-        >
-          <Icon name="enlarge" className="h-4 w-4" />
-          {tour.enlarge}
-        </button>
-      ) : null}
+      <span className="inline-flex flex-wrap items-center gap-2">
+        {step.phone ? <GlossToggle /> : null}
+        {canZoom ? (
+          <button
+            type="button"
+            onClick={() => gallery?.open(step.render, step.capture)}
+            aria-label={`${tour.enlarge}: ${media.items[step.capture].alt}`}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-pill border border-harbor-700 px-3 font-semibold text-foam hover:border-foam-muted"
+          >
+            <Icon name="enlarge" className="h-4 w-4" />
+            {tour.enlarge}
+          </button>
+        ) : null}
+      </span>
     </div>
   );
 }

@@ -232,6 +232,7 @@ export const en: LandingCopy = {
     simulator: "Simulator · WhatsApp in simulated mode",
     fictitious: "fictitious firm",
     glossToggle: "Show the English gloss",
+    glossButton: "English gloss",
     typing: "typing…",
     conversation: (day: string): string => `WhatsApp conversation of ${day}`,
     transcript: "Full conversation",

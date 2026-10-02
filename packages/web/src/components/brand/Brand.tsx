@@ -25,7 +25,10 @@ export function LegajoWordmark({ tone, size = "md" }: { readonly tone: BrandTone
   );
 }
 
-/** "Powered by" + the Craftech logo, linking to craftech.io. */
+/**
+ * "Powered by" + the Craftech logo, linking to craftech.io. Hover darkens (light) or brightens (dark)
+ * the text and underlines it, never fades it: small text keeps its AA contrast in every state.
+ */
 export function PoweredByCraftech({ tone, className = "" }: { readonly tone: BrandTone; readonly className?: string }) {
   const fallback = <span className={`font-bold ${tone === "dark" ? "text-white" : "text-craftech"}`}>Craftech</span>;
   return (
@@ -33,7 +36,7 @@ export function PoweredByCraftech({ tone, className = "" }: { readonly tone: Bra
       href={CRAFTECH_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex min-h-11 items-center gap-2 text-xs transition-opacity hover:opacity-80 ${tone === "dark" ? "text-mist" : "text-slate"} ${className}`}
+      className={`inline-flex min-h-11 items-center gap-2 text-xs underline-offset-2 transition-colors hover:underline ${tone === "dark" ? "text-mist hover:text-white" : "text-slate hover:text-ink"} ${className}`}
     >
       <span>Powered by</span>
       <BrandImage src={BRAND_ASSETS.craftech[tone]} alt="Craftech" className="h-5 w-auto" fallback={fallback} />

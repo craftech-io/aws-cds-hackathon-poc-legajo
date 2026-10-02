@@ -1,7 +1,8 @@
 // "Impacto" (docs/landing-spec.md §1.7 and §4.5): goals the buyer is after, never results. Three
 // goals the console measures in every world with its N ("Meta") and one guarantee in code; each
 // counter eases from 0 to its value once, when its tile is half visible (the final value from the
-// start with reduced motion), and the number is read from a visually hidden text. The footnote says
+// start with reduced motion), and the number is read from a visually hidden text. "El mismo día" has
+// no number: its figure is a clock as tall as the counters, with the words under it. The footnote says
 // how the demo measures them and labels the delay risk as an assumption.
 import { useRef } from "react";
 import { GoalTile } from "../../components/StatTile";
@@ -26,8 +27,9 @@ function ImpactTile({ tile }: { readonly tile: Tile }) {
   return (
     <li ref={ref} data-reveal="" data-goal-tile={tile.id} className="flex">
       <GoalTile
-        value={tile.count === undefined ? <span className="inline-flex items-center gap-2 text-h3 leading-none"><Icon name="clock" className="h-6 w-6 shrink-0 text-glass-ink" />{final}</span> : text.value(value)}
+        value={tile.count === undefined ? <Icon name="clock" className="h-[0.9em] w-[0.9em] shrink-0 text-glass-ink" /> : text.value(value)}
         valueText={final}
+        {...(tile.count === undefined ? { figureText: final } : {})}
         kind={tile.kind}
         kindLabel={tile.kind === "goal" ? impact.labels.goal : impact.labels.guarantee}
         kindIcon={<Icon name={tile.kind === "goal" ? "route" : "shield"} className="h-3.5 w-3.5" />}

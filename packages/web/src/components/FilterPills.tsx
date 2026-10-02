@@ -1,6 +1,6 @@
 // One-choice filter of a list: a row of toggle buttons (`aria-pressed`) inside a named group, each
 // with how many rows it would show. `segmented` draws the same buttons as one bordered control, for
-// a filter that sits in a row of form fields.
+// a filter that sits in a row of form fields, each button at least 44 × 44 px.
 export interface PillOption<T extends string> {
   readonly value: T;
   readonly label: string;
@@ -30,8 +30,8 @@ const BUTTON: Readonly<Record<FilterPillsVariant, { readonly on: string; readonl
     off: "rounded-full border border-mist bg-white px-3 py-1 text-sm font-medium text-navy hover:bg-paper",
   },
   segmented: {
-    on: "min-h-11 rounded bg-navy px-3 py-1.5 text-sm font-medium text-white",
-    off: "min-h-11 rounded px-3 py-1.5 text-sm font-medium text-navy hover:bg-mist",
+    on: "min-h-11 min-w-11 rounded bg-navy px-3 py-1.5 text-sm font-medium text-white",
+    off: "min-h-11 min-w-11 rounded px-3 py-1.5 text-sm font-medium text-navy hover:bg-mist",
   },
 };
 

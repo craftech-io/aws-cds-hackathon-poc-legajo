@@ -124,4 +124,22 @@ test.describe("[FL-128] galería con zoom y rótulo de origen", () => {
     const viewport = page.viewportSize();
     expect((box?.y ?? -1) >= 0 && (box?.y ?? 0) + (box?.height ?? 0) <= (viewport?.height ?? 0), "the picture starts and ends inside the screen").toBe(true);
   });
+
+  test("[FL-128] on a phone, shows no text of the page around the picture", async ({ page }, info) => {
+    test.skip(!info.project.name.startsWith("mobile"), "the backdrop is opaque below 640 px");
+    await openGallery(page, info);
+    await page.locator("#gallery figure button").first().click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    const backdrop = await dialog.evaluate((element) => getComputedStyle(element, "::backdrop").backgroundColor);
+    expect(alphaOf(backdrop), backdrop).toBe(1);
+  });
 });
+
+/** Alpha of a computed CSS colour (`rgb(…)`, `rgba(…, a)` or `oklab(… / a)`). */
+function alphaOf(color: string): number {
+  const slash = /\/\s*([\d.]+)\s*\)$/.exec(color);
+  if (slash?.[1]) return Number(slash[1]);
+  const parts = /^rgba?\(([^)]*)\)$/.exec(color)?.[1]?.split(",") ?? [];
+  return parts.length === 4 ? Number(parts[3]) : color === "transparent" ? 0 : 1;
+}

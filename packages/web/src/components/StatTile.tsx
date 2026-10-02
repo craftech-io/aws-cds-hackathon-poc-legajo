@@ -47,13 +47,16 @@ interface GoalTileProps {
   readonly kindIcon: ReactNode;
   readonly title: string;
   readonly note: string;
+  /** A goal told in words (no number): the figure is a pictogram and this text sits under it, as large as a heading. */
+  readonly figureText?: string;
 }
 
 /**
  * A goal of the landing's impact section (docs/landing-spec.md §1.7): never a result, always labelled
- * by kind with text and icon. The number reserves its width so counting never moves the layout.
+ * by kind with text and icon. The number reserves its width so counting never moves the layout; a goal
+ * told in words keeps a figure of the same height (its pictogram) with the words under it.
  */
-export function GoalTile({ value, valueText, kind, kindLabel, kindIcon, title, note }: GoalTileProps) {
+export function GoalTile({ value, valueText, kind, kindLabel, kindIcon, title, note, figureText }: GoalTileProps) {
   return (
     <div className="flex w-full flex-col gap-3 rounded-panel border border-rule bg-white p-5 shadow-card sm:p-6">
       <p className={`inline-flex w-fit items-center gap-1.5 rounded-pill px-2.5 py-1 text-xs font-semibold ${kind === "goal" ? "bg-manifest-deep text-signal-ink" : "bg-manifest-deep text-glass-ink"}`}>
@@ -64,6 +67,11 @@ export function GoalTile({ value, valueText, kind, kindLabel, kindIcon, title, n
         <span aria-hidden="true">{value}</span>
         <span className="sr-only">{valueText}</span>
       </p>
+      {figureText ? (
+        <p aria-hidden="true" data-goal-figure-text="" className="font-display text-h3 font-semibold text-glass-ink">
+          {figureText}
+        </p>
+      ) : null}
       <p className="font-display text-h3 font-semibold text-ink">{title}</p>
       <p className="text-sm leading-relaxed text-ink-muted">{note}</p>
     </div>

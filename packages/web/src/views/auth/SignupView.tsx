@@ -196,7 +196,7 @@ function SignupScreen() {
           <ul className="mt-1 flex flex-col gap-1">
             {shown.map((field) => (
               <li key={field}>
-                <a href={`#${IDS[field]}`} className="inline-flex min-h-11 items-center underline underline-offset-2">
+                <a href={`#${IDS[field]}`} className="inline-flex min-h-11 min-w-11 items-center underline underline-offset-2">
                   {fieldLabel(copy, field)}
                 </a>
               </li>

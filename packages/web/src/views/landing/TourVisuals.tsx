@@ -71,7 +71,16 @@ export function StepVisual({ id, play, compact = false }: StepVisualProps) {
     case "supplier":
       return <EmailThread ids={["request", "reply"]} compact={compact} />;
     case "reader":
-      return <ReaderCard stage={stage} />;
+      // The stage shows the reply whose PDFs the reader read above its result, so the step fills the
+      // stage like the others; the carousel keeps the reading alone.
+      return compact ? (
+        <ReaderCard stage={stage} />
+      ) : (
+        <div className={STACK}>
+          <EmailThread ids={["reply"]} />
+          <ReaderCard stage={stage} />
+        </div>
+      );
     case "owner":
       return (
         <div className={STACK}>

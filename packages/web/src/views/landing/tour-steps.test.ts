@@ -39,6 +39,12 @@ describe("tour steps [FL-126]", () => {
     expect(stepAnchor("eta")).toBe("tour-step-eta");
   });
 
+  it("puts the English gloss toggle in the footer of every step that draws the importer's phone, in both languages", () => {
+    expect(TOUR_STEPS.filter((step) => step.phone).map((step) => step.id)).toEqual(["request", "delegate", "owner", "eta", "escalation", "approval"]);
+    expect(LANDING_COPY.es.phone.glossButton).toBe("Glosa en inglés");
+    expect(LANDING_COPY.en.phone.glossButton).toBe("English gloss");
+  });
+
   it("says the simulated time and labels the agent's sample texts in both languages", () => {
     expect(LANDING_COPY.es.tour.stepLabel(3, 8)).toBe("Paso 3 de 8");
     expect(LANDING_COPY.en.tour.stepLabel(3, 8)).toBe("Step 3 of 8");

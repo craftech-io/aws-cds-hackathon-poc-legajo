@@ -63,6 +63,32 @@ test.describe("[FL-126] recorrido del producto y movimiento", () => {
     }
   });
 
+  test("[FL-126] desktop: the swap animates the stage alone, never a copy of the page", async ({ page }, info) => {
+    test.skip(isMobile(info) || isReduced(info), "the stage swaps with a View Transition from 1024 px, with motion");
+    await openLanding(page, info);
+    await page.locator(`#${stepAnchor(TOUR_STEPS[0]?.id ?? "request")}`).evaluate((element) => element.scrollIntoView({ block: "center" }));
+    await page.evaluate(() => {
+      const seen = new Set<string>();
+      (window as unknown as { __transitions: Set<string> }).__transitions = seen;
+      const sample = () => {
+        for (const animation of document.getAnimations()) {
+          const pseudo = (animation.effect as KeyframeEffect | null)?.pseudoElement;
+          if (pseudo?.startsWith("::view-transition")) seen.add(pseudo);
+        }
+        requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
+    for (const step of [TOUR_STEPS[1], TOUR_STEPS[3]]) {
+      if (!step) continue;
+      await page.locator(`#${stepAnchor(step.id)}`).evaluate((element) => element.scrollIntoView({ block: "center" }));
+      await expect(page.locator(`#${stepAnchor(step.id)}`)).toHaveAttribute("aria-current", "step");
+    }
+    await expect.poll(() => page.evaluate(() => [...(window as unknown as { __transitions: Set<string> }).__transitions].some((name) => name.includes("tour-stage")))).toBe(true);
+    const names = await page.evaluate(() => [...(window as unknown as { __transitions: Set<string> }).__transitions]);
+    expect(names.filter((name) => name.includes("(root)")), names.join(", ")).toEqual([]);
+  });
+
   test("[FL-126] phone: the carousel moves with its buttons and with a swipe, and says the step", async ({ page }, info) => {
     test.skip(!isMobile(info), "the carousel exists below 768 px");
     const copy = await openLanding(page, info);

@@ -63,7 +63,10 @@ test.describe("[FL-127] accesibilidad de las superficies públicas", () => {
     await page.getByRole("button", { name: t.signup.submit }).click();
     const summary = page.getByRole("alert").filter({ hasText: t.signup.errors.summary(3) });
     await expect(summary).toBeVisible();
-    for (const link of await summary.getByRole("link").all()) expect((await link.boundingBox())?.height ?? 0, await link.innerText()).toBeGreaterThanOrEqual(44);
+    for (const link of await summary.getByRole("link").all()) {
+      const box = await link.boundingBox();
+      expect((box?.height ?? 0) >= 44 && (box?.width ?? 0) >= 44, `${await link.innerText()}: ${box?.width}×${box?.height}`).toBe(true);
+    }
     expect(await seriousViolations(page)).toEqual([]);
   });
 
@@ -73,6 +76,20 @@ test.describe("[FL-127] accesibilidad de las superficies públicas", () => {
       const brand = page.getByRole("link", { name: /Powered by/ }).first();
       await expect(brand).toBeVisible();
       expect((await brand.boundingBox())?.height ?? 0, path).toBeGreaterThanOrEqual(44);
+    }
+  });
+
+  test("[FL-127] keeps the brand link's contrast while the pointer rests on it", async ({ page }, info) => {
+    for (const path of ["/signup", "/login", "/forgot"]) {
+      await page.goto(`${path}${langOf(info) === "en" ? "?lang=en" : ""}`);
+      await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
+      await page.waitForLoadState("networkidle");
+      // The light link of a phone and the dark one of the desktop's side panel, each under the pointer.
+      for (const brand of await page.getByRole("link", { name: /Powered by/ }).filter({ visible: true }).all()) {
+        await brand.hover();
+        await expect.poll(() => brand.evaluate((element) => element.matches(":hover")), { message: path }).toBe(true);
+        expect(await seriousViolations(page), path).toEqual([]);
+      }
     }
   });
 
@@ -93,16 +110,25 @@ test.describe("[FL-127] accesibilidad de las superficies públicas", () => {
     expect(await seriousViolations(page)).toEqual([]);
     const small = await shortControls([tour, page.getByRole("navigation", { name: consoleCopy.app.navigation }), page.getByRole("region", { name: consoleCopy.clock.region }), page.getByRole("banner")]);
     expect(small).toEqual([]);
+    // The ETA range of the operations list, the first filter a guest touches.
+    await page.getByRole("navigation", { name: consoleCopy.app.navigation }).getByRole("link", { name: consoleCopy.views.operations.title, exact: true }).click();
+    const scope = page.getByRole("region", { name: consoleCopy.scope.label });
+    await expect(scope.getByLabel(consoleCopy.scope.etaFrom)).toBeVisible();
+    expect(await shortControls([scope])).toEqual([]);
   });
 });
 
-/** Visible links and buttons under `roots` shorter than 44 px, with their text and height. */
+/** Visible links, buttons and fields under `roots` under 44 px tall or (links and buttons) wide, with their text and size. */
 async function shortControls(roots: readonly Locator[]): Promise<string[]> {
   const short: string[] = [];
   for (const root of roots) {
-    for (const control of await root.locator("a:visible, button:visible").all()) {
+    for (const control of await root.locator("a:visible, button:visible, input:visible, select:visible").all()) {
       const box = await control.boundingBox();
-      if (box && box.height < 44) short.push(`${(await control.innerText()).trim() || (await control.getAttribute("aria-label")) || "?"}: ${Math.round(box.height)} px`);
+      const field = await control.evaluate((element) => element instanceof HTMLInputElement || element instanceof HTMLSelectElement);
+      if (box && (box.height < 44 || (!field && box.width < 44))) {
+        const name = field ? (await control.getAttribute("type")) ?? "field" : (await control.innerText()).trim() || (await control.getAttribute("aria-label")) || "?";
+        short.push(`${name}: ${Math.round(box.width)}×${Math.round(box.height)} px`);
+      }
     }
   }
   return short;

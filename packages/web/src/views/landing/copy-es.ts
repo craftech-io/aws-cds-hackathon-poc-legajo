@@ -246,6 +246,7 @@ export const es = {
     simulator: "Simulador · WhatsApp en modo simulado",
     fictitious: "estudio ficticio",
     glossToggle: "Mostrar la glosa en inglés",
+    glossButton: "Glosa en inglés",
     typing: "escribiendo…",
     conversation: (day: string): string => `Conversación de WhatsApp del ${day}`,
     transcript: "Conversación completa",

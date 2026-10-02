@@ -17,17 +17,19 @@ export interface TourStep {
   readonly alsoCapture?: ConsoleCaptureId;
   /** Simulated time in Argentina when the step happens. */
   readonly when: string;
+  /** The visual draws the importer's phone: the step's footer carries the English gloss toggle. */
+  readonly phone: boolean;
 }
 
 export const TOUR_STEPS: readonly TourStep[] = [
-  { id: "request", render: "tour-request", capture: "console-simulator", when: "15/10 10:00" },
-  { id: "delegate", render: "tour-delegate", capture: "console-simulator", when: "15/10 10:00" },
-  { id: "supplier", render: "tour-supplier", capture: "console-mailbox", when: "15/10 22:00" },
-  { id: "reader", render: "tour-reader", capture: "console-dossier-reading", when: "15/10 22:10" },
-  { id: "owner", render: "tour-owner", capture: "console-dossier", when: "16/10 09:00" },
-  { id: "eta", render: "tour-eta", capture: "console-clock", when: "16/10 10:00" },
-  { id: "escalation", render: "tour-escalation", capture: "console-escalations", alsoCapture: "console-mailbox-firm", when: "16/10 10:24" },
-  { id: "approval", render: "tour-approval", capture: "console-dossier-approval", when: "16/10 11:00" },
+  { id: "request", render: "tour-request", capture: "console-simulator", when: "15/10 10:00", phone: true },
+  { id: "delegate", render: "tour-delegate", capture: "console-simulator", when: "15/10 10:00", phone: true },
+  { id: "supplier", render: "tour-supplier", capture: "console-mailbox", when: "15/10 22:00", phone: false },
+  { id: "reader", render: "tour-reader", capture: "console-dossier-reading", when: "15/10 22:10", phone: false },
+  { id: "owner", render: "tour-owner", capture: "console-dossier", when: "16/10 09:00", phone: true },
+  { id: "eta", render: "tour-eta", capture: "console-clock", when: "16/10 10:00", phone: true },
+  { id: "escalation", render: "tour-escalation", capture: "console-escalations", alsoCapture: "console-mailbox-firm", when: "16/10 10:24", phone: true },
+  { id: "approval", render: "tour-approval", capture: "console-dossier-approval", when: "16/10 11:00", phone: true },
 ];
 
 /** The hero's conversation: a render of the WhatsApp channel, kept by design ("Ampliar" opens the simulator). */

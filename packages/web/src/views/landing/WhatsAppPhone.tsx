@@ -7,9 +7,11 @@
 // its newest message, so it follows it without animating the scroll; once it rests it can open at a
 // chosen message instead, and a fade under the header keeps a bubble from looking cut. A pending
 // message shows "escribiendo" or the tapped button lit up. In the tour the screen takes the height of
-// its messages (`fit`) and FitToSlot scales the whole phone, so nothing hides behind a scroll.
+// its messages (`fit`) and FitToSlot scales the whole phone, so nothing hides behind a scroll; there
+// the phone follows the tour's gloss choice (gloss.tsx) and its "EN" toggle sits in the step's footer.
 import { type ReactNode, type RefObject, useLayoutEffect, useRef, useState } from "react";
 import type { ConversationView, WaButtonView, WaMessageView } from "./conversations";
+import { useSharedGloss } from "./gloss";
 import { Icon } from "./icons";
 import { useLandingCopy, useLandingLang } from "./lang";
 
@@ -130,8 +132,9 @@ function useAnchor(screen: RefObject<HTMLDivElement | null>, anchor: number | un
 export function WhatsAppPhone({ conversation, messages, firmName, caption, size = "fit", revealed, anchor, pending, animate = false, decorative = false, children }: WhatsAppPhoneProps) {
   const { phone } = useLandingCopy();
   const english = useLandingLang()?.lang === "en";
+  const shared = useSharedGloss();
   const [chosen, setChosen] = useState<boolean | undefined>(undefined);
-  const gloss = chosen ?? english;
+  const gloss = shared?.gloss ?? chosen ?? english;
   const screen = useRef<HTMLDivElement>(null);
   useAnchor(screen, anchor, gloss);
   const scrolls = size === "hero";
@@ -148,16 +151,18 @@ export function WhatsAppPhone({ conversation, messages, firmName, caption, size 
               <p className="truncate text-sm font-semibold">{firmName}</p>
               <p className="text-xs text-foam-muted">{phone.fictitious}</p>
             </div>
-            <button
-              type="button"
-              aria-pressed={gloss}
-              aria-label={phone.glossToggle}
-              title={phone.glossToggle}
-              onClick={() => setChosen(!gloss)}
-              className={`flex h-11 min-w-11 items-center justify-center rounded-pill border px-2 text-xs font-semibold ${gloss ? "border-glass bg-glass text-harbor-950" : "border-harbor-700 text-foam hover:bg-harbor-700"}`}
-            >
-              EN
-            </button>
+            {shared ? null : (
+              <button
+                type="button"
+                aria-pressed={gloss}
+                aria-label={phone.glossToggle}
+                title={phone.glossToggle}
+                onClick={() => setChosen(!gloss)}
+                className={`flex h-11 min-w-11 items-center justify-center rounded-pill border px-2 text-xs font-semibold ${gloss ? "border-glass bg-glass text-harbor-950" : "border-harbor-700 text-foam hover:bg-harbor-700"}`}
+              >
+                EN
+              </button>
+            )}
           </div>
           <div className="relative">
             {/* A scrolling screen takes the keyboard's focus too (WCAG 2.1.1). */}

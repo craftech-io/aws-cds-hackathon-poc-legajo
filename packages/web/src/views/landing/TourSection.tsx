@@ -16,6 +16,7 @@ import { useInView, useMediaQuery } from "./motion/hooks";
 import { useMotion } from "./motion/MotionContext";
 import { TOUR_STEPS, type TourStep, clampStep, routeProgress, stepAnchor } from "./tour-steps";
 import { FitToSlot } from "./FitToSlot";
+import { GlossProvider } from "./gloss";
 import { StepText, VisualFooter } from "./TourParts";
 import { StepVisual } from "./TourVisuals";
 
@@ -233,17 +234,19 @@ export function TourSection() {
   const tablet = useMediaQuery("(min-width: 768px)");
   return (
     <SectionShell id="tour" eyebrow={tour.eyebrow} title={tour.title} lead={tour.lead} tone="dark" wide>
-      {desktop ? (
-        <StickyTour />
-      ) : tablet ? (
-        <div className="flex flex-col gap-6">
-          {TOUR_STEPS.map((step, index) => (
-            <StackedStep key={step.id} step={step} index={index} />
-          ))}
-        </div>
-      ) : (
-        <CarouselTour />
-      )}
+      <GlossProvider>
+        {desktop ? (
+          <StickyTour />
+        ) : tablet ? (
+          <div className="flex flex-col gap-6">
+            {TOUR_STEPS.map((step, index) => (
+              <StackedStep key={step.id} step={step} index={index} />
+            ))}
+          </div>
+        ) : (
+          <CarouselTour />
+        )}
+      </GlossProvider>
     </SectionShell>
   );
 }

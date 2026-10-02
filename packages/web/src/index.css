@@ -325,7 +325,19 @@
     scroll-behavior: auto !important;
   }
 
-  /* The tour stage swaps its visual with a cross-fade when View Transitions exist. */
+  /*
+   * The tour stage swaps its visual with a cross-fade when View Transitions exist. Only the stage takes
+   * part: the page itself is never captured, so its text stays live (no old and new copy of a step's
+   * text cross-fading while the page scrolls) and the pointer reaches it during the swap.
+   */
+  :root {
+    view-transition-name: none;
+  }
+
+  ::view-transition {
+    pointer-events: none;
+  }
+
   [data-tour-stage] {
     view-transition-name: tour-stage;
   }

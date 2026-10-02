@@ -3,8 +3,10 @@
 // targets of at least 44 px in the header, the tour's controls and the footer, the console never
 // downloaded on `/`, and the metadata of §5.4 (title, description, Open Graph with a real capture,
 // hreflang es/en). Every step of the tour is drawn whole: nothing of a step's visual falls outside the
-// carousel's slot (390 × 844, at most 56 % of the screen's height) or the desktop's sticky stage, and
-// the four goal tiles of "Impacto" keep one height and one baseline.
+// carousel's slot (390 × 844, at most 56 % of the screen's height) or the desktop's sticky stage, which
+// no step leaves more than half empty; the tour's gloss toggle stays out of the scaled visual at full
+// size; and the four goal tiles of "Impacto" keep one height and one baseline, each with a figure as
+// tall as the counters.
 import { type Locator, type Page, type TestInfo, expect, test } from "@playwright/test";
 import { HERO_ANCHOR } from "../src/views/landing/conversations.ts";
 import { TOUR_STEPS, stepAnchor } from "../src/views/landing/tour-steps.ts";
@@ -99,6 +101,18 @@ test.describe("[FL-127] landing en cualquier ancho", () => {
       expect(Math.abs(value.height - (values[0]?.height ?? 0)), "value height").toBeLessThanOrEqual(1);
     }
   });
+
+  test("[FL-127] gives every goal tile a figure as tall as the counters", async ({ page }, info) => {
+    await page.goto(`/${langOf(info) === "en" ? "?lang=en" : ""}#impact`);
+    await expect(page.locator("[data-goal-tile]")).toHaveCount(4);
+    const figures = await page.locator("[data-goal-value]").evaluateAll((items) =>
+      items.map((item) => {
+        const figure = item.firstElementChild?.firstElementChild ?? item.firstElementChild;
+        return { tile: item.closest("[data-goal-tile]")?.getAttribute("data-goal-tile"), share: (figure?.getBoundingClientRect().height ?? 0) / item.getBoundingClientRect().height };
+      }),
+    );
+    for (const figure of figures) expect(figure.share, `${figure.tile}`).toBeGreaterThanOrEqual(0.6);
+  });
 });
 
 /** Descendants of `slot` (with a box) that stick out of it, by at most one pixel of rounding. */
@@ -129,6 +143,39 @@ async function carouselStep(page: Page, index: number): Promise<Locator> {
   await article.evaluate((element) => element.scrollIntoView({ block: "start" }));
   return article.locator("[data-tour-visual]");
 }
+
+test.describe("[FL-127] glosa en inglés del recorrido", () => {
+  test("[FL-127] keeps the gloss toggle out of the scaled visual, at least 44 × 44 px, and it switches the phone's gloss", async ({ page }, info) => {
+    const english = langOf(info) === "en";
+    await page.goto(`/${english ? "?lang=en" : ""}`);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    const index = TOUR_STEPS.findIndex((step) => step.id === "request");
+    let visual: Locator;
+    let scope: Locator;
+    if (info.project.name.startsWith("mobile")) {
+      visual = await carouselStep(page, index);
+      scope = page.locator('#tour [role="region"] article').nth(index);
+    } else {
+      await page.locator(`#${stepAnchor("request")}`).evaluate((element) => element.scrollIntoView({ block: "center" }));
+      await expect(page.locator(`#${stepAnchor("request")}`)).toHaveAttribute("aria-current", "step");
+      visual = page.locator("#tour [data-tour-stage] [data-tour-visual]");
+      scope = page.locator("#tour [data-tour-stage]").locator("xpath=..");
+    }
+    await fitted(visual);
+    await expect(visual.locator("button")).toHaveCount(0);
+    const toggle = scope.locator("[data-gloss-toggle]");
+    const box = await toggle.boundingBox();
+    expect((box?.height ?? 0) >= 44 && (box?.width ?? 0) >= 44, `${box?.width}×${box?.height}`).toBe(true);
+    await expect(toggle).toHaveAttribute("aria-pressed", String(english));
+    const glosses = visual.locator('p[lang="en"]');
+    await expect(glosses.first()).toBeVisible({ visible: english });
+    // By keyboard: a pointer click would first scroll the sticky stage "into view" and move the tour.
+    await toggle.press("Enter");
+    await expect(toggle).toHaveAttribute("aria-pressed", String(!english));
+    if (english) await expect(glosses).toHaveCount(0);
+    else await expect(glosses.first()).toBeVisible();
+  });
+});
 
 test.describe("[FL-127] conversación del hero en reposo", () => {
   test("[FL-127] opens the phone at the firm's question, whole, not cut under the header", async ({ page }, info) => {
@@ -167,6 +214,8 @@ test.describe("[FL-127] recorrido sin recortes", () => {
         await fitted(stage);
         await expect.poll(() => outside(stage), { message: step.id }).toEqual([]);
         await expect.poll(() => outside(stage.locator("xpath=..")), { message: `${step.id}: the stage's footer` }).toEqual([]);
+        const fill = await stage.evaluate((element) => (element.querySelector("[data-fit-scale]")?.getBoundingClientRect().height ?? 0) / element.getBoundingClientRect().height);
+        expect(fill, `${step.id}: never leaves most of the stage empty`).toBeGreaterThanOrEqual(0.5);
       }
     }
   });

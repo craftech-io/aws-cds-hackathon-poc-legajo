@@ -6,7 +6,8 @@
 // width and can be shown at its actual size; the neighbours are fetched ahead. The legend is the
 // caption, the state label and "3 de 12", announced politely. The page does not scroll underneath.
 // Toolbar, picture and caption are three rows of a grid, and the arrows sit beside the picture (or in
-// the caption row on a phone): no control ever covers the capture it shows.
+// the caption row on a phone): no control ever covers the capture it shows. On a phone the backdrop is
+// opaque, so no text of the page shows around the picture; from 640 px a hint of the page stays behind.
 import { type KeyboardEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import type { GalleryItem } from "./gallery";
 import { Icon } from "./icons";
@@ -134,7 +135,7 @@ export default function Lightbox({ items, index, onIndex, onClose }: LightboxPro
       }}
       onClick={onClose}
       onKeyDown={onKeyDown}
-      className="m-0 h-dvh max-h-none w-dvw max-w-none bg-transparent p-0 text-foam backdrop:bg-harbor-950/90 open:animate-stage-in"
+      className="m-0 h-dvh max-h-none w-dvw max-w-none bg-transparent p-0 text-foam backdrop:bg-harbor-950 open:animate-stage-in sm:backdrop:bg-harbor-950/90"
     >
       {item && text ? (
         // Three rows that never overlap: the toolbar, the picture, the caption. No control sits on the picture.
