@@ -32,7 +32,7 @@ The demos account is SHARED with other projects, so every statement is scoped to
          by BucketPrefix) or are not there yet (reads before and right after a create).
   path   every IAM role and policy of the app lives under /<app>/ (infra/ci.ts). The path is part
          of the ARN and cannot be forged with a tag, so it fences IAM.
-  ARN    fixed names: the receipt rule set <app>-inbound, the inbound mail bucket
+  ARN    fixed names: the inbound mail bucket
          <BucketPrefix>-inbound-mail-<account>, the WhatsApp topic <app>-wa-inbound, the
          configuration sets <app>-email-poc and <app>-sim-poc, the QA driver <app>-poc-qa-driver,
          the web ACL <app>-poc-edge, the Router key-value store and cache policy.
@@ -44,7 +44,6 @@ What each group of statements is for:
 |---|---|
 | `TaggedAppResources` / `CreateTaggedAsThisApp` | Everything after creation only on resources tagged as the app; creation only when the request tags the new resource as the app |
 | `NamedAppResources` | DynamoDB tables `<app>-*`, buckets `<BucketPrefix>*` and the fixed inbound mail bucket (S3 cannot be conditioned on tags) |
-| `SesReceiptRuleSetOfThisApp` | Receipt rules only inside the rule set `<app>-inbound` |
 | `TopicsAndQueuesOfThisApp`, `SchedulerGroupsOfThisApp`, `EventBusesOfThisApp` | The provider reads a named topic, queue, group or bus before IAM can see its tags |
 | `ProjectBudget` / `DenyBudgetsOfOtherProjects` | The monthly budget `<app>-*` of `docs/architecture.md` §12, and no other budget of the account |
 | `DenyPublicFunctionUrlsBesidesTheEdge` | A Function URL with `AuthType NONE` only on `Bff` and `PublicWeb`; the mocks and every other function keep `AWS_IAM` |
@@ -136,11 +135,12 @@ condition key, so a real deploy is the final check.
 Stated instead of hidden.
 
 - **Active receipt rule set.** SES keeps one active rule set per region and account; activating
-  ours deactivates any other. The IAM fence limits the deploy role to the rule set
-  `<app>-inbound`, but `SetActiveReceiptRuleSet` on it still deactivates the previous one. Mitigated
-  by the pre-check of step 0 and by the `deploy.yml` step that stops when a foreign rule set is
-  active. If SES answers AccessDenied on a receipt action because it has no resource-level
-  permission, move that action to `NoResourceLevelDeploy` with its justification.
+  ours deactivates any other. The receipt rule actions (`CreateReceiptRuleSet`, `SetActiveReceiptRuleSet`,
+  `CreateReceiptRule`, …) have no resource-level permission in IAM (`iam simulate-custom-policy`
+  matches them only on `*`), so they live in `NoResourceLevelDeploy`, limited to the region. The
+  fence is procedural: the pre-check of step 0 and the `deploy.yml` step that stops before
+  `sst deploy` unless the active rule set is none or `<app>-inbound`. The other projects of the
+  account never receive email and own no rule set.
 - **Demo recipients.** `ses:Recipients` in the runtime policies lists the simulated mailboxes and
   the SES mailbox simulator; the registered demo recipients of `SeedOverrides` are fenced in code
   (the recipient fence of the SES client), not in IAM, because the secret is not readable at

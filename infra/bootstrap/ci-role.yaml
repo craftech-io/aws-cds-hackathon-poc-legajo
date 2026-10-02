@@ -420,21 +420,6 @@ Resources:
               - !Sub "arn:${AWS::Partition}:ses:${Region}:${AWS::AccountId}:identity/${AppDomain}"
               - !Sub "arn:${AWS::Partition}:ses:${Region}:${AWS::AccountId}:configuration-set/${AppName}-email-${DeployStage}"
               - !Sub "arn:${AWS::Partition}:ses:${Region}:${AWS::AccountId}:configuration-set/${AppName}-sim-${DeployStage}"
-          - Sid: SesReceiptRuleSetOfThisApp
-            Effect: Allow
-            Action:
-              - ses:CreateReceiptRule
-              - ses:CreateReceiptRuleSet
-              - ses:DeleteReceiptRule
-              - ses:DeleteReceiptRuleSet
-              - ses:DescribeReceiptRule
-              - ses:DescribeReceiptRuleSet
-              - ses:SetActiveReceiptRuleSet
-              - ses:SetReceiptRulePosition
-              - ses:UpdateReceiptRule
-            Resource:
-              - !Sub "arn:${AWS::Partition}:ses:${Region}:${AWS::AccountId}:receipt-rule-set/${AppName}-inbound"
-              - !Sub "arn:${AWS::Partition}:ses:${Region}:${AWS::AccountId}:receipt-rule-set/${AppName}-inbound:receipt-rule/*"
           - Sid: HarnessDependentCreates
             Effect: Allow
             Action:
@@ -486,8 +471,17 @@ Resources:
               - cognito-idp:DescribeUserPoolDomain
               - guardduty:ListMalwareProtectionPlans
               - logs:DescribeLogGroups
+              - ses:CreateReceiptRule
+              - ses:CreateReceiptRuleSet
+              - ses:DeleteReceiptRule
+              - ses:DeleteReceiptRuleSet
               - ses:DescribeActiveReceiptRuleSet
+              - ses:DescribeReceiptRule
+              - ses:DescribeReceiptRuleSet
               - ses:GetAccount
+              - ses:SetActiveReceiptRuleSet
+              - ses:SetReceiptRulePosition
+              - ses:UpdateReceiptRule
             Resource: "*"
             Condition:
               StringEquals:

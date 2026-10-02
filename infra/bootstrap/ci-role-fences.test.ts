@@ -5,7 +5,6 @@ describe("fixed names of docs/architecture.md §1", () => {
   const PREFIX = "arn:${AWS::Partition}:";
   // Every fixed name, with the exact ARN (template form) a statement must name.
   const FIXED: ReadonlyArray<readonly [string, string, string]> = [
-    ["aws-cds-hackathon-poc-legajo-inbound", "receipt rule set", `${PREFIX}ses:\${Region}:\${AWS::AccountId}:receipt-rule-set/\${AppName}-inbound"`],
     ["aws-cds-hackathon-poc-leg-inbound-mail-776805327629", "inbound mail bucket", `${PREFIX}s3:::\${BucketPrefix}-inbound-mail-\${AWS::AccountId}"`],
     ["aws-cds-hackathon-poc-legajo-wa-inbound", "WhatsApp topic", `${PREFIX}sns:\${Region}:\${AWS::AccountId}:\${AppName}-wa-inbound"`],
     ["aws-cds-hackathon-poc-legajo-github-deploy", "deploy role", `${PREFIX}iam::\${AWS::AccountId}:role/\${AppName}-github-deploy"`],
@@ -83,10 +82,15 @@ describe("services this app adds to the scaffolding", () => {
     expect(whatsapp).not.toContain("social-messaging:*");
   });
 
-  it("fences the receipt rule set by its fixed name and reads the active one account-wide", () => {
-    const rules = statement("SesReceiptRuleSetOfThisApp");
-    expect(rules).toContain("ses:SetActiveReceiptRuleSet");
-    expect(rules).not.toContain('Resource: "*"');
-    expect(statement("NoResourceLevelDeploy")).toContain("ses:DescribeActiveReceiptRuleSet");
+  it("allows the receipt rule actions account-wide (SES has no resource-level permission for them) and stops a foreign active rule set in deploy.yml", () => {
+    const noResourceLevel = statement("NoResourceLevelDeploy");
+    for (const action of ["ses:CreateReceiptRuleSet", "ses:SetActiveReceiptRuleSet", "ses:CreateReceiptRule", "ses:DescribeActiveReceiptRuleSet"]) {
+      expect(noResourceLevel).toContain(action);
+    }
+    expect(noResourceLevel).toContain("aws:RequestedRegion");
+    expect(statements.some(({ body }) => body.includes("receipt-rule-set/"))).toBe(false);
+    const deploy = read(".github/workflows/deploy.yml");
+    expect(deploy).toContain("describe-active-receipt-rule-set");
+    expect(deploy).toContain("aws-cds-hackathon-poc-legajo-inbound");
   });
 });
