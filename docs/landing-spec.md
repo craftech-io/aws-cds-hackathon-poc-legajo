@@ -1054,8 +1054,9 @@ tests**: cada duración, tope o cantidad que aparece en pantalla (`{s}`, `{n}`, 
 ### 8.0 Una sola alta, sin modos (D-11)
 
 No existe un modo de alta pública ni una lista de espera: ningún valor por stage cambia la landing, el alta o el
-ingreso. El stage se despliega por primera vez recién cuando el producto completo (olas 3 a 6) está construido y en
-verde, así que "Probar la demo" crea un mundo desde el primer deploy. Invariantes del alta verificada (ADR-0015 §1 a §3,
+ingreso. Los deploys de `poc` por CI son por ola, pero la URL no se comparte hasta que el producto completo (olas 3 a 6)
+está desplegado y probado; antes de eso, una alta verificada igual crea la cuenta y el lead, y el primer ingreso muestra el
+estado honesto (`CAPACITY` o mundo no disponible). Invariantes del alta verificada (ADR-0015 §1 a §3,
 FL-101 a FL-104):
 
 - El CTA primario dice siempre **"Probar la demo"** / **"Try the demo"** (punto 5 de la decisión del CTO) y lleva a
