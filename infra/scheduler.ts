@@ -73,6 +73,16 @@ export function schedulerInvocationRoleName(app: string, stage: string): string 
   return `${app}-${stage}-scheduler-invoke`;
 }
 
+/**
+ * Fixed physical name of ScheduleDispatch. The invocation role and the Scheduler Linkable derive its ARN
+ * from the name instead of waiting for the function: ScheduleDispatch links SimMail and SimMail links
+ * Scheduler, so taking the ARN from the resource is a cycle Pulumi never resolves (the first deploy of
+ * poc ended with leaked promises and no error).
+ */
+export function scheduleDispatchName(app: string, stage: string): string {
+  return `${app}-${stage}-schedule-dispatch`;
+}
+
 /** TIMERS on the group's schedules; `iam:PassRole` is granted apart, conditioned on the service. */
 export const SCHEDULE_ACTIONS: readonly string[] = CAPABILITIES.TIMERS.actions.filter((action) => action.startsWith("scheduler:"));
 
@@ -135,6 +145,8 @@ const region = aws.getRegionOutput({}).region;
 
 export const scheduleGroup = new aws.scheduler.ScheduleGroup("Schedules", { name: scheduleGroupName($app.name, $app.stage) });
 
+const scheduleDispatchArn = $interpolate`arn:aws:lambda:${region}:${accountId}:function:${scheduleDispatchName($app.name, $app.stage)}`;
+
 export const scheduleDispatch = new sst.aws.Function("ScheduleDispatch", {
   description: "Target of every timer schedule: checks the timer's version and enqueues TIMER, or hands SIM_REPLY to SimMail.",
   handler: SCHEDULER_HANDLERS.ScheduleDispatch,
@@ -142,6 +154,11 @@ export const scheduleDispatch = new sst.aws.Function("ScheduleDispatch", {
   memory: "256 MB",
   // Linking SimMail grants lambda:InvokeFunction on it and nothing else.
   link: [...storageLinks("ScheduleDispatch"), OperationEvents, simMail],
+  transform: {
+    function: (args) => {
+      args.name = scheduleDispatchName($app.name, $app.stage);
+    },
+  },
 });
 
 export const schedulerInvocationRole = new aws.iam.Role("SchedulerInvocationRole", {
@@ -152,7 +169,7 @@ export const schedulerInvocationRole = new aws.iam.Role("SchedulerInvocationRole
 
 export const schedulerInvocationPolicy = new aws.iam.RolePolicy("SchedulerInvocationPolicy", {
   role: schedulerInvocationRole.id,
-  policy: scheduleDispatch.arn.apply((arn) => JSON.stringify(schedulerInvokeDocument(arn))),
+  policy: scheduleDispatchArn.apply((arn) => JSON.stringify(schedulerInvokeDocument(arn))),
 });
 
 const groupSchedules = $interpolate`arn:aws:scheduler:${region}:${accountId}:schedule/${scheduleGroup.name}/*`;
@@ -162,7 +179,7 @@ export const Scheduler = new sst.Linkable("Scheduler", {
   properties: {
     groupName: scheduleGroup.name,
     roleArn: schedulerInvocationRole.arn,
-    targetArn: scheduleDispatch.arn,
+    targetArn: scheduleDispatchArn,
   },
   include: [
     sst.aws.permission({ actions: [...SCHEDULE_ACTIONS], resources: [groupSchedules] }),
