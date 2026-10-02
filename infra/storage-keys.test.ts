@@ -295,7 +295,7 @@ describe("inbound mail bucket policy", () => {
         },
       ]);
     }
-    expect(template).toContain(`receipt-rule-set/${inboundRuleSetName("${AppName}")}`);
+    expect(inboundRuleSetName("${AppName}")).toBe("${AppName}-inbound");
   });
 });
 

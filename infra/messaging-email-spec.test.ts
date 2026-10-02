@@ -155,10 +155,11 @@ describe("configuration sets and events", () => {
 describe("receipt rules", () => {
   const rules = receiptRules(STAGE);
 
-  it("keep the one rule set of docs/architecture.md §1, fenced by ARN in the bootstrap", () => {
+  it("keep the one rule set of docs/architecture.md §1, fenced by the deploy.yml pre-check (receipt actions have no resource-level IAM)", () => {
     expect(inboundRuleSetName(APP)).toBe("aws-cds-hackathon-poc-legajo-inbound");
     expect(architecture).toContain("| Receipt rule set SES activo | `aws-cds-hackathon-poc-legajo-inbound` |");
-    expect(bootstrap).toContain("receipt-rule-set/${AppName}-inbound:receipt-rule/*");
+    expect(bootstrap).toContain("ses:SetActiveReceiptRuleSet");
+    expect(read(".github/workflows/deploy.yml")).toContain("aws-cds-hackathon-poc-legajo-inbound");
   });
 
   it("are the two rules of the table of docs/architecture.md §2", () => {
