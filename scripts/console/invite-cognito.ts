@@ -33,7 +33,8 @@ export function cognitoInviteDeps(options: Pick<InviteDeps, "saveCredential">): 
     async findUser(username) {
       try {
         const user = await client.send(new AdminGetUserCommand({ UserPoolId, Username: username }));
-        return { sub: subOf(user.UserAttributes) };
+        const firmId = user.UserAttributes?.find((attribute) => attribute.Name === "custom:firmId")?.Value;
+        return { sub: subOf(user.UserAttributes), ...(firmId === undefined ? {} : { firmId }) };
       } catch (error) {
         if (error instanceof UserNotFoundException) return undefined;
         throw error;

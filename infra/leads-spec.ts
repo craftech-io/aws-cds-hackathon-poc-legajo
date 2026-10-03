@@ -221,13 +221,14 @@ export type SignupGrantRole = "Bff" | "WorldJanitor" | "QaDriver";
  * Names of what `signupGrants(fn)` (infra/leads.ts) links, beyond what the role already links: the
  * `Leads` name, the functions it may invoke (a linked Function grants exactly `lambda:InvokeFunction`
  * on it), `OriginVerifyKey` (Bff checks `X-Origin-Verify`), `Auth` (WorldJanitor reads the pool id;
- * Bff and QaDriver link it in infra/bff.ts) and `GuestObjects` (the bucket names WorldJanitor deletes
- * from). The QaDriver invokes WorldJanitor through the link infra/bff.ts already gives it (MEMORY_PURGE).
+ * Bff and QaDriver link it in infra/bff.ts) and `GuestObjects` (the bucket names and guest prefixes a
+ * world's destroy or reset deletes from: WorldJanitor, the console's "Reiniciar demo" in the Bff and the
+ * QaDriver's `world.destroy`). The QaDriver invokes WorldJanitor through the link infra/bff.ts already gives it (MEMORY_PURGE).
  */
 export const SIGNUP_GRANT_LINKS: Readonly<Record<SignupGrantRole, readonly string[]>> = {
-  Bff: [LEADS_LINK, "SignupDispatch", "LeadNotice", "OriginVerifyKey"],
+  Bff: [LEADS_LINK, "SignupDispatch", "LeadNotice", "OriginVerifyKey", "GuestObjects"],
   WorldJanitor: [LEADS_LINK, "LeadNotice", "Auth", "GuestObjects"],
-  QaDriver: [LEADS_LINK, "InboundMailSim"],
+  QaDriver: [LEADS_LINK, "InboundMailSim", "GuestObjects"],
 };
 
 /** Statement kinds `signupGrants(fn)` adds to the role's `permissions`. */

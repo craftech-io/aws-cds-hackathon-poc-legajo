@@ -10,6 +10,7 @@ import { qaPrincipal } from "../auth/principal";
 import { brokerLookupOf, createBrokerDirectory } from "../auth/staff";
 import type { Connector } from "../connector/index";
 import { type Logger, createLogger } from "../lib/log";
+import { type ConsoleServices, bindConsoleServices } from "../routers/console-services";
 import { appRouter, createConsoleCaller } from "../routers/index";
 import type { ContextDeps } from "../routers/deps";
 import type { DocumentUrlSigner } from "../routers/document-url";
@@ -32,11 +33,13 @@ export interface QaConsoleDeps {
   readonly now: () => Date;
   /** One logger per call; a JSON logger bound to the call's correlation id by default. */
   readonly loggerFor?: (correlationId: string) => Logger;
+  /** The console's services (tests, local flows); the stage's, with caller `QA`, by default (routers/console-services.ts). */
+  readonly services?: ConsoleServices;
 }
 
 /** Context dependencies of a driver's console call: no verifier accepts a token, nothing is probed. */
 export function qaContextDeps(deps: QaConsoleDeps): ContextDeps {
-  return {
+  const context: ContextDeps = {
     verifier: { verify: () => Promise.reject(new AuthError(AUTH_REASON.TOKEN_INVALID, "the QA driver never verifies tokens")) },
     brokers: createBrokerDirectory(brokerLookupOf(deps.data.firms), deps.now),
     connector: deps.data,
@@ -47,6 +50,7 @@ export function qaContextDeps(deps: QaConsoleDeps): ContextDeps {
     wallClock: deps.now,
     loggerFor: deps.loggerFor ?? ((correlationId) => createLogger({ correlationId, bindings: { service: "qa-driver", principal: "qa" } })),
   };
+  return deps.services === undefined ? context : bindConsoleServices(context, deps.services);
 }
 
 const TRPC_TO_CODE: Readonly<Partial<Record<TRPCError["code"], ErrorCode>>> = {

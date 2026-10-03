@@ -22,18 +22,22 @@
 // WorldJanitor. The world factory's background worker (capability WORLDS, Platform fenced to
 // POP#firm-guest-* by infra/mocks.ts) and the sweeper of the public signup (ADR-0015 §5: LEADS,
 // SIGNUP_ADMIN, LEAD_NOTICE and GUEST_CLEANUP, applied with `signupGrants("WorldJanitor")` of
-// infra/leads.ts). Its entries:
+// infra/leads.ts). Its entries (packages/bff/src/handlers/world-janitor.ts validates each with zod):
 //   - MEMORY_PURGE, invoked asynchronously by Bff and QaDriver after "Reiniciar demo" or world.destroy:
 //     the second pass and the listings of the Memory purge, up to 10 minutes (docs/architecture.md
 //     §9.3), hence the 12-minute timeout. Its resource policy names those two roles; within one
 //     account an identity policy alone also invokes, so the fence that counts is that no other role
 //     of the app holds lambda:InvokeFunction on it (infra/iam-capabilities.ts).
+//   - GUEST_CREATE, invoked asynchronously by Bff (`account.ensureWorld`): the guest's world from
+//     Seed/worlds/guest.json, its broker row and the account's lease READY.
+//   - GUEST_DESTROY {firmId, reason}, on request (`leads:delete`, the operator); the lead retention of
+//     GUEST_SWEEP destroys in process instead (WorldJanitor never invokes itself).
 //   - GUEST_SWEEP every hour: UNCONFIRMED users without groups older than 24 h, verified signups to
-//     finalize, PENDING lead notices, the 24-month retention of leads and (WP-31) expired public guest
-//     worlds.
-//   - The nightly reset of reserved guest worlds idle for 24 real hours, at 04:00 ART
-//     (docs/architecture.md §8): cron(0 7 * * ? *) in UTC, since Argentina keeps UTC−3 all year. The
-//     rule exists DISABLED until WP-31 makes the handler accept IDLE_GUEST_RESET and enables it.
+//     finalize, PENDING lead notices, the 24-month retention of leads, creations stuck in CREATING and
+//     public guest worlds past their TTL (24 h idle or 72 h old).
+//   - IDLE_GUEST_RESET, the nightly reset of reserved guest worlds idle for 24 real hours, at 04:00 ART
+//     (docs/architecture.md §8): cron(0 7 * * ? *) in UTC, since Argentina keeps UTC−3 all year.
+//   The Memory purges a world event starts run in the same invocation, together at its end.
 //   Both are EventBridge rules on the default bus (`sst.aws.Cron`), not Scheduler schedules: the CI
 //   deploy role creates tagged rules, while schedules are created only by the code, inside the group.
 //
@@ -50,7 +54,7 @@
 //     → events.amazonaws.com from the nightly rule, and the Bff and QaDriver roles
 //   aws --profile craftech-demos events list-rule-names-by-target --target-arn <WorldJanitor ARN>
 //     → the hourly GUEST_SWEEP rule (rate(1 hour), ENABLED) and the nightly rule (cron(0 7 * * ? *),
-//       DISABLED until WP-31)
+//       ENABLED)
 
 import { CAPABILITIES, type LambdaName } from "./iam-capabilities";
 import { lateLinks, links } from "./late-links";
@@ -89,8 +93,8 @@ export const WORLD_JANITOR = {
   nightlySchedule: "cron(0 7 * * ? *)",
   /** Input of the nightly run (packages/bff/src/handlers/world-janitor.ts validates it with zod). */
   nightlyEvent: { kind: "IDLE_GUEST_RESET" },
-  /** Disabled until WP-31: today the handler accepts MEMORY_PURGE and GUEST_SWEEP only. */
-  nightlyEnabled: false,
+  /** The handler accepts IDLE_GUEST_RESET (janitor/guest-destroy.ts). */
+  nightlyEnabled: true,
   /** The signup and guest-world sweep (ADR-0015 §5). */
   guestSweepSchedule: "rate(1 hour)",
   guestSweepEvent: { kind: "GUEST_SWEEP" },

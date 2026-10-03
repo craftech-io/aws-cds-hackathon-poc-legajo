@@ -124,6 +124,7 @@ describe("[FL-060] policy audit", () => {
 
   it("[FL-060] skips inbound, queued and deferred messages and honours the look-back window", async () => {
     await stores.connector.conversations.appendMessage({ ...toImporter, messageId: "msg-01JCCCC", status: "DEFERRED" });
+    await stores.connector.conversations.appendMessage({ ...toImporter, messageId: "msg-01JFFFF", status: "QUEUED" });
     await stores.connector.conversations.appendMessage({ ...toImporter, messageId: "msg-01JDDDD", direction: "IN", status: "RECEIVED", author: "IMPORTER" });
     await send({ ...toImporter, messageId: "msg-01JEEEE", sentAtReal: "2026-09-20T15:00:00.000Z" }, false);
     const report = await runPolicyAudit(deps(), { firmId: FIRM, sinceReal: "2026-09-25T00:00:00.000Z" });

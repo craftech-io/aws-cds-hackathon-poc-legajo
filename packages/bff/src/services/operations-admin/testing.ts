@@ -42,6 +42,8 @@ export interface ServiceWorld {
 
 export interface ServiceWorldOptions {
   readonly guestWorld?: boolean;
+  /** Stores already seeded by the caller (the QaDriver's worlds): nothing else is seeded. */
+  readonly stores?: MemoryStores;
   /** What the pipeline answers for a deferred message. */
   readonly deferred?: { readonly status: DeferredOutcome; readonly nextAllowedAt?: string };
 }
@@ -53,8 +55,8 @@ export function recordingSink(events: OperationQueueEventInput[]): OperationEven
 export async function serviceWorld(options: ServiceWorldOptions = {}): Promise<ServiceWorld> {
   let realMs = Date.parse(REAL_NOW);
   const wallClock = (): Date => new Date(realMs);
-  const stores = memoryStores();
-  await seedConsoleWorld(stores, { guestWorld: options.guestWorld ?? false });
+  const stores = options.stores ?? memoryStores();
+  if (options.stores === undefined) await seedConsoleWorld(stores, { guestWorld: options.guestWorld ?? false });
   const lines: string[] = [];
   const log: Logger = createLogger({ sink: (line) => lines.push(line), now: wallClock, level: "debug" });
   const events: OperationQueueEventInput[] = [];

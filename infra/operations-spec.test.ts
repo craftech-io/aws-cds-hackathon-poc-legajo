@@ -341,8 +341,8 @@ describe("WorldJanitor", () => {
     ]);
   });
 
-  it("has the nightly reset of idle guest worlds, disabled until WP-31, and the hourly GUEST_SWEEP", async () => {
-    expect(await fake.args("sst.aws.Cron", "WorldJanitorNightly")).toEqual({ function: "WorldJanitor.arn", schedule: "cron(0 7 * * ? *)", event: { kind: "IDLE_GUEST_RESET" }, enabled: false });
+  it("has the nightly reset of idle guest worlds, enabled (WorldJanitor accepts IDLE_GUEST_RESET), and the hourly GUEST_SWEEP", async () => {
+    expect(await fake.args("sst.aws.Cron", "WorldJanitorNightly")).toEqual({ function: "WorldJanitor.arn", schedule: "cron(0 7 * * ? *)", event: { kind: "IDLE_GUEST_RESET" }, enabled: true });
     expect(await fake.args("sst.aws.Cron", "WorldJanitorGuestSweep")).toEqual({ function: "WorldJanitor.arn", schedule: "rate(1 hour)", event: { kind: "GUEST_SWEEP" } });
   });
 

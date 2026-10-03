@@ -1,7 +1,7 @@
 // GUEST_SWEEP, the sign-up and lead part (ADR-0015 §5, FL-104 d, FL-122), on an injected real clock:
 // unconfirmed users without groups past 24 h, verified sign-ups finalized (never an EXISTING_GUEST
-// without the code), pending notices queued again, and the daily retention of 24 months. The world
-// part of the sweep (FL-109) belongs to the world factory.
+// without the code), pending notices queued again, and the daily retention of 24 months; and the world
+// part (FL-109): public worlds past their TTL destroyed and their slots freed, reserved ones kept.
 import { beforeEach, describe, expect, it } from "vitest";
 import { LEAD_RETENTION_DAYS, UNCONFIRMED_USER_MAX_AGE_HOURS } from "@legajo/shared/guest-limits";
 import type { MemoryStores } from "../connector/index";
@@ -11,7 +11,10 @@ import { createLogger } from "../lib/log";
 import { LEADS_TABLE, tombKey } from "../leads/lead";
 import { type TestAccess, testAccessDeps } from "../signup/testing";
 import { startSignup } from "../signup/testing-flows";
-import { NOTICE_RETRY_GRACE_MS, RETENTION_HOUR_UTC, sweepSignupsAndLeads } from "./guest-sweep";
+import { createWorld } from "../worlds/factory";
+import { slotKey } from "../worlds/guest-slots";
+import { worldsHarness } from "../worlds/testing";
+import { NOTICE_RETRY_GRACE_MS, RETENTION_HOUR_UTC, sweepGuestWorlds, sweepSignupsAndLeads } from "./guest-sweep";
 
 const log = createLogger({ level: "error" });
 const EMAIL = "ana.gomez@despachos-del-sur.com.ar";
@@ -88,5 +91,22 @@ describe("[FL-122] the hourly sweep of sign-ups and leads", () => {
     expect(await stores.client.get(LEADS_TABLE, tombKey("01J9ZQ00000000000000000004"))).toMatchObject({ reason: "RETENTION" });
   });
 
-  it.todo("[FL-109:pending] destroys public worlds idle for 24 h or 72 h old and frees their slots (world part of GUEST_SWEEP, WP-31)");
+  it("[FL-109] destroys public worlds idle for 24 h or 72 h old and frees their slots; reserved worlds stay", async () => {
+    const h = worldsHarness({ stores, realNow: now.toISOString() });
+    for (const firmId of ["firm-guest-31", "firm-guest-32", "firm-guest-04"]) {
+      const nn = Number(firmId.slice(-2));
+      await stores.client.put("Runtime", { ...slotKey(nn), entity: "GuestSlot", version: 1, nn, sub: `sub-${nn}`, firmId, clockId: `GUEST#${firmId}`, leaseId: `lease-${nn}`, leasedAtReal: now.toISOString(), hardExpiresAtReal: new Date(now.getTime() + 72 * 3_600_000).toISOString() });
+      await createWorld({ kind: "GUEST", firmId }, h.deps);
+    }
+    const busy = await stores.connector.world.getClock("GUEST#firm-guest-32");
+    h.realNow = new Date(now.getTime() + 25 * 3_600_000);
+    await stores.connector.world.updateClock(busy.clockId, { lastSession: { originJti: "jti-32", authTime: 1, lastActiveAtReal: h.realNow.toISOString() } } as never, busy.version);
+    expect(await sweepGuestWorlds(h.deps)).toEqual({ creationsFailed: 0, worldsDestroyed: 1 });
+    expect(await stores.connector.world.findClock("GUEST#firm-guest-31")).toBeUndefined();
+    expect(await stores.connector.world.findClock("GUEST#firm-guest-32")).toBeDefined();
+    expect(await stores.connector.world.findClock("GUEST#firm-guest-04")).toBeDefined();
+    h.realNow = new Date(now.getTime() + 72 * 3_600_000);
+    expect(await sweepGuestWorlds(h.deps)).toMatchObject({ worldsDestroyed: 1 });
+    expect(await stores.connector.world.findClock("GUEST#firm-guest-32")).toBeUndefined();
+  });
 });

@@ -1,14 +1,16 @@
 // AgentCore Memory as the purge sees it (worlds/memory-purge.ts), over the data plane of
 // `@aws-sdk/client-bedrock-agentcore` with the capability `MEMORY_ADMIN` (docs/architecture.md §14:
-// ListEvents, DeleteEvent, ListMemoryRecords, DeleteMemoryRecord). The Memory id comes from the
-// linked `Agent` resource (`Resource`, never `process.env`). Listings page to the end; every call has
-// a deadline and the SDK's retry budget, and a deletion of something already gone is not an error.
+// ListSessions, ListEvents, DeleteEvent, ListMemoryRecords, DeleteMemoryRecord; each verified in the
+// installed `.d.ts`). The Memory id comes from the linked `Agent` resource (`Resource`, never
+// `process.env`). Listings page to the end; every call has a deadline and the SDK's retry budget, and
+// a deletion of something already gone is not an error.
 import {
   BedrockAgentCoreClient,
   DeleteEventCommand,
   DeleteMemoryRecordCommand,
   ListEventsCommand,
   ListMemoryRecordsCommand,
+  ListSessionsCommand,
   ResourceNotFoundException,
 } from "@aws-sdk/client-bedrock-agentcore";
 import { z } from "zod";
@@ -39,6 +41,17 @@ export function agentCoreMemoryAdmin(options: { readonly memoryId?: () => string
   const agentCore = (): BedrockAgentCoreClient => (client ??= new BedrockAgentCoreClient({ region: STAGE_REGION, ...awsClientConfig(MEMORY_TIMEOUTS) }));
 
   return {
+    async listSessionIds(actorId) {
+      const ids: string[] = [];
+      let nextToken: string | undefined;
+      do {
+        const page = await agentCore().send(new ListSessionsCommand({ memoryId: memoryId(), actorId, maxResults: PAGE_SIZE, nextToken }));
+        ids.push(...(page.sessionSummaries ?? []).flatMap((session) => (session.sessionId ? [session.sessionId] : [])));
+        nextToken = page.nextToken;
+      } while (nextToken);
+      return ids;
+    },
+
     async listEventIds(actorId, sessionId) {
       const ids: string[] = [];
       let nextToken: string | undefined;

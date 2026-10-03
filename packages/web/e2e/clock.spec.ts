@@ -53,8 +53,8 @@ test.describe("reloj de demo against the real clock.get", () => {
     await expect(reset).toContainText(clockCopy.reset.onlyApprovers);
   });
 
-  test.fixme("[FL-065:pending] avanzar el reloj o disparar un hito: clock.advanceTo, clock.advanceToNext and clock.fireMilestone are not in the AppRouter yet", async () => {});
-  test.fixme("[FL-087:pending] reiniciar la demo: clock.reset is not in the AppRouter yet", async () => {});
+  test.fixme("[FL-065:pending] avanzar el reloj o disparar un hito: the procedures are in the AppRouter and run over the UI server's world; the spec is WP-35's", async () => {});
+  test.fixme("[FL-087:pending] reiniciar la demo: the procedures are in the AppRouter and run over the UI server's world; the spec is WP-35's", async () => {});
 });
 
 const ago = (ms: number) => new Date(Date.now() - ms).toISOString();

@@ -2,7 +2,7 @@
 // guest: the 10 steps of steps.ts over the story of operation 4471, in Spanish or English. The current
 // step is the first with a move still to do; each button calls the console's own procedures, the
 // buttons that change the world wait for a quiet one (the shell's poll of `clock.get` says when), and
-// the hours of "Qué mirar" come from the world's pending timers of 4471. Progress is kept per world
+// the hours of "Qué mirar" come from the pending timers of 4471 that `tour.steps` answers. Progress is kept per world
 // and epoch in sessionStorage, so "Reiniciar demo" starts the tour again.
 import { useCallback, useEffect, useState } from "react";
 import { ApiErrorNotice } from "../../components/ApiErrorNotice";
@@ -19,7 +19,7 @@ import { fetchThreads } from "../simulator/simulator-api";
 import { LANG_LABELS, TOUR_TEXTS } from "./copy";
 import { StepCard } from "./StepCard";
 import { TOUR_STEPS, type TourLang, type TourMove, type TourStep } from "./steps";
-import { TourOperationMissing, findTourOperation, runTourAction } from "./tour-api";
+import { TOUR_OPERATION_MISSING, fetchTourContext, findTourOperation, runTourAction } from "./tour-api";
 import { currentStepIndex, glossFor, isStepDone, moveKey, parseProgress, progressKey } from "./tour-model";
 
 const LANG_KEY = "legajo.tour.lang";
@@ -74,6 +74,7 @@ export default function View() {
   const index = selected ?? currentStepIndex(progress);
   const step = TOUR_STEPS[index] ?? TOUR_STEPS[0];
   const threads = useLiveRemote(step?.glossOf ? "tour:simulator.threads" : null, (signal) => fetchThreads(trpc, signal));
+  const tour = useLiveRemote("tour:steps", (signal) => fetchTourContext(trpc, signal));
   const texts = TOUR_TEXTS[lang];
 
   const goTo = useCallback(
@@ -95,6 +96,7 @@ export default function View() {
         await runTourAction(trpc, move.action);
       } finally {
         refresh();
+        tour.refresh();
       }
     }
     mark(moveKey(target, moveIndex));
@@ -109,7 +111,7 @@ export default function View() {
 
   if (step === undefined) return null;
   const failure = action.state.status === "error" ? action.state.error : undefined;
-  const missing = failure?.message.includes(new TourOperationMissing().message) ?? false;
+  const missing = failure?.reason === TOUR_OPERATION_MISSING;
 
   return (
     <div className="flex flex-col gap-4">
@@ -142,6 +144,7 @@ export default function View() {
         step={step}
         lang={lang}
         clock={detail}
+        times={dataOf(tour.state)}
         progress={progress}
         busy={snapshot === undefined || isBusy(snapshot)}
         running={action.state.status === "running"}

@@ -88,6 +88,92 @@
       "commit": "3432df9"
     },
     {
+      "id": "console-simulator",
+      "viewport": "desktop",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-simulator/desktop-480.avif",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-simulator/desktop-960.avif",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-simulator/desktop-1440.avif",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-simulator/desktop-1920.avif",
+            "w": 1920
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-simulator/desktop-480.webp",
+            "w": 480
+          },
+          {
+            "src": "/landing/console-simulator/desktop-960.webp",
+            "w": 960
+          },
+          {
+            "src": "/landing/console-simulator/desktop-1440.webp",
+            "w": 1440
+          },
+          {
+            "src": "/landing/console-simulator/desktop-1920.webp",
+            "w": 1920
+          }
+        ],
+        "png": {
+          "src": "/landing/console-simulator/desktop.png",
+          "w": 2880,
+          "h": 1800
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-03",
+      "commit": "5b94758"
+    },
+    {
+      "id": "console-simulator",
+      "viewport": "mobile",
+      "sources": {
+        "avif": [
+          {
+            "src": "/landing/console-simulator/mobile-390.avif",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-simulator/mobile-780.avif",
+            "w": 780
+          }
+        ],
+        "webp": [
+          {
+            "src": "/landing/console-simulator/mobile-390.webp",
+            "w": 390
+          },
+          {
+            "src": "/landing/console-simulator/mobile-780.webp",
+            "w": 780
+          }
+        ],
+        "png": {
+          "src": "/landing/console-simulator/mobile.png",
+          "w": 780,
+          "h": 1688
+        }
+      },
+      "status": "capture",
+      "origin": "local",
+      "capturedAt": "2026-10-03",
+      "commit": "5b94758"
+    },
+    {
       "id": "console-mailbox",
       "viewport": "desktop",
       "sources": {

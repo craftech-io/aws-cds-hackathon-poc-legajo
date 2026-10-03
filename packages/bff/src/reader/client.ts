@@ -30,7 +30,7 @@ import { DeadlineError, withDeadline } from "../lib/deadline";
 import { createLogger, type LogFields, type Logger } from "../lib/log";
 import { backoffDelayMs } from "../lib/retry";
 import { ReaderError, type ReaderFailureCode } from "./errors";
-import type { RequestSigner } from "./signer";
+import type { RequestSigner, SignableRequest } from "./signer";
 
 /** Schemas the client validates with; `npm run reader:contract` compares them with the YAML. */
 export const READER_CLIENT_SCHEMAS = { CreateReadingRequest, Reading, Health, Error: ReaderErrorBody } as const;
@@ -128,7 +128,7 @@ export function createReaderClient(deps: ReaderClientDeps): ReaderClient {
 
   async function attempt(request: WireRequest): Promise<Attempt> {
     const spec = READER_OPERATIONS[request.operation];
-    const url = new URL(request.path, deps.endpoint);
+    const url = new URL(request.path, deps.endpoint) as SignableRequest["url"];
     const headers: Record<string, string> = { accept: "application/json", ...request.headers };
     if (request.body !== undefined) headers["content-type"] = "application/json";
     let signed: Record<string, string>;

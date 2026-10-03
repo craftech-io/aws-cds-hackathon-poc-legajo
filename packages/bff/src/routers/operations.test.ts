@@ -1,6 +1,50 @@
+import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, it } from "vitest";
+import { QuotaExceededError } from "@legajo/shared/errors";
 import { CLOCK, FIRM, REAL_NOW, START_SIM } from "../connector/testing";
+import { platformRow } from "../services/operations-admin/testing";
+import { GUEST, GUEST_CLOCK, consoleServiceWorld, guestOperation } from "./console-testing";
 import { type ConsoleWorld, DIEGO, MARTINA, PABLO, consoleWorld } from "./testing";
+
+describe("operations.create", () => {
+  it("[FL-005] «Nueva operación» copies the platform's operation: META, 3 documents MISSING, 5 milestones SCHEDULED, OPERATION_CREATED", async () => {
+    const world = await consoleServiceWorld();
+    world.platform.set(`${FIRM}#4479`, platformRow(FIRM, "4479"));
+    const created = await world.caller(MARTINA).operations.create({ operationNumber: "4479" });
+    expect(created).toMatchObject({ operationId: "op-4479", operationNumber: "4479", clockId: CLOCK, dossierStatus: "OPEN" });
+    const { documents, timers, audit } = world.stores.connector;
+    expect((await documents.listDocuments("op-4479")).map((document) => document.status)).toEqual(["MISSING", "MISSING", "MISSING"]);
+    const milestones = await timers.listTimers("op-4479", { kind: "MILESTONE" });
+    expect(milestones.map((timer) => [timer.timerId, timer.status]).sort()).toEqual([
+      ["ARRIVAL", "SCHEDULED"],
+      ["DOCS_REQUEST", "SCHEDULED"],
+      ["ESCALATION", "SCHEDULED"],
+      ["FOLLOWUP", "SCHEDULED"],
+      ["FOLLOWUP_FINAL", "SCHEDULED"],
+    ]);
+    expect((await audit.listByOperation("op-4479")).map((row) => row.action)).toContain("OPERATION_CREATED");
+    expect((await world.caller(DIEGO).operations.list({})).operations.map((operation) => operation.operationNumber)).toEqual(["4471", "4479"]);
+  });
+
+  it("[FL-005] refuses a number already in the console and one the platform does not have, writing nothing", async () => {
+    const world = await consoleServiceWorld();
+    await expect(world.caller(DIEGO).operations.create({ operationNumber: "4471" })).rejects.toMatchObject({ code: "CONFLICT" });
+    await expect(world.caller(DIEGO).operations.create({ operationNumber: "4999" })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(await world.stores.connector.operations.findOperation("op-4999")).toBeUndefined();
+  });
+
+  it("[FL-111] a guest world creates its own operation and is refused past NEW_OPERATIONS with its renewal", async () => {
+    const world = await consoleServiceWorld({ guestWorld: true });
+    const { operationId, importerId, supplierId } = await guestOperation(world);
+    expect(operationId).toBe("op-4471-g01");
+    world.platform.set("firm-guest-01#4480", platformRow("firm-guest-01", "4480", { importerId, supplierId }));
+    await world.exhaust(GUEST_CLOCK, "NEW_OPERATIONS");
+    const refused = await world.caller(GUEST).operations.create({ operationNumber: "4480" }).catch((error: unknown) => error);
+    expect(refused).toMatchObject({ code: "TOO_MANY_REQUESTS" });
+    expect(refused instanceof TRPCError && refused.cause instanceof QuotaExceededError && refused.cause.kind).toBe("NEW_OPERATIONS");
+    expect(await world.stores.connector.operations.findOperation("op-4480-g01")).toBeUndefined();
+  });
+});
 
 describe("operations router", () => {
   let world: ConsoleWorld;
@@ -8,10 +52,6 @@ describe("operations router", () => {
   beforeEach(async () => {
     world = await consoleWorld();
   });
-
-  // FL-005 needs operations.create (create_operation, WP-43) and schedule_milestones (WP-27): the
-  // list below reads a seeded operation, so it covers FL-080 only.
-  it.todo("[FL-005:pending] operations.create: META, 3 DOC#, 5 TIMER#MILESTONE# SCHEDULED at ETA - 7 d 10:00, - 5 d, - 3 d, - 48 h and ETA");
 
   it("[FL-080] lists the operations of the firm's world with documents, escalations and the process-error flag (a new operation shows OPEN with its 3 documents MISSING)", async () => {
     const { operations, world: state } = world.stores.connector;

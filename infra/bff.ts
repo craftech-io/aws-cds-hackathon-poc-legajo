@@ -4,8 +4,8 @@
 //   Bff          tRPC v11 (packages/bff/src/routers/handler.ts) on the Router at `/api`: console,
 //                public signup (`signup.*`), guest bootstrap (`account.*`), phone simulator. Runs the
 //                world factory in process (WORLDS: first guest login, "Reiniciar demo", synthetic PDFs),
-//                enqueues console sends and clock work, and invokes InboundWhatsApp (simulator),
-//                WorldJanitor (MEMORY_PURGE, GUEST_CREATE), SignupDispatch and LeadNotice. No SES, no
+//                enqueues console sends and clock work, and invokes InboundWhatsApp (simulator), SimMail
+//                (SIM_REPLY of a clock move), WorldJanitor (MEMORY_PURGE, GUEST_CREATE), SignupDispatch and LeadNotice. No SES, no
 //                End User Messaging, no Guardrails (iam-capabilities.ts).
 //   PublicWeb    the upload page `/u/<token>` (packages/bff/src/public-web/handler.ts), no login: Runtime,
 //                AuditLog and the presigned POST to Uploads.
@@ -135,6 +135,7 @@ export const bff = new sst.aws.Function("Bff", {
     Agent, // MEMORY_ADMIN of WORLDS: first pass of the Memory purge
     OperationEvents, // OUTBOUND_SEND and clock work, sqs:SendMessage only
     inboundWhatsApp, // the phone simulator's signed envelope
+    simMail, // SIM_REPLY timers a clock move dispatches (timers/stage.ts)
     worldJanitor, // MEMORY_PURGE and GUEST_CREATE, asynchronously
     ...bffSignup.link,
   ],

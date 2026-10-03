@@ -1,4 +1,5 @@
-// `operations` router (docs/tool-catalog.md, FL-080, FL-081): the list of a world's operations, the
+// `operations` router (docs/tool-catalog.md, FL-005, FL-080, FL-081): "Nueva operación" from the
+// platform (`create_operation`, which spends the guest world's `NEW_OPERATIONS` itself), the list of a world's operations, the
 // dossier of one (documents, versions, observations, escalations, parties and the "con error de
 // proceso" flag of `OPSTATE#`), its timeline with the pending timers and their reason, and the
 // 5-minute download link of a document version. Every id of the input is fenced to the principal's
@@ -6,7 +7,9 @@
 import { z } from "zod";
 import { DOC_TYPE_SHORT, DocVersionId, DossierStatus, OperationId } from "@legajo/shared";
 import { parseDocVersionId } from "../domain/documents";
+import { CreateOperationInput } from "../services/operations-admin/create-operation";
 import { WorldFields, worldOf } from "./clock";
+import { runDirect } from "./console-services";
 import { DOCUMENT_URL_TTL_SECONDS, downloadFilename } from "./document-url";
 import { refusal } from "./errors";
 import {
@@ -27,6 +30,8 @@ const ListInput = WorldFields.extend({ statuses: z.array(DossierStatus).min(1).m
 const OperationInput = z.object({ operationId: OperationId }).strict();
 
 export const operationsRouter = router({
+  create: firmProcedure.input(CreateOperationInput).mutation(({ ctx, input }) => runDirect(ctx, "create_operation", input)),
+
   list: firmProcedure.input(ListInput).query(async ({ ctx, input }) => {
     const data = ctx.deps.connector;
     const clockId = await worldOf(ctx, input.clockId);

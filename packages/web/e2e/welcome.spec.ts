@@ -1,6 +1,7 @@
 // "Preparando tu mundo" and the usage limits (docs/test-plan.md §3; FL-105, FL-109 to FL-111, FL-132)
-// against the local UI server, whose `account.ensureWorld` / `account.world` stand in for WP-31's:
-// `CREATING` → `READY` → the console; the demo full, with "Probar de nuevo", "Hablemos" and the
+// against the local UI server, which runs the real `account.ensureWorld` / `account.world` and builds
+// each world from the seed's `guest` template in process: `CREATING` → `READY` → the console; a world
+// that could not be prepared (scripted), with "Probar de nuevo" and "Hablemos"; the demo full, with the
 // minute-by-minute retry that creates the world once a slot frees; a world destroyed by its lifetime
 // that is prepared again; and `QUOTA_EXCEEDED` with the time it resets. Every project runs it.
 import { GUEST_WORLD_IDLE_HOURS, GUEST_WORLD_MAX_AGE_HOURS } from "@legajo/shared/guest-limits";
@@ -64,6 +65,20 @@ test.describe("[FL-105] primer ingreso de un invitado público", () => {
     await expect(page).toHaveURL(CONSOLE, { timeout: 20_000 });
     expect(ensured).toHaveLength(1);
     await expect(page.getByRole("complementary", { name: consoleCopy.tour.title })).toBeVisible();
+  });
+
+  test("[FL-105] says honestly when the world could not be prepared, with 'Probar de nuevo' and 'Hablemos'", async ({ page, request }, info) => {
+    const email = testMailbox(info, "w7");
+    await createVerifiedGuest(request, UI_SERVER_URL, email, PASSWORD);
+    const answer = (data: unknown) => ({ status: 200, contentType: "application/json", body: JSON.stringify([{ result: { data } }]) });
+    await page.route("**/api/account.ensureWorld**", (route) => route.fulfill(answer({ state: "CREATING" })));
+    await page.route("**/api/account.world**", (route) => route.fulfill(answer({ state: "FAILED" })));
+    await signIn(page, email);
+    await expect(page).toHaveURL(/\/welcome/);
+    await expect(page.getByRole("heading", { level: 1, name: t.welcome.failed.title })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("button", { name: t.welcome.retry })).toBeVisible();
+    await expect(page.getByRole("button", { name: t.welcome.signOut })).toBeVisible();
+    expect(findNeutralHits(await page.locator("body").innerText())).toEqual([]);
   });
 });
 

@@ -1,7 +1,8 @@
 // The deletion of a lead and its account (ADR-0015 §6, FL-118): one module for `leads:delete`, the
 // retention of the sweep and SC-26's `lead.purge`. The world's destruction is `WorldJanitor`'s
-// `GUEST_DESTROY` (built with the world factory, WP-31); here, that it is asked for, and that everything
-// else keyed by the email is gone, leaving only a tombstone without personal data.
+// `GUEST_DESTROY` (janitor/guest-destroy.ts; the sweep's retention runs it in process, tested there);
+// here, that it is asked for, and that everything else keyed by the email is gone, leaving only a
+// tombstone without personal data.
 import { beforeEach, describe, expect, it } from "vitest";
 import type { MemoryStores } from "../connector/index";
 import { memoryStores } from "../connector/testing";

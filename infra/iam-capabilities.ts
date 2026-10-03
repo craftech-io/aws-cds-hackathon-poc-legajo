@@ -91,6 +91,7 @@ export const CAPABILITIES: Readonly<Record<CapabilityName, Capability>> = {
   },
   MEMORY_ADMIN: {
     actions: [
+      "bedrock-agentcore:ListSessions",
       "bedrock-agentcore:ListEvents",
       "bedrock-agentcore:DeleteEvent",
       "bedrock-agentcore:ListMemoryRecords",
@@ -244,7 +245,7 @@ export const LAMBDA_CAPABILITIES = {
     tables: { Firms: "write", Parties: "write", Operations: "write", Conversations: "write", AuditLog: "write", Runtime: "write", LegajoMetrics: "write", Reference: "read" },
     buckets: { Documents: "read", Media: "write" },
     actions: ["sqs:SendMessage", "lambda:InvokeFunction"],
-    fence: "InvokeFunction only of InboundWhatsApp, WorldJanitor, SignupDispatch and LeadNotice; no SES, no EUM Social, no Guardrails; Function URL AWS_IAM, only cloudfront.amazonaws.com with the distribution as SourceArn (OAC)",
+    fence: "InvokeFunction only of InboundWhatsApp, SimMail (SIM_REPLY of a clock move), WorldJanitor, SignupDispatch and LeadNotice; no SES, no EUM Social, no Guardrails; Function URL AWS_IAM, only cloudfront.amazonaws.com with the distribution as SourceArn (OAC)",
   },
   SignupDispatch: {
     capabilities: [],

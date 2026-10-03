@@ -13,8 +13,8 @@ const texts = uploadPageEsAR;
 
 // Palette of packages/web/src/index.css (the console's @theme); this page is not built by Vite.
 export const UPLOAD_PAGE_STYLE = `
-:root { --navy: #0b1f3a; --cyan: #12b5d9; --cyan-deep: #0a7f99; --ink: #111a2b; --slate: #5a6a80; --mist: #e4e9f0;
-  --paper: #f5f7fa; --white: #ffffff; --success: #1d8f5a; --danger: #c73a52; color-scheme: light; }
+:root { --navy: #0b1f3a; --cyan: #12b5d9; --cyan-deep: #09728a; --ink: #111a2b; --slate: #5a6a80; --mist: #e4e9f0;
+  --paper: #f5f7fa; --white: #ffffff; --success: #18784c; --danger: #b3344a; color-scheme: light; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }

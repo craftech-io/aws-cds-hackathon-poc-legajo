@@ -4,8 +4,9 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { z } from "zod";
+import { WorldTemplate } from "@legajo/bff/worlds/template";
 import { WorldTemplateName } from "@legajo/shared";
-import { BATCH_INPUTS_FILE, PRODUCT, QA_FIXTURE_FILE, SEED_TABLES, WORLD_TABLES, seedPaths, type SeedPaths, type SeedTableName } from "./constants";
+import { BATCH_INPUTS_FILE, PRODUCT, QA_FIXTURE_FILE, SEED_TABLES, seedPaths, type SeedPaths, type SeedTableName } from "./constants";
 import type { SeedItem } from "./items";
 
 const Item = z.record(z.string(), z.unknown()).refine((item) => typeof item.entity === "string", "every item names its entity") as unknown as z.ZodType<SeedItem>;
@@ -19,22 +20,8 @@ export const TableFile = z.object({
 });
 export type TableFile = z.infer<typeof TableFile>;
 
-const WorldItems = z.object(Object.fromEntries(WORLD_TABLES.map((table) => [table, z.array(Item)])) as Record<(typeof WORLD_TABLES)[number], z.ZodArray<typeof Item>>);
-
-export const WorldTemplateFile = z.object({
-  template: WorldTemplateName,
-  generatorVersion: z.string(),
-  seed: z.number().int(),
-  startAtSim: z.string(),
-  /** Firm and clock the items are written for (absent in `models`, whose operations name theirs). */
-  source: z.object({ firmId: z.string(), clockId: z.string(), firmKind: z.string() }).optional(),
-  derived: z.object({ fields: z.record(z.string(), z.array(z.string())), threadAddressPlaceholder: z.string(), worldEpoch: z.string(), keys: z.string() }),
-  placeholders: z.record(z.string(), z.string()).optional(),
-  tour: z.object({ operationId: z.string(), operationNumber: z.string(), windowStartSim: z.string(), windowEndSim: z.string() }).optional(),
-  operations: z.array(z.object({ operationId: z.string(), operationNumber: z.string(), model: z.string(), importerId: z.string(), supplierId: z.string(), dossierStatus: z.string(), firmId: z.string(), clockId: z.string() })),
-  altContacts: z.array(z.object({ supplierId: z.string(), email: z.string() })),
-  items: WorldItems,
-});
+/** A world template as the factory reads it (packages/bff/src/worlds/template.ts): one schema for both sides. */
+export const WorldTemplateFile = WorldTemplate;
 export type WorldTemplateFile = z.infer<typeof WorldTemplateFile>;
 
 export const QaFixtureFile = z.object({

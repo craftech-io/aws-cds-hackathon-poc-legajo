@@ -60,11 +60,11 @@ test.describe("registro against the real lists", () => {
     await expect(suppliers(page)).toContainText(registryCopy.suppliers.empty);
   });
 
-  test.fixme("[FL-001:pending] alta de importador con opt-in: registry.importers.upsert and registry.consent.record are not in the AppRouter yet", async () => {});
-  test.fixme("[FL-003:pending] autorizar al agente a escribir al proveedor: registry.authorization.set is not in the AppRouter yet", async () => {});
-  test.fixme("[FL-004:pending] alta de proveedor y contactos con el cerco: registry.suppliers.upsert is not in the AppRouter yet", async () => {});
-  test.fixme("[FL-006:pending] revocar opt-in o autorización: registry.consent.revoke is not in the AppRouter yet", async () => {});
-  test.fixme("[FL-088:pending] comportamiento del proveedor simulado: registry.supplierBehaviour.set is not in the AppRouter yet", async () => {});
+  test.fixme("[FL-001:pending] alta de importador con opt-in: the procedures are in the AppRouter and run over the UI server's world; the spec is WP-35's", async () => {});
+  test.fixme("[FL-003:pending] autorizar al agente a escribir al proveedor: the procedures are in the AppRouter and run over the UI server's world; the spec is WP-35's", async () => {});
+  test.fixme("[FL-004:pending] alta de proveedor y contactos con el cerco: the procedures are in the AppRouter and run over the UI server's world; the spec is WP-35's", async () => {});
+  test.fixme("[FL-006:pending] revocar opt-in o autorización: the procedures are in the AppRouter and run over the UI server's world; the spec is WP-35's", async () => {});
+  test.fixme("[FL-088:pending] comportamiento del proveedor simulado: the procedures are in the AppRouter and run over the UI server's world; the spec is WP-35's", async () => {});
 });
 
 const IMPORTERS = {

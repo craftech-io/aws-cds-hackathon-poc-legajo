@@ -61,13 +61,14 @@ export interface ServiceDeps extends KitDeps, ServicePorts {
   readonly demoRecipients: () => readonly string[];
   /** `Runtime`, where the guest-world quotas count (`QUOTA#<clockId>#<kind>#<window>`). */
   readonly quotaTable: TableClient;
-  readonly platform: PlatformOperations;
+  /** `create_operation` reads the platform's master data only. */
+  readonly platform: Pick<PlatformOperations, "get">;
   /** New ids of the parties the console registers (`imp-<id>`, `sup-<id>`, `ctc-<id>`). */
   readonly newId: () => string;
 }
 
 /** The dependencies of a Lambda: the stage's connector, keys and platform plus the ports its entry wires. */
-export function stageServiceDeps(ports: ServicePorts, options: { readonly platform?: PlatformOperations } = {}): ServiceDeps {
+export function stageServiceDeps(ports: ServicePorts, options: { readonly platform?: Pick<PlatformOperations, "get"> } = {}): ServiceDeps {
   const wallClock = () => new Date();
   return {
     ...ports,

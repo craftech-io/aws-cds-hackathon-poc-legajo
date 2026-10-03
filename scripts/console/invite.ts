@@ -15,7 +15,7 @@
 // password, the group of its broker row, and the row is bound to the new user's `sub` (the seed keeps
 // that binding across reloads).
 import { createHash, randomInt } from "node:crypto";
-import { chmodSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { BrokerId, FirmId, type ConsoleRole } from "@legajo/shared";
 import { GUEST_SLOTS } from "@legajo/shared/guest-limits";
@@ -99,7 +99,8 @@ export function generatePassword(length: number = PASSWORD_LENGTH): string {
 
 /** What the script needs of Cognito and of `Firms`; invite-cognito.ts talks to the real ones. */
 export interface InviteDeps {
-  findUser(username: string): Promise<{ readonly sub: string } | undefined>;
+  /** The user and its `custom:firmId` (absent on a user created without one). */
+  findUser(username: string): Promise<{ readonly sub: string; readonly firmId?: string } | undefined>;
   createUser(input: { readonly username: string; readonly firmId: string; readonly email?: string }): Promise<{ readonly sub: string }>;
   setPermanentPassword(username: string, password: string): Promise<void>;
   disableMfa(username: string): Promise<void>;
@@ -112,11 +113,17 @@ export interface InviteDeps {
   report(line: string): void;
 }
 
+/** An existing user of another firm is never bound to this firm's row nor added to its group. */
+function assertSameFirm(existing: { readonly firmId?: string } | undefined, username: string, firmId: string): void {
+  if (existing !== undefined && existing.firmId !== firmId) throw new RangeError(`${username} already exists for another firm; nothing was changed`);
+}
+
 export async function runInvite(plan: InvitePlan, deps: InviteDeps): Promise<void> {
   if (plan.kind === "BROKER") {
     const role = await deps.brokerRole(plan.firmId, plan.brokerId);
     if (role === "GUEST") throw new RangeError("a GUEST broker row is not invited by email");
     const existing = await deps.findUser(plan.username);
+    assertSameFirm(existing, plan.username, plan.firmId);
     const { sub } = existing ?? (await deps.createUser({ username: plan.username, firmId: plan.firmId, email: plan.email }));
     await deps.addToGroup(plan.username, role);
     await deps.bindBroker(plan.firmId, plan.brokerId, sub);
@@ -124,6 +131,7 @@ export async function runInvite(plan: InvitePlan, deps: InviteDeps): Promise<voi
     return;
   }
   const existing = await deps.findUser(plan.username);
+  assertSameFirm(existing, plan.username, plan.firmId);
   if (existing === undefined) await deps.createUser({ username: plan.username, firmId: plan.firmId });
   if (existing === undefined || plan.resetPassword) {
     const password = plan.password === "FROM_ENV" ? deps.guestTestPassword() : generatePassword();
@@ -137,12 +145,18 @@ export async function runInvite(plan: InvitePlan, deps: InviteDeps): Promise<voi
   deps.report(`${existing ? "kept" : "created"} ${plan.username} (GUEST of ${plan.firmId}; ${passwordNote})`);
 }
 
-/** Appends to the git-ignored credentials file, readable by the operator only. */
+/**
+ * Appends to the git-ignored credentials file, readable by the operator only: the new content goes to
+ * a fresh file created 0600 next to it and replaces the old one by rename, so the password is never in
+ * a file with wider permissions, not even for an instant.
+ */
 export function saveCredentialTo(path: string, username: string, firmId: string, password: string, now: Date): void {
   const current: Record<string, unknown> = existsSync(path) ? (JSON.parse(readFileSync(path, "utf8")) as Record<string, unknown>) : {};
   current[username] = { firmId, password, createdAt: now.toISOString(), login: "https://legajo.demo.craftech.io/login" };
-  writeFileSync(path, `${JSON.stringify(current, null, 2)}\n`, { mode: 0o600 });
-  chmodSync(path, 0o600);
+  const next = `${path}.${process.pid}.tmp`;
+  writeFileSync(next, `${JSON.stringify(current, null, 2)}\n`, { mode: 0o600, flag: "wx" });
+  chmodSync(next, 0o600);
+  renameSync(next, path);
 }
 
 async function main(): Promise<void> {

@@ -20,7 +20,7 @@ test.afterEach(() => {
   expect(blocked, "requests that tried to leave the machine").toEqual([]);
 });
 
-test.fixme("[FL-083:pending] simulador de teléfono against the real BFF: simulator.threads, sendText, tapButton, attachDocument and markRead are not in the AppRouter yet", async () => {});
+test.fixme("[FL-083:pending] simulador de teléfono against the real BFF: the procedures are in the AppRouter and run over the UI server's world; the spec is WP-35's", async () => {});
 
 const DOCS_REQUEST = {
   messageId: "msg-4471-1",

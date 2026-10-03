@@ -16,7 +16,7 @@
   --color-navy-soft: #16305a;
 
   --color-cyan: #12b5d9;
-  --color-cyan-deep: #0a7f99;
+  --color-cyan-deep: #09728a;
   --color-cyan-soft: #d8f4fa;
 
   --color-ink: #111a2b;
@@ -25,13 +25,13 @@
   --color-paper: #f5f7fa;
   --color-white: #ffffff;
 
-  --color-success: #1d8f5a;
+  --color-success: #18784c;
   --color-success-soft: #dff5ea;
-  --color-warning: #c98a12;
+  --color-warning: #91630d;
   --color-warning-soft: #fff1d6;
-  --color-danger: #c73a52;
+  --color-danger: #b3344a;
   --color-danger-soft: #fbe1e6;
-  --color-info: #2f6bd6;
+  --color-info: #2558b8;
   --color-info-soft: #e1eafb;
 
   /* Craftech's navy, for the text wordmark that stands in while its logo file is missing. */

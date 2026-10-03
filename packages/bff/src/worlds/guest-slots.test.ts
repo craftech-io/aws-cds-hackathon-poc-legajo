@@ -1,9 +1,12 @@
 // The leases of a guest world (ADR-0015 §4): one account takes one lease however many calls race, a
 // public slot is free or released at least 20 minutes ago, the 60 public slots can fill up, and a
-// stale creation is taken over. World creation itself (`GUEST_CREATE`) belongs to the world factory.
+// stale creation is taken over; `ensureWorld` over both leases queues one `GUEST_CREATE` per account.
 import { describe, expect, it } from "vitest";
 import { GUEST_SLOTS, GUEST_WORLD_CREATING_STALE_MINUTES, SLOT_RELEASE_COOLDOWN_MINUTES } from "@legajo/shared/guest-limits";
+import { sequentialIds } from "../connector/index";
 import { memoryStores } from "../connector/testing";
+import { type EnsureDeps, ensureGuestWorld } from "./guest-worlds";
+import { type WorldsHarness, worldsHarness } from "./testing";
 import { guestFirmOf, isPublicGuestFirm, leaseAccountWorld, leasePublicSlot, markAccountWorld, readAccountWorld, releaseSlot, slotOfFirm, worldStateOf } from "./guest-slots";
 
 const NOW = new Date("2026-10-14T13:30:00.000Z");
@@ -84,5 +87,44 @@ describe("[FL-109] a released slot", () => {
     expect(isPublicGuestFirm("firm-guest-test")).toBe(false);
     expect(slotOfFirm("firm-guest-07")).toBe(7);
     expect(slotOfFirm("firm-delta")).toBeUndefined();
+  });
+});
+
+describe("[FL-105] account.ensureWorld over both leases", () => {
+  const deps = (h: WorldsHarness, invoked: Array<{ target: string; payload: unknown }>): EnsureDeps => ({
+    client: h.stores.client,
+    cognito: { getUser: async () => undefined },
+    invoker: { invoke: async (target, payload) => void invoked.push({ target, payload }) },
+    now: () => h.realNow,
+    newUlid: sequentialIds("LEASE"),
+    log: h.deps.log,
+  });
+
+  it("30 ensureWorld at once with the same sub: one slot and one GUEST_CREATE", async () => {
+    const h = worldsHarness();
+    const invoked: Array<{ target: string; payload: unknown }> = [];
+    const shared = deps(h, invoked);
+    const answers = await Promise.allSettled(Array.from({ length: 30 }, () => ensureGuestWorld({ sub: "sub-a", username: "usr-a" }, shared)));
+    // Past 10 calls an hour the account gets QUOTA_EXCEEDED; every other call answers CREATING.
+    for (const answer of answers) {
+      if (answer.status === "fulfilled") expect(answer.value.state).toBe("CREATING");
+      else expect(answer.reason).toMatchObject({ kind: "WORLD_PREPARATIONS" });
+    }
+    expect(invoked.filter((call) => call.target === "WorldJanitor")).toHaveLength(1);
+    const leased = h.stores.client.dump("Runtime").filter((row) => String(row.PK).startsWith("SLOT#GUEST#"));
+    expect(leased).toHaveLength(1);
+  });
+
+  it("a CREATING lease older than 5 minutes is taken again with a new lease", async () => {
+    const h = worldsHarness();
+    const invoked: Array<{ target: string; payload: unknown }> = [];
+    const shared = deps(h, invoked);
+    await ensureGuestWorld({ sub: "sub-a", username: "usr-a" }, shared);
+    const first = await readAccountWorld(h.stores.client, "sub-a");
+    h.realNow = new Date(h.realNow.getTime() + (GUEST_WORLD_CREATING_STALE_MINUTES + 1) * 60_000);
+    await ensureGuestWorld({ sub: "sub-a", username: "usr-a" }, shared);
+    const second = await readAccountWorld(h.stores.client, "sub-a");
+    expect(second?.leaseId).not.toBe(first?.leaseId);
+    expect(invoked.filter((call) => call.target === "WorldJanitor")).toHaveLength(2);
   });
 });

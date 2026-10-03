@@ -21,7 +21,7 @@ export const PRIVACY_URL = `${SITE}${LEGAL_PAGE_PATHS.privacy}`;
 export const LOGO_URL = `${SITE}/brand/logo-craftech-color.png`;
 
 /** Console theme tokens (packages/web/src/index.css `--color-*`). */
-const C = { navy: "#0b1f3a", cyan: "#12b5d9", deep: "#0a7f99", ink: "#111a2b", slate: "#5a6a80", mist: "#e4e9f0", paper: "#f5f7fa", white: "#ffffff" } as const;
+const C = { navy: "#0b1f3a", cyan: "#12b5d9", deep: "#09728a", ink: "#111a2b", slate: "#5a6a80", mist: "#e4e9f0", paper: "#f5f7fa", white: "#ffffff" } as const;
 const SANS = "Inter,Segoe UI,Helvetica,Arial,sans-serif";
 const MONO = "SFMono-Regular,Menlo,Consolas,monospace";
 const TABLE = 'role="presentation" cellpadding="0" cellspacing="0" border="0"';

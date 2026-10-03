@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { CLOCK, FIRM } from "../connector/testing";
-import { type ConsoleWorld, DIEGO, PABLO, consoleWorld } from "./testing";
+import { shownAddress } from "./mailbox";
+import { type ConsoleWorld, DIEGO, PABLO, consoleWorld, principalOf, SUBS } from "./testing";
 
 const FIRM_MAILBOX = "estudio-delta@sim.legajo.demo.craftech.io";
 const SUPPLIER_MAILBOX = "supplier-qingdao@sim.legajo.demo.craftech.io";
@@ -32,5 +33,23 @@ describe("mailbox router", () => {
     expect(mail).toMatchObject({ subject: "Operation 4471", bodyText: "Documents requested", operationId: "op-4471" });
     await expect(world.caller(DIEGO).mailbox.get({ mailboxAddress: SUPPLIER_MAILBOX, mailboxMessageId: "m3" })).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(world.caller(PABLO).mailbox.get({ mailboxAddress: FIRM_MAILBOX, mailboxMessageId: "m1" })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("[FL-084] a mail without a world is shown only to a firm with one world; firm-qa never sees it", async () => {
+    const { conversations } = world.stores.connector;
+    await conversations.putMailboxMessage({ firmId: FIRM, from: "avisos@legajo.demo.craftech.io", subject: "Sin mundo", bodyText: "x", references: [], mailboxAddress: FIRM_MAILBOX, to: FIRM_MAILBOX, mailboxMessageId: "m4", receivedAtReal: "2026-09-26T15:03:00.000Z" });
+    expect((await world.caller(DIEGO).mailbox.list({})).mailboxes[0]?.messages.map((message) => message.mailboxMessageId)).toEqual(expect.arrayContaining(["m4"]));
+    await conversations.putMailboxMessage({ firmId: "firm-qa", from: "avisos@legajo.demo.craftech.io", subject: "Sin mundo", bodyText: "x", references: [], mailboxAddress: "estudio-qa@sim.legajo.demo.craftech.io", to: "estudio-qa@sim.legajo.demo.craftech.io", mailboxMessageId: "m5", receivedAtReal: "2026-09-26T15:03:00.000Z" });
+    const qa = principalOf("firm-qa", "BROKER", SUBS.diego, "brk-qa-runner");
+    await world.stores.connector.world.createClock({ clockId: "qa-812-sc01", firmId: "firm-qa", mode: "PAUSED", offsetMs: 0, pausedSimNow: "2026-10-14T10:30:00-03:00", startAtSim: "2026-10-14T10:30:00-03:00", worldEpoch: 1, settings: { rateLimitPerHour: 20 } });
+    const list = await world.caller(qa).mailbox.list({ clockId: "qa-812-sc01" });
+    expect(list.mailboxes.flatMap((mailbox) => mailbox.messages)).toEqual([]);
+  });
+
+  it("masks every address that is not one of ours", () => {
+    expect(shownAddress("supplier-qingdao@sim.legajo.demo.craftech.io")).toBe("supplier-qingdao@sim.legajo.demo.craftech.io");
+    expect(shownAddress("avisos@legajo.demo.craftech.io")).toBe("avisos@legajo.demo.craftech.io");
+    expect(shownAddress("buyer@example.com")).not.toContain("buyer");
+    expect(shownAddress("x@legajo.demo.craftech.io.example.com")).not.toBe("x@legajo.demo.craftech.io.example.com");
   });
 });

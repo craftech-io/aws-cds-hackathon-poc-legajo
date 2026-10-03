@@ -5,7 +5,7 @@ import { memoryStores } from "../connector/testing";
 import { createWorldJanitorHandler } from "../handlers/world-janitor";
 import { createLogger } from "../lib/log";
 import { agentCoreMemoryAdmin } from "./memory-admin";
-import { MEMORY_PURGE_INCOMPLETE_METRIC, type MemoryAdmin, MemoryPurgeEvent, type PurgeDeps, actorNamespace, purgeFirstPass, purgeRemainingPasses } from "./memory-purge";
+import { MEMORY_PURGE_INCOMPLETE_METRIC, type MemoryAdmin, MemoryPurgeEvent, type PurgeDeps, actorBelongsTo, actorNamespace, purgeFirstPass, purgeRemainingPasses } from "./memory-purge";
 
 const ACTOR = "imp-norpampa-e1";
 const SESSION = "c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00";
@@ -20,6 +20,10 @@ class FakeMemory implements MemoryAdmin {
 
   addRecord(namespace: string, id: string): void {
     this.records.set(namespace, [...(this.records.get(namespace) ?? []), id]);
+  }
+
+  listSessionIds(actorId: string) {
+    return Promise.resolve([...this.events.keys()].filter((key) => key.startsWith(`${actorId}/`)).map((key) => key.slice(actorId.length + 1)));
   }
 
   listEventIds(actorId: string, sessionId: string) {
@@ -62,6 +66,17 @@ describe("memory purge in repeated passes", () => {
   });
 
   const target = { clockId: "GLOBAL#firm-delta", epoch: 1, actorIds: [ACTOR], sessions: [{ actorId: ACTOR, sessionId: SESSION }] };
+
+  const janitor = () =>
+    createWorldJanitorHandler({
+      purge: deps(),
+      worlds: () => {
+        throw new Error("no world event in these cases");
+      },
+      sweep: () => {
+        throw new Error("no sweep in these cases");
+      },
+    });
 
   beforeEach(() => {
     memory = new FakeMemory();
@@ -107,8 +122,38 @@ describe("memory purge in repeated passes", () => {
     expect(lines.filter((line) => line.includes(MEMORY_PURGE_INCOMPLETE_METRIC))).toHaveLength(1);
   });
 
+  it("one last listing before giving up: a purge whose previous listing emptied Memory is complete", async () => {
+    const { target: started } = await purgeFirstPass(deps(), target);
+    let late = 0;
+    // Records keep arriving until just before the cap, then stop.
+    memory.onListing = () => {
+      if (nowMs - Date.parse(START) < 9 * 60_000) memory.addRecord(`${actorNamespace(ACTOR)}facts/`, `rec-late-${(late += 1)}`);
+    };
+    const outcome = await purgeRemainingPasses(deps(), started);
+    expect(outcome.complete).toBe(true);
+    expect(await stores.connector.audit.listByDecision("firm-delta", "ACTION")).toEqual([]);
+  });
+
+  it("purges the sessions Memory lists for an actor, also those the caller did not name", async () => {
+    memory.events.set(`${ACTOR}/other-session-1`, ["evt-9"]);
+    const first = await purgeFirstPass(deps(), target);
+    expect(first.deleted).toBe(5);
+    expect(memory.events.get(`${ACTOR}/other-session-1`)).toEqual([]);
+  });
+
+  it("never purges an actor of another world or epoch, whatever the event lists", async () => {
+    const event = { kind: "MEMORY_PURGE", ...target, startedAtReal: START };
+    await expect(janitor()({ ...event, actorIds: ["imp-norpampa-e2"] })).rejects.toThrow(/do not belong/);
+    await expect(janitor()({ ...event, clockId: "qa-812-sc16", actorIds: ["imp-qa-999-sc16-a-e1"], sessions: [] })).rejects.toThrow(/do not belong/);
+    await expect(janitor()({ ...event, clockId: "GUEST#firm-guest-41", actorIds: ["imp-norpampa-g03-e1"], sessions: [] })).rejects.toThrow(/do not belong/);
+    expect(actorBelongsTo("GUEST#firm-guest-41", 1, "imp-norpampa-g41-e1")).toBe(true);
+    expect(actorBelongsTo("qa-812-sc16", 2, "imp-qa-812-sc16-a-e2")).toBe(true);
+    expect(actorBelongsTo("GLOBAL#firm-qa", 3, "imp-qa-firmqa-min-a-e3")).toBe(true);
+    expect(actorBelongsTo("GLOBAL#firm-delta", 1, "imp-qa-firmqa-min-a-e1")).toBe(false);
+  });
+
   it("runs in WorldJanitor only for a well-formed MEMORY_PURGE event", async () => {
-    const handler = createWorldJanitorHandler(deps());
+    const handler = janitor();
     await expect(handler({ kind: "RESET", ...target, startedAtReal: START })).rejects.toThrow();
     await expect(handler({ kind: "MEMORY_PURGE", ...target, startedAtReal: START, extra: 1 })).rejects.toThrow();
     await expect(handler({ kind: "MEMORY_PURGE", ...target, actorIds: ["../../other"], startedAtReal: START })).rejects.toThrow();
@@ -120,7 +165,7 @@ describe("memory purge in repeated passes", () => {
     expect(MemoryPurgeEvent.safeParse(event).success).toBe(true);
     expect(MemoryPurgeEvent.safeParse({ ...event, sessions: undefined, sessionIds: [SESSION] }).success).toBe(false);
     const arrivedAt = nowMs;
-    expect(await createWorldJanitorHandler(deps())(event)).toMatchObject({ complete: true, deleted: 4 });
+    expect(await janitor()(event)).toMatchObject({ complete: true, deleted: 4 });
     expect(nowMs - arrivedAt).toBeLessThanOrEqual(10 * 60_000);
   });
 });

@@ -92,8 +92,8 @@ describe("SignupDispatch (ADR-0015 §1.1 and §1.2)", () => {
 });
 
 describe("signupGrants (Bff by WP-32, WorldJanitor here, QaDriver by WP-32)", () => {
-  it("gives the BFF the table, both functions, the origin key, its Cognito admin reads and its Runtime keys", () => {
-    expect(SIGNUP_GRANT_LINKS.Bff).toEqual(["Leads", "SignupDispatch", "LeadNotice", "OriginVerifyKey"]);
+  it("gives the BFF the table, both functions, the origin key, the guest objects, its Cognito admin reads and its Runtime keys", () => {
+    expect(SIGNUP_GRANT_LINKS.Bff).toEqual(["Leads", "SignupDispatch", "LeadNotice", "OriginVerifyKey", "GuestObjects"]);
     expect(SIGNUP_GRANT_STATEMENTS.Bff).toEqual(["leads", "cognito", "signupRuntime"]);
     expect(cognitoActions("Bff")).toEqual([...CAPABILITIES.SIGNUP_ADMIN.actions].sort());
     const runtime = signupRuntimeStatement("arn:runtime");
@@ -122,8 +122,8 @@ describe("signupGrants (Bff by WP-32, WorldJanitor here, QaDriver by WP-32)", ()
     expect(architecture).toContain("`s3:DeleteObject` y `s3:ListBucket` sobre `guest/*` de `Documents` y `Media`, `uploads/*` de `Uploads` y `poc/ops/*`, `poc/sim/*` del bucket de correo");
   });
 
-  it("gives the QaDriver only the SC-26 actions: its leads, the codes of poc/sim/ and three Cognito calls", () => {
-    expect(SIGNUP_GRANT_LINKS.QaDriver).toEqual(["Leads", "InboundMailSim"]);
+  it("gives the QaDriver only the SC-26 actions (its leads, the codes of poc/sim/ and three Cognito calls) and the guest objects of world.destroy", () => {
+    expect(SIGNUP_GRANT_LINKS.QaDriver).toEqual(["Leads", "InboundMailSim", "GuestObjects"]);
     expect(SIGNUP_GRANT_STATEMENTS.QaDriver).toEqual(["leads", "cognito", "qaSignupMail"]);
     expect(QA_SIGNUP_MAIL_PREFIX).toBe("poc/sim/");
     expect(qaSignupMailStatements("mail")).toEqual([

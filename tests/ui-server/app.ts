@@ -1,8 +1,11 @@
 // The back half of the local UI server (docs/test-plan.md §2 and §3, level UI): the real `appRouter`
 // behind `/api`, the real `PublicWeb` handler behind `/u`, the S3 emulator behind `/s3`, all over one
-// in-memory world, plus the sign-up: `signup.*` with `SignupDispatch` in process, `Leads` in memory,
-// `LeadNotice` recorded, a user pool that runs the real Cognito triggers (tests/ui-server/auth/) and the
-// stand-in of `account.ensureWorld` / `account.world` until WP-31 registers them. There is no WAF and
+// in-memory world, with the console's mutations over the real handlers (console-services.ts), plus
+// the sign-up: `signup.*` with `SignupDispatch` in process, `Leads` in memory, `LeadNotice` recorded,
+// a user pool that runs the real Cognito triggers (tests/ui-server/auth/) and the real
+// `account.ensureWorld` / `account.world` with `WorldJanitor` in process: every guest world, the
+// persona's reserved `firm-guest-01` and each signed-up visitor's, is the seed's `guest` template built
+// by the real world factory (auth/guest-world.ts). There is no WAF and
 // no OAC here: this server adds what CloudFront would (`X-Origin-Verify`, a `CloudFront-Viewer-Address`)
 // and checks `x-amz-content-sha256` when a request carries it, as Lambda does behind OAC. Id tokens are
 // checked by the BFF's real verifier against the JWKS this entry pins (the Playwright run's key and the
@@ -16,18 +19,18 @@ import { createMemoryStores, type MemoryStores } from "@legajo/bff/connector/ind
 import { createLogger } from "@legajo/bff/lib/log";
 import { createPublicWebHandler } from "@legajo/bff/public-web/handler";
 import { s3PdfPresigner } from "@legajo/bff/public-web/presign";
-import { accountRouter } from "@legajo/bff/routers/account";
 import type { ContextDeps } from "@legajo/bff/routers/deps";
 import { createHandler } from "@legajo/bff/routers/handler";
 import { appRouter } from "@legajo/bff/routers/index";
-import { seedConsoleWorld } from "@legajo/bff/routers/testing";
-import { createContextFactory, mergeRouters, router } from "@legajo/bff/routers/trpc";
-import type { AnyTRPCRouter } from "@trpc/server";
+import { bindConsoleServices } from "@legajo/bff/routers/console-services";
+import { GUEST_FIRM, SUBS, seedConsoleWorld } from "@legajo/bff/routers/testing";
+import { createContextFactory } from "@legajo/bff/routers/trpc";
 import type { Context as LambdaContext } from "aws-lambda";
 import type { Jwks } from "aws-jwt-verify/jwk";
 import { type LocalAccess, createLocalAccess } from "./auth/access";
 import { BrowserCognito } from "./auth/browser-api";
-import { type GuestWorlds, createGuestWorlds } from "./auth/guest-world";
+import { type GuestWorlds, createGuestWorlds, withGuestWorlds } from "./auth/guest-world";
+import { type LocalConsoleServices, createLocalConsoleServices } from "./console-services";
 import { handleTestRoute } from "./auth/test-routes";
 import { createTokenIssuer } from "./auth/token-issuer";
 import { realPreToken } from "./auth/triggers";
@@ -54,6 +57,8 @@ export interface UiApp {
   readonly access: LocalAccess;
   readonly cognito: BrowserCognito;
   readonly worlds: GuestWorlds;
+  /** The console's mutations in process: what a worker would have received, and the simulator's envelopes. */
+  readonly console: LocalConsoleServices;
   /** Answers `/api`, `/u`, `/s3` and the test-only routes; false for anything else (the caller hands it to Vite). */
   handle(request: IncomingMessage, response: ServerResponse): Promise<boolean>;
 }
@@ -111,13 +116,6 @@ async function handleS3(request: IncomingMessage, response: ServerResponse, obje
   response.writeHead(204).end();
 }
 
-/** The console's router plus the stand-in of `account.ensureWorld`/`account.world` while the real ones are missing. */
-function routerWith(worlds: GuestWorlds): AnyTRPCRouter {
-  const procedures = appRouter._def.procedures as Readonly<Record<string, unknown>>;
-  if ("account.ensureWorld" in procedures && "account.world" in procedures) return appRouter;
-  return router({ ...appRouter._def.record, account: mergeRouters(accountRouter, worlds.router) });
-}
-
 /** What CloudFront adds behind the Router, and Lambda's check of a signed body (ADR-0015 §3.1). */
 function edgeHeaders(request: IncomingMessage, body: Buffer, originKey: string): { readonly ok: boolean } {
   const claimed = request.headers[CONTENT_SHA256_HEADER];
@@ -133,20 +131,24 @@ function edgeHeaders(request: IncomingMessage, body: Buffer, originKey: string):
 export async function createUiApp(options: UiAppOptions): Promise<UiApp> {
   const now = options.now ?? (() => new Date());
   const stores = createMemoryStores({ now });
-  await seedConsoleWorld(stores, { guestWorld: true });
+  await seedConsoleWorld(stores);
+  const worlds = createGuestWorlds(stores, now);
+  await worlds.seedReserved(GUEST_FIRM, SUBS.guest);
   const objects = new ObjectStore();
   const issuer = createTokenIssuer(options.pool);
   const verifier = createCognitoIdTokenVerifier(options.pool, { jwks: { keys: [...options.jwks.keys, ...issuer.jwks.keys] } as Jwks });
   const access = createLocalAccess(stores, options.pool.userPoolId, options.origin, now);
   const cognito = new BrowserCognito(access.pool, issuer, realPreToken(stores, options.pool.userPoolId), now);
-  const worlds = createGuestWorlds(stores, now);
+  const accessDeps = withGuestWorlds(access.deps, worlds);
+  const local = createLocalConsoleServices(stores, now, s3PdfPresigner({ bucket: LOCAL_BUCKETS.media, client: emulatorClient(options.origin), origin: options.origin }));
+  const consoleDeps = bindConsoleServices(contextDeps(verifier, options, stores, now), local.services);
   const originKey = randomBytes(32).toString("base64");
   const edge = { originVerifyKey: () => originKey };
   const bff = createHandler(
-    routerWith(worlds),
+    appRouter,
     createContextFactory(
-      () => contextDeps(verifier, options, stores, now),
-      () => access.deps,
+      () => consoleDeps,
+      () => accessDeps,
     ),
     edge,
   );
@@ -168,6 +170,7 @@ export async function createUiApp(options: UiAppOptions): Promise<UiApp> {
     access,
     cognito,
     worlds,
+    console: local,
     async handle(request, response) {
       const path = new URL(request.url ?? "/", "http://ui-server.local").pathname;
       if (path === "/api" || path.startsWith("/api/") || path.startsWith("/u/")) {

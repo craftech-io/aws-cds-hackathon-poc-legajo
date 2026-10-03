@@ -7,8 +7,7 @@
     },
     "console-simulator": {
       "view": "/app/simulator",
-      "moment": "after-delegate",
-      "pending": "The console's simulator procedures (simulator.*) are not registered in the appRouter yet (routers/index.ts): the view answers 'No encontramos lo que buscabas'. Capture it once they are (WP-33)."
+      "moment": "after-delegate"
     },
     "console-mailbox": {
       "view": "/app/mailbox",

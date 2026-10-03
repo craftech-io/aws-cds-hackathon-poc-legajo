@@ -337,14 +337,14 @@ describe("Bff and PublicWeb behind the Router (ADR-0015 §3.1)", () => {
     expect(created).not.toHaveProperty("environment");
   });
 
-  it("Bff: its data, the platform mock, the Router-side secret and the signup grants; it invokes only its four functions and sends nothing", async () => {
+  it("Bff: its data, the platform mock, the Router-side secret and the signup grants; it invokes only its five functions and sends nothing", async () => {
     const created = await fnArgs("Bff");
     expect(linkNames(created.link)).toEqual([
       ...stored("Bff"),
-      ...["PlatformMock", "Platform", "Auth", "ChannelModes", "SessionTokenKey", "Scheduler", "Agent", "OperationEvents", "InboundWhatsApp", "WorldJanitor"],
-      ...["Leads", "SignupDispatch", "LeadNotice", "OriginVerifyKey"],
+      ...["PlatformMock", "Platform", "Auth", "ChannelModes", "SessionTokenKey", "Scheduler", "Agent", "OperationEvents", "InboundWhatsApp", "SimMail", "WorldJanitor"],
+      ...["Leads", "SignupDispatch", "LeadNotice", "OriginVerifyKey", "GuestObjects"],
     ]);
-    expect(invoked(created.link).sort()).toEqual(["InboundWhatsApp", "LeadNotice", "SignupDispatch", "WorldJanitor"]);
+    expect(invoked(created.link).sort()).toEqual(["InboundWhatsApp", "LeadNotice", "SignupDispatch", "SimMail", "WorldJanitor"]);
     expect(created.permissions?.slice(1)).toEqual([leadsStatement("Bff", "LeadsData.arn"), cognitoStatement("Bff", "UserPool.arn"), signupRuntimeStatement("Runtime.arn")]);
   });
 
@@ -377,7 +377,7 @@ describe("QaDriver (ADR-0005, docs/test-plan.md §4.1)", () => {
       ...stored("QaDriver"),
       ...["ReaderMock", "PlatformMock", "ReaderCatalog", "Platform", "EmailSenderQa", "InboundMailOps"],
       ...["Auth", "ChannelModes", "SessionTokenKey", "Scheduler", "Agent", "GuardrailG1", "OperationEvents", "OperationEventsDlq"],
-      ...["InboundEmail", "SimMail", "InboundWhatsApp", "PolicyAudit", "WorldJanitor", "Leads", "InboundMailSim", "DlqAlarm"],
+      ...["InboundEmail", "SimMail", "InboundWhatsApp", "PolicyAudit", "WorldJanitor", "Leads", "InboundMailSim", "GuestObjects", "DlqAlarm"],
     ]);
     expect(created.permissions?.[0]?.conditions).toEqual([{ test: "ForAllValues:StringLike", variable: "dynamodb:LeadingKeys", values: ["POP#firm-qa#*", "POP#firm-sim#*", "POP#firm-guest-test#*"] }]);
     expect(created.permissions?.slice(1)).toEqual([leadsStatement("QaDriver", "LeadsData.arn"), cognitoStatement("QaDriver", "UserPool.arn"), ...qaSignupMailStatements("mail")]);

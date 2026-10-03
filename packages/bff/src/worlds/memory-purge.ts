@@ -14,13 +14,16 @@
 // From the console and the `QaDriver` passes 2+ run in `WorldJanitor` (asynchronous invocation with
 // `MEMORY_PURGE`); `seed:load` and the nightly job run every pass in the same process.
 import { z } from "zod";
-import { ClockId } from "@legajo/shared";
+import { ClockId, QA_GLOBAL_CLOCK_ID, parseClockId } from "@legajo/shared";
 import { firmOfClockId } from "../auth/scope";
 import type { Connector } from "../connector/index";
 import type { Logger } from "../lib/log";
+import { QA_MIN_IMPORTER_PREFIX, guestTagOf } from "./world-ids";
 
 /** What the purge needs from Memory; the adapter pages through every listing (memory-admin.ts). */
 export interface MemoryAdmin {
+  /** Every session the actor has in Memory (`ListSessions`): a session the caller did not name is purged too. */
+  listSessionIds(actorId: string): Promise<string[]>;
   listEventIds(actorId: string, sessionId: string): Promise<string[]>;
   deleteEvent(actorId: string, sessionId: string, eventId: string): Promise<void>;
   /** Records in every namespace under the prefix (`/importers/<actorId>/`: preferences, facts and summaries). */
@@ -77,10 +80,35 @@ export interface PurgeDeps {
   readonly sleep: (ms: number) => Promise<void>;
 }
 
+/**
+ * Whether `actorId` is an actor of the world of `clockId` in `epoch` (docs/architecture.md §9.1,
+ * turns/identity.ts): `<importerId>-e<epoch>`, and in a QA run an importer of that run and scenario.
+ * `WorldJanitor` purges nothing else, whatever the event lists.
+ */
+export function actorBelongsTo(clockId: string, epoch: number, actorId: string): boolean {
+  const suffix = `-e${epoch}`;
+  if (!actorId.startsWith("imp-") || !actorId.endsWith(suffix)) return false;
+  const importerId = actorId.slice(0, -suffix.length);
+  const parsed = parseClockId(clockId);
+  if (parsed?.scope === "QA") return importerId.startsWith(`imp-${clockId}-`);
+  if (parsed?.scope === "GUEST") return importerId.endsWith(`-${guestTagOf(parsed.firmId ?? "")}`);
+  if (clockId === QA_GLOBAL_CLOCK_ID) return importerId.startsWith(QA_MIN_IMPORTER_PREFIX);
+  return !importerId.startsWith("imp-qa-");
+}
+
+/** Sessions of the target plus every other session Memory lists for its actors. */
+async function sessionsOf(memory: MemoryAdmin, target: Pick<PurgeTarget, "actorIds" | "sessions">): Promise<Array<{ actorId: string; sessionId: string }>> {
+  const seen = new Map(target.sessions.map((session) => [`${session.actorId}/${session.sessionId}`, session]));
+  for (const actorId of target.actorIds) {
+    for (const sessionId of await memory.listSessionIds(actorId)) seen.set(`${actorId}/${sessionId}`, { actorId, sessionId });
+  }
+  return [...seen.values()];
+}
+
 /** Lists and deletes everything of the target once; how many items it found. */
 export async function purgePass(memory: MemoryAdmin, target: Pick<PurgeTarget, "actorIds" | "sessions">): Promise<number> {
   let found = 0;
-  for (const { actorId, sessionId } of target.sessions) {
+  for (const { actorId, sessionId } of await sessionsOf(memory, target)) {
     const events = await memory.listEventIds(actorId, sessionId);
     found += events.length;
     for (const eventId of events) await memory.deleteEvent(actorId, sessionId, eventId);
@@ -127,6 +155,8 @@ async function recordIncomplete(deps: PurgeDeps, target: PurgeTarget, outcome: O
 /** Pass 2 and the listings until two in a row are empty, within the cap. */
 export async function purgeRemainingPasses(deps: PurgeDeps, raw: PurgeTarget): Promise<PurgeOutcome> {
   const target = PurgeTarget.parse(raw);
+  const foreign = [...target.actorIds, ...target.sessions.map((session) => session.actorId)].filter((actorId) => !actorBelongsTo(target.clockId, target.epoch, actorId));
+  if (foreign.length > 0) throw new RangeError(`${foreign.length} actor(s) of the purge do not belong to ${target.clockId} in epoch ${target.epoch}`);
   const deadline = Date.parse(target.startedAtReal) + PURGE_TIMING.capMs;
   let passes = 0;
   let deleted = 0;
@@ -135,6 +165,11 @@ export async function purgeRemainingPasses(deps: PurgeDeps, raw: PurgeTarget): P
   while (emptyInARow < PURGE_TIMING.emptyListingsToStop) {
     const wakeAt = deps.now().getTime() + wait;
     if (wakeAt > deadline) {
+      // One last listing right away: the previous one may have deleted the last of it.
+      const last = await purgePass(deps.memory, target);
+      passes += 1;
+      deleted += last;
+      if (last === 0) break;
       await recordIncomplete(deps, target, { passes, deleted });
       return { complete: false, passes, deleted };
     }

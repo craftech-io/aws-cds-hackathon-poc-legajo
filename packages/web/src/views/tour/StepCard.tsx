@@ -1,5 +1,5 @@
 // One step of the guided tour in the panel: its buttons (in order; a move that changes the world
-// waits for a quiet one), what to look at with the hours read from the world, how long to wait, the
+// waits for a quiet one), what to look at with the hours read from the world (`tour.steps`), how long to wait, the
 // English gloss of the Spanish message it produces, and a link to the view where it shows.
 import { Button } from "../../components/Button";
 import { TOUR_TEXTS } from "./copy";
@@ -9,7 +9,10 @@ import { type TourClock, type TourProgress, moveGate, nextEventAt, resolveTourTi
 interface StepCardProps {
   readonly step: TourStep;
   readonly lang: TourLang;
+  /** The world's `clock.get`: where "Avanzar al próximo evento" lands. */
   readonly clock: TourClock | undefined;
+  /** `tour.steps`: every pending timer of 4471, the hours of "Qué mirar". */
+  readonly times: TourClock | undefined;
   readonly progress: TourProgress;
   readonly busy: boolean;
   readonly running: boolean;
@@ -18,7 +21,7 @@ interface StepCardProps {
   readonly onGoTo: (step: TourStep) => void;
 }
 
-export function StepCard({ step, lang, clock, progress, busy, running, gloss, onMove, onGoTo }: StepCardProps) {
+export function StepCard({ step, lang, clock, times, progress, busy, running, gloss, onMove, onGoTo }: StepCardProps) {
   const texts = TOUR_TEXTS[lang];
   const next = nextEventAt(clock);
   const blockedByBusy = step.moves.some((_, index) => moveGate(step, index, progress, busy) === "busy");
@@ -49,7 +52,7 @@ export function StepCard({ step, lang, clock, progress, busy, running, gloss, on
       {step.moves.some((move) => move.action.kind === "advanceToNext") && next ? <p className="text-xs text-slate">{texts.lands(formatTourTime(next, AR_ZONE, lang))}</p> : null}
       <section aria-label={texts.look}>
         <h4 className="text-xs font-semibold tracking-wide text-slate uppercase">{texts.look}</h4>
-        <p className="mt-1 text-sm text-ink">{lookText(step, lang, (_name, time) => resolveTourTime(clock, time))}</p>
+        <p className="mt-1 text-sm text-ink">{lookText(step, lang, (_name, time) => resolveTourTime(times, time))}</p>
       </section>
       <p className="text-sm">
         <span className="font-semibold text-slate">{texts.wait}:</span> {step.wait[lang]}

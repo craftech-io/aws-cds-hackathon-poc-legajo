@@ -4,6 +4,7 @@ import type { Message } from "../domain/conversations";
 import { REAL_NOW, START_SIM } from "../connector/testing";
 import { testDocumentUrls } from "../auth/testing";
 import { createLogger } from "../lib/log";
+import { consoleServiceWorld } from "../routers/console-testing";
 import { buildHandlers, type HandlerDeps } from "./handlers";
 import { type QaPorts, unwiredPorts } from "./ports";
 import { QA_CLOCK, driverUnderTest, key, qaDriverStores } from "./testing";
@@ -55,7 +56,10 @@ function deps(overrides: Partial<HandlerDeps> = {}, ports: QaPorts = unwiredPort
 
 async function setup(overrides: Partial<HandlerDeps> = {}, ports?: QaPorts) {
   const stores = await qaDriverStores();
-  const handlers = buildHandlers(deps({ table: stores.client, ...overrides }, ports));
+  // The console's mutations over the same stores (routers/console-testing.ts): real handlers, recorded AWS edges.
+  const { services } = await consoleServiceWorld({ stores });
+  const base = deps({ table: stores.client, ...overrides }, ports);
+  const handlers = buildHandlers({ ...base, console: { ...base.console, services } });
   return driverUnderTest(handlers, stores);
 }
 
@@ -102,7 +106,7 @@ describe("QaDriver actions over stored state", () => {
     const list = await driver({ action: "console", idempotencyKey: key(5, "b"), input: { procedure: "operations.list", input: { clockId: QA_CLOCK } } });
     expect(list).toMatchObject({ ok: true, result: { clockId: QA_CLOCK, operations: [{ operationId: "op-7001" }] } });
     expect(await driver({ action: "console", idempotencyKey: key(5, "c"), input: { procedure: "operations.get", input: { operationId: "op-4471" } } })).toMatchObject({ ok: false, error: { code: "FORBIDDEN", reason: "CROSS_FIRM" } });
-    expect(await driver({ action: "console", idempotencyKey: key(5, "d"), input: { procedure: "dossier.approve", input: { operationId: "op-7001" } } })).toMatchObject({ ok: false, error: { code: "NOT_FOUND" } });
+    expect(await driver({ action: "console", idempotencyKey: key(5, "d"), input: { procedure: "dossier.approve", input: { operationId: "op-7001" } } })).toMatchObject({ ok: false, error: { code: "CONFLICT", reason: "NOT_READY_FOR_REVIEW" } });
     expect(await driver({ action: "metrics.get", idempotencyKey: key(5, "e"), input: { clockId: QA_CLOCK } })).toMatchObject({ ok: true, result: { usage: { dossiers: 0, turns: 0 } } });
   });
 

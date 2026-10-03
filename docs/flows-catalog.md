@@ -56,7 +56,7 @@ Convenciones:
 - Pasos: `revoke_consent` / `authorize_supplier_contact(off)`; el siguiente envío del agente se deniega.
 - Estado esperado: `revokedAt`; `AuditLog DENY CP-OPTOUT` o `CP-SUPPLIER-AUTH` en el siguiente intento.
 - Reglas: `CP-OPTOUT`, `CP-SUPPLIER-AUTH`.
-- Prueba: U `policy/engine.test.ts` · UI `registry.spec.ts` · SR `SC-16/5`.
+- Prueba: U `policy/engine.test.ts`, `routers/registry.test.ts` · UI `registry.spec.ts` · SR `SC-16/5`.
 
 ## Área B · Pedido inicial y WhatsApp del importador
 
@@ -453,7 +453,7 @@ Convenciones:
 - Pasos: 1) `reschedule_on_eta_change`: 5 `dueAtSim` nuevos, `UpdateSchedule`, `version + 1`. 2) Turno `ETA_CHANGED`: `send_whatsapp ETA_CHANGE` (plantilla `legajo_nuevo_plazo`) y, si hay pedido abierto al proveedor, `send_email ETA_CHANGE` con el nuevo plazo en su zona.
 - Estado esperado: `META.eta`, `etaHistory`; hitos reprogramados; salientes con el nuevo plazo de `get_dossier`.
 - Reglas: `CP-HOURS-*`, verificación de plazos.
-- Prueba: U `milestones/reschedule.test.ts` · LF `eta.flow.test.ts` · SR `SC-10/1..3`.
+- Prueba: U `milestones/reschedule.test.ts`, `routers/clock.test.ts` · LF `eta.flow.test.ts` · SR `SC-10/1..3`.
 
 ### FL-062 · La ETA se atrasa
 - Actores: igual que FL-061 · Disparador: 22/10 → 26/10.
@@ -478,7 +478,7 @@ Convenciones:
 - Pasos: `advance_clock` (`docs/architecture.md` §8) o `fire_milestone (MANUAL)`; "Avanzar al próximo evento" llega al próximo temporizador de cualquier tipo (hito, envío diferido, seguimiento, respuesta del simulador, reintento). La línea de tiempo muestra cada pendiente con su motivo y un "Avanzar hasta ahí". Con el mundo ocupado (turno, evento, email en tránsito hasta que el simulador lo procesa, escaneo) los controles están deshabilitados y el BFF devuelve `WORLD_BUSY` con lo que falta; "Avanzar igual" aparece a los 5 minutos. En `RUNNING`, cada movimiento resincroniza los schedules.
 - Estado esperado: hora simulada mayor, solo con el mundo quieto; temporizadores vencidos `FIRED (CLOCK)` en orden con `eventAtSim = dueAtSim`; en un mundo `PAUSED` no hay schedules reales y la hora no se mueve sola (10 minutos reales sin cambio); en uno `RUNNING`, schedules en el horizonte de 1 h y vuelta a `PAUSED` a los 30 minutos.
 - Reglas: Δ ≤ 14 días; el reloj no retrocede.
-- Prueba: U `clock/advance.test.ts` · UI `clock.spec.ts` · SR `SC-01/2`, `SC-20/9`, `SC-24/4` · SMK `SMK/4`. Notas: `SC-01/2` y `SMK/4`: paso de prueba del Scheduler; `SC-20/9`: mundo en pausa.
+- Prueba: U `clock/advance.test.ts`, `routers/clock.test.ts` · UI `clock.spec.ts` · SR `SC-01/2`, `SC-20/9`, `SC-24/4` · SMK `SMK/4`. Notas: `SC-01/2` y `SMK/4`: paso de prueba del Scheduler; `SC-20/9`: mundo en pausa.
 
 ## Área H · Escalamiento y traspaso
 
@@ -623,13 +623,13 @@ Convenciones:
 - Actores: despachante (`BROKER`) o invitado (`GUEST`) · Canal: consola · Disparador: "Reiniciar demo" (o `IDLE_GUEST_RESET`, el trabajo nocturno de las 04:00 sobre los mundos reservados sin actividad en 24 h).
 - Pasos: `reset_demo_world` sobre el mundo del usuario: incrementa `worldEpoch` (nunca vuelve atrás; una recarga del seed hace lo mismo), deja la tumba de la época anterior, borra sus items y schedules, borra y reescribe sus filas de `Platform`, recarga su plantilla del seed, reloj en pausa al inicio; borra los eventos y registros de Memory de los actores de la época anterior. Ningún otro mundo cambia.
 - Estado esperado: mundo igual a su plantilla, incluida la ETA de la plataforma; direcciones de operación con etiqueta nueva; el primer turno después del reinicio recupera 0 registros de Memory y no menciona mensajes anteriores; 1 reinicio cada 10 min por reloj y, en mundos de invitado, 12 por día (`QUOTA_EXCEEDED`, FL-111; el principal QA está exento).
-- Prueba: U `clock/reset.test.ts`, `worlds/worlds.test.ts`, `worlds/guest-worlds.test.ts`, `scripts/seed/__tests__/load.test.ts` · UI `clock.spec.ts` · SR `SC-20/5`, `SC-20/9`, `SC-25/4..5`. Notas: `GLOBAL#firm-qa`; `worlds/guest-worlds.test.ts` cubre `IDLE_GUEST_RESET`: reinicia solo los mundos reservados sin actividad en 24 h y nunca uno público; `SC-25`: reinicio por la consola del invitado con la ETA de `Platform` restaurada.
+- Prueba: U `clock/reset.test.ts`, `worlds/worlds.test.ts`, `worlds/guest-worlds.test.ts`, `scripts/seed/__tests__/load.test.ts`, `routers/clock.test.ts` · UI `clock.spec.ts` · SR `SC-20/5`, `SC-20/9`, `SC-25/4..5`. Notas: `GLOBAL#firm-qa`; `worlds/guest-worlds.test.ts` cubre `IDLE_GUEST_RESET`: reinicia solo los mundos reservados sin actividad en 24 h y nunca uno público; `SC-25`: reinicio por la consola del invitado con la ETA de `Platform` restaurada.
 
 ### FL-088 · Comportamiento del proveedor simulado
 - Actores: analista, invitado · Canal: consola · Disparador: Registro → proveedor → "Comportamiento simulado".
 - Pasos: elegir `PROMPT`, `SEEDED_ERROR`, `LATE`, etc. para una operación.
 - Estado esperado: `Operations/META.simBehaviour`; el simulador responde según eso, pero solo a correo nuestro verificado (`dmarcVerdict PASS`, `From` de la operación o `avisos@`, `Message-ID` de un saliente registrado para ese buzón); cualquier otro correo a un buzón simulado se descarta con `SIM_UNTRUSTED`, sin respuesta ni `MailboxMessage`.
-- Prueba: U `sim-mail/supplier-simulator.test.ts`, `sim-mail/guard.test.ts` · UI `registry.spec.ts` · SR `SC-02/1`, `SC-15/10`. Notas: `supplier.setBehaviour` en SC-02..SC-05; `SC-15/10`: correo que `SimMail` descarta.
+- Prueba: U `sim-mail/supplier-simulator.test.ts`, `sim-mail/guard.test.ts`, `routers/registry.test.ts` · UI `registry.spec.ts` · SR `SC-02/1`, `SC-15/10`. Notas: `supplier.setBehaviour` en SC-02..SC-05; `SC-15/10`: correo que `SimMail` descarta.
 
 ### FL-089 · Landing comercial bilingüe y páginas legales
 - Actores: visitante · Canal: web · Disparador: `/`, `/?lang=en`, `/legal/privacy.html`, `/legal/terms.html`.
@@ -773,7 +773,7 @@ Diseño en ADR-0015; números en `packages/shared/src/guest-limits.ts` (fuente �
 - Pasos: el contador `Runtime/QUOTA#<clockId>#<tipo>#<ventana>` rechaza con condición de tope → `QUOTA_EXCEEDED {kind, resetsAtReal}`; los turnos los corta el worker con `Firms/SETTINGS.turnCaps` del estudio `GUEST`; los emails, la regla `CP-WORLD-QUOTA` del pipeline (`DENY` auditado); la consola muestra "Llegaste al límite de esta demo por hoy; se renueva a las HH:MM" y deshabilita las acciones afectadas con el motivo; `account.usage` alimenta el indicador; el presupuesto global agotado → `QUOTA_EXCEEDED {kind: "GLOBAL"}` hasta las 00:00 UTC y alarma `GuestBudgetHits`.
 - Estado esperado: ningún efecto de la acción rechazada; métrica `QuotaHits` por tipo; las cuotas valen también para las cuentas reservadas.
 - Reglas: `CP-WORLD-QUOTA`, ADR-0015 §4.
-- Prueba: U `worlds/guest-quotas.test.ts`, `routers/guest-world.test.ts`, `policy/world-quota.test.ts` · LF `guest-world.flow.test.ts` · UI `welcome.spec.ts`. Notas: Excepción §2.1.
+- Prueba: U `worlds/guest-quotas.test.ts`, `routers/guest-world.test.ts`, `policy/world-quota.test.ts`, `routers/clock.test.ts`, `routers/dossier.test.ts`, `routers/operations.test.ts`, `routers/simulator.test.ts`, `routers/tour.test.ts` · LF `guest-world.flow.test.ts` · UI `welcome.spec.ts`. Notas: Excepción §2.1.
 
 ### FL-112 · Rate limits del alta
 - Actores: visitante o script · Canal: web · Disparador: pedidos del alta por encima de los topes de ADR-0015 §3.2.

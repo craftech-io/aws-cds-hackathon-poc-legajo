@@ -130,7 +130,7 @@ test.describe("[FL-080] lista de operaciones", () => {
 });
 
 test.describe("nueva operación desde la plataforma", () => {
-  test.fixme("[FL-005:pending] «Nueva operación» with a number of the platform creates the dossier with its 3 documents and 5 milestones and opens it: needs operations.create in the appRouter (WP-33) and PlatformMock in the UI server", async () => {});
+  test.fixme("[FL-005:pending] «Nueva operación» with a number of the platform creates the dossier with its 3 documents and 5 milestones and opens it: operations.create is in the AppRouter and the UI server has the platform mock with the free number 4479; the spec is WP-34's", async () => {});
 
   test("the form asks for the four digits of the platform's number before calling the BFF", async ({ page }) => {
     await plantSession(page, "analyst");

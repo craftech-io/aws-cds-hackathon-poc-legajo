@@ -135,7 +135,10 @@ function etaInForce(history: readonly Pick<EtaEvent, "eta" | "atSim">[] | undefi
   return (entryAt(history, atSim) ?? history[0])?.eta;
 }
 
-/** Dossiers complete at least 72 h before the ETA in force when they completed, over every dossier of the tab. */
+/**
+ * Dossiers complete at least 72 h before the ETA in force when they completed, over every dossier of the
+ * tab: one still open counts as not complete yet, so a world mid-run shows a low share (`detail.open`).
+ */
 export function completeBeforeArrivalKpi(rows: readonly DossierKpi[], etaHistories: SummaryInput["etaHistories"], source: MetricSource, label: KpiLabel): Kpi {
   if (rows.length === 0) return { key: "completeBeforeArrivalPct", value: null, n: 0, source, label, gap: "NO_DATA" };
   const onTime = rows.filter((row) => {
@@ -143,7 +146,8 @@ export function completeBeforeArrivalKpi(rows: readonly DossierKpi[], etaHistori
     const eta = etaInForce(etaHistories.get(row.operationId), row.completedAtSim);
     return eta !== undefined && Date.parse(row.completedAtSim) <= Date.parse(eta) - COMPLETE_BEFORE_ARRIVAL_HOURS * 3_600_000;
   }).length;
-  return { key: "completeBeforeArrivalPct", value: round((onTime / rows.length) * 100), n: rows.length, source, label, detail: { onTime } };
+  const open = rows.filter((row) => row.completedAtSim === undefined).length;
+  return { key: "completeBeforeArrivalPct", value: round((onTime / rows.length) * 100), n: rows.length, source, label, detail: { onTime, open } };
 }
 
 /** Only the real agent's assignments are compared with `Reference/EVAL#`: a scripted agent is "no aplica". */
@@ -189,12 +193,16 @@ export function pricingRows(rateCard: readonly RateCard[]): RateCardRow[] {
   });
 }
 
-function costOf(row: DossierKpi, rates: readonly RateCardRow[], whatsappSimulated: boolean): DossierCost {
+/** How a WhatsApp send is priced: the row counts sends without their category, so each one is a utility template (supuesto). */
+export const WHATSAPP_PRICING_BASIS = "UTILITY_TEMPLATE_ASSUMED";
+
+/** The cost of one dossier's KPI row (`CostPerDossier` of an approval, and every row of `costKpi`). */
+export function costOf(row: DossierKpi, rates: readonly RateCardRow[], whatsappSimulated: boolean): DossierCost {
   return dossierCost(
     {
       tokens: { input: row.inputTokens, output: row.outputTokens, cacheRead: row.cacheReadTokens, cacheWrite: row.cacheWriteTokens },
       emails: row.emailSent,
-      // The row counts WhatsApp sends without their pricing category; every one is priced as a template (utility).
+      // The row counts WhatsApp sends without their pricing category: `WHATSAPP_PRICING_BASIS`.
       whatsapp: { utility: row.whatsappSent, service: 0 },
     },
     rates,
@@ -207,10 +215,11 @@ export function costKpi(input: SummaryInput, source: MetricSource, label: KpiLab
   const costs = input.rows.map((row) => costOf(row, rates, input.whatsappSimulated));
   const whatsappPricedAsLive = costs.some((cost) => cost.whatsappPricedAsLive);
   const missing = [...new Set(costs.flatMap((cost) => (cost.status === "UNVERIFIED" ? cost.missingRates : [])))].sort();
-  if (missing.length > 0) return { key: "costPerDossierUsd", value: null, n: input.rows.length, source, label, gap: "UNVERIFIED_RATES", detail: { missingRates: missing, whatsappPricedAsLive } };
+  const basis = { whatsappPricedAsLive, whatsappPricing: WHATSAPP_PRICING_BASIS };
+  if (missing.length > 0) return { key: "costPerDossierUsd", value: null, n: input.rows.length, source, label, gap: "UNVERIFIED_RATES", detail: { missingRates: missing, ...basis } };
   const usd = costs.map((cost) => (cost.status === "VERIFIED" ? cost.usd : 0));
   const value = usd.length === 0 ? null : Math.round((usd.reduce((sum, item) => sum + item, 0) / usd.length) * 10_000) / 10_000;
-  return { key: "costPerDossierUsd", value, n: input.rows.length, source, label, ...(value === null ? { gap: "NO_DATA" as const } : {}), detail: { whatsappPricedAsLive } };
+  return { key: "costPerDossierUsd", value, n: input.rows.length, source, label, ...(value === null ? { gap: "NO_DATA" as const } : {}), detail: basis };
 }
 
 /** Nearest-rank percentile of sorted samples. */

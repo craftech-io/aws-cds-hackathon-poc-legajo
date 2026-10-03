@@ -274,7 +274,7 @@ Todo procedimiento pasa por `firmProcedure` salvo los de `signup` (`signupProced
 | Router | Procedimientos |
 |---|---|
 | `operations` | `list`, `get` (con `processError` para mostrar "con error de proceso"), `create`, `documentUrl` (GET prefirmado 5 min, descarga PDF), `timeline` (incluye pendientes con motivo) |
-| `dossier` | `approve` (**B R**), `reopen` (**B R**), `waiveObservation`, `classifyDocument`, `requestUploadLink` |
+| `dossier` | `approve` (**B R**), `reopen` (**B R**), `waiveObservation`, `classifyDocument`, `requestUploadLink` (`{operationId, docTypes}`: `create_upload_link` para el importador de la operación; en un mundo de invitado consume una unidad de `PDF_UPLOADS`, y cada carga en la página consume otra: el tope de 40 por día cuenta pedidos de link y cargas) |
 | `conversation` | `take`, `release`, `send` |
 | `escalations` | `list`, `resolve` |
 | `registry` | `importers.list`, `importers.upsert`, `consent.record`, `consent.revoke`, `authorization.set`, `suppliers.list`, `suppliers.upsert`, `contacts.confirm`, `contacts.upsert`, `supplierBehaviour.set` |
@@ -283,10 +283,10 @@ Todo procedimiento pasa por `firmProcedure` salvo los de `signup` (`signupProced
 | `mailbox` | `list`, `get` (filtrado por el estudio de la operación del hilo; cuerpo en texto plano) |
 | `metrics` | `summary` (por pestaña: este mundo, lote con agente real, lote con agente guionado; cada KPI con N, fuente y rótulo), `export` |
 | `audit` | `list`, `violations`, `decisionsByRule` |
-| `tour` | `steps` (con las horas de "Qué mirar" completadas desde los temporizadores pendientes de la 4471 que devuelve `clock.get`, nunca escritas a mano), `run(step)` (llama los procedimientos de arriba; el paso 2 es `clock.advanceTo` 15/10 10:00) |
+| `tour` | Los pasos (títulos, textos y horas esperadas) tienen una sola fuente, `packages/web/src/views/tour/steps.ts`; el servidor no los duplica. `steps` (query): la operación 4471 del mundo del usuario (`operationId`, ETA) y **todos** sus temporizadores pendientes en orden de `dueAtSim`, de donde salen las horas de "Qué mirar" (nunca escritas a mano; `clock.get` lista solo los próximos cinco eventos del mundo). `run({action})` (mutation): un movimiento de un paso, corrido en el servidor con los procedimientos de arriba y sus mismos cercos (rol, login reciente, `WORLD_BUSY`, cuotas, auditoría): `advanceTo` (el paso 2 es 15/10 10:00), `advanceToNext`, `moveEta {shiftDays}` (desde la ETA actual de la 4471), `approve` (`dossier.approve`, **B R**) y `emitDispatchStatus`; sin la 4471 responde `NOT_FOUND TOUR_OPERATION_MISSING` |
 | `activity` | `heartbeat` |
 | `health` | `ping` (incluye `GET /v1/health` de `PlatformMock` con el rol del BFF) |
-| `account` | `changePassword`, `mfa.setup` (rechazados para `GUEST`), `session` (para `GUEST`: estado del mundo `NONE` \| `CREATING` \| `READY` \| `EXPIRED` \| `CAPACITY` \| `FAILED`, el aviso de otra sesión en las últimas 2 h de `docs/design-brief.md` §7.1 y, para un invitado público, actualiza `Leads.lastLoginAt`), `ensureWorld` (`GUEST`), `world` (`GUEST`, solo lectura), `usage` (`GUEST`): ver "Alta pública e invitados" |
+| `account` | `session` (para `GUEST`: estado del mundo `NONE` \| `CREATING` \| `READY` \| `EXPIRED` \| `CAPACITY` \| `FAILED`, el aviso de otra sesión en las últimas 2 h de `docs/design-brief.md` §7.1 y, para un invitado público, actualiza `Leads.lastLoginAt`), `ensureWorld` (`GUEST`), `world` (`GUEST`, solo lectura), `usage` (`GUEST`): ver "Alta pública e invitados". Cambio de contraseña y alta de TOTP no son procedimientos: la consola los hace directo contra Cognito con su access token (`ChangePassword`, `AssociateSoftwareToken`/`VerifySoftwareToken`); a un `GUEST` se los niega `AuthPreToken`, que le quita el scope `aws.cognito.signin.user.admin`, y `account.session` responde `canChangePassword`/`canSetUpMfa` en `false` |
 | `signup` | `form`, `start`, `resend`, `confirm`: ver "Alta pública e invitados" |
 
 ## Acciones del `QaDriver`

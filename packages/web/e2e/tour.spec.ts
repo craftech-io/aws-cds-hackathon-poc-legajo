@@ -2,9 +2,10 @@
 // server a guest finds the panel open with step 1, its hour read from the real `clock.get` of its
 // world, in Spanish or English, and a second session on the same guest world gets the shell's fixed
 // notice from the real `account.session`. Scripted answers then walk the buttons: each waits for a
-// quiet world, calls the console's own procedure (`clock.advanceTo` at 15/10 10:00, `clock.moveEta`
-// from the ETA of 4471, `dossier.approve`), fills "Qué mirar" from the pending timers of 4471 and
-// shows the English gloss of the step's message. Nothing leaves the machine.
+// quiet world and sends its move to `tour.run` (which runs `clock.advanceTo` at 15/10 10:00,
+// `clock.moveEta` from the ETA of 4471 or `dossier.approve` on the server), fills "Qué mirar" from the
+// pending timers of 4471 that `tour.steps` answers and shows the English gloss of the step's message.
+// Nothing leaves the machine.
 import { type Page, expect, test } from "@playwright/test";
 import { copy } from "../src/copy/console.ts";
 import { dataCopy } from "../src/copy/console-data.ts";
@@ -117,17 +118,29 @@ async function startAt(page: Page, id: TourStep["id"]): Promise<void> {
   await page.addInitScript((done) => window.sessionStorage.setItem("legajo.tour.GUEST#firm-guest-01#1", JSON.stringify(done)), before);
 }
 
+/** `tour.steps` of the scripted world: operation 4471 and its pending timers. */
+function tourSteps(world: Record<string, unknown>, nextEvents: readonly Record<string, unknown>[] = []) {
+  const [operation] = OPERATIONS.operations;
+  return {
+    data: {
+      clockId: world["clockId"],
+      worldEpoch: world["worldEpoch"],
+      simNow: world["simNow"],
+      startAtSim: world["startAtSim"],
+      operation: operation === undefined ? null : { operationId: operation.operationId, operationNumber: operation.operationNumber, eta: operation.eta },
+      nextEvents,
+    },
+  };
+}
+
 async function scripted(page: Page, world: Record<string, unknown>, overrides: Parameters<typeof shellApi>[0] = {}): Promise<ApiCall[]> {
-  const ok = { data: { ok: true } };
   const calls = await routeApi(
     page,
     shellApi({
       "clock.get": { data: world },
       "operations.list": { data: OPERATIONS },
-      "clock.advanceTo": { data: world },
-      "clock.advanceToNext": { data: world },
-      "clock.moveEta": { data: world },
-      "dossier.approve": ok,
+      "tour.steps": tourSteps(world),
+      "tour.run": (input) => ({ data: { kind: (input as { action: { kind: string } }).action.kind, done: true } }),
       "simulator.threads": { data: { threads: [] } },
       ...overrides,
     }),
@@ -146,7 +159,7 @@ test.describe("the tour's buttons (scripted answers)", () => {
     const calls = await scripted(page, { ...GUEST_CLOCK, busy: true, pending: [{ kind: "EVENT", operationNumber: "4471", sinceReal: new Date().toISOString() }] });
     await expect(moveButton(page, "first-request")).toBeDisabled();
     await expect(panel(page).getByText(es.busy)).toBeVisible();
-    expect(inputOf(calls, "clock.advanceTo")).toBeUndefined();
+    expect(inputOf(calls, "tour.run")).toBeUndefined();
   });
 
   test("goes to the 4471 request at 15/10 10:00 and moves on to the next step", async ({ page }) => {
@@ -154,36 +167,32 @@ test.describe("the tour's buttons (scripted answers)", () => {
     const calls = await scripted(page, GUEST_CLOCK);
     await moveButton(page, "first-request").click();
     await expect(panel(page).getByRole("heading", { name: stepById("delegate").title.es })).toBeVisible();
-    expect(inputOf(calls, "clock.advanceTo")).toEqual({ toSim: "2026-10-15T10:00:00-03:00" });
+    expect(inputOf(calls, "tour.run")).toEqual({ action: { kind: "advanceTo", toSim: "2026-10-15T10:00:00-03:00" } });
   });
 
   test("'Qué mirar' reads its hours from the pending timers of 4471, not from the text", async ({ page }) => {
     await startAt(page, "delegate");
-    await scripted(page, {
-      ...GUEST_CLOCK,
-      simNow: "2026-10-15T10:07:00-03:00",
-      nextEvents: [
-        { operationId: "op-4471", operationNumber: "4471", kind: "DEFERRED_SEND", timerId: "ds-1", dueAtSim: "2026-10-15T21:30:00-03:00" },
-        { operationId: "op-4474", operationNumber: "4474", kind: "DEFERRED_SEND", timerId: "ds-2", dueAtSim: "2026-10-15T20:00:00-03:00" },
-      ],
+    const world = { ...GUEST_CLOCK, simNow: "2026-10-15T10:07:00-03:00" };
+    await scripted(page, world, {
+      "tour.steps": tourSteps(world, [{ operationId: "op-4471", operationNumber: "4471", kind: "DEFERRED_SEND", dueAtSim: "2026-10-15T21:30:00-03:00" }]),
     });
     await expect(panel(page)).toContainText("hasta las 15/10 21:30 (16/10 08:30 en Qingdao)");
   });
 
-  test("moves the ETA of 4471 two days earlier from the ETA it has now", async ({ page }) => {
+  test("asks for the ETA of 4471 two days earlier than the ETA it has now", async ({ page }) => {
     await startAt(page, "eta");
     const calls = await scripted(page, GUEST_CLOCK);
     await moveButton(page, "eta").click();
     await expect(panel(page).getByRole("heading", { name: stepById("approve").title.es })).toBeVisible();
-    expect(inputOf(calls, "clock.moveEta")).toEqual({ operationId: "op-4471", eta: "2026-10-20T08:00:00-03:00" });
+    expect(inputOf(calls, "tour.run")).toEqual({ action: { kind: "moveEta", shiftDays: -2 } });
   });
 
   test("approving asks for the password when the sign-in is old, and approves 4471 once it is recent", async ({ page }) => {
     await startAt(page, "approve");
     let refused = false;
     const calls = await scripted(page, GUEST_CLOCK, {
-      "dossier.approve": () => {
-        if (refused) return { data: { ok: true } };
+      "tour.run": () => {
+        if (refused) return { data: { kind: "approve", done: true } };
         refused = true;
         return { error: { code: "FORBIDDEN", httpStatus: 403, reason: "LOGIN_NOT_RECENT" } };
       },
@@ -192,7 +201,7 @@ test.describe("the tour's buttons (scripted answers)", () => {
     await expect(panel(page).getByRole("button", { name: dataCopy.recentLogin.confirm })).toBeVisible();
     await moveButton(page, "approve").click();
     await expect(panel(page).getByRole("heading", { name: stepById("dispatch").title.es })).toBeVisible();
-    expect(calls.filter((call) => call.path === "dossier.approve").map((call) => call.input)).toEqual([{ operationId: "op-4471" }, { operationId: "op-4471" }]);
+    expect(calls.filter((call) => call.path === "tour.run").map((call) => call.input)).toEqual([{ action: { kind: "approve" } }, { action: { kind: "approve" } }]);
   });
 
   test("shows the English gloss of the step's message from the simulator's thread of 4471", async ({ page }) => {

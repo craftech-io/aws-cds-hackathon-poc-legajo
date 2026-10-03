@@ -1,7 +1,8 @@
 // FL-082 · isolation between firms (docs/flows-catalog.md) against the local UI server: a broker of
 // Estudio Norte asks for Estudio Delta's operation, its timeline, one of its documents, its decisions
 // and its world, through the console and straight to the API with its own signed token; every answer
-// is a 403 with the refusal `CROSS_FIRM` and no data of Delta. A guest sees only its own world. The
+// is a 403 with the refusal `CROSS_FIRM` and no data of Delta. A guest sees only its own world (the
+// seed's `guest` template, whose story has the same names as Delta's but its own ids `-g01`). The
 // `AuditLog DENY CROSS_FIRM` the refusal writes is asserted at level U (routers/isolation.test.ts).
 import { type APIRequestContext, expect, test } from "@playwright/test";
 import { dataCopy } from "../src/copy/console-data.ts";
@@ -73,10 +74,18 @@ test.describe("[FL-082] aislamiento entre estudios", () => {
     expect(own.body).toContain("Norpampa Insumos SRL");
   });
 
-  test("[FL-082] a guest sees only its own world, never Delta's operations", async ({ page }) => {
+  test("[FL-082] a guest sees only its own world, never Delta's operations", async ({ page, request }) => {
     await plantSession(page, "guest");
     await page.goto("/app/operations");
-    await expect(page.getByText(operationsCopy.empty.title)).toBeVisible();
-    expect(await page.locator("#content").innerText()).not.toMatch(DELTA_DATA);
+    await expectView(page, "operations");
+    await expect(page.getByText("4471").first()).toBeVisible();
+    const own = await query(request, "guest", "operations.list", {});
+    expect(own.status).toBe(200);
+    const ids = [...own.body.matchAll(/"operationId":"([^"]+)"/g)].map((match) => match[1]);
+    expect(ids.length).toBeGreaterThan(0);
+    expect(ids.every((id) => id?.endsWith("-g01"))).toBe(true);
+    const delta = await query(request, "guest", "operations.get", { operationId: "op-4471" });
+    expect(delta.status).toBe(403);
+    expect(delta.body).toContain('"reason":"CROSS_FIRM"');
   });
 });

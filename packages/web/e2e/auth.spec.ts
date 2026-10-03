@@ -99,9 +99,9 @@ async function signIn(page: Page, login: string, password = PASSWORD): Promise<v
 }
 
 test.describe("[FL-101] alta pública con email nuevo", () => {
-  // Until the world factory exists (WP-31) the first sign-in ends in the honest FAILED state of
-  // docs/landing-spec.md §8.5, never in a console without the seeded world /welcome promises.
-  test("[FL-101] [FL-105] [FL-120] sign-up → code → sign-in → /welcome prepares the world and says so when it cannot", async ({ page, request }, info) => {
+  // The first sign-in prepares the visitor's own world from the seed's `guest` template (the real world
+  // factory, run in process by the UI server) and opens the console on it.
+  test("[FL-101] [FL-105] [FL-120] sign-up → code → sign-in → /welcome prepares the world and opens the console", async ({ page, request }, info) => {
     const email = testMailbox(info, "a");
     await signUp(page, { email, name: "Ana Prueba" });
     await expect(page.getByText(t.verify.existingHintLink)).toBeVisible();
@@ -122,11 +122,9 @@ test.describe("[FL-101] alta pública con email nuevo", () => {
     await expect(page).toHaveURL(/\/welcome/);
     await expectAccessPage(page, t.welcome.title);
     await expect(page.getByText(t.welcome.ttl(GUEST_WORLD_IDLE_HOURS, GUEST_WORLD_MAX_AGE_HOURS))).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1, name: t.welcome.failed.title })).toBeVisible({ timeout: 20_000 });
-    await expect(page).toHaveURL(/\/welcome/);
-    await expect(page.getByRole("button", { name: t.welcome.retry })).toBeVisible();
-    await expect(page.getByRole("button", { name: t.welcome.signOut })).toBeVisible();
     await expectNeutral(page);
+    await expect(page).toHaveURL(/\/app\/operations/, { timeout: 20_000 });
+    await expect(page.getByText("4471").first()).toBeVisible();
   });
 });
 

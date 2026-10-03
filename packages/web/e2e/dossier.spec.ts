@@ -95,12 +95,12 @@ test.describe("acciones del legajo", () => {
     await expect(page.getByRole("button", { name: dossierCopy.reopen.open })).toHaveCount(0);
   });
 
-  test.fixme("[FL-075:pending] an analyst calling dossier.approve directly gets 403 ROLE_NOT_ALLOWED, audited: needs the dossier router in the appRouter (WP-33)", async () => {});
-  test.fixme("[FL-073:pending] a broker approves a dossier ready for review; with a sign-in older than 15 minutes the password prompt opens in place and the approval follows: needs dossier.approve (WP-33) and a READY_FOR_REVIEW operation in the UI server's world", async () => {});
-  test.fixme("[FL-067:pending] «Tomar conversación» leaves the control with the firm and the agent paused: needs conversation.take (WP-33)", async () => {});
-  test.fixme("[FL-068:pending] the firm writes free text within the importer's 24-hour window and only templates outside it: needs conversation.send (WP-33) and an importer message in the UI server's world", async () => {});
-  test.fixme("[FL-043:pending] «Dispensar» with a reason leaves the observation waived and the document valid: needs dossier.waiveObservation (WP-33) and an observation in the UI server's world", async () => {});
-  test.fixme("[FL-044:pending] a version the reader did not recognize is classified or discarded by the firm: needs dossier.classifyDocument (WP-33) and an UNRECOGNIZED version in the UI server's world", async () => {});
-  test.fixme("[FL-042:pending] an assignment that differs from the matrix is marked for review: needs an observation flagged by assign_responsible in the UI server's world", async () => {});
-  test.fixme("[FL-081:pending] every event of the timeline in sentAtSim order and a PDF only through its 5-minute link: needs messages, turn notes and versions in the UI server's world", async () => {});
+  test.fixme("[FL-075:pending] an analyst calling dossier.approve directly gets 403 ROLE_NOT_ALLOWED, audited: the dossier router is in the AppRouter; the spec is WP-34's", async () => {});
+  test.fixme("[FL-073:pending] a broker approves a dossier ready for review; with a sign-in older than 15 minutes the password prompt opens in place and the approval follows: dossier.approve exists; needs a READY_FOR_REVIEW operation in the UI server's world; the spec is WP-34's", async () => {});
+  test.fixme("[FL-067:pending] «Tomar conversación» leaves the control with the firm and the agent paused: conversation.take exists; the spec is WP-34's", async () => {});
+  test.fixme("[FL-068:pending] the firm writes free text within the importer's 24-hour window and only templates outside it: conversation.send exists; needs an importer message in the UI server's world; the spec is WP-34's", async () => {});
+  test.fixme("[FL-043:pending] «Dispensar» with a reason leaves the observation waived and the document valid: dossier.waiveObservation exists; needs an observation in the UI server's world; the spec is WP-34's", async () => {});
+  test.fixme("[FL-044:pending] a version the reader did not recognize is classified or discarded by the firm: dossier.classifyDocument exists; needs an UNRECOGNIZED version in the UI server's world; the spec is WP-34's", async () => {});
+  test.fixme("[FL-042:pending] an assignment that differs from the matrix is marked for review: needs an observation flagged by assign_responsible in the UI server's world; the spec is WP-34's", async () => {});
+  test.fixme("[FL-081:pending] every event of the timeline in sentAtSim order and a PDF only through its 5-minute link: needs messages, turn notes and versions in the UI server's world; the spec is WP-34's", async () => {});
 });

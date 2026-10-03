@@ -6,7 +6,7 @@
 // with the GSI attributes the connector gives it (packages/bff/src/connector/item-shape.ts): what the
 // table files of `data/` hold. The generator builds template items and instantiates the demo worlds
 // from them, so both forms come from one structure.
-import { expectedIndexAttributes, expectedKey } from "@legajo/bff/connector/item-shape";
+import { THREAD_ADDRESS_PLACEHOLDER, fillThreadAddress, keyedItem } from "@legajo/bff/worlds/instantiate";
 import { worldOfClock, type EntityName } from "@legajo/bff/domain/common";
 import { SEED_REAL_NOW } from "./constants";
 import { seedEmailHash, seedPhoneHash, seedThread } from "./seed-keys";
@@ -14,7 +14,7 @@ import { seedEmailHash, seedPhoneHash, seedThread } from "./seed-keys";
 export type SeedItem = Record<string, unknown> & { readonly entity: string };
 
 /** Stands for the operation's thread address in a message of a template (`from`/`to` of an email). */
-export const THREAD_ADDRESS_PLACEHOLDER = "{threadAddress}";
+export { THREAD_ADDRESS_PLACEHOLDER };
 
 /** Fields each entity derives from the stage's key or the world's epoch. */
 export const DERIVED_FIELDS: Readonly<Partial<Record<EntityName, readonly string[]>>> = {
@@ -41,12 +41,9 @@ export interface InstanceOptions {
   readonly threads?: Map<string, string>;
 }
 
-/** Places a complete entity at its key with its GSI attributes. */
+/** Places a complete entity at its key with its GSI attributes (the factory's `keyedItem`). */
 export function keyed(item: SeedItem): SeedItem {
-  const entity = item.entity as EntityName;
-  const key = expectedKey(entity, item);
-  if (key === undefined) throw new RangeError(`${entity} is not seedable`);
-  return { ...item, ...key, ...expectedIndexAttributes(entity, item) };
+  return keyedItem(item);
 }
 
 async function complete(item: SeedItem, options: InstanceOptions, threads: Map<string, string>): Promise<SeedItem> {
@@ -65,21 +62,10 @@ async function complete(item: SeedItem, options: InstanceOptions, threads: Map<s
   }
 }
 
-function fillThread(item: SeedItem, threads: ReadonlyMap<string, string>): SeedItem {
-  if (item.entity !== "Message" && item.entity !== "MailboxMessage") return item;
-  const address = threads.get(String(item.operationId));
-  const fill = (value: unknown): unknown => {
-    if (value !== THREAD_ADDRESS_PLACEHOLDER) return value;
-    if (address === undefined) throw new RangeError(`no thread address for ${String(item.operationId)}`);
-    return address;
-  };
-  return { ...item, from: fill(item.from), to: fill(item.to) };
-}
-
 /** Instance items of one world at `worldEpoch`, with the seed's test key. Order is kept. */
 export async function instantiate(items: readonly SeedItem[], options: InstanceOptions): Promise<SeedItem[]> {
   const threads = options.threads ?? new Map<string, string>();
   const completed: SeedItem[] = [];
   for (const item of items) completed.push(await complete(item, options, threads));
-  return completed.map((item) => keyed(fillThread(item, threads)));
+  return completed.map((item) => keyed(fillThreadAddress(item, threads) as SeedItem));
 }

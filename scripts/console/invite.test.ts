@@ -5,12 +5,12 @@ import type { ConsoleRole } from "@legajo/shared";
 import { describe, expect, it } from "vitest";
 import { type InviteDeps, PASSWORD_LENGTH, brokerUsername, generatePassword, parseInviteArgs, planInvite, runInvite, saveCredentialTo } from "./invite";
 
-function fakeDeps(existing: Record<string, string> = {}, roles: Record<string, ConsoleRole> = {}) {
+function fakeDeps(existing: Record<string, string> = {}, roles: Record<string, ConsoleRole> = {}, firms: Record<string, string> = {}) {
   const calls: string[] = [];
   const saved: Array<[string, string]> = [];
   const passwords: Record<string, string> = {};
   const deps: InviteDeps = {
-    findUser: async (username) => (existing[username] ? { sub: existing[username] } : undefined),
+    findUser: async (username) => (existing[username] ? { sub: existing[username], firmId: firms[username] ?? `firm-${username}` } : undefined),
     createUser: async ({ username, firmId, email }) => {
       calls.push(`create ${username} ${firmId}${email ? ` ${email}` : ""}`);
       return { sub: `sub-${username}` };
@@ -70,7 +70,7 @@ describe("console:invite", () => {
   });
 
   it("keeps an existing guest's password unless asked, and takes guest-test's from the environment", async () => {
-    const kept = fakeDeps({ "guest-07": "sub-7" });
+    const kept = fakeDeps({ "guest-07": "sub-7" }, {}, { "guest-07": "firm-guest-07" });
     await runInvite(planInvite({ stage: "poc", guest: "7" }), kept.deps);
     expect(kept.calls).toEqual(["mfa-off guest-07", "group guest-07 GUEST"]);
     const test = fakeDeps();
@@ -85,6 +85,16 @@ describe("console:invite", () => {
     await runInvite(plan, deps);
     const username = brokerUsername("martina.sosa@sim.legajo.demo.craftech.io");
     expect(calls).toEqual([`create ${username} firm-delta martina.sosa@sim.legajo.demo.craftech.io`, `group ${username} ANALYST`, `bind firm-delta/brk-delta-martina sub-${username}`]);
+  });
+
+  it("never binds or regroups an existing user of another firm (a mistyped --firm or --guest)", async () => {
+    const username = brokerUsername("martina.sosa@sim.legajo.demo.craftech.io");
+    const broker = fakeDeps({ [username]: "sub-martina" }, { "firm-norte/brk-norte-pablo": "BROKER" }, { [username]: "firm-delta" });
+    await expect(runInvite(planInvite({ stage: "poc", email: "martina.sosa@sim.legajo.demo.craftech.io", firm: "firm-norte", broker: "brk-norte-pablo" }), broker.deps)).rejects.toThrow(/another firm/);
+    expect(broker.calls).toEqual([]);
+    const guest = fakeDeps({ "guest-07": "sub-7" }, {}, { "guest-07": "firm-guest-08" });
+    await expect(runInvite(planInvite({ stage: "poc", guest: "7" }), guest.deps)).rejects.toThrow(/another firm/);
+    expect(guest.calls).toEqual([]);
   });
 
   it("writes the credentials file readable by its owner only", () => {

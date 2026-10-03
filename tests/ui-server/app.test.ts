@@ -61,7 +61,7 @@ describe("local UI server", () => {
   });
 
   it("[FL-113] adds the origin header CloudFront would, and checks a signed body like Lambda behind OAC", async () => {
-    const body = JSON.stringify({ "0": { lang: "es" } });
+    const body = JSON.stringify({ "0": { minutes: 60 } });
     const good = createHash("sha256").update(body).digest("hex");
     const signed = await fetch(`${origin}/api/clock.get`, { method: "GET", headers: { "x-legajo-auth": `Bearer ${token()}` } });
     expect(signed.status).toBe(200);
@@ -107,20 +107,32 @@ describe("local UI server", () => {
     const headers = { "x-legajo-auth": `Bearer ${idToken}`, "content-type": "application/json" };
     const ensured = (await (await fetch(`${origin}/api/account.ensureWorld`, { method: "POST", headers, body: "{}" })).json()) as { result: { data: unknown } };
     expect(ensured.result.data).toEqual({ state: "CREATING" });
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await app.worlds.settled();
     return ((await (await fetch(`${origin}/api/account.world`, { headers })).json()) as { result: { data: Record<string, unknown> } }).result.data;
   };
 
-  it("[FL-105] never answers READY with an empty world: without the world factory a signed-up guest's world is FAILED", async () => {
+  it("[FL-105] builds a signed-up guest's world from the seed's guest template, and the next sign-in opens it", async () => {
     app.worlds.control.createDelayMs = 0;
     const guest = await app.access.pool.addConfirmed({ username: "usr-01j9zq0000000000000000aa01", email: "qa-signup-uiapp-w1@sim.legajo.demo.craftech.io", password: PASSWORD, groups: ["GUEST"] });
-    expect(await worldOf(await signIn(guest.username))).toEqual({ state: "FAILED" });
-    expect(app.stores.client.dump("Firms").some((row) => row.cognitoSub === guest.sub)).toBe(false);
+    const world = await worldOf(await signIn(guest.username));
+    expect(world).toMatchObject({ state: "READY", firmId: expect.stringMatching(/^firm-guest-(3[1-9]|[4-8]\d|90)$/) });
+    expect(app.stores.client.dump("Firms").filter((row) => row.cognitoSub === guest.sub)).toMatchObject([{ role: "GUEST", name: "Invitado", firmId: world.firmId }]);
 
-    // The fixture guest of the welcome-mechanics specs gets the mechanics-only world (firm, clock, broker).
-    const created = await fetch(`${origin}/__test/users`, { method: "POST", body: JSON.stringify({ email: "qa-signup-uiapp-w2@sim.legajo.demo.craftech.io", password: PASSWORD }) });
-    const { username } = (await created.json()) as { username: string };
-    expect(await worldOf(await signIn(username))).toMatchObject({ state: "READY", firmId: expect.stringMatching(/^firm-guest-\d{2}$/) });
+    // The pre-token stamps the world and its lease from now on: the console reads the template's story.
+    const headers = { "x-legajo-auth": `Bearer ${await signIn(guest.username)}` };
+    const list = (await (await fetch(`${origin}/api/operations.list`, { headers })).json()) as { result: { data: { operations: Array<{ operationNumber: string; operationId: string }> } } };
+    const numbers = list.result.data.operations.map((operation) => operation.operationNumber);
+    expect(numbers).toContain("4471");
+    expect(list.result.data.operations.every((operation) => operation.operationId.endsWith(`-g${String(world.firmId).slice(-2)}`))).toBe(true);
+
+    // The demo full for this account: CAPACITY, and nothing is created.
+    const other = await app.access.pool.addConfirmed({ username: "usr-01j9zq0000000000000000aa02", email: "qa-signup-uiapp-w2@sim.legajo.demo.craftech.io", password: PASSWORD, groups: ["GUEST"] });
+    app.worlds.control.fullFor.add(other.sub);
+    const otherHeaders = { "x-legajo-auth": `Bearer ${await signIn(other.username)}`, "content-type": "application/json" };
+    const full = (await (await fetch(`${origin}/api/account.ensureWorld`, { method: "POST", headers: otherHeaders, body: "{}" })).json()) as { result: { data: unknown } };
+    expect(full.result.data).toEqual({ state: "CAPACITY" });
+    expect(await app.worlds.expire(guest.sub)).toBe(true);
+    expect(app.stores.client.dump("Firms").some((row) => row.cognitoSub === guest.sub)).toBe(false);
   });
 
   it("[FL-106] answers a wrong password and an unknown user alike", async () => {

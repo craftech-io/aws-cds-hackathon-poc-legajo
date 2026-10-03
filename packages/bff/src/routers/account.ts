@@ -11,7 +11,8 @@
 //            it is gone (the world's state instead of a 403), and a public guest's `Leads.lastLoginAt`
 //   usage    a guest's quotas of its world and the global budget (`guestBootstrapProcedure`)
 //
-// `ensureWorld` and `world` belong to routers/guest-world.ts (WP-31, wave 4) on the same leases.
+// `ensureWorld` and `world` belong to routers/guest-world.ts (WP-31), mounted under `account` with these
+// (routers/index.ts), on the same leases.
 import { ConnectorError, type GuestKind, guestClockId } from "@legajo/shared";
 import type { AccountWorldOutput, GuestWorldState } from "@legajo/shared/signup";
 import type { GuestBootstrap, Principal } from "../auth/principal";

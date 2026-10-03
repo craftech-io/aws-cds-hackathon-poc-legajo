@@ -82,9 +82,8 @@ export async function ageSignup(request: APIRequestContext, serverUrl: string, e
 }
 
 /**
- * A public guest that already verified its email, without a world. Its world, once asked for, is the
- * mechanics-only one (a firm with no operation, tests/ui-server/auth/guest-world.ts): only for specs of
- * the welcome mechanics, never for captures. A guest that signs up through /signup gets FAILED until WP-31.
+ * A public guest that already verified its email, without a world. Its world, once asked for, is built
+ * like any visitor's: the seed's `guest` template through the real world factory (tests/ui-server/auth/guest-world.ts).
  */
 export async function createVerifiedGuest(request: APIRequestContext, serverUrl: string, email: string, password: string): Promise<void> {
   const answer = await request.post(`${serverUrl}${TEST_PREFIX}users`, { data: { email, password } });
