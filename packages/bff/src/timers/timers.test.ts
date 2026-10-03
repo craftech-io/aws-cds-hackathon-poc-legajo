@@ -51,14 +51,16 @@ describe("timers: TIMER#<kind> with GSI3 and at most one schedule", () => {
     expect(world.scheduler.puts).toHaveLength(2);
     expect(world.scheduler.puts[1]?.input.version).toBe(2);
     expect(world.scheduler.schedules.size).toBe(1);
-    expect(timerEventId(OPERATION, "TIMER#MILESTONE#DOCS_REQUEST", DUE, 1)).not.toBe(timerEventId(OPERATION, "TIMER#MILESTONE#DOCS_REQUEST", DUE, 2));
+    const scope = { clockId: "QA#firm-qa-a", worldEpoch: 1 };
+    expect(timerEventId(OPERATION, "TIMER#MILESTONE#DOCS_REQUEST", DUE, 1, scope)).not.toBe(timerEventId(OPERATION, "TIMER#MILESTONE#DOCS_REQUEST", DUE, 2, scope));
   });
 
-  it("a reset world (next epoch) gives the same timer a new TIMER event id, so it is not deduplicated against the old world", () => {
+  it("another world (clock) or a reset of the same world (next epoch) gives the same timer a new TIMER event id", () => {
     const key = "TIMER#MILESTONE#DOCS_REQUEST";
-    expect(timerEventId(OPERATION, key, DUE, 1, 1)).toBe(timerEventId(OPERATION, key, DUE, 1));
-    expect(timerEventId(OPERATION, key, DUE, 1, 2)).not.toBe(timerEventId(OPERATION, key, DUE, 1, 1));
-    expect(timerEventId(OPERATION, key, DUE, 1, 3)).not.toBe(timerEventId(OPERATION, key, DUE, 1, 2));
+    const first = { clockId: "QA#firm-qa-a", worldEpoch: 1 };
+    expect(timerEventId(OPERATION, key, DUE, 1, { ...first, worldEpoch: 2 })).not.toBe(timerEventId(OPERATION, key, DUE, 1, first));
+    expect(timerEventId(OPERATION, key, DUE, 1, { ...first, clockId: "QA#firm-qa-b" })).not.toBe(timerEventId(OPERATION, key, DUE, 1, first));
+    expect(timerEventId(OPERATION, key, DUE, 1, first)).toBe(timerEventId(OPERATION, key, DUE, 1, { ...first }));
   });
 
   it("[FL-064] a firing at another version is stale: audited, no action, the timer unchanged", async () => {

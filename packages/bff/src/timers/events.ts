@@ -58,11 +58,11 @@ export function kindOfTimerKey(timerKey: string): TimerKind {
 }
 
 /** Id of the `TIMER` event of a timer at one version and due instant (docs/architecture.md §7). */
-export function timerEventId(operationId: string, timerKey: string, dueAtSim: string, version: number, worldEpoch = 1): EventId {
-  // A reset rewrites the same timers (same operation, key, due time and version 1): without the epoch the
-  // new TIMER would be deduplicated against the previous world's (SQS FIFO and IDEMP#) and never fire.
-  const epoch = worldEpoch > 1 ? `#e${worldEpoch}` : "";
-  return derivedEventId("TIMER", `${operationId}#${timerKey}#${utcInstant(dueAtSim)}#v${version}${epoch}`);
+export function timerEventId(operationId: string, timerKey: string, dueAtSim: string, version: number, world: { readonly clockId: string; readonly worldEpoch: number }): EventId {
+  // Worlds reuse operation ids (QA and guest worlds lease the same numbers) and a reset rewrites the same
+  // timers (same key, due time and version 1): without the clock and its epoch the new TIMER would be
+  // deduplicated against the previous world's (SQS FIFO and IDEMP#) and never fire.
+  return derivedEventId("TIMER", `${world.clockId}#e${world.worldEpoch}#${operationId}#${timerKey}#${utcInstant(dueAtSim)}#v${version}`);
 }
 
 /** The two turns a timer opens. */

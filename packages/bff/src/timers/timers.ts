@@ -54,7 +54,7 @@ export function timerEventOf(due: DueTimer): TimerEvent {
   const timerKey = timerKeyOf(timer.kind, timer.timerId);
   return {
     type: "TIMER",
-    eventId: timerEventId(timer.operationId, timerKey, timer.dueAtSim, timer.version, timer.worldEpoch),
+    eventId: timerEventId(timer.operationId, timerKey, timer.dueAtSim, timer.version, timer),
     operationId: timer.operationId,
     clockId: timer.clockId,
     firmId: due.firmId,

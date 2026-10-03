@@ -12,7 +12,7 @@ const QA_ID = `qa-${"1".repeat(40)}`;
 
 const EVENTS: Record<string, OperationQueueEventInput> = {
   INTAKE_DOCUMENT: { ...base, type: "INTAKE_DOCUMENT", eventId: derivedEventId("INTAKE_DOCUMENT", "uploads/k1"), source: { party: "IMPORTER", channel: "UPLOAD_LINK" }, object: { store: "UPLOADS", key: "uploads/op-4471/k1.pdf" }, sha256: SHA, sizeBytes: 2048 },
-  TIMER: { ...base, type: "TIMER", eventId: timerEventId(OPERATION, "TIMER#FOLLOWUP#fu-1", START_SIM, 1), timerKey: "TIMER#FOLLOWUP#fu-1", version: 1, dueAtSim: START_SIM, firedBy: "SCHEDULER" },
+  TIMER: { ...base, type: "TIMER", eventId: timerEventId(OPERATION, "TIMER#FOLLOWUP#fu-1", START_SIM, 1, { clockId: base.clockId, worldEpoch: 1 }), timerKey: "TIMER#FOLLOWUP#fu-1", version: 1, dueAtSim: START_SIM, firedBy: "SCHEDULER" },
   ETA_CHANGED: { ...base, type: "ETA_CHANGED", eventId: "evt_01JAAAAAAAAAAAAAAAAAAAAAAA", eta: "2026-10-24T08:00:00-03:00", occurredAtSim: START_SIM },
   DISPATCH_STATUS: { ...base, type: "DISPATCH_STATUS", eventId: "evt_01JAAAAAAAAAAAAAAAAAAAAAAB", status: "OFICIALIZADO", occurredAtSim: START_SIM },
   EMAIL_EVENT: { ...base, type: "EMAIL_EVENT", eventId: derivedEventId("EMAIL_EVENT", "ses-1#BOUNCE#x"), messageId: "msg-01JAAAA", sesEventType: "BOUNCE", bounceType: "Permanent", occurredAtReal: "2026-09-26T15:00:00.000Z" },
