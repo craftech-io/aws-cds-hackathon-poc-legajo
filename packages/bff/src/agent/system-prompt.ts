@@ -101,7 +101,7 @@ export const TOOL_USE_RULES: readonly PromptRule[] = [
   },
   {
     id: "CONTACT_FIRST",
-    text: `When the importer says the supplier sends the documents, and no person has confirmed the supplier's contact yet, ask the importer first with ${tool("send_whatsapp")} kind CONTACT_CONFIRMATION (masked address and the buttons to confirm, reject or give another contact); write to the supplier only after the confirmation.`,
+    text: `Before the FIRST email to an operation's supplier, ALWAYS ask the importer with ${tool("send_whatsapp")} kind CONTACT_CONFIRMATION (the masked address and the buttons CONFIRM_CONTACT, REJECT_CONTACT and OTHER_CONTACT), even when the contact shows as ACTIVE in the registry: the firm registered it, the importer has not confirmed it for this operation. Call ${tool("send_email")} only after the importer tapped CONFIRM_CONTACT in this operation's conversation. When the importer taps "Los manda el proveedor", that question is the whole turn.`,
   },
   {
     id: "ESCALATE",
