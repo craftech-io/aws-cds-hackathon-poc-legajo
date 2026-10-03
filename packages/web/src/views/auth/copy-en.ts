@@ -89,7 +89,7 @@ export const AUTH_EN: AuthCopy = {
     submit: "Sign in",
     submitting: "Signing in…",
     forgot: "I forgot my password",
-    noAccount: "No account? Try the demo",
+    noAccount: "No account? Try Legajo listo",
     errors: {
       credentials: "The email, username or password is not correct.",
       tooMany: "Too many attempts. Wait a few minutes and try again.",

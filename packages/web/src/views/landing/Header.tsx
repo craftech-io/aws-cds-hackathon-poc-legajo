@@ -2,7 +2,7 @@
 // focus, the wordmark, the section links from 1280 px (a menu below that: at 1024 px the five links,
 // the switch and both calls to action do not fit in one row without a horizontal scroll), the es/en
 // switch, "Ingresar"
-// and the primary call to action, which is always "Probar la demo" and always a full page load of
+// and the primary call to action, which is always "Probar Legajo listo" and always a full page load of
 // `/signup`. The global "Pausar animaciones" (WCAG 2.2.2) sits here too. Past the hero the header
 // shows its bottom border (by opacity, nothing animates its size).
 import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
@@ -16,7 +16,7 @@ import { LangSwitch, useLandingCopy } from "./lang";
 import { EXTERNAL_LINK, SIGN_IN_PATH, contactHref, signupHref } from "./links";
 import { useMotion } from "./motion/MotionContext";
 
-const SECTION_LINKS = ["tour", "guarantees", "integrations", "demo", "faq"] as const;
+const SECTION_LINKS = ["tour", "guarantees", "integrations", "architecture", "faq"] as const;
 
 /** "Ingresar" (or `label`), or the console for a visitor already signed in. */
 export function SignInLink({ className, label }: { readonly className: string; readonly label?: string }) {

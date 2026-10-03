@@ -47,8 +47,8 @@ describe("gallery [FL-128]", () => {
       expect(stateNote(render, gallery)).toBe(gallery.renderNote);
       expect(stateNote(ManifestEntry.parse({ id: "console-audit", status: "placeholder", viewport: "desktop", sources: sources("console-audit"), replacedBy: "console-metrics", replaceIn: "WP-36" }), gallery)).toBe(gallery.placeholderNote);
     }
-    expect(LANDING_COPY.es.gallery.localNote).toBe("Entorno local, agente guionado");
-    expect(LANDING_COPY.en.gallery.renderNote).toBe("Animation built with the product's components and texts");
+    expect(LANDING_COPY.es.gallery.localNote).toBe("Vista del producto");
+    expect(LANDING_COPY.en.gallery.renderNote).toBe("Product view");
   });
 
   it("wraps ← → around the ends and turns only a long enough touch or pen swipe into a step", () => {

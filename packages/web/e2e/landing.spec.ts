@@ -1,6 +1,6 @@
 // FL-089 · the commercial landing, bilingual (docs/landing-spec.md §1.2, §2, §5.4), in the six projects of
 // docs/test-plan.md §3: the eleven sections in order with one `h1`, the language switch that changes the
-// document's `lang`, its title and every text and keeps the choice, "Probar la demo" in the header, the
+// document's `lang`, its title and every text and keeps the choice, "Probar Legajo listo" in the header, the
 // hero and the closing, the questions operable with the keyboard, the footer's legal pages, the static
 // robots.txt and no `noindex` on `/`. The page's text is checked against the neutral words of ADR-0014
 // (the list frame-check.ts applies to every capture) and every request stays on the machine.
@@ -9,7 +9,7 @@ import { findNeutralHits } from "../../../scripts/lint/neutral-words.ts";
 import { LANDING_COPY, type LandingCopy } from "../src/views/landing/copy.ts";
 import { blockExternalRequests } from "./support/assertions";
 
-const SECTION_ORDER = ["top", "problem", "tour", "capabilities", "guarantees", "impact", "integrations", "demo", "faq", "gallery", "start"];
+const SECTION_ORDER = ["top", "problem", "tour", "capabilities", "guarantees", "impact", "integrations", "architecture", "faq", "gallery", "start"];
 
 function langOf(info: TestInfo): "es" | "en" {
   return /(^|-)en(-|$)/.test(info.project.name) ? "en" : "es";
@@ -45,7 +45,7 @@ test.describe("[FL-089] landing comercial bilingüe", () => {
     await expect(page).toHaveTitle(copy.meta.title);
     await expect(page.getByText(copy.hero.note)).toBeVisible();
     await expect(page.getByText(copy.footer.synthetic)).toBeVisible();
-    for (const section of ["problem", "tour", "guarantees", "impact", "integrations", "demo", "faq", "gallery"] as const) {
+    for (const section of ["problem", "tour", "guarantees", "impact", "integrations", "architecture", "faq", "gallery"] as const) {
       await expect(page.locator(`#${section}`).getByRole("heading", { level: 2 })).toHaveText(copy[section].title);
     }
     expect(findNeutralHits(await page.locator("body").innerText())).toEqual([]);
@@ -68,7 +68,7 @@ test.describe("[FL-089] landing comercial bilingüe", () => {
     await expect(page.getByRole("heading", { level: 1, name: next.hero.title }), "the last choice wins without a parameter").toBeVisible();
   });
 
-  test("[FL-089] 'Probar la demo' is the call to action of the header, the hero and the closing, all to /signup", async ({ page }, info) => {
+  test("[FL-089] 'Probar Legajo listo' is the call to action of the header, the hero and the closing, all to /signup", async ({ page }, info) => {
     const copy = await openLanding(page, info);
     await expect(page.getByRole("banner").getByRole("link", { name: copy.cta.try })).toHaveAttribute("href", "/signup");
     await expect(page.locator("#top").getByRole("link", { name: copy.hero.primary })).toHaveAttribute("href", "/signup");

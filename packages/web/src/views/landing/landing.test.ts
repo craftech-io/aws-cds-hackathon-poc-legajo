@@ -2,9 +2,10 @@
 // and none of the words of ADR-0014 §2 (nor "evaluar"); impact shows goals with their label and only
 // the numbers of §1.7; "qué es simulado" puts every service in exactly one column; the three sales
 // points are the same as §1.8; no text promises "your AWS account" or a waiting list; the primary call
-// to action is always "Probar la demo"; the story is drawn with the real texts of
+// to action is always "Probar Legajo listo"; the story is drawn with the real texts of
 // packages/bff/src/copy. The page itself is driven by the e2e specs.
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BUTTON_LABELS } from "@legajo/bff/copy/buttons";
 import { supplierEmailEn } from "@legajo/bff/copy/en";
@@ -20,7 +21,9 @@ import { supplierReplies } from "../../../../../scripts/landing/supplier-replies
 import { TOKENS_KEY } from "../../lib/auth/tokens";
 import { CONVERSATION_IDS, ESCALATION_EMAIL, STORY, SUPPLIER_THREAD, SupplierReplies, conversation, heroMessages } from "./conversations";
 import { LANDING_COPY, type LandingCopy } from "./copy";
-import { DEMO_COLUMNS, DEMO_ITEM_NAMES, type DemoColumnId } from "./demo-columns";
+import { ARCHITECTURE } from "./architecture";
+
+const PUBLIC_DIR = join(import.meta.dirname, "../../../public");
 import { IMPACT_NUMBERS, IMPACT_TILES } from "./goals";
 
 const LANDING_DIR = fileURLToPath(new URL(".", import.meta.url));
@@ -68,9 +71,9 @@ describe("landing copy [FL-089]", () => {
     expect(joined).not.toMatch(/pedir acceso|request access|lista de espera|waitlist|no verificada|unverified/i);
   });
 
-  it("keeps one primary call to action, 'Probar la demo', in the header, the hero and the closing", () => {
-    expect(LANDING_COPY.es.cta.try).toBe("Probar la demo");
-    expect(LANDING_COPY.en.cta.try).toBe("Try the demo");
+  it("keeps one primary call to action, 'Probar Legajo listo', in the header, the hero and the closing", () => {
+    expect(LANDING_COPY.es.cta.try).toBe("Probar Legajo listo");
+    expect(LANDING_COPY.en.cta.try).toBe("Try Legajo listo");
     for (const lang of LANGS) {
       const copy = LANDING_COPY[lang];
       expect(copy.hero.primary).toBe(copy.cta.try);
@@ -80,12 +83,8 @@ describe("landing copy [FL-089]", () => {
     expect(LANDING_COPY.es.cta.talk).toBe("Hablemos");
   });
 
-  it("is Powered by Craftech and says in both languages that the data is synthetic and every name fictitious", () => {
+  it("is Powered by Craftech in both languages", () => {
     for (const lang of LANGS) expect(LANDING_COPY[lang].footer.product).toBe("Legajo listo · Powered by Craftech");
-    expect(LANDING_COPY.es.hero.note).toMatch(/100 % sintéticos/);
-    expect(LANDING_COPY.en.hero.note).toMatch(/100% synthetic/);
-    expect(LANDING_COPY.es.footer.synthetic).toMatch(/ficticio/);
-    expect(LANDING_COPY.en.footer.synthetic).toMatch(/fictitious/);
   });
 });
 
@@ -112,28 +111,22 @@ describe("impact as labelled goals [FL-089]", () => {
   });
 });
 
-describe("what is real and what is simulated [FL-089]", () => {
-  const columns = Object.keys(DEMO_COLUMNS) as DemoColumnId[];
-
-  it("puts every service or system in exactly one column", () => {
-    const all = columns.flatMap((column) => [...DEMO_COLUMNS[column]]);
-    expect(new Set(all).size).toBe(all.length);
+describe("product voice and the architecture on AWS [FL-089]", () => {
+  it.each(LANGS)("reads as a delivered product: no demo, simulated, synthetic, fictitious or model-vendor wording (%s)", (lang) => {
+    const joined = visibleTexts(LANDING_COPY[lang]).join("\n");
+    expect(joined).not.toMatch(/\b(demo|demos|simulad[oa]s?|simulated|simulator|simulador|sint[eé]tic[oa]s?|synthetic|fictici[oa]s?|fictitious|bedrock)\b/i);
   });
 
-  it.each(LANGS)("names in each column exactly its own items, and no 'todos'/'all' in the real one (%s)", (lang) => {
-    const { demo } = LANDING_COPY[lang];
-    for (const column of columns) {
-      const text = demo.columns[column].text.toLowerCase();
-      for (const owner of columns) {
-        for (const item of DEMO_COLUMNS[owner]) {
-          const named = text.includes(DEMO_ITEM_NAMES[item][lang].toLowerCase());
-          expect(named, `${column} ${owner === column ? "misses" : "names"} ${item}`).toBe(owner === column);
-        }
+  it.each(LANGS)("names every node of the diagram, and every AWS icon is in public/landing/aws (%s)", (lang) => {
+    const { architecture } = LANDING_COPY[lang];
+    for (const layer of ARCHITECTURE) {
+      expect(architecture.layers[layer.id]).not.toBe("");
+      for (const node of layer.nodes) {
+        expect(architecture.nodes[node.id].name.length).toBeGreaterThan(0);
+        if ("aws" in node.visual) expect(existsSync(join(PUBLIC_DIR, node.visual.aws)), node.visual.aws).toBe(true);
       }
     }
-    expect(demo.columns.real.text).not.toMatch(/\b(todos|todo|every|all)\b/i);
-    expect(demo.columns.real.text).not.toMatch(/whatsapp/i);
-    expect(demo.columns.simulatedMode.text).toMatch(/WhatsApp/);
+    expect(architecture.steps).toHaveLength(4);
   });
 
   it("never presents WhatsApp as a live channel", () => {
@@ -180,7 +173,7 @@ describe("story drawn with the product's texts [FL-089]", () => {
     expect(SUPPLIER_THREAD.map((email) => email.source)).toEqual(["agent", "simulator", "agent", "simulator"]);
     expect(SUPPLIER_THREAD[0]?.from).toBe(`${supplierEmailEn.displayName(STORY.firmName)} <${STORY.threadAddress}>`);
     expect(SUPPLIER_THREAD[1]?.body).toBe(supplierSimEn.documentsAttached({ subject: SUPPLIER_THREAD[0]?.subject ?? "", docTypes: ["PACKING_LIST", "CERTIFICATE_OF_ORIGIN"], invoiceNumber: STORY.invoiceNumber, supplierName: STORY.supplierName }).body);
-    for (const lang of LANGS) expect(LANDING_COPY[lang].tour.agentSample).toMatch(/ejemplo|sample/i);
+    for (const lang of LANGS) expect(LANDING_COPY[lang].tour.agentSample).toMatch(/agente|agent/i);
   });
 
   it("takes the simulated supplier's replies through the generated file, never from the module with the hostile bodies", () => {

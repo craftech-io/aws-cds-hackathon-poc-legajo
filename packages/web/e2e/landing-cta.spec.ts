@@ -1,5 +1,5 @@
 // FL-130 · the calls to action and where the visit came from (docs/landing-spec.md §9, ADR-0015 §2), in
-// the six projects of docs/test-plan.md §3: "Probar la demo" reaches /signup with a full page load and
+// the six projects of docs/test-plan.md §3: "Probar Legajo listo" reaches /signup with a full page load and
 // the visit's valid campaign parameters, which also stay in sessionStorage (no cookie, no analytics);
 // "Ingresar" opens the login; every "Hablemos" opens Craftech's contact page in a new tab, with the
 // placement as `utm_content`.

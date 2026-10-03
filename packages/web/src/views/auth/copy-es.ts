@@ -93,7 +93,7 @@ export const AUTH_ES = {
     submit: "Ingresar",
     submitting: "Ingresando…",
     forgot: "Olvidé mi contraseña",
-    noAccount: "¿No tenés cuenta? Probá la demo",
+    noAccount: "¿No tenés cuenta? Probá Legajo listo",
     errors: {
       credentials: "El email, el usuario o la contraseña no son correctos.",
       tooMany: "Hiciste muchos intentos. Esperá unos minutos y probá de nuevo.",

@@ -42,7 +42,7 @@ export async function openContext(browser: Browser, profile: SignupProfile): Pro
   return { context, page: await context.newPage() };
 }
 
-/** The landing with the run's UTM, then its first "Probar la demo" (the CTA to `/signup`) with a full navigation. */
+/** The landing with the run's UTM, then its first "Probar Legajo listo" (the CTA to `/signup`) with a full navigation. */
 export async function signupFromLanding(page: Page, query: string): Promise<URL> {
   await page.goto(`${SITE}/${query}`);
   await page.locator('a[href^="/signup"]').first().click();
