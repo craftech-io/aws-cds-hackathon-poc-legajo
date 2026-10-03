@@ -68,6 +68,20 @@ async function leaseReservedSlot(client: TableClient, account: GuestAccount, fir
   await client.put(RUNTIME_TABLE, item, current === undefined ? { ifNotExists: true } : { ifVersion: current.version });
 }
 
+/**
+ * The account's lease, checked against its world: a READY lease whose broker row is no longer bound to
+ * the account (the world was destroyed by a path that left the lease behind) is moved to DESTROYED, so
+ * the account sees "no world" and the next ensure creates one instead of a token with no firm forever.
+ */
+export async function liveAccountWorld(client: TableClient, sub: string, now: Date): Promise<AccountWorldLease | undefined> {
+  const lease = await readAccountWorld(client, sub);
+  if (lease?.state !== "READY" || lease.firmId === undefined) return lease;
+  const broker = await client.get("Firms", brokerKey(lease.firmId, guestIdentity(lease.firmId).brokerId));
+  if (broker !== undefined && broker.cognitoSub === sub && broker.active === true) return lease;
+  await markAccountWorld(client, sub, lease.leaseId, { state: "DESTROYED", reason: "WORLD_GONE" }, now);
+  return readAccountWorld(client, sub);
+}
+
 function answerOf(lease: AccountWorldLease | undefined): EnsureWorldOutput {
   if (lease?.state === "READY" && lease.firmId !== undefined) return { state: "READY", firmId: lease.firmId, clockId: guestClockId(lease.firmId) };
   if (lease?.state === "FAILED" && lease.reason === "CAPACITY") return { state: "CAPACITY" };
@@ -78,6 +92,7 @@ function answerOf(lease: AccountWorldLease | undefined): EnsureWorldOutput {
 export async function ensureGuestWorld(account: GuestAccount, deps: EnsureDeps): Promise<EnsureWorldOutput> {
   await consumeWorldPreparation({ client: deps.client, now: deps.now, log: deps.log }, account.sub);
   const now = deps.now();
+  await liveAccountWorld(deps.client, account.sub, now);
   const leaseId = deps.newUlid();
   const taken = await leaseAccountWorld(deps.client, account.sub, leaseId, now);
   if (!taken.won) return answerOf(taken.current);

@@ -13,7 +13,7 @@ import { sequentialIds } from "../connector/index";
 import { brokerKey, operationPartition } from "../connector/keys";
 import type { CognitoUser } from "../signup/cognito";
 import type { AsyncInvoker } from "../signup/invoke";
-import { type EnsureDeps, createGuestWorld, destroyGuestWorld, ensureGuestWorld } from "./guest-worlds";
+import { type EnsureDeps, createGuestWorld, destroyGuestWorld, ensureGuestWorld, liveAccountWorld } from "./guest-worlds";
 import { readAccountWorld, readSlot, slotKey } from "./guest-slots";
 import { destroyWorld } from "./destroy";
 import { type MemoryWorldObjects, type WorldObjectBucket, memoryWorldObjects, s3WorldObjects } from "./objects";
@@ -86,6 +86,17 @@ describe("[FL-105] [FL-109] TTL and the next sign-in", () => {
     const again = await signIn(h, "sub-a", { random: () => 0 });
     expect(again).toMatchObject({ outcome: "READY", lease: { state: "READY", firmId: "firm-guest-31" } });
     expect((await h.stores.connector.world.getClock("GUEST#firm-guest-31")).worldEpoch).toBe(2);
+  });
+
+  it("a READY lease whose world was destroyed elsewhere (broker row gone) is DESTROYED on the next look, and the next sign-in creates the world again", async () => {
+    const h = worldsHarness();
+    const first = await signIn(h, "sub-g", { random: () => 0 });
+    expect(first.lease).toMatchObject({ state: "READY", firmId: "firm-guest-31" });
+    await destroyWorld({ clockId: "GUEST#firm-guest-31", reason: "QA" } as never, h.deps);
+    expect(await liveAccountWorld(h.stores.client, "sub-g", h.realNow)).toMatchObject({ state: "DESTROYED" });
+    h.realNow = new Date(h.realNow.getTime() + 21 * 60_000);
+    const again = await signIn(h, "sub-g", { random: () => 0 });
+    expect(again).toMatchObject({ answer: { state: "CREATING" }, outcome: "READY", lease: { state: "READY" } });
   });
 
   it("destroys a public world 72 h after it was leased even when it is in use", async () => {

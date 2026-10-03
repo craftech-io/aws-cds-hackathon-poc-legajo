@@ -13,6 +13,8 @@ import { leasePublicSlot, markAccountWorld, readAccountWorld } from "../worlds/g
 import { createHandler } from "./handler";
 import { guestWorldProcedures } from "./guest-world";
 import { createContextFactory, router } from "./trpc";
+import { brokerKey } from "../connector/keys";
+import { guestIdentity } from "../worlds/world-ids";
 
 const SUB = "5a1d0c3e-0000-4000-8000-0000000000bb";
 const NOW = new Date("2026-10-14T13:30:00.000Z");
@@ -53,6 +55,9 @@ describe("[FL-105] account.ensureWorld", () => {
 
     const lease = await readAccountWorld(access.client, SUB);
     await markAccountWorld(access.client, SUB, lease?.leaseId ?? "", { state: "READY", firmId: lease?.firmId ?? "", ...(lease?.nn === undefined ? {} : { nn: lease.nn }) }, NOW);
+    // The world's broker row bound to the account (what GUEST_CREATE writes); without it the lease is a gone world.
+    const firmId = lease?.firmId ?? "";
+    await access.client.put("Firms", { ...brokerKey(firmId, guestIdentity(firmId).brokerId), entity: "Broker", firmId, brokerId: guestIdentity(firmId).brokerId, cognitoSub: SUB, active: true, createdAt: NOW.toISOString(), updatedAt: NOW.toISOString(), version: 1 });
     expect(await world(guestToken())).toMatchObject({ data: { state: "READY", firmId: lease?.firmId, clockId: `GUEST#${lease?.firmId ?? ""}` } });
     expect(await ensure(guestToken())).toMatchObject({ data: { state: "READY", firmId: lease?.firmId } });
   });

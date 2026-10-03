@@ -22,7 +22,8 @@ import type { Clock } from "../domain/world-state";
 import { leadEmailHash } from "../lib/crypto";
 import type { AccessDeps } from "../signup/deps";
 import { readUsage } from "../worlds/guest-quotas";
-import { isPublicGuestFirm, readAccountWorld, readSlot, worldStateOf } from "../worlds/guest-slots";
+import { isPublicGuestFirm, readSlot, worldStateOf } from "../worlds/guest-slots";
+import { liveAccountWorld } from "../worlds/guest-worlds";
 import { markGuestActivity, sessionIdOf } from "./guest-activity";
 import { type Context, type FirmContext, enterFirm, guestBootstrapProcedure, isGuestWorldGone, publicProcedure, router } from "./trpc";
 
@@ -73,8 +74,8 @@ export function guestKindOf(firmId: string | undefined): GuestKind {
 }
 
 /** The world as `account.world` says it (ADR-0015 §4), read from the account's lease. */
-export async function accountWorldOf(access: Pick<AccessDeps, "client">, sub: string): Promise<AccountWorldOutput & { readonly expiresAtReal?: string }> {
-  const lease = await readAccountWorld(access.client, sub);
+export async function accountWorldOf(access: Pick<AccessDeps, "client" | "now">, sub: string): Promise<AccountWorldOutput & { readonly expiresAtReal?: string }> {
+  const lease = await liveAccountWorld(access.client, sub, access.now());
   const state: GuestWorldState = worldStateOf(lease);
   const slot = state === "READY" && lease?.nn !== undefined ? await readSlot(access.client, lease.nn) : undefined;
   return {
