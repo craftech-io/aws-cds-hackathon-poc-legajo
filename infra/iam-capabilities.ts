@@ -320,7 +320,7 @@ export const LAMBDA_CAPABILITIES = {
       "cloudwatch:DescribeAlarmHistory",
     ],
     fence:
-      "ses:FromAddress qainject-*@sim / qa-*@sim, ses:Recipients op-*@ / qa-*@sim, configuration set …-sim-poc; InvokeFunction of InboundEmail, SimMail and PolicyAudit; DeleteObject only qa/*; DeleteSchedule only tm-q-* and tm-g-*; sqs Receive/Delete/GetQueueAttributes only on OperationEventsDlq.fifo; DescribeAlarmHistory only on the DLQ alarm",
+      "ses:FromAddress qainject-*@sim / qa-*@sim, ses:Recipients op-*@ / qa-*@sim, configuration set …-sim-poc; InvokeFunction of InboundEmail, SimMail and PolicyAudit; no DeleteObject on the mail bucket, and in Documents, Uploads and Media (bucket links, s3:*) the code deletes only qa/* and guest/res/firm-guest-test/* (QaWorldObjects, never uploads/<token>/); DeleteSchedule only tm-q-* and tm-g-*; sqs Receive/Delete/GetQueueAttributes only on OperationEventsDlq.fifo; DescribeAlarmHistory only on the DLQ alarm",
   },
 } as const satisfies Record<string, LambdaCapabilities>;
 

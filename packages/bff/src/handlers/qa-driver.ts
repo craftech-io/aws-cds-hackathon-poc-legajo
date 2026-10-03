@@ -28,7 +28,7 @@ import { lambdaSimMailInvoker } from "../sim-mail/invoke";
 import { lambdaAsyncInvoker } from "../signup/invoke";
 import { harnessIdentity } from "../turns/identity";
 import { type WorldsDeps, stageWorldsDeps } from "../worlds/deps";
-import { QA_OBJECT_PREFIXES, s3WorldObjects } from "../worlds/objects";
+import { qaWorldObjectsGrant, s3WorldObjects } from "../worlds/objects";
 
 /** `supplier.sendNow` over `SimMail` (`sim_reply`, mode `SEND_NOW`): a refusal is the step's error. */
 function simMailPort(): QaPorts["simMail"] {
@@ -42,8 +42,9 @@ function simMailPort(): QaPorts["simMail"] {
 }
 
 /**
- * The world factory with the stage's links, built on first use: objects under `qa/` too (the QaDriver's own
- * DeleteObject grant), and Memory passes 2+ handed to `WorldJanitor` (`MEMORY_PURGE`, asynchronous).
+ * The world factory with the stage's links, built on first use: objects only under `QaWorldObjects`
+ * (`qa/` and the guest-test world's prefix; no upload links, no raw MIME: the buckets' lifecycle takes
+ * them), and Memory passes 2+ handed to `WorldJanitor` (`MEMORY_PURGE`, asynchronous).
  */
 function stageQaWorlds(): () => WorldsDeps {
   let deps: WorldsDeps | undefined;
@@ -51,7 +52,7 @@ function stageQaWorlds(): () => WorldsDeps {
     if (deps !== undefined) return deps;
     const invoker = lambdaAsyncInvoker();
     const base = stageWorldsDeps({ log: createLogger({ bindings: { service: "qa-driver-worlds" } }), continuePurge: (target) => invoker.invoke("WorldJanitor", { ...target, kind: "MEMORY_PURGE" }) });
-    deps = { ...base, objects: s3WorldObjects({ extraPrefixes: QA_OBJECT_PREFIXES }) };
+    deps = { ...base, objects: s3WorldObjects({ grant: qaWorldObjectsGrant }), mailPrefixes: () => [] };
     return deps;
   };
 }

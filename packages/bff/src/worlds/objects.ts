@@ -5,9 +5,12 @@
 //   Uploads            `uploads/<token>/` of every upload link the world's messages carried
 //   InboundMail        the raw MIME its messages cite (`<stage>/ops/<sesMessageId>`, `<stage>/sim/<id>`)
 //
-// The bucket names and the prefixes the role may delete under come from the `GuestObjects` link
-// (infra/leads.ts: `s3:DeleteObject` and `s3:ListBucket` under those prefixes only); a key outside
-// them is refused here before S3 would refuse it. Every call has a deadline and the SDK's retries.
+// The bucket names and the prefixes the role may delete under come from its link: `GuestObjects`
+// (WorldJanitor, Bff: infra/leads.ts, `s3:DeleteObject` and `s3:ListBucket` under those prefixes only) or
+// `QaWorldObjects` (QaDriver: `qa/` and the guest-test world's prefix, never `uploads/` nor the mail
+// bucket). A key outside them is refused here before S3 would refuse it; `destroyWorld` asks `covers`
+// first and leaves what the role may not delete to the bucket's lifecycle. Every call has a deadline and
+// the SDK's retries.
 import { DeleteObjectsCommand, ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
 import { z } from "zod";
 import { awsClientConfig, type ClientTimeouts } from "../lib/clients";
@@ -17,6 +20,8 @@ import { STAGE_REGION } from "../public-web/presign";
 export type WorldObjectBucket = "Documents" | "Media" | "Uploads" | "InboundMail";
 
 export interface WorldObjects {
+  /** Whether the role may delete `prefixOrKey` of `bucket` (under one of its granted prefixes). */
+  covers(bucket: WorldObjectBucket, prefixOrKey: string): boolean;
   /** Deletes every object under `prefix`; how many it deleted. */
   deletePrefix(bucket: WorldObjectBucket, prefix: string): Promise<number>;
   /** Deletes these keys (a key already gone is fine); how many it asked to delete. */
@@ -32,12 +37,33 @@ const GuestObjectsLink = z.object({
 });
 type GuestObjectsLink = z.infer<typeof GuestObjectsLink>;
 
-const BUCKET_FIELD: Readonly<Record<WorldObjectBucket, keyof Omit<GuestObjectsLink, "prefixes">>> = {
-  Documents: "documentsBucket",
-  Media: "mediaBucket",
-  Uploads: "uploadsBucket",
-  InboundMail: "inboundMailBucket",
-};
+/** What a role's link gives `s3WorldObjects`: a bucket name and the prefixes it may delete under, per bucket. */
+export interface WorldObjectsGrant {
+  readonly buckets: Readonly<Partial<Record<WorldObjectBucket, string>>>;
+  readonly prefixes: Readonly<Partial<Record<WorldObjectBucket, readonly string[]>>>;
+}
+
+const QaWorldObjectsLink = z.object({
+  documentsBucket: z.string().min(1),
+  mediaBucket: z.string().min(1),
+  uploadsBucket: z.string().min(1),
+  prefixes: z.object({ Documents: z.array(z.string()), Media: z.array(z.string()), Uploads: z.array(z.string()) }),
+});
+
+/** `GuestObjects` (WorldJanitor, Bff): the four buckets of a guest world. */
+export function guestObjectsGrant(): WorldObjectsGrant {
+  const link = readLinked("GuestObjects", GuestObjectsLink);
+  return {
+    buckets: { Documents: link.documentsBucket, Media: link.mediaBucket, Uploads: link.uploadsBucket, InboundMail: link.inboundMailBucket },
+    prefixes: link.prefixes,
+  };
+}
+
+/** `QaWorldObjects` (QaDriver): Documents, Media and Uploads under its prefixes; no mail bucket at all. */
+export function qaWorldObjectsGrant(): WorldObjectsGrant {
+  const link = readLinked("QaWorldObjects", QaWorldObjectsLink);
+  return { buckets: { Documents: link.documentsBucket, Media: link.mediaBucket, Uploads: link.uploadsBucket }, prefixes: link.prefixes };
+}
 
 /** The raw MIME prefixes of the mail bucket (`poc/ops/`, `poc/sim/`). */
 export function inboundMailPrefixes(): readonly string[] {
@@ -56,19 +82,20 @@ const DELETE_BATCH = 1_000;
 
 export interface S3WorldObjectsOptions {
   readonly client?: S3Client;
-  readonly link?: () => GuestObjectsLink;
-  /** Prefixes the role may delete under beyond the link's (the `QaDriver`'s `qa/`, its own IAM grant). */
-  readonly extraPrefixes?: Partial<Record<WorldObjectBucket, readonly string[]>>;
+  /** The role's grant; `GuestObjects` when omitted. */
+  readonly grant?: () => WorldObjectsGrant;
 }
-
-/** `qa/<runId>/` of a QA run in Documents, Media and Uploads: the `QaDriver` deletes there with its own grant. */
-export const QA_OBJECT_PREFIXES: Partial<Record<WorldObjectBucket, readonly string[]>> = { Documents: ["qa/"], Media: ["qa/"], Uploads: ["qa/"] };
 
 export function s3WorldObjects(options: S3WorldObjectsOptions = {}): WorldObjects {
   let client = options.client;
   const s3 = (): S3Client => (client ??= new S3Client({ region: STAGE_REGION, ...awsClientConfig(OBJECT_TIMEOUTS) }));
-  const link = options.link ?? (() => readLinked("GuestObjects", GuestObjectsLink));
-  const grantedPrefixes = (bucket: WorldObjectBucket): readonly string[] => [...link().prefixes[bucket], ...(options.extraPrefixes?.[bucket] ?? [])];
+  const grant = options.grant ?? guestObjectsGrant;
+  const grantedPrefixes = (bucket: WorldObjectBucket): readonly string[] => (grant().buckets[bucket] === undefined ? [] : (grant().prefixes[bucket] ?? []));
+  const bucketOf = (bucket: WorldObjectBucket): string => {
+    const name = grant().buckets[bucket];
+    if (name === undefined) throw new RangeError(`no ${bucket} bucket in this role's grant`);
+    return name;
+  };
 
   async function remove(bucket: WorldObjectBucket, keys: readonly string[]): Promise<number> {
     const granted = grantedPrefixes(bucket);
@@ -76,7 +103,7 @@ export function s3WorldObjects(options: S3WorldObjectsOptions = {}): WorldObject
     if (deletable.length !== new Set(keys).size) throw new RangeError(`refused to delete ${new Set(keys).size - deletable.length} key(s) outside the ${bucket} prefixes of a world`);
     for (let start = 0; start < deletable.length; start += DELETE_BATCH) {
       const batch = deletable.slice(start, start + DELETE_BATCH);
-      const answer = await s3().send(new DeleteObjectsCommand({ Bucket: link()[BUCKET_FIELD[bucket]], Delete: { Objects: batch.map((Key) => ({ Key })), Quiet: true } }));
+      const answer = await s3().send(new DeleteObjectsCommand({ Bucket: bucketOf(bucket), Delete: { Objects: batch.map((Key) => ({ Key })), Quiet: true } }));
       const failed = (answer.Errors ?? []).filter((error) => error.Code !== "NoSuchKey");
       if (failed.length > 0) throw new Error(`${failed.length} object(s) of ${bucket} could not be deleted`);
     }
@@ -84,12 +111,14 @@ export function s3WorldObjects(options: S3WorldObjectsOptions = {}): WorldObject
   }
 
   return {
+    covers: (bucket, prefixOrKey) => isDeletable(prefixOrKey, grantedPrefixes(bucket)),
+
     async deletePrefix(bucket, prefix) {
       if (!isDeletable(prefix, grantedPrefixes(bucket))) throw new RangeError(`refused to delete outside the ${bucket} prefixes of a world`);
       let deleted = 0;
       let token: string | undefined;
       do {
-        const page = await s3().send(new ListObjectsV2Command({ Bucket: link()[BUCKET_FIELD[bucket]], Prefix: prefix, ContinuationToken: token }));
+        const page = await s3().send(new ListObjectsV2Command({ Bucket: bucketOf(bucket), Prefix: prefix, ContinuationToken: token }));
         const keys = (page.Contents ?? []).flatMap((object) => (object.Key === undefined ? [] : [object.Key]));
         if (keys.length > 0) deleted += await remove(bucket, keys);
         token = page.IsTruncated ? page.NextContinuationToken : undefined;
@@ -107,7 +136,8 @@ export interface MemoryWorldObjects extends WorldObjects {
   put(bucket: WorldObjectBucket, key: string): void;
 }
 
-export function memoryWorldObjects(): MemoryWorldObjects {
+/** `granted`: the prefixes per bucket the role may delete under; every key when omitted. */
+export function memoryWorldObjects(granted?: Partial<Record<WorldObjectBucket, readonly string[]>>): MemoryWorldObjects {
   const objects = new Map<WorldObjectBucket, Set<string>>();
   const of = (bucket: WorldObjectBucket): Set<string> => {
     let keys = objects.get(bucket);
@@ -117,12 +147,15 @@ export function memoryWorldObjects(): MemoryWorldObjects {
   return {
     objects,
     put: (bucket, key) => void of(bucket).add(key),
+    covers: (bucket, prefixOrKey) => granted === undefined || isDeletable(prefixOrKey, granted[bucket] ?? []),
     async deletePrefix(bucket, prefix) {
+      if (granted !== undefined && !isDeletable(prefix, granted[bucket] ?? [])) throw new RangeError(`refused to delete outside the ${bucket} prefixes of a world`);
       let deleted = 0;
       for (const key of of(bucket)) if (key.startsWith(prefix) && of(bucket).delete(key)) deleted += 1;
       return deleted;
     },
     async deleteKeys(bucket, keys) {
+      if (granted !== undefined && keys.some((key) => !isDeletable(key, granted[bucket] ?? []))) throw new RangeError(`refused to delete keys outside the ${bucket} prefixes of a world`);
       for (const key of keys) of(bucket).delete(key);
       return keys.length;
     },

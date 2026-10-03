@@ -1,7 +1,9 @@
 // The life of a guest world (ADR-0015 §4 and §5, FL-105, FL-109, FL-110, FL-118, FL-132): the slot cap
 // (CAPACITY), the TTL by inactivity and by age, the next sign-in creating the world again at a higher
 // epoch, a released slot not leased again before 20 minutes, no S3 object of a destroyed world left in
-// any bucket, and reserved worlds reset at night but never destroyed by the sweep.
+// any bucket (and, with the QaDriver's narrower grant, none outside it: W4-SEC-01), and reserved worlds
+// reset at night but never destroyed by the sweep.
+import type { S3Client } from "@aws-sdk/client-s3";
 import { describe, expect, it } from "vitest";
 import { GUEST_SLOTS } from "@legajo/shared/guest-limits";
 import { guestWorldPrefix } from "@legajo/shared/document-keys";
@@ -13,10 +15,15 @@ import type { CognitoUser } from "../signup/cognito";
 import type { AsyncInvoker } from "../signup/invoke";
 import { type EnsureDeps, createGuestWorld, destroyGuestWorld, ensureGuestWorld } from "./guest-worlds";
 import { readAccountWorld, readSlot, slotKey } from "./guest-slots";
+import { destroyWorld } from "./destroy";
+import { type MemoryWorldObjects, type WorldObjectBucket, memoryWorldObjects, s3WorldObjects } from "./objects";
 import { MAIL_PREFIXES, type WorldsHarness, worldsHarness } from "./testing";
 
 const HOUR = 3_600_000;
 const TOKEN = "Ab3dEf6hIj9lMn2pQr5tUv8xYz1bCd4fGh7jKl0nPq3";
+const UPLOAD_KEY = `uploads/${TOKEN}/PACKING_LIST/0b6f5c9e-6f3e-4d0e-9b4c-4b1d2c3e4f50.pdf`;
+const MIME_KEY = `${MAIL_PREFIXES[0]}ses-inbound-1`;
+const DEMO_KEY = "ops/op-4471/PACKING_LIST/v001-0123abcd.pdf";
 
 interface Invoked {
   readonly target: string;
@@ -109,30 +116,84 @@ describe("[FL-105] [FL-109] TTL and the next sign-in", () => {
   });
 });
 
+/** A signed-in public guest world with one object in every bucket, one demo object, and a message citing the upload and the MIME. */
+async function guestWorldWithObjects(h: WorldsHarness, objects: MemoryWorldObjects = h.objects): Promise<string> {
+  await signIn(h, "sub-a", { random: () => 0 });
+  const operation = await h.stores.connector.operations.getOperation("op-4471-g31");
+  const prefix = guestWorldPrefix({ guestKind: "PUBLIC", firmId: "firm-guest-31", epoch: operation.worldEpoch });
+  objects.put("Documents", `${prefix}ops/op-4471-g31/PACKING_LIST/v001-0123abcd.pdf`);
+  objects.put("Documents", `${prefix.replace("/e1/", "/e0/")}quarantine/old.pdf`);
+  objects.put("Media", `${prefix}sim/msg-1/1.pdf`);
+  objects.put("Uploads", UPLOAD_KEY);
+  objects.put("InboundMail", MIME_KEY);
+  objects.put("Documents", DEMO_KEY);
+  const message = (await h.stores.client.query("Conversations", { hashValue: operationPartition("op-4471-g31") }))[0];
+  await h.stores.client.put("Conversations", { ...message, PK: operationPartition("op-4471-g31"), SK: "MSG#2026-10-14T13:40:00.000Z#msg-in1", entity: "Message", channel: "EMAIL", direction: "IN", providerMessageId: "ses-inbound-1", buttons: [{ action: "UPLOAD", title: "Subir", url: `https://legajo.demo.craftech.io/u/${TOKEN}` }] } as never);
+  return prefix;
+}
+
+const keysOf = (objects: MemoryWorldObjects, bucket: WorldObjectBucket): string[] => [...(objects.objects.get(bucket) ?? [])];
+
 describe("[FL-118] destroyWorld of a guest world leaves no object behind", () => {
   it("deletes the world's prefix in Documents and Media, its links' uploads and the raw MIME its messages cite", async () => {
     const h = worldsHarness();
-    await signIn(h, "sub-a", { random: () => 0 });
-    const operation = await h.stores.connector.operations.getOperation("op-4471-g31");
-    const prefix = guestWorldPrefix({ guestKind: "PUBLIC", firmId: "firm-guest-31", epoch: operation.worldEpoch });
-    h.objects.put("Documents", `${prefix}ops/op-4471-g31/PACKING_LIST/v001-0123abcd.pdf`);
-    h.objects.put("Documents", `${prefix.replace("/e1/", "/e0/")}quarantine/old.pdf`);
-    h.objects.put("Media", `${prefix}sim/msg-1/1.pdf`);
-    h.objects.put("Uploads", `uploads/${TOKEN}/PACKING_LIST/0b6f5c9e-6f3e-4d0e-9b4c-4b1d2c3e4f50.pdf`);
-    h.objects.put("InboundMail", `${MAIL_PREFIXES[0]}ses-inbound-1`);
-    h.objects.put("Documents", "ops/op-4471/PACKING_LIST/v001-0123abcd.pdf");
-    const message = (await h.stores.client.query("Conversations", { hashValue: operationPartition("op-4471-g31") }))[0];
-    await h.stores.client.put("Conversations", { ...message, PK: operationPartition("op-4471-g31"), SK: "MSG#2026-10-14T13:40:00.000Z#msg-in1", entity: "Message", channel: "EMAIL", direction: "IN", providerMessageId: "ses-inbound-1", buttons: [{ action: "UPLOAD", title: "Subir", url: `https://legajo.demo.craftech.io/u/${TOKEN}` }] } as never);
+    await guestWorldWithObjects(h);
 
     await destroyGuestWorld({ firmId: "firm-guest-31", reason: "REQUEST" }, h.deps);
-    expect([...(h.objects.objects.get("Documents") ?? [])]).toEqual(["ops/op-4471/PACKING_LIST/v001-0123abcd.pdf"]);
-    expect([...(h.objects.objects.get("Media") ?? [])]).toEqual([]);
-    expect([...(h.objects.objects.get("Uploads") ?? [])]).toEqual([]);
-    expect([...(h.objects.objects.get("InboundMail") ?? [])]).toEqual([]);
+    expect(keysOf(h.objects, "Documents")).toEqual([DEMO_KEY]);
+    expect(keysOf(h.objects, "Media")).toEqual([]);
+    expect(keysOf(h.objects, "Uploads")).toEqual([]);
+    expect(keysOf(h.objects, "InboundMail")).toEqual([]);
     expect(h.stores.client.dump("Operations").filter((row) => row.clockId === "GUEST#firm-guest-31")).toEqual([]);
     expect(h.stores.client.dump("Platform").filter((row) => String(row.PK).startsWith("POP#firm-guest-31#"))).toEqual([]);
     expect(h.stores.client.dump("Firms").filter((row) => row.PK === "FIRM#firm-guest-31")).toEqual([]);
     expect(await h.stores.connector.world.currentEpoch("GUEST#firm-guest-31")).toBe(1);
+  });
+});
+
+describe("[W4-SEC-01] the QaDriver's object grant (QaWorldObjects)", () => {
+  // The QaDriver's prefixes (infra/leads-spec.ts QA_WORLD_OBJECT_PREFIXES): `qa/` and the guest-test world's.
+  const QA_GRANT = { Documents: ["qa/", "guest/res/firm-guest-test/"], Media: ["qa/", "guest/res/firm-guest-test/"], Uploads: ["qa/"] } as const;
+
+  it("refuses to destroy the objects of any other guest world: nothing in any bucket is deleted", async () => {
+    const h = worldsHarness();
+    const objects = memoryWorldObjects(QA_GRANT);
+    const prefix = await guestWorldWithObjects(h, objects);
+    await expect(destroyWorld({ clockId: "GUEST#firm-guest-31", reason: "QA_DESTROY" }, { ...h.deps, objects, mailPrefixes: () => [] })).rejects.toThrow(RangeError);
+    expect(keysOf(objects, "Documents")).toContain(`${prefix}ops/op-4471-g31/PACKING_LIST/v001-0123abcd.pdf`);
+    expect(keysOf(objects, "Media")).toEqual([`${prefix}sim/msg-1/1.pdf`]);
+    expect(keysOf(objects, "Uploads")).toEqual([UPLOAD_KEY]);
+    expect(keysOf(objects, "InboundMail")).toEqual([MIME_KEY]);
+  });
+
+  it("deletes only under its granted prefixes and leaves the world's uploads and raw MIME to the buckets' lifecycle", async () => {
+    const h = worldsHarness();
+    // The same shape as the guest-test grant, pointed at this world's firm.
+    const objects = memoryWorldObjects({ ...QA_GRANT, Documents: ["qa/", "guest/pub/firm-guest-31/"], Media: ["qa/", "guest/pub/firm-guest-31/"] });
+    await guestWorldWithObjects(h, objects);
+    await destroyWorld({ clockId: "GUEST#firm-guest-31", reason: "QA_DESTROY" }, { ...h.deps, objects, mailPrefixes: () => MAIL_PREFIXES });
+    expect(keysOf(objects, "Documents")).toEqual([DEMO_KEY]);
+    expect(keysOf(objects, "Media")).toEqual([]);
+    expect(keysOf(objects, "Uploads")).toEqual([UPLOAD_KEY]);
+    expect(keysOf(objects, "InboundMail")).toEqual([MIME_KEY]);
+  });
+
+  it("in S3, a grant without the mail bucket refuses its MIME before any call", async () => {
+    const client = { send: () => Promise.reject(new Error("no S3 call expected")) } as unknown as S3Client;
+    const objects = s3WorldObjects({ client, grant: () => ({ buckets: { Documents: "docs", Media: "media", Uploads: "uploads" }, prefixes: QA_GRANT }) });
+    expect(objects.covers("InboundMail", MIME_KEY)).toBe(false);
+    await expect(objects.deleteKeys("InboundMail", [MIME_KEY])).rejects.toThrow(RangeError);
+    await expect(objects.deletePrefix("Uploads", `uploads/${TOKEN}/`)).rejects.toThrow(RangeError);
+    await expect(objects.deletePrefix("Documents", "guest/res/firm-guest-03/e1/")).rejects.toThrow(RangeError);
+  });
+
+  it("covers nothing outside them, whatever the key", () => {
+    const objects = memoryWorldObjects(QA_GRANT);
+    expect(objects.covers("Documents", "qa/run-1/")).toBe(true);
+    expect(objects.covers("Media", "guest/res/firm-guest-test/e2/sim/1.pdf")).toBe(true);
+    for (const [bucket, key] of [["Documents", "guest/res/firm-guest-03/e1/"], ["Documents", "guest/pub/firm-guest-41/e1/x.pdf"], ["Documents", "guest/res/firm-guest-test/"], ["Documents", "qa/../ops/x.pdf"], ["Uploads", `uploads/${TOKEN}/`], ["InboundMail", MIME_KEY]] as const) {
+      expect(objects.covers(bucket, key), `${bucket} ${key}`).toBe(false);
+    }
   });
 });
 

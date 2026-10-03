@@ -7,6 +7,7 @@ import {
   LEADS_FUNCTIONS,
   LEAD_NOTICE_LINKS,
   QA_SIGNUP_MAIL_PREFIX,
+  QA_WORLD_OBJECT_PREFIXES,
   SIGNUP_DISPATCH_LINKS,
   SIGNUP_GRANT_LINKS,
   SIGNUP_GRANT_STATEMENTS,
@@ -122,8 +123,8 @@ describe("signupGrants (Bff by WP-32, WorldJanitor here, QaDriver by WP-32)", ()
     expect(architecture).toContain("`s3:DeleteObject` y `s3:ListBucket` sobre `guest/*` de `Documents` y `Media`, `uploads/*` de `Uploads` y `poc/ops/*`, `poc/sim/*` del bucket de correo");
   });
 
-  it("gives the QaDriver only the SC-26 actions (its leads, the codes of poc/sim/ and three Cognito calls) and the guest objects of world.destroy", () => {
-    expect(SIGNUP_GRANT_LINKS.QaDriver).toEqual(["Leads", "InboundMailSim", "GuestObjects"]);
+  it("gives the QaDriver only the SC-26 actions (its leads, the codes of poc/sim/ and three Cognito calls) and the QA objects of world.destroy", () => {
+    expect(SIGNUP_GRANT_LINKS.QaDriver).toEqual(["Leads", "InboundMailSim", "QaWorldObjects"]);
     expect(SIGNUP_GRANT_STATEMENTS.QaDriver).toEqual(["leads", "cognito", "qaSignupMail"]);
     expect(QA_SIGNUP_MAIL_PREFIX).toBe("poc/sim/");
     expect(qaSignupMailStatements("mail")).toEqual([
@@ -131,6 +132,23 @@ describe("signupGrants (Bff by WP-32, WorldJanitor here, QaDriver by WP-32)", ()
       { actions: ["s3:ListBucket"], resources: ["arn:aws:s3:::mail"], conditions: [{ test: "StringLike", variable: "s3:prefix", values: ["poc/sim/*"] }] },
     ]);
     expect(cognitoActions("QaDriver")).toEqual(["cognito-idp:AdminDeleteUser", "cognito-idp:AdminGetUser", "cognito-idp:ListUsers"]);
+  });
+
+  it("[W4-SEC-01] never gives the QaDriver the guest objects' deletes: its own names-only link, no mail bucket, the fence and §14 agree", () => {
+    expect(SIGNUP_GRANT_LINKS.QaDriver).not.toContain("GuestObjects");
+    expect(QA_WORLD_OBJECT_PREFIXES).toEqual({ Documents: ["qa/", "guest/res/firm-guest-test/"], Media: ["qa/", "guest/res/firm-guest-test/"], Uploads: ["qa/"] });
+    expect(QA_WORLD_OBJECT_PREFIXES).not.toHaveProperty("InboundMail");
+    const qaWorldObjects = leadsModule.slice(leadsModule.indexOf('new sst.Linkable("QaWorldObjects"'), leadsModule.indexOf("function leadsFunction"));
+    expect(qaWorldObjects).toContain("prefixes: QA_WORLD_OBJECT_PREFIXES");
+    expect(qaWorldObjects).not.toMatch(/include|inboundMailBucket|permission/);
+    expect(qaSignupMailStatements("mail").flatMap((statement) => statement.actions)).toEqual(["s3:GetObject", "s3:ListBucket"]);
+    expect(LAMBDA_CAPABILITIES.QaDriver.fence).toContain("no DeleteObject on the mail bucket");
+    expect(LAMBDA_CAPABILITIES.QaDriver.fence).toContain("the code deletes only qa/* and guest/res/firm-guest-test/* (QaWorldObjects, never uploads/<token>/)");
+    expect(LAMBDA_CAPABILITIES.QaDriver.fence).not.toContain("DeleteObject only qa/*");
+    const row = architecture.split("\n").find((line) => line.startsWith("| `QaDriver` |")) ?? "";
+    expect(row).toContain("ningún `s3:DeleteObject` en el bucket de correo");
+    expect(row).toContain("borra solo bajo `qa/*` y `guest/res/firm-guest-test/*`");
+    expect(row).not.toContain("`s3:DeleteObject` solo en `qa/*`");
   });
 
   it("is exported by infra/leads.ts for WP-32 and applied to WorldJanitor by infra/scheduler.ts", () => {

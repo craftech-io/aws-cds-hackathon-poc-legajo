@@ -31,6 +31,7 @@ import type { LambdaName } from "./iam-capabilities";
 import {
   GUEST_OBJECT_PREFIXES,
   LEADS_FUNCTIONS,
+  QA_WORLD_OBJECT_PREFIXES,
   LEADS_LINK,
   LEAD_NOTICE_LINKS,
   SIGNUP_DISPATCH_LINKS,
@@ -115,6 +116,19 @@ export const GuestObjects = new sst.Linkable("GuestObjects", {
   include: guestObjectPermissions.map((statement) => sst.aws.permission(statement)),
 });
 
+/**
+ * `Resource.QaWorldObjects`: the QaDriver's `world.destroy` (QA runs, guest-test). Names and prefixes only:
+ * no statement, so the role gains no DeleteObject here and none at all on the mail bucket (leads-spec.ts).
+ */
+export const QaWorldObjects = new sst.Linkable("QaWorldObjects", {
+  properties: {
+    documentsBucket: documentsBucket.name,
+    mediaBucket: mediaBucket.name,
+    uploadsBucket: uploadsBucket.name,
+    prefixes: QA_WORLD_OBJECT_PREFIXES,
+  },
+});
+
 // ---- Functions ------------------------------------------------------------------------------------------
 
 function leadsFunction(fn: LeadsFunction, link: unknown[], permissions: PermissionStatement[]): sst.aws.Function {
@@ -160,6 +174,7 @@ const grantLinks: Readonly<Record<string, unknown>> = {
   OriginVerifyKey,
   Auth,
   GuestObjects,
+  QaWorldObjects,
   InboundMailSim: inboundMailLinks.sim,
 };
 

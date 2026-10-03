@@ -371,13 +371,13 @@ describe("QaDriver (ADR-0005, docs/test-plan.md §4.1)", () => {
     expect(permissions).toEqual([{ action: "lambda:InvokeFunction", function: "QaDriver.name", principal: "arn:aws:iam::776805327629:role/aws-cds-hackathon-poc-legajo-qa-runner" }]);
   });
 
-  it("links what the Bff has fenced to QA worlds, the QA sender, the channel entries, G1, the DLQ and the SC-26 grants", async () => {
+  it("[W4-SEC-01] links what the Bff has fenced to QA worlds, the QA sender, the channel entries, G1, the DLQ, the SC-26 grants and QaWorldObjects (never GuestObjects, no DeleteObject statement)", async () => {
     const created = await fnArgs("QaDriver");
     expect(linkNames(created.link)).toEqual([
       ...stored("QaDriver"),
       ...["ReaderMock", "PlatformMock", "ReaderCatalog", "Platform", "EmailSenderQa", "InboundMailOps"],
       ...["Auth", "ChannelModes", "SessionTokenKey", "Scheduler", "Agent", "GuardrailG1", "OperationEvents", "OperationEventsDlq"],
-      ...["InboundEmail", "SimMail", "InboundWhatsApp", "PolicyAudit", "WorldJanitor", "Leads", "InboundMailSim", "GuestObjects", "DlqAlarm"],
+      ...["InboundEmail", "SimMail", "InboundWhatsApp", "PolicyAudit", "WorldJanitor", "Leads", "InboundMailSim", "QaWorldObjects", "DlqAlarm"],
     ]);
     expect(created.permissions?.[0]?.conditions).toEqual([{ test: "ForAllValues:StringLike", variable: "dynamodb:LeadingKeys", values: ["POP#firm-qa#*", "POP#firm-sim#*", "POP#firm-guest-test#*"] }]);
     expect(created.permissions?.slice(1)).toEqual([leadsStatement("QaDriver", "LeadsData.arn"), cognitoStatement("QaDriver", "UserPool.arn"), ...qaSignupMailStatements("mail")]);

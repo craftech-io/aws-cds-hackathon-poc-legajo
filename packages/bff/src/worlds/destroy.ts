@@ -5,7 +5,8 @@
 //   2 the schedules of its SCHEDULED timers (`tm-g-*`, `tm-q-*`)
 //   3 its S3 objects, before the rows that cite them: the guest prefix of every epoch of the firm in
 //     Documents and Media (or `qa/<runId>/`), `uploads/<token>/` of the links its messages carried, and
-//     the raw MIME of the mail bucket its messages cite
+//     the raw MIME of the mail bucket its messages cite, each only where the role's grant covers it
+//     (the QaDriver's `QaWorldObjects` leaves uploads and MIME to the buckets' 1- and 30-day lifecycle)
 //   4 every item of its clock (clock/world-items.ts), the firm's own rows (a guest firm), the `Platform`
 //     partitions `POP#<firmId>#<number>` of its operations, and the upload links
 //   5 the Memory of its actors: pass 1 here, the rest by `continuePurge` (docs/architecture.md §9.3)
@@ -112,12 +113,16 @@ async function deleteObjects(clockId: string, firmId: string, facts: WorldFacts,
   if (runId !== undefined) {
     for (const bucket of ["Documents", "Media", "Uploads"] as WorldObjectBucket[]) deleted += await deps.objects.deletePrefix(bucket, `qa/${runId}/`);
   } else if (parseClockId(clockId)?.scope === "GUEST") {
-    // Every epoch of the firm: a reset that failed half-way may have left an older prefix behind.
-    const prefix = guestWorldPrefix({ guestKind: isPublicGuestFirm(firmId) ? "PUBLIC" : "RESERVED", firmId, epoch: 1 }).replace(/e1\/$/, "");
+    // Every epoch of the firm (`…/<firmId>/e`): a reset that failed half-way may have left an older prefix behind.
+    const prefix = guestWorldPrefix({ guestKind: isPublicGuestFirm(firmId) ? "PUBLIC" : "RESERVED", firmId, epoch: 1 }).replace(/1\/$/, "");
     for (const bucket of ["Documents", "Media"] as WorldObjectBucket[]) deleted += await deps.objects.deletePrefix(bucket, prefix);
   }
-  for (const token of facts.uploadTokens) deleted += await deps.objects.deletePrefix("Uploads", `uploads/${token}/`);
-  const mime = [...facts.mailIds, ...facts.mailboxIds].filter((id) => SAFE_MAIL_ID.test(id)).flatMap((id) => deps.mailPrefixes().map((prefix) => `${prefix}${id}`));
+  // What the role may not delete (the QaDriver: `uploads/` and the mail bucket) is left to the bucket's lifecycle.
+  for (const prefix of facts.uploadTokens.map((token) => `uploads/${token}/`)) if (deps.objects.covers("Uploads", prefix)) deleted += await deps.objects.deletePrefix("Uploads", prefix);
+  const mime = [...facts.mailIds, ...facts.mailboxIds]
+    .filter((id) => SAFE_MAIL_ID.test(id))
+    .flatMap((id) => deps.mailPrefixes().map((prefix) => `${prefix}${id}`))
+    .filter((key) => deps.objects.covers("InboundMail", key));
   if (mime.length > 0) deleted += await deps.objects.deleteKeys("InboundMail", mime);
   return deleted;
 }

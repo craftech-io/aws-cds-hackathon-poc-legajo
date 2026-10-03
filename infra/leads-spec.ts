@@ -13,7 +13,7 @@
 
 import { CI_DEPLOY_STAGE } from "./ci-spec";
 import { LAMBDA_CAPABILITIES, expectedActions, resolveCapabilities, type BucketName, type LambdaName } from "./iam-capabilities";
-import { inboundMailRoutes, type KeyFencedRole } from "./storage-keys";
+import { QA_PREFIX, inboundMailRoutes, type KeyFencedRole } from "./storage-keys";
 
 /** `Resource.Leads.name`: the name-only Linkable of the table (component `LeadsData`, storage-tables.ts). */
 export const LEADS_LINK = "Leads";
@@ -153,6 +153,23 @@ export function guestObjectStatements(bucketNames: Readonly<Record<GuestObjectBu
   return (Object.keys(GUEST_OBJECT_PREFIXES) as GuestObjectBucket[]).flatMap((bucket) => guestObjectStatementsFor(bucket, bucketNames[bucket]));
 }
 
+/** Every epoch of the guest-test world (`guest/res/firm-guest-test/e<n>/`, packages/shared/src/document-keys.ts). */
+export const GUEST_TEST_OBJECT_PREFIX = "guest/res/firm-guest-test/";
+
+/**
+ * What the QaDriver's `world.destroy` deletes (`QaWorldObjects`, infra/leads.ts): `qa/<runId>/` of a QA
+ * run and the guest-test world's prefix in Documents and Media, `qa/` in Uploads. Never `guest/` of another
+ * world, never `uploads/<token>/` and never the mail bucket: those of a QA or guest-test world expire by
+ * lifecycle (Uploads 1 day, mail 30 days). The role reaches Documents, Uploads and Media through their bucket
+ * links (`s3:*`, storage.ts `storageLinks`), so this list is the code's fence there (worlds/objects.ts);
+ * the mail bucket it only reads (`poc/ops/`, `poc/sim/`), with no DeleteObject at all.
+ */
+export const QA_WORLD_OBJECT_PREFIXES: Readonly<Record<Exclude<GuestObjectBucket, "InboundMail">, readonly string[]>> = {
+  Documents: [QA_PREFIX, GUEST_TEST_OBJECT_PREFIX],
+  Media: [QA_PREFIX, GUEST_TEST_OBJECT_PREFIX],
+  Uploads: [QA_PREFIX],
+};
+
 /** SC-26's `signup.readCode`: the codes land in the simulated mailboxes, `poc/sim/` of the mail bucket. */
 export const QA_SIGNUP_MAIL_PREFIX = inboundMailRoutes(CI_DEPLOY_STAGE).find((route) => route.rule === `sim-${CI_DEPLOY_STAGE}`)?.prefix ?? "";
 
@@ -221,14 +238,15 @@ export type SignupGrantRole = "Bff" | "WorldJanitor" | "QaDriver";
  * Names of what `signupGrants(fn)` (infra/leads.ts) links, beyond what the role already links: the
  * `Leads` name, the functions it may invoke (a linked Function grants exactly `lambda:InvokeFunction`
  * on it), `OriginVerifyKey` (Bff checks `X-Origin-Verify`), `Auth` (WorldJanitor reads the pool id;
- * Bff and QaDriver link it in infra/bff.ts) and `GuestObjects` (the bucket names and guest prefixes a
- * world's destroy or reset deletes from: WorldJanitor, the console's "Reiniciar demo" in the Bff and the
- * QaDriver's `world.destroy`). The QaDriver invokes WorldJanitor through the link infra/bff.ts already gives it (MEMORY_PURGE).
+ * Bff and QaDriver link it in infra/bff.ts), `GuestObjects` (the bucket names and guest prefixes a world's
+ * destroy or reset deletes from, with DeleteObject there: WorldJanitor and the console's "Reiniciar demo" in
+ * the Bff) and `QaWorldObjects` (the QaDriver's `world.destroy`: names and QA_WORLD_OBJECT_PREFIXES only, no
+ * statement). The QaDriver invokes WorldJanitor through the link infra/bff.ts already gives it (MEMORY_PURGE).
  */
 export const SIGNUP_GRANT_LINKS: Readonly<Record<SignupGrantRole, readonly string[]>> = {
   Bff: [LEADS_LINK, "SignupDispatch", "LeadNotice", "OriginVerifyKey", "GuestObjects"],
   WorldJanitor: [LEADS_LINK, "LeadNotice", "Auth", "GuestObjects"],
-  QaDriver: [LEADS_LINK, "InboundMailSim", "GuestObjects"],
+  QaDriver: [LEADS_LINK, "InboundMailSim", "QaWorldObjects"],
 };
 
 /** Statement kinds `signupGrants(fn)` adds to the role's `permissions`. */
