@@ -2,9 +2,11 @@
 // ("Diferido: horario del proveedor (CP-HOURS-SUPPLIER) hasta 16/10 09:00 hora del proveedor ·
 // [Avanzar hasta ahí]", "Esperando respuesta del proveedor por SES"), a supplier's business hours read
 // in its own zone and in Argentina's; and what the world is still waiting for on this operation.
-// "Avanzar hasta ahí" moves the paused clock through the shell's own control, so it is disabled with
-// the same reason while the world is busy (docs/architecture.md §8, `WORLD_BUSY`).
+// "Avanzar hasta ahí" moves the paused clock of the operation's world exactly to the pending
+// (`clock.advanceTo`), and is disabled with the shell's reason while the world is busy or the shell is
+// moving it (docs/architecture.md §8, `WORLD_BUSY`); a refusal is shown in words under the list.
 import { useId } from "react";
+import { ApiErrorNotice } from "../../components/ApiErrorNotice";
 import { Button } from "../../components/Button";
 import { Callout } from "../../components/Callout";
 import { RuleChip } from "../../components/RuleChip";
@@ -17,6 +19,7 @@ import { dossierCopy } from "./copy";
 import { timerReasonLabel, timerTitle } from "./labels";
 import { type PendingTimer, pendingTimers, worldPendingsOf } from "./timeline-model";
 import type { PendingTimerData } from "./types";
+import { useAdvanceTo } from "./use-dossier-action";
 
 const text = dossierCopy.pending;
 
@@ -49,7 +52,7 @@ interface RowProps {
   readonly supplierZone: string;
   readonly disabled: boolean;
   readonly busyId: string | undefined;
-  readonly onAdvance: (minutes: number) => void;
+  readonly onAdvance: (toSim: string) => void;
 }
 
 function PendingRow({ item, supplierZone, disabled, busyId, onAdvance }: RowProps) {
@@ -65,13 +68,13 @@ function PendingRow({ item, supplierZone, disabled, busyId, onAdvance }: RowProp
           <time dateTime={item.timer.dueAtSim}>{item.timer.kind === "DEFERRED_SEND" ? text.until(when) : when}</time>
         </p>
       </div>
-      {advance.kind === "minutes" ? (
+      {advance.kind === "to" ? (
         <Button
           variant="secondary"
           disabled={disabled}
           aria-label={text.advanceLabel(title, when)}
           {...(disabled && busyId !== undefined ? { "aria-describedby": busyId } : {})}
-          onClick={() => onAdvance(advance.minutes)}
+          onClick={() => onAdvance(advance.toSim)}
         >
           {text.advance}
         </Button>
@@ -87,17 +90,20 @@ interface PendingSectionProps {
   readonly operationNumber: string;
   readonly timers: readonly PendingTimerData[];
   readonly supplierZone: string;
+  /** The clock moved: read the dossier again. */
+  readonly onChanged: () => void;
 }
 
-export function PendingSection({ clockId, operationNumber, timers, supplierZone }: PendingSectionProps) {
-  const { snapshot, move, moving } = useWorldClock();
+export function PendingSection({ clockId, operationNumber, timers, supplierZone, onChanged }: PendingSectionProps) {
+  const { snapshot, moving } = useWorldClock();
+  const advanceTo = useAdvanceTo(onChanged);
   const busyId = useId();
   // The shell's clock is the session's world; an operation of another world is not moved from here.
   const world = snapshot?.clockId === clockId ? snapshot : undefined;
   const items = pendingTimers(timers, world?.simNow);
   const waiting = world ? worldPendingsOf(world.pending, operationNumber) : [];
   const busy = world !== undefined && isBusy(world);
-  const disabled = world === undefined || busy || moving;
+  const disabled = world === undefined || busy || moving || advanceTo.state.status === "running";
 
   return (
     <Section id="pending" title={dossierCopy.sections.pending} description={text.lead}>
@@ -127,11 +133,12 @@ export function PendingSection({ clockId, operationNumber, timers, supplierZone 
                 supplierZone={supplierZone}
                 disabled={disabled}
                 busyId={busy ? busyId : undefined}
-                onAdvance={(minutes) => void move({ kind: "by", minutes })}
+                onAdvance={(toSim) => void advanceTo.run({ clockId, toSim })}
               />
             ))}
           </ul>
         )}
+        {advanceTo.state.status === "error" ? <ApiErrorNotice error={advanceTo.state.error} /> : null}
       </div>
     </Section>
   );

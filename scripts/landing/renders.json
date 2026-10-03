@@ -31,7 +31,7 @@
     "textSources": ["@legajo/bff/copy/en#supplierEmailEn", "views/landing/supplier-replies.json"],
     "replacedBy": "console-mailbox",
     "replaceIn": "WP-35",
-    "reason": "El buzón de la demo no tiene todavía el hilo real con el proveedor en poc: faltan salida y SimMail (ola 3, etapa B)",
+    "reason": "La vista del buzón ya muestra el hilo con el proveedor sobre la salida y SimMail, pero solo en el servidor de UI local: falta su captura de origen poc, que se toma después de una corrida real de SC-24 en poc",
     "policy": "swap",
     "until": "SC-24 en verde en poc y console-mailbox con origin poc (WP-36)"
   },
@@ -40,7 +40,7 @@
     "textSources": ["@legajo/bff/copy/observation-labels#OBSERVATION_LABELS", "views/landing/scenes.ts#READINGS"],
     "replacedBy": "console-dossier-reading",
     "replaceIn": "WP-34",
-    "reason": "La vista del detalle del legajo todavía no muestra en poc una lectura real del lector: falta el intake (ola 3, etapa B)",
+    "reason": "La vista del detalle del legajo ya muestra la lectura del lector sobre el intake real, pero solo en el servidor de UI local: falta su captura de origen poc, que se toma después de una corrida real de SC-24 en poc",
     "policy": "swap",
     "until": "SC-24 en verde en poc y console-dossier-reading con origin poc (WP-36)"
   },
@@ -58,7 +58,7 @@
     "textSources": ["views/landing/scenes.ts#ETA_MILESTONES", "@legajo/bff/copy/templates#renderTemplate"],
     "replacedBy": "console-clock",
     "replaceIn": "WP-35",
-    "reason": "El reloj de poc todavía no reprograma hitos por un cambio de ETA real: faltan reloj y feeds (ola 3, etapa B)",
+    "reason": "El reloj de demo ya reprograma los hitos por un cambio de ETA del feed, pero solo en el servidor de UI local: falta su captura de origen poc, que se toma después de una corrida real de SC-24 en poc",
     "policy": "swap",
     "until": "SC-24 en verde en poc y console-clock con origin poc (WP-36)"
   },
@@ -67,7 +67,7 @@
     "textSources": ["@legajo/bff/copy/es-AR#importerEsAR.guardrailRefusal", "@legajo/bff/copy/templates#renderTemplate", "@legajo/bff/copy/es-AR-firm#firmEsAR.escalationEmail"],
     "replacedBy": "console-escalations",
     "replaceIn": "WP-34",
-    "reason": "Los escalamientos de poc todavía no nacen de un bloqueo real del guardrail: faltan turnos y worker (ola 3, etapa B)",
+    "reason": "Los escalamientos ya nacen de un bloqueo del guardrail en el turno, pero solo en el servidor de UI local: falta su captura de origen poc, que se toma después de una corrida real de SC-24 en poc",
     "policy": "swap",
     "until": "SC-24 en verde en poc y console-escalations con origin poc (WP-36)"
   },
@@ -76,7 +76,7 @@
     "textSources": ["views/dossier/copy.ts#dossierCopy.approval.approve", "@legajo/bff/copy/templates#renderTemplate"],
     "replacedBy": "console-dossier-approval",
     "replaceIn": "WP-34",
-    "reason": "Aprobar en poc necesita el legajo completo por el recorrido real: faltan salida e intake (ola 3, etapa B)",
+    "reason": "La aprobación del legajo completo por el recorrido ya existe en la consola, pero solo en el servidor de UI local: falta su captura de origen poc, que se toma después de una corrida real de SC-24 en poc",
     "policy": "swap",
     "until": "SC-24 en verde en poc y console-dossier-approval con origin poc (WP-36)"
   }

@@ -2,8 +2,8 @@
 // WhatsApp and email messages, the agent's turn notes and the escalations of `operations.timeline`,
 // merged with the decisions of the audit log that no message already shows (milestones fired, rules
 // that denied, actions of the firm), all ordered by simulated time (`sentAtSim` / `atSim`). The
-// pendings are the operation's SCHEDULED timers with their reason and, for each, how far "Avanzar
-// hasta ahí" has to move the paused clock; plus what the world is still waiting for on this operation.
+// pendings are the operation's SCHEDULED timers with their reason and, for each, the instant "Avanzar
+// hasta ahí" moves the paused clock to; plus what the world is still waiting for on this operation.
 import { type RuleId, isRuleId } from "@legajo/shared";
 import type { WorldPending } from "../../lib/world-clock";
 import type { DecisionData, EscalationData, MessageData, PendingTimerData, TimelineEntryData } from "./types";
@@ -48,11 +48,12 @@ export function mergeTimeline(entries: readonly TimelineEntryData[], decisions: 
 
 // ---- Pendings ------------------------------------------------------------------------------------
 
-/** "Avanzar hasta ahí" moves the paused clock by whole minutes, at most 14 days (lib/world-clock.ts). */
-export const MAX_ADVANCE_MINUTES = 14 * 24 * 60;
+/** "Avanzar hasta ahí" moves the paused clock at most 14 days in one move (clock/advance.ts `MAX_MOVE_MS`). */
+export const MAX_ADVANCE_MS = 14 * 24 * 60 * 60_000;
 
 export type AdvanceStep =
-  | { readonly kind: "minutes"; readonly minutes: number }
+  /** `clock.advanceTo` exactly the pending's `dueAtSim`: never short of it, never past it. */
+  | { readonly kind: "to"; readonly toSim: string }
   /** Already due: the next move of the clock fires it. */
   | { readonly kind: "due" }
   /** Beyond what one move of the clock allows. */
@@ -64,8 +65,7 @@ export function advanceStepTo(simNow: string | undefined, dueAtSim: string): Adv
   if (simNow === undefined) return { kind: "unknown" };
   const remaining = Date.parse(dueAtSim) - Date.parse(simNow);
   if (remaining <= 0) return { kind: "due" };
-  const minutes = Math.ceil(remaining / 60_000);
-  return minutes > MAX_ADVANCE_MINUTES ? { kind: "tooFar" } : { kind: "minutes", minutes };
+  return remaining > MAX_ADVANCE_MS ? { kind: "tooFar" } : { kind: "to", toSim: dueAtSim };
 }
 
 /** Why a timer waits: a rule of the contact policy, a known code, or the words its creator wrote. */

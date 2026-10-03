@@ -52,6 +52,9 @@ export const QA_ACTIONS = [
   "policyAudit.run",
   "metrics.get",
   "batch.run",
+  "signup.readCode",
+  "lead.inspect",
+  "lead.purge",
 ] as const;
 export const QaActionName = z.enum(QA_ACTIONS);
 export type QaActionName = z.infer<typeof QaActionName>;
@@ -72,6 +75,8 @@ export const READ_ONLY_ACTIONS: ReadonlySet<QaActionName> = new Set<QaActionName
   "probe.mocks",
   "memory.inspect",
   "metrics.get",
+  "signup.readCode",
+  "lead.inspect",
 ]);
 
 /** `<github run id>-<attempt>` in CI or `local-<ulid in lower case>` from a laptop (docs/test-plan.md §4.4). */
@@ -117,7 +122,7 @@ export const QaResponseSchema = z.discriminatedUnion("ok", [
 export const QA_REASON = {
   /** The fence of ADR-0005: firm not of QA type, clock outside the allowed set, action not in a closed list. */
   QA_FENCE: "QA_FENCE",
-  /** The module the action drives is not deployed with this function yet. */
+  /** The module the action drives is not deployed with this function (a driver older than the runner): BLOCKED, never a pass. */
   NOT_WIRED: "NOT_WIRED",
   /** `op.settle` ran out of time with something still pending. */
   NOT_SETTLED: "NOT_SETTLED",
@@ -125,6 +130,10 @@ export const QA_REASON = {
   NO_OUTCOME: "NO_OUTCOME",
   /** `memory.inspect` with `waitForExtraction` ran out of time; the message names the strategy. */
   EXTRACTION_INCOMPLETE: "EXTRACTION_INCOMPLETE",
+  /** The key was already used by a call with another action or input: nothing ran (driver.ts). */
+  IDEMPOTENCY_KEY_REUSED: "IDEMPOTENCY_KEY_REUSED",
+  /** `signup.readCode` found no account email for the mailbox in time. */
+  NO_ACCOUNT_MAIL: "NO_ACCOUNT_MAIL",
 } as const;
 
 // ---- Ids derived from the idempotency key (docs/test-plan.md §4.4) --------------------------------
@@ -141,11 +150,6 @@ export async function simulatedWamid(key: string): Promise<string> {
 /** `X-Legajo-Mail-Id` of a mail the driver makes someone send (`email.inject`, `supplier.sendNow`). */
 export async function qaMailId(key: string): Promise<string> {
   return `qa${(await digest(key)).slice(0, 40)}`;
-}
-
-/** RFC 5322 `Message-ID` of `email.inject`, on the injector's own domain. */
-export async function qaMessageId(key: string, domain: string): Promise<string> {
-  return `<qa-${(await digest(key)).slice(0, 40)}@${domain}>`;
 }
 
 /** Event id of an event the driver enqueues (`event.poison`). */

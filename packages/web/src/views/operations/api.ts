@@ -1,9 +1,8 @@
-// Calls of the operations view. `operations.list` is typed by the BFF's router; `operations.create`
-// (create_operation, docs/tool-catalog.md) is called by name and its answer validated with zod, like
-// every edge of the console, so the view keeps working whichever fields the router adds.
+// Calls of the operations view, typed by the BFF's `AppRouter`: `operations.list`, and
+// `operations.create` (create_operation, docs/tool-catalog.md; FL-005), whose number is checked in the
+// browser with the shared schema before it leaves. The direct handler answers a record, so the id of
+// the new operation is read with the shared schema too.
 import { OperationId, OperationNumber } from "@legajo/shared";
-import { getUntypedClient } from "@trpc/client";
-import { z } from "zod";
 import type { ConsoleClient } from "../../lib/trpc";
 import type { OperationsList } from "../dossier/types";
 
@@ -11,10 +10,8 @@ export function fetchOperations(trpc: ConsoleClient, signal: AbortSignal): Promi
   return trpc.operations.list.query({}, { signal });
 }
 
-const Created = z.looseObject({ operationId: OperationId });
-
 /** Brings an operation from the customs platform by number; answers the id of the new operation. */
 export async function createOperation(trpc: ConsoleClient, operationNumber: string): Promise<string> {
-  const raw = await getUntypedClient(trpc).mutation("operations.create", { operationNumber: OperationNumber.parse(operationNumber) });
-  return Created.parse(raw).operationId;
+  const created = await trpc.operations.create.mutate({ operationNumber: OperationNumber.parse(operationNumber) });
+  return OperationId.parse(created.operationId);
 }

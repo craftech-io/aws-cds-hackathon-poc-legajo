@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { SimThread, SimulatorThreads, actionRequest } from "./simulator-api";
+import type { ConsoleClient } from "../../lib/trpc";
+import { SimThread, SimulatorThreads, actionRequest, isUploadLink, runSimulatorAction } from "./simulator-api";
 import { byDay, defaultThread, isTyping, pdfProblem, phoneMessages, ticksOf } from "./simulator-model";
 
 function thread(overrides: Record<string, unknown> = {}): SimThread {
@@ -40,12 +41,40 @@ describe("simulator.threads at the edge", () => {
 
   it("sends only the importer and what it did: no phone, nonce or operation", () => {
     expect(actionRequest({ kind: "tapButton", input: { importerId: "imp-norpampa", messageId: "msg-1", action: "SUPPLIER_SENDS" } })).toEqual({
+      kind: "tapButton",
       path: "simulator.tapButton",
       input: { importerId: "imp-norpampa", messageId: "msg-1", action: "SUPPLIER_SENDS" },
     });
     expect(actionRequest({ kind: "sendText", input: { importerId: "imp-norpampa", text: "  ¿El certificado tiene que estar firmado?  " } }).input).toEqual({ importerId: "imp-norpampa", text: "¿El certificado tiene que estar firmado?" });
     expect(() => actionRequest({ kind: "sendText", input: { importerId: "imp-norpampa", text: "hola", phone: "+5491155500101" } as never })).toThrow();
     expect(() => actionRequest({ kind: "sendText", input: { importerId: "imp-norpampa", text: "   " } })).toThrow();
+  });
+
+  it("keeps only upload links of ours: the console's origin and /u/, never another scheme or host", () => {
+    expect(isUploadLink("https://legajo.demo.craftech.io/u/tok", "https://legajo.demo.craftech.io")).toBe(true);
+    expect(isUploadLink("http://127.0.0.1:4180/u/tok", "http://127.0.0.1:4180")).toBe(true);
+    expect(isUploadLink("https://legajo.demo.craftech.io/u/tok", undefined)).toBe(true);
+    expect(isUploadLink("http://legajo.demo.craftech.io/u/tok", undefined)).toBe(false);
+    expect(isUploadLink("https://elsewhere.example.org/u/tok", "https://legajo.demo.craftech.io")).toBe(false);
+    expect(isUploadLink("https://legajo.demo.craftech.io/app/operations", "https://legajo.demo.craftech.io")).toBe(false);
+    expect(isUploadLink("https://user:pw@legajo.demo.craftech.io/u/tok", "https://legajo.demo.craftech.io")).toBe(false);
+    expect(isUploadLink("javascript:alert(1)//u/", "https://legajo.demo.craftech.io")).toBe(false);
+    expect(isUploadLink("data:text/html,/u/x", undefined)).toBe(false);
+    const hostile = { ...TEMPLATE, buttons: [{ action: "UPLOAD", title: "Subir documentos", url: "javascript:alert(1)" }] };
+    expect(SimulatorThreads.parse({ threads: [thread({ messages: [hostile] })] }).threads[0]?.messages[0]?.buttons[0]?.url).toBeNull();
+  });
+
+  it("sends each action to its typed procedure, and nothing when the input is malformed", async () => {
+    const sent: Array<{ path: string; input: unknown }> = [];
+    const procedure = (path: string) => ({ mutate: async (input: unknown) => void sent.push({ path, input }) });
+    const trpc = { simulator: { sendText: procedure("sendText"), tapButton: procedure("tapButton"), attachDocument: procedure("attachDocument"), markRead: procedure("markRead") } } as unknown as ConsoleClient;
+    await runSimulatorAction(trpc, { kind: "markRead", input: { importerId: "imp-norpampa" } });
+    await runSimulatorAction(trpc, { kind: "attachDocument", input: { importerId: "imp-norpampa", source: { kind: "SYNTHETIC", operationId: "op-4471", docType: "PACKING_LIST" } } });
+    expect(() => runSimulatorAction(trpc, { kind: "sendText", input: { importerId: "imp-norpampa", text: "" } })).toThrow();
+    expect(sent).toEqual([
+      { path: "markRead", input: { importerId: "imp-norpampa" } },
+      { path: "attachDocument", input: { importerId: "imp-norpampa", source: { kind: "SYNTHETIC", operationId: "op-4471", docType: "PACKING_LIST" } } },
+    ]);
   });
 });
 

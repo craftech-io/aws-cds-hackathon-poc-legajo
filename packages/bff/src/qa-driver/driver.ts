@@ -6,15 +6,16 @@
 //      closed lists; anything else is FORBIDDEN before a byte is written;
 //   3. a changing action already done under the same idempotency key answers its first result
 //      (`replayed: true`); provider ids derive from the key, so even a lost answer retried twice
-//      produces one effect;
+//      produces one effect. The mark keeps the action and a hash of the input: the same key with
+//      another action or input is CONFLICT `IDEMPOTENCY_KEY_REUSED` and nothing runs;
 //   4. the action runs; its failure comes back as `{ ok: false, error }`, never as a thrown error.
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { ToolError, toToolFailure } from "@legajo/shared";
+import { ToolError, sha256Hex, toToolFailure } from "@legajo/shared";
 import type { Connector } from "../connector/index";
 import type { Logger } from "../lib/log";
 import { consoleFailure, procedureKind } from "./console";
-import { QaRequest, type QaResponse, READ_ONLY_ACTIONS, type QaActionName } from "./contract";
+import { QA_REASON, QaRequest, type QaResponse, READ_ONLY_ACTIONS, type QaActionName } from "./contract";
 import { ACTION_INPUTS, type QaParsedInput } from "./contract-inputs";
 import { type GuardLookups, checkFence, checkWorldKey, resolveScope } from "./guard";
 import type { ActionContext, ActionHandlers } from "./ports";
@@ -51,16 +52,23 @@ function failureOf(error: unknown): QaResponse {
 
 type Replay = { readonly found: false } | { readonly found: true; readonly result: unknown };
 
-async function replayOf(data: Connector, key: string): Promise<Replay> {
+/** What a mark is bound to: the action and its parsed input. */
+export async function callDigest(action: QaActionName, input: unknown): Promise<string> {
+  return sha256Hex(JSON.stringify({ action, input: input ?? null }));
+}
+
+async function replayOf(data: Connector, key: string, digest: string): Promise<Replay> {
   const mark = await data.runtime.getIdempotency(QA_IDEMPOTENCY_SOURCE, key);
   const stored = mark?.result;
-  if (stored === undefined || stored.oversize === true) return { found: false };
+  if (stored === undefined) return { found: false };
+  if (stored.digest !== digest) throw new ToolError("CONFLICT", "this idempotency key was used by another action or input", QA_REASON.IDEMPOTENCY_KEY_REUSED);
+  if (stored.oversize === true) return { found: false };
   return { found: true, result: stored.value ?? null };
 }
 
-async function remember(data: Connector, key: string, result: unknown, atReal: string): Promise<void> {
+async function remember(data: Connector, key: string, digest: string, result: unknown, atReal: string): Promise<void> {
   const json = JSON.stringify(result ?? null);
-  const stored = json.length > MAX_REPLAY_BYTES ? { oversize: true } : { value: JSON.parse(json) as unknown };
+  const stored = json.length > MAX_REPLAY_BYTES ? { digest, oversize: true } : { digest, value: JSON.parse(json) as unknown };
   // A concurrent twin of this call may have written first: its effect is the same one (ids derive from the key).
   await data.runtime.claimIdempotency({ source: QA_IDEMPOTENCY_SOURCE, id: key, atReal, result: stored });
 }
@@ -82,6 +90,7 @@ export function createQaDriver(deps: QaDriverDeps) {
     async worldEpochOf(clockId) {
       return (await deps.data.world.findClock(clockId))?.worldEpoch;
     },
+    procedureKind,
   };
 
   return async function run(raw: unknown): Promise<QaResponse> {
@@ -96,8 +105,9 @@ export function createQaDriver(deps: QaDriverDeps) {
       const scope = await resolveScope(action, input, lookups);
       checkFence(scope);
       const mutating = changes(action, input);
+      const digest = mutating ? await callDigest(action, input) : "";
       if (mutating) {
-        const replay = await replayOf(deps.data, idempotencyKey);
+        const replay = await replayOf(deps.data, idempotencyKey, digest);
         if (replay.found) {
           log.info("qa_driver.replayed", { clockId: scope.clockId ?? null });
           return { ok: true, replayed: true, result: replay.result };
@@ -106,7 +116,7 @@ export function createQaDriver(deps: QaDriverDeps) {
       const ctx: ActionContext = { idempotencyKey, scope, data: deps.data, now: deps.now, sleep: deps.sleep, log };
       const handler = deps.handlers[action] as (parsed: unknown, context: ActionContext) => Promise<unknown>;
       const result = await handler(input, ctx);
-      if (mutating) await remember(deps.data, idempotencyKey, result, deps.now().toISOString());
+      if (mutating) await remember(deps.data, idempotencyKey, digest, result, deps.now().toISOString());
       log.info("qa_driver.done", { clockId: scope.clockId ?? null, ms: deps.now().getTime() - started });
       return { ok: true, replayed: false, result };
     } catch (error) {

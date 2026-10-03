@@ -1,14 +1,19 @@
 // FL-080 · the list of operations, and FL-005 · a new operation from the platform (docs/flows-catalog.md),
 // against the local UI server: Vite, the real `appRouter` over an in-memory world (Estudio Delta with
-// its operation 4471, Estudio Norte empty) and the BFF's real token verifier. Also the escalations
-// inbox of the same group of views. Nothing leaves the machine.
+// its operation 4471, Estudio Norte empty), the platform mock in process (4471 and the free number
+// 4479 for Delta) and the BFF's real token verifier. Also the escalations inbox of the same group of
+// views. Nothing leaves the machine. The tests run in order: FL-005 adds 4479 to Delta's world last,
+// so the counts the filters of FL-080 read never change under them.
 import { type Locator, type Page, expect, test } from "@playwright/test";
 import { copy } from "../src/copy/console.ts";
+import { dossierCopy } from "../src/views/dossier/copy.ts";
 import { escalationsCopy } from "../src/views/escalations/copy.ts";
-import { controlLabel, dossierStatusLabel, riskLabel } from "../src/views/dossier/labels.ts";
+import { controlLabel, docTypeLabel, dossierStatusLabel, riskLabel, timerTitle } from "../src/views/dossier/labels.ts";
 import { operationsCopy } from "../src/views/operations/copy.ts";
 import { blockExternalRequests, expectAccessibleBasics, expectNoRawCodes, expectView } from "./support/assertions";
 import { plantSession } from "./support/session";
+
+test.describe.configure({ mode: "serial" });
 
 let blocked: string[];
 
@@ -129,10 +134,19 @@ test.describe("[FL-080] lista de operaciones", () => {
   });
 });
 
-test.describe("nueva operación desde la plataforma", () => {
-  test.fixme("[FL-005:pending] «Nueva operación» with a number of the platform creates the dossier with its 3 documents and 5 milestones and opens it: operations.create is in the AppRouter and the UI server has the platform mock with the free number 4479; the spec is WP-34's", async () => {});
+test.describe("escalamientos", () => {
+  test("the inbox of Delta's world opens empty, accessible and in words", async ({ page }) => {
+    await plantSession(page, "broker");
+    await page.goto("/app/escalations");
+    await expectView(page, "escalations");
+    await expect(page.getByText(escalationsCopy.empty.title)).toBeVisible();
+    await expectAccessibleBasics(page);
+    await expectNoRawCodes(page);
+  });
+});
 
-  test("the form asks for the four digits of the platform's number before calling the BFF", async ({ page }) => {
+test.describe("nueva operación desde la plataforma", () => {
+  test("the form asks for the four digits of the platform's number before calling the BFF, and says when the platform has no such operation", async ({ page }) => {
     await plantSession(page, "analyst");
     await page.goto("/app/operations");
     await page.getByRole("button", { name: operationsCopy.create.open }).click();
@@ -142,18 +156,51 @@ test.describe("nueva operación desde la plataforma", () => {
     await drawer.getByRole("button", { name: operationsCopy.create.submit }).click();
     await expect(drawer.getByText(operationsCopy.create.invalid)).toBeVisible();
     await expectAccessibleBasics(page);
+    // Four digits the platform does not have for this firm: said in words, nothing created.
+    await drawer.getByLabel(operationsCopy.create.number).fill("4498");
+    await drawer.getByRole("button", { name: operationsCopy.create.submit }).click();
+    await expect(drawer.getByText(operationsCopy.create.notFound)).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(drawer).toHaveCount(0);
   });
-});
 
-test.describe("escalamientos", () => {
-  test("the inbox of Delta's world opens empty, accessible and in words", async ({ page }) => {
-    await plantSession(page, "broker");
-    await page.goto("/app/escalations");
-    await expectView(page, "escalations");
-    await expect(page.getByText(escalationsCopy.empty.title)).toBeVisible();
-    await expectAccessibleBasics(page);
+  test("[FL-005] «Nueva operación» with a number of the platform creates the dossier with its 3 documents and 5 milestones and opens it", async ({ page }) => {
+    await plantSession(page, "analyst");
+    await page.goto("/app/operations");
+    await page.getByRole("button", { name: operationsCopy.create.open }).click();
+    const drawer = page.getByRole("dialog", { name: operationsCopy.create.title });
+    await drawer.getByLabel(operationsCopy.create.number).fill("4479");
+    await drawer.getByRole("button", { name: operationsCopy.create.submit }).click();
+
+    // The new dossier opens: the platform's operation, its three documents missing, five milestones pending.
+    await expect(page).toHaveURL(/\/app\/operations\/op-4479$/);
+    await expectView(page, "dossier");
+    await expect(page.getByText(dossierCopy.heading("4479", "Norpampa Insumos SRL", "Qingdao Bluewave Textiles Co., Ltd."))).toBeVisible();
+    await expect(page.getByRole("region", { name: dossierCopy.sections.summary })).toContainText("vie 30/10 08:00");
+    await expect(page.getByRole("region", { name: dossierCopy.sections.summary })).toContainText(dossierStatusLabel.OPEN);
+    const documents = page.getByRole("region", { name: dossierCopy.sections.documents });
+    for (const docType of ["COMMERCIAL_INVOICE", "PACKING_LIST", "CERTIFICATE_OF_ORIGIN"] as const) {
+      await expect(documents.getByRole("article", { name: docTypeLabel[docType] })).toContainText("Faltante");
+    }
+    const pending = page.getByRole("region", { name: dossierCopy.sections.pending }).getByRole("listitem");
+    await expect(pending).toHaveCount(5);
+    for (const milestone of ["DOCS_REQUEST", "FOLLOWUP", "FOLLOWUP_FINAL", "ESCALATION", "ARRIVAL"] as const) {
+      await expect(pending.filter({ hasText: timerTitle("MILESTONE", milestone) })).toHaveCount(1);
+    }
+    await expect(pending.first()).toContainText("vie 23/10 10:00");
     await expectNoRawCodes(page);
+
+    // Back on the list, 4479 is a row of Delta's world, and the 4471 stays pinned on top.
+    await page.getByRole("link", { name: dossierCopy.back }).click();
+    await expect(bodyRows(page).first()).toContainText(operationsCopy.mainStory);
+    await expect(bodyRows(page).filter({ hasText: "4479" })).toHaveCount(1);
+
+    // The same number again is a conflict said in words, and nothing is created twice.
+    await page.getByRole("button", { name: operationsCopy.create.open }).click();
+    await drawer.getByLabel(operationsCopy.create.number).fill("4479");
+    await drawer.getByRole("button", { name: operationsCopy.create.submit }).click();
+    await expect(drawer.getByText(operationsCopy.create.conflict)).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(bodyRows(page).filter({ hasText: "4479" })).toHaveCount(1);
   });
 });

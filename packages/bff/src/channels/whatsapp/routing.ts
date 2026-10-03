@@ -1,7 +1,8 @@
 // Which operation an inbound message belongs to (FL-019, docs/architecture.md §13 "Varias operaciones
 // abiertas"). A button carries its operation in its nonce. A free text or a PDF of an importer with
 // one open operation goes to it; with more than one, the operation is never assumed: the message stays
-// in the anchor operation (the soonest ETA, then the lowest number) and the importer gets a list,
+// in the anchor operation (the soonest ETA of a dossier still in work, then the lowest number: an
+// approved dossier only answers the importer, `CP-APPROVED-SCOPE`) and the importer gets a list,
 // deterministic and without the model, with a nonce per operation (`OPERATION_CHOICE`). The choice
 // writes a copy of the message in the chosen operation and sends it there, once: the turn keeps the
 // `wamid` of the original, so a second choice is the same event.
@@ -19,12 +20,14 @@ import { type ChoiceNoncePayload, MAX_CHOICE_ROWS, issueNonces } from "./nonces"
 import type { SystemReplies, WhatsAppKeys } from "./ports";
 import { appendInbound, derivedMessageId, importerTurn } from "./records";
 
+const approvedLast = (operation: Pick<Operation, "dossierStatus">): number => (operation.dossierStatus === "APPROVED" ? 1 : 0);
+
 /** Operations of the importer in its world that are not closed (a released dispatch closes one), anchor first. */
 export async function openOperationsOf(data: Pick<Connector, "operations">, importer: Pick<Importer, "firmId" | "importerId" | "clockId">): Promise<Operation[]> {
   const operations = await data.operations.listOperations(importer.firmId, { importerId: importer.importerId, clockId: importer.clockId });
   return operations
     .filter((operation) => operation.importerId === importer.importerId && operation.clockId === importer.clockId && operation.dispatch.status !== "LIBERADO")
-    .sort((a, b) => Date.parse(a.eta) - Date.parse(b.eta) || a.operationNumber.localeCompare(b.operationNumber));
+    .sort((a, b) => approvedLast(a) - approvedLast(b) || Date.parse(a.eta) - Date.parse(b.eta) || a.operationNumber.localeCompare(b.operationNumber));
 }
 
 /** "22/10": the ETA of a row, in Argentina's wall clock. */

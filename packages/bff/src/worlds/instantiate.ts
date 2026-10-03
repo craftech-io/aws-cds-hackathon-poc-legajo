@@ -124,6 +124,11 @@ export function fillThreadAddress(item: Record<string, unknown>, threads: Readon
   return { ...item, from: fill(item.from), to: fill(item.to) };
 }
 
+/** Fields that name the seed itself, never a world's row: an operation's model (its PDFs in `Seed/pdfs/`). */
+function modelFields(template: TemplateItem): Record<string, unknown> {
+  return template.entity === "Operation" && typeof template.templateOperation === "string" ? { templateOperation: template.templateOperation } : {};
+}
+
 /** A row of a world: its key, its entity and the entity's fields. */
 export type WorldItem = Item & { readonly entity: string };
 
@@ -142,7 +147,7 @@ export function keyedItem(item: Record<string, unknown>): WorldItem {
 export async function instantiateItems(items: readonly TemplateItem[], options: InstanceOptions, threads: Map<string, string> = new Map()): Promise<WorldItem[]> {
   const completed: Array<Record<string, unknown>> = [];
   for (const template of items) {
-    const renamed = { createdAt: options.createdAt, updatedAt: options.createdAt, version: 1, synthetic: true, ...(renameDeep(template, options.renames) as Record<string, unknown>) };
+    const renamed = { createdAt: options.createdAt, updatedAt: options.createdAt, version: 1, synthetic: true, ...(renameDeep(template, options.renames) as Record<string, unknown>), ...modelFields(template) };
     const stamped = tagProviderIds({ ...renamed, clockId: options.stamp.clockId, ...stampFields(options.stamp) }, options.providerTag);
     completed.push(await derive(stamped, options, threads));
   }

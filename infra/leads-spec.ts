@@ -44,8 +44,9 @@ export const LEADS_ACCESS: Readonly<Record<LeadsRole, LeadsAccess>> = {
   },
   // Reads the lead and writes noticeStatus.
   LeadNotice: { actions: ["dynamodb:GetItem", "dynamodb:UpdateItem"], leadingKeys: ["EMAIL#*"] },
-  // lead.inspect and lead.purge of SC-26 (docs/test-plan.md §4.1), only its qa-signup-<runId>-* leads.
-  QaDriver: { actions: ["dynamodb:DeleteItem", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query"] },
+  // lead.inspect and lead.purge of SC-26 (docs/test-plan.md §4.1), only its qa-signup-<runId>-* leads;
+  // both find the pending sign-up of a mailbox the way leads/delete.ts does (a Scan filtered to it).
+  QaDriver: { actions: ["dynamodb:DeleteItem", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query", "dynamodb:Scan"] },
 };
 
 /** Writes that create a lead item; only finalizeSignup (Bff), the sweep (WorldJanitor) and SC-26's cleanup may. */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { QA_ACTIONS, type QaActionName, qaEventId, qaMailId, qaMessageId, simulatedWamid } from "./contract";
-import { GLOBAL_QA_ACTIONS, GUEST_TEST_ACTIONS, type Scope, WORLDLESS_ACTIONS, checkFence } from "./guard";
+import { QA_ACTIONS, type QaActionName, qaEventId, qaMailId, simulatedWamid } from "./contract";
+import { GLOBAL_QA_ACTIONS, GUEST_TEST_ACTIONS, SIGNUP_ACTIONS, type Scope, WORLDLESS_ACTIONS, checkFence } from "./guard";
 import { OTHER_QA_CLOCK, QA_CLOCK, countingHandlers, driverUnderTest, key } from "./testing";
 
 const scope = (name: string, clockId: string | undefined, firmId = "firm-qa", operations: Scope["operations"] = []): Scope => ({ name, firmId, operations, ...(clockId === undefined ? {} : { clockId }) });
@@ -14,7 +14,7 @@ function fenceCode(value: Scope): string | undefined {
   }
 }
 
-const WORLD_ACTIONS = QA_ACTIONS.filter((action) => !WORLDLESS_ACTIONS.has(action) && action !== "console" && action !== "batch.run");
+const WORLD_ACTIONS = QA_ACTIONS.filter((action) => !WORLDLESS_ACTIONS.has(action) && !SIGNUP_ACTIONS.has(action) && action !== "console" && action !== "batch.run");
 
 describe("checkFence: the clocks and firms of ADR-0005", () => {
   it("lets every action act on a qa-* world of firm-qa, except the batch", () => {
@@ -63,7 +63,10 @@ describe("checkFence: the clocks and firms of ADR-0005", () => {
   });
 
   it("lets a console call that names only other firms through to firmProcedure, and nothing else", () => {
-    expect(fenceCode({ ...scope("console.operations.get", undefined), crossFirmProbe: true })).toBeUndefined();
+    expect(fenceCode({ ...scope("console.operations.get", undefined), crossFirmProbe: true, procedureKind: "query" })).toBeUndefined();
+    // A mutation naming only other firms' ids never reaches a router path (it could skip a role check).
+    expect(fenceCode({ ...scope("console.dossier.approve", undefined), crossFirmProbe: true, procedureKind: "mutation" })).toBe("FORBIDDEN");
+    expect(fenceCode({ ...scope("console.operations.get", undefined), crossFirmProbe: true })).toBe("FORBIDDEN");
     expect(fenceCode({ ...scope("snapshot", undefined), crossFirmProbe: true })).toBe("FORBIDDEN");
   });
 
@@ -94,6 +97,13 @@ describe("checkFence: the clocks and firms of ADR-0005", () => {
   it("admits the world-less probes only without a world", () => {
     for (const action of WORLDLESS_ACTIONS) expect(fenceCode(scope(action, undefined)), action).toBeUndefined();
     expect(fenceCode(scope("snapshot", undefined))).toBe("FORBIDDEN");
+  });
+
+  it("admits SC-26's sign-up actions without a world (their fence is the mailbox, signup-fence.test.ts) and never on a demo firm", () => {
+    for (const action of SIGNUP_ACTIONS) {
+      expect(fenceCode(scope(action, undefined)), action).toBeUndefined();
+      expect(fenceCode(scope(action, undefined, "firm-delta")), action).toBe("FORBIDDEN");
+    }
   });
 });
 
@@ -195,6 +205,17 @@ describe("QaDriver: a retried step never duplicates an effect (docs/test-plan.md
     expect(await driver({ ...request, idempotencyKey: key(5, "b") })).toMatchObject({ replayed: false, result: { call: 2 } });
   });
 
+  it("binds a key to its action and input: another action or input under it is CONFLICT and never runs", async () => {
+    const { handlers, calls } = countingHandlers();
+    const { driver } = await driverUnderTest(handlers);
+    const create = { action: "supplier.setBehaviour" as QaActionName, idempotencyKey: key(9), input: { operationId: "op-7001", behaviour: "PROMPT" } };
+    await driver(create);
+    expect(await driver({ ...create, action: "event.poison", input: { operationId: "op-7001" } })).toMatchObject({ ok: false, error: { code: "CONFLICT", reason: "IDEMPOTENCY_KEY_REUSED" } });
+    expect(await driver({ ...create, input: { operationId: "op-7001", behaviour: "NEVER" } })).toMatchObject({ ok: false, error: { code: "CONFLICT", reason: "IDEMPOTENCY_KEY_REUSED" } });
+    expect(calls.get("event.poison")).toBeUndefined();
+    expect(calls.get("supplier.setBehaviour")).toBe(1);
+  });
+
   it("reads again on every call of a read-only action", async () => {
     const { handlers, calls } = countingHandlers();
     const { driver } = await driverUnderTest(handlers);
@@ -221,7 +242,6 @@ describe("QaDriver: a retried step never duplicates an effect (docs/test-plan.md
     expect(await simulatedWamid(a)).not.toBe(await simulatedWamid(b));
     expect(await qaMailId(a)).toMatch(/^qa[0-9a-f]{40}$/);
     expect(await qaMailId(a)).not.toBe(await qaMailId(b));
-    expect(await qaMessageId(a, "sim.legajo.demo.craftech.io")).toMatch(/^<qa-[0-9a-f]{40}@sim\.legajo\.demo\.craftech\.io>$/);
     expect(await qaEventId(a)).toBe(await qaEventId(a));
   });
 });

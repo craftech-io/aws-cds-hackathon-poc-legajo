@@ -2,12 +2,15 @@ import { createMemoryStores, type MemoryStores } from "@legajo/bff/connector/ind
 import { contactFixture, importerFixture, operationFixture, hashOf, supplierFixture } from "@legajo/bff/connector/testing";
 import { createLogger } from "@legajo/bff/lib/log";
 import { describe, expect, it } from "vitest";
-import { NotWiredError } from "../../tests/flows/support/ports";
-import { readBatchInputs, runScriptedBatch, unwiredBatchRunner, type BatchRunner } from "./batch-local";
+import { readFileSync } from "node:fs";
+import { localBatchRunner } from "./batch-runner";
+import { BATCH_INPUTS_FILE, BATCH_SIZE, readBatchInputs, runScriptedBatch, type BatchRunner } from "./batch-local";
 
 const NOW = new Date("2026-09-26T15:00:00.000Z");
 const now = () => NOW;
 const log = createLogger({ level: "error", sink: () => undefined });
+/** Every entry of the seed (docs/seed-spec.md §13). */
+const SAMPLE = BATCH_SIZE;
 
 interface Entry {
   readonly clockId: string;
@@ -97,11 +100,34 @@ describe("metrics batch with the scripted agent", () => {
     await expect(runScriptedBatch({ ...options, runner: fakeRunner(), runId: "run-b" })).rejects.toThrow(/another run \(run-a/);
   });
 
-  it("does not run until the world factory and the local flows can run an entry", async () => {
-    await expect(unwiredBatchRunner().run({}, 0)).rejects.toBeInstanceOf(NotWiredError);
+  it("a resume completes a row of the same run that a cut left without its status, and counts nothing twice", async () => {
+    const target = createMemoryStores({ now });
+    const ref = { firmId: "firm-sim", source: "BATCH" as const, clockId: "sim-0001", operationId: "op-4471" };
+    await target.connector.metrics.incrementKpi(ref, { turns: 6 }, { agentMode: "SCRIPTED", runId: "run-a" });
+
+    const summary = await runScriptedBatch({ entries: [{ clockId: "sim-0001", turns: 6 }], runner: fakeRunner(), target: target.connector.metrics, runId: "run-a", now, log });
+
+    expect(summary).toMatchObject({ rows: 0, skipped: 1 });
+    expect(await target.connector.metrics.getKpi(ref)).toMatchObject({ turns: 6, dossierStatus: "READY_FOR_REVIEW" });
   });
 
-  it.todo(
-    "runs the 200 entries of scripts/seed/data/metrics/batch-inputs.jsonl through the in-process world and writes 200 SCRIPTED rows with 0 violations — pending: the world factory over the seed's batch entries (WP-31) and the local flows' entries, worker and targets (WP-25 to WP-30)",
-  );
+  it("runs the 200 entries of the seed through the in-process world with the scripted agent: one SCRIPTED row per entry, real turns, and 0 violations", async () => {
+    const entries = readBatchInputs(readFileSync(BATCH_INPUTS_FILE, "utf8"));
+    expect(entries).toHaveLength(BATCH_SIZE);
+    const target = createMemoryStores({ now });
+    const local = await localBatchRunner();
+    try {
+      const summary = await runScriptedBatch({ entries: entries.slice(0, SAMPLE), runner: local.runner, target: target.connector.metrics, runId: "local-scripted", now, log });
+      const rows = await target.connector.metrics.listKpis("firm-sim", { source: "BATCH" });
+      expect(rows).toHaveLength(SAMPLE);
+      expect(rows.every((row) => row.agentMode === "SCRIPTED" && row.runId === "local-scripted")).toBe(true);
+      expect(rows.map((row) => row.clockId)).toEqual(entries.slice(0, SAMPLE).map((entry) => (entry as { clockId: string }).clockId));
+      expect(summary).toMatchObject({ worlds: SAMPLE, rows: SAMPLE, violations: 0 });
+      expect(summary.turns).toBeGreaterThan(SAMPLE);
+      // No world lost its turns to the firm's caps: every one ran at least its first request.
+      expect(rows.filter((row) => row.turns === 0)).toEqual([]);
+    } finally {
+      local.close();
+    }
+  }, 300_000);
 });

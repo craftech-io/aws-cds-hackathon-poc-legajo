@@ -89,6 +89,8 @@ describe("[FL-086] createWorld", () => {
     expect(created.worldEpoch).toBe(2);
     const operation = await h.stores.connector.operations.getOperation("op-4471-g02");
     expect(operation.threadAddress).not.toBe(leftover.threadAddress);
+    // The model operation names the seed's PDFs (`Seed/pdfs/op-4471/…`): it is never renamed for the world.
+    expect(operation.templateOperation).toBe("op-4471");
     expect(await h.stores.client.get("Parties", addressClaimKey(addressHashOf(h.deps.keys, leftover.threadAddress)))).toBeUndefined();
   });
 

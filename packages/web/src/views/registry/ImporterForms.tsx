@@ -69,6 +69,8 @@ export function ConsentForm({ importer, simNow, onSaved, onClose }: FormProps & 
   const [version, setVersion] = useState<(typeof CONSENT_TEXT_VERSIONS)[number]>("v1");
   const [at, setAt] = useState(() => isoToLocalInput(simNow));
   const [reason, setReason] = useState("");
+  // What the last change did: once it lands the lists reload and the form shows the other branch.
+  const [last, setLast] = useState<"record" | "revoke">("record");
   const summary = consentSummary(importer.consent);
   const grantedAt = localInputToIso(at);
   const running = change.state.status === "running";
@@ -81,21 +83,32 @@ export function ConsentForm({ importer, simNow, onSaved, onClose }: FormProps & 
         <Badge tone={summary.tone}>{summary.text}</Badge>
       </p>
       {importer.consent.status === "GRANTED" ? (
-        <FormBody onSubmit={() => void change.run({ kind: "revokeConsent", input: { importerId, ...(reason.trim() === "" ? {} : { reason: reason.trim() }) } })}>
+        <FormBody
+          onSubmit={() => {
+            setLast("revoke");
+            void change.run({ kind: "revokeConsent", input: { importerId, ...(reason.trim() === "" ? {} : { reason: reason.trim() }) } });
+          }}
+        >
           <p className="text-sm font-semibold text-navy">{copy.revokeTitle}</p>
           <p className="text-sm text-slate">{copy.revokeLead}</p>
           <TextField label={copy.reason} value={reason} onChange={setReason} />
           <FormFooter submit={copy.revoke} disabled={running} onCancel={onClose} />
         </FormBody>
       ) : (
-        <FormBody onSubmit={() => grantedAt && void change.run({ kind: "recordConsent", input: { importerId, medium, grantedAt, textVersion: version } })}>
+        <FormBody
+          onSubmit={() => {
+            if (grantedAt === undefined) return;
+            setLast("record");
+            void change.run({ kind: "recordConsent", input: { importerId, medium, grantedAt, textVersion: version } });
+          }}
+        >
           <SelectField label={copy.medium} value={medium} options={MEDIUM_OPTIONS} onChange={setMedium} />
           <DateTimeField label={copy.grantedAt} value={at} onChange={setAt} hint={copy.grantedAtHint} />
           <SelectField label={copy.textVersion} value={version} options={VERSION_OPTIONS} onChange={setVersion} />
           <FormFooter submit={copy.record} disabled={running || grantedAt === undefined} onCancel={onClose} />
         </FormBody>
       )}
-      <ChangeOutcome state={change.state} done={importer.consent.status === "GRANTED" ? copy.revoked_ : copy.recorded} />
+      <ChangeOutcome state={change.state} done={last === "revoke" ? copy.revoked_ : copy.recorded} />
     </div>
   );
 }

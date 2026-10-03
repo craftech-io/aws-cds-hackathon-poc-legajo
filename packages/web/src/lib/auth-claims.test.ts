@@ -50,11 +50,11 @@ describe("principal from the id token", () => {
     expect(principalFromIdToken(jwt({ ...base, "custom:firmId": "firm-guest-01" })).firmId).toBe("firm-guest-01");
   });
 
-  it("marks a guest by role or by the pre-token flag, and names it by its username", () => {
+  it("marks a guest by role or by the pre-token flag; it signs in with its username and the header names no one [FL-131]", () => {
     const guest = principalFromIdToken(jwt({ ...base, email: undefined, "cognito:username": "guest-01", "cognito:groups": ["GUEST"], "custom:firmId": "firm-guest-01" }));
     expect(guest).toMatchObject({ role: "GUEST", isGuest: true });
     expect(signInNameOf(guest)).toBe("guest-01");
-    expect(displayNameOf(guest)).toBe("guest-01");
+    expect(displayNameOf(guest)).toBeUndefined();
     expect(principalFromIdToken(jwt({ ...base, "custom:isGuest": "true", "cognito:groups": ["BROKER"] })).isGuest).toBe(true);
   });
 

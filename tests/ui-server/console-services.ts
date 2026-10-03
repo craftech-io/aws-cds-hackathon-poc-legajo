@@ -1,7 +1,8 @@
 // The console services of the local UI server (packages/bff/src/routers/console-services.ts): the real
 // direct handlers, clock module and `create_upload_link` over the in-memory world, with what the stage
 // reaches over AWS kept in process. The platform is the platform mock's own app over its memory store
-// (operation 4471 and a free number, 4479, for "Nueva operación"); its feeds are published to a recorder.
+// (operation 4471 and a free number, 4479, for "Nueva operación", plus every operation the world
+// factory writes to `Platform` for a guest world); its feeds are published to a recorder.
 // There is no worker here: what the handlers enqueue (`OUTBOUND_SEND`, `AGENT_TURN`, timers that fall
 // due) and the phone simulator's envelopes are recorded for the specs, and the world factory's reload
 // keeps the template's start (the world is the in-memory slice). The simulator's own PDFs go to the S3
@@ -19,7 +20,7 @@ import type { ServiceDeps } from "@legajo/bff/services/operations-admin/ports";
 import { fakeScheduler } from "@legajo/bff/sim-mail/testing";
 import type { OperationQueueEventInput } from "@legajo/bff/worker/events";
 import { CORRELATION_HEADER, IDEMPOTENCY_HEADER, platformPaths } from "@legajo/platform-mock/api";
-import { PlatformOperation } from "@legajo/platform-mock/schema";
+import { PlatformOperation, PlatformOperationItem } from "@legajo/platform-mock/schema";
 import { call, operationItem, platformFixture } from "@legajo/platform-mock/testing";
 import { ToolError } from "@legajo/shared";
 
@@ -38,10 +39,21 @@ export function createLocalConsoleServices(stores: MemoryStores, now: () => Date
   const events: OperationQueueEventInput[] = [];
   const envelopes: WhatsAppSnsEvent[] = [];
   const platform = platformFixture({ items: [operationItem(), operationItem({ operationNumber: "4479", eta: "2026-10-30T08:00:00-03:00", documents: { COMMERCIAL_INVOICE: "MISSING", PACKING_LIST: "MISSING", CERTIFICATE_OF_ORIGIN: "MISSING" } })] });
+  const known = new Set<string>();
+  /** The operations the world factory wrote to `Platform` since the last call (guest worlds), as the stage's platform reads them. */
+  const sync = () => {
+    for (const row of stores.client.dump("Platform")) {
+      const item = PlatformOperationItem.parse(row);
+      if (known.has(item.PK)) continue;
+      known.add(item.PK);
+      platform.store.putOperation(item);
+    }
+  };
   const realClock = { now: () => Promise.resolve(now()) };
   const media = new Map<string, { readonly sizeBytes: number; readonly contentType: string }>();
 
   async function feed(path: string, idempotencyKey: string, body: Record<string, unknown>): Promise<unknown> {
+    sync();
     const answer = await call(platform.app, "POST", path, { body, headers: { [IDEMPOTENCY_HEADER]: idempotencyKey, [CORRELATION_HEADER]: idempotencyKey.replaceAll(":", "-") } });
     if (answer.status >= 400) throw new ToolError(answer.status === 404 ? "NOT_FOUND" : answer.status === 409 ? "CONFLICT" : "UNAVAILABLE", `platform mock answered ${answer.status}`);
     return answer.json;
@@ -64,6 +76,7 @@ export function createLocalConsoleServices(stores: MemoryStores, now: () => Date
     quotaTable: stores.client,
     platform: {
       async get(firmId, operationNumber) {
+        sync();
         const answer = await call(platform.app, "GET", platformPaths.operation(firmId, operationNumber));
         if (answer.status === 404) throw new ToolError("NOT_FOUND", "the customs platform has no operation with that number for this firm", "PLATFORM_NOT_FOUND");
         return PlatformOperation.parse(answer.json);

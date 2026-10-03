@@ -1,7 +1,8 @@
 // Routes of the local UI server that exist only here, never in a Lambda (docs/test-plan.md §2): the
 // browser's Cognito API the specs route the real endpoint to (`/__cognito`), the last email the pool
-// "sent" to an address (its code, never a real mailbox), and the switches of the guest worlds (the
-// public slots full, a world destroyed by its lifetime). They answer JSON and listen on 127.0.0.1 only.
+// "sent" to an address (its code, never a real mailbox), the switches of the guest worlds (the
+// public slots full, a world destroyed by its lifetime) and the readings of a guest's world that no
+// worker produces here (dossier-fixtures.ts). They answer JSON and listen on 127.0.0.1 only.
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { MAIL_BASES } from "@legajo/bff/auth-triggers/custom-message";
@@ -11,6 +12,9 @@ import { forgetWindowed } from "@legajo/bff/signup/counters";
 import { domainHash } from "@legajo/bff/signup/dispatch";
 import { RATE_BASES } from "@legajo/bff/signup/rate-limits";
 import { z } from "zod";
+import { readAccountWorld } from "@legajo/bff/worlds/guest-slots";
+import { guestIdentity } from "@legajo/bff/worlds/world-ids";
+import { writeDossierFixtures } from "../dossier-fixtures";
 import type { GuestWorlds } from "./guest-world";
 import type { BrowserCognito } from "./browser-api";
 import type { LocalAccess } from "./access";
@@ -125,6 +129,21 @@ export async function handleTestRoute(request: IncomingMessage, response: Server
     const { email } = await jsonBody(request, ByEmail);
     const user = deps.access.pool.find(email);
     json(response, 200, { expired: user ? await deps.worlds.expire(user.sub) : false });
+    return true;
+  }
+  if (route === "dossier-fixtures" && request.method === "POST") {
+    // Readings the UI server has no worker to produce, written in the account's own world (dossier-fixtures.ts).
+    const { email } = await jsonBody(request, ByEmail);
+    await deps.access.settled();
+    await deps.worlds.settled();
+    const user = deps.access.pool.find(email);
+    const lease = user === undefined ? undefined : await readAccountWorld(deps.worlds.deps.client, user.sub);
+    if (lease?.state !== "READY" || lease.firmId === undefined) {
+      json(response, user === undefined ? 404 : 409, { error: "no world ready for that account" });
+      return true;
+    }
+    await writeDossierFixtures(deps.worlds.deps.data, { firmId: lease.firmId, clockId: guestIdentity(lease.firmId).clockId });
+    json(response, 200, { written: true });
     return true;
   }
   if (route === "revoked" && request.method === "GET") {

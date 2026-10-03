@@ -6,7 +6,7 @@
 import { ToolError, type WaButtonAction } from "@legajo/shared";
 import type { TableClient } from "../connector/index";
 import { nonceKey, uploadLinkKey } from "../connector/keys";
-import type { Message } from "../domain/conversations";
+import type { Message, MessageButton } from "../domain/conversations";
 import { PUBLIC_TOKEN_PATTERN } from "../lib/crypto";
 import { runPolicyAudit } from "../policy-audit/audit";
 import { QA_REASON } from "./contract";
@@ -47,11 +47,11 @@ export async function lastUploadToken(ctx: ActionContext, operationId: string): 
   throw new ToolError("NOT_FOUND", `no message of ${operationId} carries an upload link yet`);
 }
 
-/** Nonce of the button `action` on the last message that carried one. */
-export async function lastNonce(ctx: ActionContext, operationId: string, action: WaButtonAction): Promise<string> {
+/** The last message to the importer that carried a `action` button with a nonce, and that button. */
+export async function lastButton(ctx: ActionContext, operationId: string, action: WaButtonAction): Promise<{ readonly message: Message; readonly button: MessageButton & { readonly nonce: string } }> {
   for (const message of await outboundToImporter(ctx, operationId)) {
-    const nonce = message.buttons.find((button) => button.action === action && button.nonce !== undefined)?.nonce;
-    if (nonce !== undefined) return nonce;
+    const button = message.buttons.find((candidate) => candidate.action === action && candidate.nonce !== undefined);
+    if (button?.nonce !== undefined) return { message, button: { ...button, nonce: button.nonce } };
   }
   throw new ToolError("NOT_FOUND", `no message of ${operationId} carries a ${action} button yet`);
 }
@@ -88,7 +88,7 @@ export function expireActions(table: TableClient) {
     },
     /** The nonce of that button on the last message expires (its `expiresAt` goes one second back). */
     async nonceExpire(input: QaParsedInput<"nonce.expire">, ctx: ActionContext) {
-      const nonce = await lastNonce(ctx, input.operationId, input.action);
+      const { nonce } = (await lastButton(ctx, input.operationId, input.action)).button;
       const now = ctx.now();
       await table.update("Runtime", nonceKey(nonce), { set: { expiresAt: Math.floor(now.getTime() / 1_000) - 1 } }, now.toISOString(), { condition: { ifExists: true, ...QA_ITEM } });
       return { expired: true, action: input.action };

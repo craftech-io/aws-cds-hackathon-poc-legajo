@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ClockDetail, clockDetailOf, commandRequest } from "./clock-api";
+import type { ConsoleClient } from "../../lib/trpc";
+import { ClockDetail, clockDetailOf, commandRequest, runClockCommand } from "./clock-api";
 import { MAX_ADVANCE_MS, controlGate, dispatchChoice, eventRows, isValidAdvanceTarget, modeText, resetGate, shiftEta, timerLabel } from "./clock-model";
 import { clockCopy } from "./copy";
 
@@ -111,6 +112,19 @@ describe("commands of the clock view", () => {
 
   it("refuses to send a malformed hour", () => {
     expect(() => commandRequest({ kind: "advanceTo", toSim: "mañana" })).toThrow();
+  });
+
+  it("sends each command to its typed procedure and reads the snapshot it answers", async () => {
+    const sent: Array<{ path: string; input: unknown }> = [];
+    const procedure = (path: string) => ({ mutate: async (input: unknown) => (sent.push({ path, input }), detail()) });
+    const names = ["advanceTo", "setRunning", "fireMilestone", "moveEta", "emitDispatchStatus", "reset"] as const;
+    const trpc = { clock: Object.fromEntries(names.map((name) => [name, procedure(name)])) } as unknown as ConsoleClient;
+    expect(await runClockCommand(trpc, { kind: "reset" })).toMatchObject({ clockId: detail().clockId });
+    await runClockCommand(trpc, { kind: "advanceTo", toSim: "2026-10-15T10:00:00-03:00" }, true);
+    expect(sent).toEqual([
+      { path: "reset", input: {} },
+      { path: "advanceTo", input: { toSim: "2026-10-15T10:00:00-03:00", force: true } },
+    ]);
   });
 
   it("moves an ETA by whole days in Argentina's offset", () => {

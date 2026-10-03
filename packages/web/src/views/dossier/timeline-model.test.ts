@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { WorldPending } from "../../lib/world-clock";
-import { MAX_ADVANCE_MINUTES, advanceStepTo, mergeTimeline, pendingReasonOf, pendingTimers, worldPendingsOf } from "./timeline-model";
+import { MAX_ADVANCE_MS, advanceStepTo, mergeTimeline, pendingReasonOf, pendingTimers, worldPendingsOf } from "./timeline-model";
 import type { DecisionData, MessageData, TimelineEntryData } from "./types";
 
 function messageEntry(messageId: string, sentAtSim: string, overrides: Partial<MessageData> = {}): TimelineEntryData {
@@ -75,12 +75,15 @@ describe("unified timeline", () => {
 });
 
 describe("pendings of the operation", () => {
-  it("moves the paused clock by whole minutes up to the pending, never more than 14 days", () => {
-    expect(advanceStepTo("2026-10-15T10:00:00-03:00", "2026-10-15T22:00:00-03:00")).toEqual({ kind: "minutes", minutes: 720 });
-    expect(advanceStepTo("2026-10-15T10:00:30-03:00", "2026-10-15T10:02:00-03:00")).toEqual({ kind: "minutes", minutes: 2 });
+  it("moves the paused clock exactly to the pending, never short of it nor past it, at most 14 days", () => {
+    expect(advanceStepTo("2026-10-15T10:00:00-03:00", "2026-10-15T22:00:00-03:00")).toEqual({ kind: "to", toSim: "2026-10-15T22:00:00-03:00" });
+    // 1 min 30 s ahead: the move lands on the pending's second, not on a whole minute past it.
+    expect(advanceStepTo("2026-10-15T10:00:30-03:00", "2026-10-15T10:02:00-03:00")).toEqual({ kind: "to", toSim: "2026-10-15T10:02:00-03:00" });
     expect(advanceStepTo("2026-10-15T22:00:00-03:00", "2026-10-15T22:00:00-03:00")).toEqual({ kind: "due" });
     expect(advanceStepTo("2026-10-01T10:00:00-03:00", "2026-10-22T08:00:00-03:00")).toEqual({ kind: "tooFar" });
-    expect(advanceStepTo("2026-10-08T08:00:00-03:00", "2026-10-22T08:00:00-03:00")).toEqual({ kind: "minutes", minutes: MAX_ADVANCE_MINUTES });
+    expect(Date.parse("2026-10-22T08:00:00-03:00") - Date.parse("2026-10-08T08:00:00-03:00")).toBe(MAX_ADVANCE_MS);
+    expect(advanceStepTo("2026-10-08T08:00:00-03:00", "2026-10-22T08:00:00-03:00")).toEqual({ kind: "to", toSim: "2026-10-22T08:00:00-03:00" });
+    expect(advanceStepTo("2026-10-08T07:59:59-03:00", "2026-10-22T08:00:00-03:00")).toEqual({ kind: "tooFar" });
     expect(advanceStepTo(undefined, "2026-10-15T22:00:00-03:00")).toEqual({ kind: "unknown" });
   });
 
@@ -106,7 +109,7 @@ describe("pendings of the operation", () => {
       ["DEFERRED_SEND#msg-04", "ARGENTINA"],
       ["MILESTONE#FOLLOWUP", "ARGENTINA"],
     ]);
-    expect(items[0]?.advance).toEqual({ kind: "minutes", minutes: 720 });
+    expect(items[0]?.advance).toEqual({ kind: "to", toSim: "2026-10-16T01:00:00.000Z" });
   });
 
   it("keeps only what the world waits for on this operation", () => {

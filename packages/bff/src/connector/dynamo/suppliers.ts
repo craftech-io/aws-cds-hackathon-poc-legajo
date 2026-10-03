@@ -26,6 +26,7 @@ type SupplierMethods = Pick<
   | "findContactsByEmailHash"
   | "createContact"
   | "transitionContact"
+  | "markContactReminder"
   | "discardContact"
   | "getProfile"
   | "putProfile"
@@ -102,7 +103,9 @@ export function suppliersRepo(ctx: RepoContext): SupplierMethods {
       if (transition.expectedVersion !== undefined && transition.expectedVersion !== current.version) {
         throw new ConnectorError("CONFLICT", `contact ${transition.contactId} changed`, TABLE);
       }
-      if (!CONTACT_TRANSITIONS[current.status].includes(transition.to)) {
+      // The importer confirming the contact that already works (FL-012) re-stamps who confirmed it.
+      const reconfirmation = current.status === "ACTIVE" && transition.to === "ACTIVE";
+      if (!reconfirmation && !CONTACT_TRANSITIONS[current.status].includes(transition.to)) {
         throw new ConnectorError("VALIDATION", `contact ${transition.contactId} cannot go from ${current.status} to ${transition.to}`, TABLE);
       }
       if (transition.to === "ACTIVE" && transition.confirmedBy === undefined) throw new ConnectorError("VALIDATION", "a confirmation says who confirmed", TABLE);
@@ -114,6 +117,12 @@ export function suppliersRepo(ctx: RepoContext): SupplierMethods {
       return updateRow(ctx, TABLE, SupplierContact, "SupplierContact", contactKey(transition.supplierId, transition.contactId), { set, append: { statusHistory: [event] } }, {
         condition: { ifVersion: current.version, equals: { status: current.status } },
       });
+    },
+
+    async markContactReminder(supplierId, contactId, atSim) {
+      const current = await getContact(supplierId, contactId);
+      if (current.lastReminderAt !== undefined && Date.parse(current.lastReminderAt) >= Date.parse(atSim)) return current;
+      return updateRow(ctx, TABLE, SupplierContact, "SupplierContact", contactKey(supplierId, contactId), { set: { lastReminderAt: atSim } }, { condition: { ifVersion: current.version } });
     },
 
     async discardContact(supplierId, contactId, expectedVersion) {

@@ -2,7 +2,6 @@ import { BedrockAgentCoreClient, InvokeHarnessCommand, type InvokeHarnessStreamO
 import { PABLO } from "@legajo/bff/routers/testing";
 import { resolveSession } from "@legajo/bff/services/session";
 import { afterEach, describe, expect, it } from "vitest";
-import { NotWiredError, type FlowEntries } from "./ports";
 import { planQueue } from "./scripted-harness";
 import { createFlowWorld, type FlowWorld } from "./world";
 
@@ -56,14 +55,19 @@ describe("in-process world of the local flows", () => {
     expect(flow.harness.turns[0]?.envelope.event.type).toBe("MILESTONE");
   });
 
-  it("names the owner of every entry and target that is not wired yet, instead of imitating it", async () => {
+  it("runs a scripted tool call through Cedar into the stage's own target, with the turn's session", async () => {
     const flow = await open({ plans: planQueue([{ steps: [{ tool: "get_dossier", input: {} }], note: "reads" }]) });
-    const entries: Array<keyof FlowEntries> = ["inboundWhatsApp", "inboundEmail", "feedEvent", "timerFire", "advanceClock", "drain"];
-    for (const entry of entries) {
-      const call = (flow.entries[entry] as (...args: unknown[]) => Promise<unknown>)({}, {});
-      await expect(call).rejects.toBeInstanceOf(NotWiredError);
-    }
     const turn = await flow.openTurn({ operationId: "op-4471", trigger: "IMPORTER_MESSAGE" });
-    await expect(flow.harness.run({ text: turn.envelope })).rejects.toThrow(/agent-tools/);
+    const scripted = await flow.harness.run({ text: turn.envelope });
+    const [call] = scripted.calls;
+    expect(call).toMatchObject({ tool: "get_dossier", cedar: { decision: "ALLOW" }, output: { ok: true } });
+    expect(JSON.stringify(call?.output)).toContain("PACKING_LIST");
+  });
+
+  it("drains an empty queue and settles a quiet world", async () => {
+    const flow = await open();
+    expect(await flow.entries.drain()).toBe(0);
+    await flow.entries.settle();
+    expect(flow.aws.queue.deadLetters).toEqual([]);
   });
 });

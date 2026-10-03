@@ -35,6 +35,8 @@ export interface ScenarioDef {
   readonly suites: readonly Suite[];
   /** Scenarios of one lane run one after the other (`guest`: SC-25 then SC-24, one account). */
   readonly lane?: string;
+  /** Runs alone, after the parallel part and before `last` (SC-26: the public sign-up and its IP's rate limits). */
+  readonly alone?: boolean;
   /** Runs alone after every other scenario (SC-20 reads their reports). */
   readonly last?: boolean;
   readonly steps: readonly StepDef[];

@@ -70,7 +70,9 @@ export function parseRunArgs(argv: readonly string[], env: Readonly<Record<strin
       maxTurns = positive("--max-turns", value());
     },
     "--max-cost-usd": (value) => {
-      maxCostUsd = positive("--max-cost-usd", value());
+      const usd = Number(value());
+      if (!Number.isFinite(usd) || usd <= 0) throw new RangeError("--max-cost-usd needs a positive amount");
+      maxCostUsd = usd;
     },
     "--parallel": (value) => {
       parallel = Math.min(4, positive("--parallel", value()));

@@ -26,6 +26,8 @@ export interface PlanStep {
   readonly input: PlanInput;
   /** The model leaves the token out (the `CED-SESSION-*` forbids fence it). */
   readonly withoutSessionToken?: boolean;
+  /** The model makes this call only when what it read earlier in the turn says so. */
+  readonly when?: (context: PlanContext) => boolean;
 }
 
 export interface TokenUsage {
@@ -93,6 +95,20 @@ export function plansByTrigger(plans: Partial<Record<TurnTrigger, readonly Plan[
   };
 }
 
+/** A turn the test did not script: the agent reads nothing and writes no message (a note only). */
+export const QUIET_PLAN: Plan = { steps: [], note: "Nada que hacer en este turno." };
+
+/**
+ * Plans per operation number and trigger, consumed in order. A turn of any other operation, or one
+ * whose queue ran out, gets `otherwise` (quiet by default): the world's other operations keep living
+ * while a test follows one of them.
+ */
+export function plansByOperation(plans: Readonly<Record<string, Partial<Record<TurnTrigger, readonly Plan[]>>>>, otherwise: PlanSource = () => QUIET_PLAN): PlanSource {
+  const queues = new Map<string, Plan[]>();
+  for (const [operation, byTrigger] of Object.entries(plans)) for (const [trigger, list] of Object.entries(byTrigger)) queues.set(`${operation}#${trigger}`, [...(list ?? [])]);
+  return (envelope) => queues.get(`${envelope.event.operation}#${envelope.event.type}`)?.shift() ?? otherwise(envelope);
+}
+
 /** The text of the last user message of an `InvokeHarness` request. */
 export function invocationText(input: Pick<InvokeHarnessCommandInput, "messages">): string {
   const user = [...(input.messages ?? [])].reverse().find((message) => message.role === "user");
@@ -145,7 +161,10 @@ export function createScriptedHarness(options: { readonly gateway: LocalGateway;
     const envelope = readEnvelope(invocation.text);
     const plan = options.plans(envelope);
     const calls: GatewayCall[] = [];
-    for (const step of plan.steps) calls.push(await options.gateway.call(step.tool, resolveInput(step, { envelope, calls })));
+    for (const step of plan.steps) {
+      if (step.when !== undefined && !step.when({ envelope, calls })) continue;
+      calls.push(await options.gateway.call(step.tool, resolveInput(step, { envelope, calls })));
+    }
     const turn: ScriptedTurn = {
       invocation,
       envelope,

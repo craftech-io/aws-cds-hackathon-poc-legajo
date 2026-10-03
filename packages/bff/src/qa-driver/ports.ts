@@ -1,13 +1,14 @@
 // What the `QaDriver` drives but does not own (docs/build-plan.md WP-37): the world factory (WP-31),
 // the clock (WP-27), the channel entries and the single SES client (WP-19, WP-20, WP-29), the supplier
 // simulator (WP-30), the worker (WP-28), the recipient fence and contact policy (WP-17, WP-25) and the
-// metrics batch (WP-39). Each is a port: the Lambda entry wires the module that owns it, and until that
-// module exists the action answers `UNAVAILABLE` with reason `NOT_WIRED` instead of taking a shortcut
-// around policy, Cedar or the outbound pipeline.
-import { ToolError, type DocType, type WaButtonAction } from "@legajo/shared";
+// metrics batch. Each is a port: the Lambda entry wires the module that owns it (stage-ports.ts), so an
+// action never takes a shortcut around policy, Cedar or the outbound pipeline, and the tests drive the
+// actions over fakes.
+import type { DocType } from "@legajo/shared";
+import type { SimulatedContent } from "../channels/whatsapp/sim-envelope";
 import type { Connector } from "../connector/index";
 import type { Logger } from "../lib/log";
-import { QA_REASON, type QaActionName } from "./contract";
+import type { QaActionName } from "./contract";
 import type { QaParsedInput } from "./contract-inputs";
 import type { Scope } from "./guard";
 
@@ -68,13 +69,16 @@ export interface ClockPort {
   freeze(clockId: string, ctx: ActionContext): Promise<{ readonly simNow: string }>;
 }
 
+/** The reply a tap on one of our buttons sends (a template's quick reply, a reply button or a list row). */
+export type TapContent = Extract<SimulatedContent, { readonly type: "template_reply" | "button_reply" | "list_reply" }>;
+
 /** An inbound WhatsApp as the simulated path receives it; ids resolved by the driver, never by the scenario. */
 export type WhatsAppInbound =
   | { readonly type: "text"; readonly text: string }
-  | { readonly type: "button"; readonly action: WaButtonAction; readonly nonce: string }
+  /** A tap on a button of the message whose provider id is `contextWamid`. */
+  | { readonly type: "tap"; readonly content: TapContent; readonly contextWamid?: string }
   | { readonly type: "document"; readonly docType: DocType; readonly version: number; readonly templateOperation: string }
-  | { readonly type: "media"; readonly mediaType: "image" | "audio" | "video" | "sticker" }
-  | { readonly type: "choice"; readonly nonce: string };
+  | { readonly type: "media"; readonly mediaType: "image" | "audio" | "video" | "sticker" };
 
 export interface EmailInjection {
   readonly clockId: string;
@@ -85,8 +89,8 @@ export interface EmailInjection {
   readonly body: string;
   readonly autoReply: boolean;
   readonly attachments: ReadonlyArray<{ readonly docType: DocType; readonly version: number; readonly templateOperation: string }>;
+  /** `X-Legajo-Mail-Id`, derived from the step's key (SES writes the RFC `Message-ID` itself). */
   readonly mailId: string;
-  readonly messageIdHeader: string;
   readonly operationId?: string;
 }
 
@@ -95,8 +99,11 @@ export interface ChannelsPort {
   whatsappInbound(input: { readonly operationId: string; readonly clockId: string; readonly from: "IMPORTER" | "UNREGISTERED"; readonly wamid: string; readonly message: WhatsAppInbound }, ctx: ActionContext): Promise<{ readonly messageId?: string }>;
   /** The single SES client with profile `QA` (it checks the `From` against the registry). */
   injectEmail(input: EmailInjection, ctx: ActionContext): Promise<{ readonly sesMessageId: string }>;
-  /** `InboundEmail` again with the same receipt and the same S3 object. */
-  redeliverEmail(input: { readonly operationId: string; readonly clockId: string; readonly messageId: string }, ctx: ActionContext): Promise<{ readonly redelivered: true }>;
+  /** `InboundEmail` again with the same receipt and the same S3 object; its answer (`DUPLICATE` expected). */
+  redeliverEmail(
+    input: { readonly operationId: string; readonly clockId: string; readonly messageId: string },
+    ctx: ActionContext,
+  ): Promise<{ readonly redelivered: true; readonly outcome: string | null; readonly reason: string | null }>;
 }
 
 export interface SimMailPort {
@@ -120,8 +127,21 @@ export interface FencePort {
   probe(input: QaParsedInput<"fence.probe">, ctx: ActionContext): Promise<{ readonly allowed: boolean; readonly ruleIds: readonly string[]; readonly reason?: string }>;
 }
 
+/** Where a `batch.run` call left the batch: a stopped call is resumed by the next one with the same batch id. */
+export interface BatchProgress {
+  readonly batchId: string;
+  readonly entries: number;
+  /** Entries whose world ran to the end (nothing pending, the dossier settled). */
+  readonly finished: number;
+  readonly turns: number;
+  /** Estimated from the worlds' tokens and the rate card; absent while the rates are unverified. */
+  readonly costUsd?: number;
+  /** Why this call stopped before the last entry. */
+  readonly stopped?: "MAX_TURNS" | "MAX_COST" | "DEADLINE";
+}
+
 export interface BatchPort {
-  run(input: QaParsedInput<"batch.run">, ctx: ActionContext): Promise<{ readonly worlds: number; readonly turns: number; readonly costUsd?: number }>;
+  run(input: QaParsedInput<"batch.run">, ctx: ActionContext): Promise<BatchProgress>;
 }
 
 export interface QaPorts {
@@ -132,36 +152,4 @@ export interface QaPorts {
   readonly worker: WorkerPort;
   readonly fence: FencePort;
   readonly batch: BatchPort;
-}
-
-function notWired(what: string, owner: string): never {
-  throw new ToolError("UNAVAILABLE", `${what} is not wired in this deployment yet (${owner})`, QA_REASON.NOT_WIRED);
-}
-
-/** Ports whose owning module is not deployed with the driver: every call answers NOT_WIRED. */
-export function unwiredPorts(): QaPorts {
-  const off = (what: string, owner: string) => () => Promise.resolve(notWired(what, owner));
-  return {
-    worlds: { create: off("world.create", "world factory, packages/bff/src/worlds"), destroy: off("world.destroy", "world factory, packages/bff/src/worlds") },
-    clock: {
-      advance: off("clock.advance", "packages/bff/src/clock"),
-      fireMilestone: off("clock.fireMilestone", "packages/bff/src/milestones"),
-      unfreeze: off("clock.unfreeze", "packages/bff/src/clock"),
-      freeze: off("clock.freeze", "packages/bff/src/clock"),
-    },
-    channels: {
-      whatsappInbound: off("wa.inbound", "packages/bff/src/channels/whatsapp"),
-      injectEmail: off("email.inject", "packages/bff/src/channels/email/outbound.ts"),
-      redeliverEmail: off("email.redeliver", "packages/bff/src/handlers/inbound-email.ts"),
-    },
-    simMail: { sendNow: off("supplier.sendNow", "packages/bff/src/sim-mail") },
-    worker: {
-      poison: off("event.poison", "packages/bff/src/worker"),
-      forceNextTurnFailure: off("turn.forceFailure", "packages/bff/src/worker"),
-      healthProbe: off("the queue part of probe.mocks", "packages/bff/src/worker"),
-      fireStale: off("schedule.fireStale", "packages/bff/src/worker"),
-    },
-    fence: { probe: off("fence.probe", "packages/bff/src/outbound/recipient-fence.ts and packages/bff/src/policy") },
-    batch: { run: off("batch.run", "scripts/metrics and the world factory") },
-  };
 }

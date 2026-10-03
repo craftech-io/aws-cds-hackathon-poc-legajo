@@ -50,6 +50,9 @@ export const WorldOperation = z
   .strict();
 export type WorldOperation = z.input<typeof WorldOperation>;
 
+/** Key of a sign-up mailbox of SC-26 (`a` the main account, `b`, `c`, `d` the refusals). */
+export const SignupKey = z.string().regex(/^[a-z][a-z0-9]{0,7}$/, "expected a short lower-case key");
+
 const WorldCreate = z
   .object({
     runId: RunId,
@@ -159,7 +162,7 @@ export const ACTION_INPUTS = {
   "email.redeliver": z.object({ ...OpRef, messageId: MessageId }).strict(),
   "link.expire": z.object(OpRef).strict(),
   "nonce.expire": z.object({ ...OpRef, action: WaButtonAction }).strict(),
-  "schedule.fireStale": z.object({ ...OpRef, timerKey: z.string().regex(/^TIMER#[A-Z_]+#[A-Za-z0-9_-]{1,64}$/), version: z.number().int().min(0) }).strict(),
+  "schedule.fireStale": z.object({ ...OpRef, timerKey: z.string().regex(/^TIMER#[A-Z_]+#[A-Za-z0-9_-]{1,64}$/), version: z.number().int().min(1) }).strict(),
   "fence.probe": z.object({ ...ClockRef, profile: SenderProfile.default("SYSTEM"), channel: z.enum(["EMAIL", "WHATSAPP"]).default("EMAIL"), to: z.string().min(3).max(320), operationId: OperationId.optional() }).strict(),
   "guardrail.probe": z.object({ text: z.string().min(1).max(1_000).optional() }).strict(),
   "turn.forceFailure": z.object(OpRef).strict(),
@@ -186,6 +189,15 @@ export const ACTION_INPUTS = {
   "batch.run": z
     .object({ batchId: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(40), entries: z.number().int().min(1).max(200), maxTurns: z.number().int().min(1).max(2_000), maxCostUsd: z.number().positive().max(500) })
     .strict(),
+  /**
+   * SC-26 only (docs/test-plan.md §4.1): a `key`, never an email; the driver builds the mailbox
+   * `qa-signup-<runId>-<key>@sim…` from its own key's run (signup-fence.ts).
+   */
+  "signup.readCode": z
+    .object({ key: SignupKey, kind: z.enum(["SIGNUP", "EXISTING", "FORGOT"]), afterTs: Instant, timeoutSec: z.number().int().min(1).max(300).default(120) })
+    .strict(),
+  "lead.inspect": z.object({ key: SignupKey }).strict(),
+  "lead.purge": z.object({ key: SignupKey }).strict(),
 } as const satisfies Record<QaActionName, z.ZodType>;
 
 export type QaInput<A extends QaActionName> = z.input<(typeof ACTION_INPUTS)[A]>;

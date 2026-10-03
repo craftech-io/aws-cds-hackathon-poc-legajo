@@ -51,7 +51,7 @@ function DossierBody({ bundle, onChanged }: { readonly bundle: DossierBundle; re
       <SectionNav label={dossierCopy.sections.nav} links={SECTION_LINKS} />
       <SummarySection dossier={dossier} simNow={simNow} />
       <DocumentsSection dossier={dossier} onChanged={onChanged} />
-      <PendingSection clockId={operation.clockId} operationNumber={operation.operationNumber} timers={timeline.pending} supplierZone={dossier.supplier.timezone} />
+      <PendingSection clockId={operation.clockId} operationNumber={operation.operationNumber} timers={timeline.pending} supplierZone={dossier.supplier.timezone} onChanged={onChanged} />
       <TimelineSection items={mergeTimeline(timeline.entries, decisions)} />
     </div>
   );

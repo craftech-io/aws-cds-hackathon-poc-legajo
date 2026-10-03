@@ -1,12 +1,11 @@
-// Calls of the dossier view (docs/tool-catalog.md "Procedimientos de la consola"). The reads
-// (`operations.get`, `operations.timeline`, `operations.documentUrl`, `audit.list`) are typed by the
-// BFF's router. The actions of the `dossier` and `conversation` routers are called by name, each
-// input validated with the one schema of its procedure (@legajo/shared console-inputs, the same the
-// scenarios and the BFF router use), and their answers with zod: the view only needs to know they
-// succeeded and reads the dossier again. Every id travels as the router gets it; the firm comes from the token.
-import { CONSOLE_CHANGE_INPUTS, type ConsoleChangeInputs, type ConsoleChangePath, type DocType, DocVersionId, OperationId } from "@legajo/shared";
-import { getUntypedClient } from "@trpc/client";
-import { z } from "zod";
+// Calls of the dossier view (docs/tool-catalog.md "Procedimientos de la consola"), every one typed by
+// the BFF's `AppRouter`: the reads (`operations.get`, `operations.timeline`, `operations.documentUrl`,
+// `audit.list`), the actions of the `dossier` and `conversation` routers, and `clock.advanceTo` of
+// "Avanzar hasta ahí". Each action's input is also validated in the browser with the one schema of its
+// procedure (@legajo/shared console-inputs, the same the scenarios and the BFF router use), so a bad id
+// never leaves; the view only needs to know an action succeeded and reads the dossier again. Every id
+// travels as the router gets it; the firm comes from the token.
+import { CONSOLE_CHANGE_INPUTS, type ConsoleChangeInputs, type ConsoleChangePath, type DocType, DocVersionId, IsoInstant, OperationId } from "@legajo/shared";
 import type { ConsoleClient } from "../../lib/trpc";
 import type { BrokerTemplate } from "./dossier-model";
 import type { DecisionData, DossierData, TimelineData } from "./types";
@@ -40,14 +39,15 @@ export async function fetchDocumentUrl(trpc: ConsoleClient, docVersionId: string
   return url;
 }
 
-// ---- Actions (docs/tool-catalog.md, handlers of direct invocation) --------------------------------
-
-/** Every action answers an object; its fields are the router's, the view reads the dossier again. */
-const Done = z.looseObject({});
-
-async function mutate(trpc: ConsoleClient, path: string, input: Readonly<Record<string, unknown>>): Promise<void> {
-  Done.parse(await getUntypedClient(trpc).mutation(path, input));
+/**
+ * "Avanzar hasta ahí": the paused clock of the operation's world moved exactly to the pending's
+ * `dueAtSim` (`clock.advanceTo`; `WORLD_BUSY` while the world is busy, one `CLOCK_MOVES` of a guest world).
+ */
+export async function advanceClockTo(trpc: ConsoleClient, clockId: string, toSim: string): Promise<void> {
+  await trpc.clock.advanceTo.mutate({ clockId, toSim: IsoInstant.parse(toSim) });
 }
+
+// ---- Actions (docs/tool-catalog.md, handlers of direct invocation) --------------------------------
 
 export type DossierAction =
   | { readonly type: "approve"; readonly operationId: string }
@@ -61,9 +61,9 @@ export type DossierAction =
   | { readonly type: "sendTemplate"; readonly operationId: string; readonly template: BrokerTemplate };
 
 type DossierPath = Extract<ConsoleChangePath, `dossier.${string}` | `conversation.${string}`>;
-type Request = { readonly [P in DossierPath]: { readonly path: P; readonly input: ConsoleChangeInputs[P] } }[DossierPath];
+export type DossierRequest = { readonly [P in DossierPath]: { readonly path: P; readonly input: ConsoleChangeInputs[P] } }[DossierPath];
 
-function requestOf(action: DossierAction): Request {
+function requestOf(action: DossierAction): DossierRequest {
   const { operationId } = action;
   switch (action.type) {
     case "approve":
@@ -88,12 +88,32 @@ function requestOf(action: DossierAction): Request {
 }
 
 /** Procedure and input of each action; ids and fields are validated before they leave the browser. */
-export function actionRequest(action: DossierAction): { readonly path: string; readonly input: Readonly<Record<string, unknown>> } {
-  const { path, input } = requestOf(action);
-  return { path, input: CONSOLE_CHANGE_INPUTS[path].parse(input) as Readonly<Record<string, unknown>> };
+export function actionRequest(action: DossierAction): DossierRequest {
+  const request = requestOf(action);
+  CONSOLE_CHANGE_INPUTS[request.path].parse(request.input);
+  return request;
 }
 
-export function runDossierAction(trpc: ConsoleClient, action: DossierAction): Promise<void> {
-  const { path, input } = actionRequest(action);
-  return mutate(trpc, path, input);
+/** The typed procedure of each request; the view reads the dossier again, so the answer is not kept. */
+function send(trpc: ConsoleClient, request: DossierRequest): Promise<unknown> {
+  switch (request.path) {
+    case "dossier.approve":
+      return trpc.dossier.approve.mutate(request.input);
+    case "dossier.reopen":
+      return trpc.dossier.reopen.mutate(request.input);
+    case "dossier.waiveObservation":
+      return trpc.dossier.waiveObservation.mutate(request.input);
+    case "dossier.classifyDocument":
+      return trpc.dossier.classifyDocument.mutate(request.input);
+    case "conversation.take":
+      return trpc.conversation.take.mutate(request.input);
+    case "conversation.release":
+      return trpc.conversation.release.mutate(request.input);
+    case "conversation.send":
+      return trpc.conversation.send.mutate(request.input);
+  }
+}
+
+export async function runDossierAction(trpc: ConsoleClient, action: DossierAction): Promise<void> {
+  await send(trpc, actionRequest(action));
 }

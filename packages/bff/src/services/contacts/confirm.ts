@@ -8,8 +8,10 @@
 //   console   and QA: `confirmedBy BROKER`, and the turn for every operation of the supplier the agent
 //             still works on, its id derived from the contact (a contact is confirmed once).
 //
-// Confirming a contact that is `ACTIVE` already changes nothing; a contact that bounced or complained
-// is never confirmed again (`CONFLICT`). `ACTION CONTACT_CONFIRMED` / `CONTACT_REJECTED`.
+// The console confirming a contact that is `ACTIVE` already changes nothing; the importer's button
+// about the contact that already works (the agent's `CONTACT_CONFIRMATION`, FL-011) stamps
+// `confirmedBy IMPORTER` and opens the turn. A contact that bounced or complained is never confirmed
+// again (`CONFLICT`). `ACTION CONTACT_CONFIRMED` / `CONTACT_REJECTED`.
 import { z } from "zod";
 import { ContactConfirmInput, ImporterId, MessageId, OperationId, SupplierId, ToolError } from "@legajo/shared";
 import { channelEvent, turnEventId } from "../../channels/adapter";
@@ -90,8 +92,13 @@ export function confirmSupplierContactHandler(deps: ServiceDeps) {
           return { contact: { ...contactView(contact), status: "DISCARDED" as const }, changed: true, turns: 0 };
         }
 
-        if (contact.status === "ACTIVE") return { contact: contactView(contact), changed: false, turns: 0 };
-        if (contact.status !== "PENDING_CONFIRMATION") throw new ToolError("CONFLICT", "a contact that bounced or complained is never confirmed again", "CONTACT_FINAL");
+        // The console confirming an ACTIVE contact changes nothing; the importer's button about the
+        // contact that already works (FL-011, FL-012) records the importer's confirmation and its turn.
+        // A redelivered tap finds its own entry in the history and changes nothing again.
+        const buttonReason = input.channel === undefined ? undefined : `IMPORTER_BUTTON ${input.channel.messageId}`;
+        const repeated = buttonReason !== undefined && contact.statusHistory.some((entry) => entry.reason === buttonReason);
+        if (contact.status === "ACTIVE" && (!fromChannel || repeated)) return { contact: contactView(contact), changed: false, turns: 0 };
+        if (contact.status !== "PENDING_CONFIRMATION" && contact.status !== "ACTIVE") throw new ToolError("CONFLICT", "a contact that bounced or complained is never confirmed again", "CONTACT_FINAL");
         const operationIds = await waitingOperations(ctx, contact);
         const confirmed = await ctx.connector.parties.transitionContact({
           supplierId: contact.supplierId,
@@ -101,6 +108,7 @@ export function confirmSupplierContactHandler(deps: ServiceDeps) {
           atSim,
           atReal: ctx.now().toISOString(),
           by: fromChannel ? "IMPORTER" : ctx.actor,
+          ...(buttonReason === undefined ? {} : { reason: buttonReason }),
           expectedVersion: contact.version,
         });
         await ctx.audit({

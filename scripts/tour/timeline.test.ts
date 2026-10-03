@@ -1,11 +1,13 @@
 import type { TimerKind, WaButtonAction } from "@legajo/shared";
 import { describe, expect, it } from "vitest";
 import { TOUR_WINDOW, type TourAction } from "../../packages/web/src/views/tour/steps";
+import { TOUR_AGENT, tourWorld } from "../../tests/flows/support/tour";
+import { createFlowWorld } from "../../tests/flows/support/world";
 import { walkTour, type TourTimer, type TourWindowDeclaration, type TourWorld } from "./timeline";
 
-// A table-driven stand-in of a world: pending timers, a paused clock and, per fired timer or tapped
-// button, the timers the world would create next. It exercises the walk's checks; the hours of the
-// real `guest` template come from the todo at the end, once the world can run the tour.
+// A table-driven stand-in of a world exercises the walk's checks (pending timers, a paused clock and,
+// per fired timer or tapped button, the timers the world would create next); the last test walks the
+// real `guest` template in the in-process world of the local flows with the agent of the story.
 type Reaction = (world: StoryWorld) => void;
 
 interface Story {
@@ -138,7 +140,18 @@ describe("walk of the guided tour", () => {
     expect(report.problems.some((problem) => problem.startsWith("correction: {deferredSend}"))).toBe(true);
   });
 
-  it.todo(
-    "walks TOUR_STEPS over the in-process world loaded with the `guest` template and the scripted Harness (tests/flows/support/world.ts) with no problem — pending: the loader and world factory over the guest template (scripts/seed/data/worlds/guest.json, WP-31), the clock, timers and milestones (WP-27), the worker (WP-28), the channel entries (WP-29), the supplier simulator (WP-30), the outbound pipeline (WP-25) and the console's clock, dossier and simulator procedures (WP-33)",
-  );
+  it("walks every TOUR_STEPS move over the real `guest` template in the in-process world with the agent of the story, with no problem, and ends on the window's last event of 4471", async () => {
+    const flow = await createFlowWorld({ plans: TOUR_AGENT });
+    try {
+      const world = await tourWorld(flow);
+      const report = await walkTour(world);
+      expect(report.problems).toEqual([]);
+      expect(Date.parse(report.lastEventSim ?? "")).toBe(Date.parse(world.window.windowEndSim));
+      const operation = (await flow.data.operations.listOperations("firm-guest-01", { clockId: "GUEST#firm-guest-01" })).find((candidate) => candidate.operationNumber === "4471");
+      const contact = (await flow.data.parties.listContacts(operation?.supplierId ?? "")).find((candidate) => candidate.status === "ACTIVE");
+      expect(contact?.confirmedBy).toBe("IMPORTER");
+    } finally {
+      flow.close();
+    }
+  });
 });

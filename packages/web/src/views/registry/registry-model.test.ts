@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ApiError } from "../../lib/api-error";
-import { changeRequest } from "./registry-api";
+import type { ConsoleClient } from "../../lib/trpc";
+import { changeRequest, runRegistryChange } from "./registry-api";
 import { type ImporterRow, authorizationViews, authorizedNames, consentSummary, isCountryCode, isE164, isTimeZone, operationsOf, parseContactLines, profileLines, registryErrorText } from "./registry-model";
 
 const SUPPLIERS = [
@@ -70,6 +71,7 @@ describe("what the registry's forms send", () => {
 
   it("builds each change with only the fields its procedure declares", () => {
     expect(changeRequest({ kind: "recordConsent", input: { importerId: "imp-norpampa", medium: "SIGNED_FORM", grantedAt: "2026-10-14T10:30:00-03:00", textVersion: "v1" } })).toEqual({
+      kind: "recordConsent",
       path: "registry.consent.record",
       input: { importerId: "imp-norpampa", medium: "SIGNED_FORM", grantedAt: "2026-10-14T10:30:00-03:00", textVersion: "v1" },
     });
@@ -82,6 +84,28 @@ describe("what the registry's forms send", () => {
     expect(() => changeRequest({ kind: "upsertImporter", input: { name: "Norpampa", contactName: "Lucía Benítez", contactFirstName: "Lucía", language: "es" } })).toThrow();
     const extra = { importerId: "imp-norpampa", firmId: "firm-norte" } as unknown as { importerId: string };
     expect(() => changeRequest({ kind: "revokeConsent", input: extra })).toThrow();
+  });
+
+  it("sends each change to its typed procedure, and nothing when the input is malformed", async () => {
+    const sent: Array<{ path: string; input: unknown }> = [];
+    const procedure = (path: string) => ({ mutate: async (input: unknown) => void sent.push({ path, input }) });
+    const trpc = {
+      registry: {
+        importers: { upsert: procedure("importers.upsert") },
+        consent: { record: procedure("consent.record"), revoke: procedure("consent.revoke") },
+        authorization: { set: procedure("authorization.set") },
+        suppliers: { upsert: procedure("suppliers.upsert") },
+        contacts: { upsert: procedure("contacts.upsert"), confirm: procedure("contacts.confirm") },
+        supplierBehaviour: { set: procedure("supplierBehaviour.set") },
+      },
+    } as unknown as ConsoleClient;
+    await runRegistryChange(trpc, { kind: "setAuthorization", input: { importerId: "imp-norpampa", supplierId: "sup-qingdao", authorized: true } });
+    await runRegistryChange(trpc, { kind: "confirmContact", input: { contactId: "ctc-qingdao-2" } });
+    expect(() => runRegistryChange(trpc, { kind: "recordConsent", input: { importerId: "imp-norpampa", medium: "EMAIL", grantedAt: "2026-10-14T10:30:00-03:00", textVersion: "v0" } })).toThrow();
+    expect(sent).toEqual([
+      { path: "authorization.set", input: { importerId: "imp-norpampa", supplierId: "sup-qingdao", authorized: true } },
+      { path: "contacts.confirm", input: { contactId: "ctc-qingdao-2" } },
+    ]);
   });
 });
 

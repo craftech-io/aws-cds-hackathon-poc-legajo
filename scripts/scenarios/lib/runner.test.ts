@@ -55,13 +55,15 @@ describe("runSuite (docs/test-plan.md §4.4)", () => {
     const started: string[] = [];
     const track = (id: string, extra: Partial<ScenarioDef> = {}) =>
       scenario(id, { ...extra, steps: [{ n: 1, title: "t", flows: [], run: async (ctx) => void started.push(`${id}:${ctx.previous.map((row) => row.scenario).sort().join(",")}`) }] });
-    const scenarios = [track("SC-25", { lane: "guest" }), track("SC-24", { lane: "guest" }), track("SC-20", { last: true }), track("SC-01")];
-    const { lanes, last } = lanesOf(scenarios);
+    const scenarios = [track("SC-25", { lane: "guest" }), track("SC-24", { lane: "guest" }), track("SC-26", { alone: true }), track("SC-20", { last: true }), track("SC-01")];
+    const { lanes, alone, last } = lanesOf(scenarios);
     expect(lanes.map((lane) => lane.map((row) => row.id))).toEqual([["SC-25", "SC-24"], ["SC-01"]]);
+    expect(alone.map((row) => row.id)).toEqual(["SC-26"]);
     expect(last.map((row) => row.id)).toEqual(["SC-20"]);
     await runSuite({ ...base, scenarios, driver: fakeDriver() });
     expect(started.indexOf(started.find((row) => row.startsWith("SC-25")) ?? "")).toBeLessThan(started.indexOf(started.find((row) => row.startsWith("SC-24")) ?? ""));
-    expect(started.at(-1)).toBe("SC-20:SC-01,SC-24,SC-25");
+    expect(started.at(-2)).toBe("SC-26:SC-01,SC-24,SC-25");
+    expect(started.at(-1)).toBe("SC-20:SC-01,SC-24,SC-25,SC-26");
   });
 
   it("stops starting scenarios once the turn budget is spent", async () => {
@@ -82,6 +84,10 @@ describe("runSuite (docs/test-plan.md §4.4)", () => {
     const open = await runSuite({ ...base, scenarios: [spend], driver: fakeDriver({ "world.create": okWith(WORLD), "policyAudit.run": okWith({ violations: [] }), "metrics.get": okWith(unverified) }) });
     expect(open.budget.costUsd).toBeNull();
     expect(renderMarkdown(open)).toContain("cost not verified");
+    const unverifiedDriver = fakeDriver({ "world.create": okWith(WORLD), "policyAudit.run": okWith({ violations: [] }), "metrics.get": okWith(unverified) });
+    const capped = await runSuite({ ...base, maxCostUsd: 2.5, parallel: 1, scenarios: [spend, scenario("SC-08")], driver: unverifiedDriver });
+    expect(capped.scenarios.map((row) => row.verdict)).toEqual(["PASS", "SKIPPED"]);
+    expect(capped.budget.aborted).toContain("cost of the run is unknown");
   });
 
   it("never runs more than four scenarios at a time", async () => {

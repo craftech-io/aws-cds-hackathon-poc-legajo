@@ -49,8 +49,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-operations",
@@ -84,8 +84,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-simulator",
@@ -136,7 +136,7 @@
       "status": "capture",
       "origin": "local",
       "capturedAt": "2026-10-03",
-      "commit": "5b94758"
+      "commit": "6d6d491"
     },
     {
       "id": "console-simulator",
@@ -171,7 +171,7 @@
       "status": "capture",
       "origin": "local",
       "capturedAt": "2026-10-03",
-      "commit": "5b94758"
+      "commit": "6d6d491"
     },
     {
       "id": "console-mailbox",
@@ -221,8 +221,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-mailbox",
@@ -256,8 +256,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-dossier-reading",
@@ -307,8 +307,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-dossier-reading",
@@ -342,8 +342,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-dossier",
@@ -393,8 +393,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-dossier",
@@ -428,8 +428,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-clock",
@@ -479,8 +479,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-clock",
@@ -514,8 +514,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-escalations",
@@ -565,8 +565,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-escalations",
@@ -600,8 +600,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-mailbox-firm",
@@ -651,8 +651,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-mailbox-firm",
@@ -686,8 +686,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-dossier-approval",
@@ -737,8 +737,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-dossier-approval",
@@ -772,8 +772,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-metrics",
@@ -823,8 +823,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-metrics",
@@ -858,8 +858,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-audit",
@@ -909,8 +909,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-audit",
@@ -944,8 +944,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-tour",
@@ -995,8 +995,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "console-tour",
@@ -1030,8 +1030,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "upload-page",
@@ -1065,8 +1065,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "upload-done",
@@ -1100,8 +1100,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "og-card",
@@ -1135,8 +1135,8 @@
       },
       "status": "capture",
       "origin": "local",
-      "capturedAt": "2026-10-02",
-      "commit": "3432df9"
+      "capturedAt": "2026-10-03",
+      "commit": "6d6d491"
     },
     {
       "id": "hero-conversation",
@@ -1207,7 +1207,7 @@
         "png": {
           "src": "/landing/tour-request/desktop.png",
           "w": 1716,
-          "h": 1006
+          "h": 990
         }
       },
       "status": "render",
@@ -1255,7 +1255,7 @@
         "png": {
           "src": "/landing/tour-delegate/desktop.png",
           "w": 1716,
-          "h": 1556
+          "h": 1540
         }
       },
       "status": "render",
@@ -1352,7 +1352,7 @@
         "png": {
           "src": "/landing/tour-reader/desktop.png",
           "w": 1716,
-          "h": 430
+          "h": 1028
         }
       },
       "status": "render",
@@ -1399,7 +1399,7 @@
         "png": {
           "src": "/landing/tour-owner/desktop.png",
           "w": 1716,
-          "h": 1520
+          "h": 1506
         }
       },
       "status": "render",
@@ -1447,7 +1447,7 @@
         "png": {
           "src": "/landing/tour-eta/desktop.png",
           "w": 1716,
-          "h": 1164
+          "h": 1146
         }
       },
       "status": "render",
@@ -1494,7 +1494,7 @@
         "png": {
           "src": "/landing/tour-escalation/desktop.png",
           "w": 1716,
-          "h": 1512
+          "h": 1494
         }
       },
       "status": "render",
@@ -1542,7 +1542,7 @@
         "png": {
           "src": "/landing/tour-approval/desktop.png",
           "w": 1716,
-          "h": 1286
+          "h": 1272
         }
       },
       "status": "render",

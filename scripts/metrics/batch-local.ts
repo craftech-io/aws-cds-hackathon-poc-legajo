@@ -10,8 +10,8 @@
 //   tsx scripts/metrics/batch-local.ts [--inputs <file>] [--run-id <id>] [--limit <n>]
 //   sst shell --stage poc -- tsx scripts/metrics/batch-local.ts --target stage   (writes the stage's rows)
 //
-// The entries are the seed's: the runner hands each one to the world factory that owns their schema,
-// so this script never interprets them. A re-run with the same run id resumes (rows already written
+// The entries are the seed's: batch-runner.ts hands each one to the world factory as one clone of its
+// model operation and runs it; this script only writes what the runs produced. A re-run with the same run id resumes (rows already written
 // are skipped); a row of another run for the same world and operation is refused, because counters
 // only ever add up.
 import { existsSync, readFileSync } from "node:fs";
@@ -23,7 +23,7 @@ import { ulid } from "@legajo/bff/lib/crypto";
 import { createLogger, type Logger } from "@legajo/bff/lib/log";
 import { runPolicyAudit } from "@legajo/bff/policy-audit/audit";
 import { BATCH_FIRM_ID } from "@legajo/bff/routers/metrics";
-import { NotWiredError } from "../../tests/flows/support/ports";
+import { localBatchRunner } from "./batch-runner";
 
 export const BATCH_INPUTS_FILE = "scripts/seed/data/metrics/batch-inputs.jsonl";
 /** Entries of the seed's batch (docs/seed-spec.md §13). */
@@ -36,21 +36,9 @@ export interface BatchWorld {
   readonly data: Connector;
 }
 
-/** Builds the world of one entry (world factory, WP-31) and runs it to the end with the scripted Harness. */
+/** Builds the world of one entry (world factory) and runs it to the end with the scripted agent (batch-runner.ts). */
 export interface BatchRunner {
   run(entry: unknown, index: number): Promise<BatchWorld>;
-}
-
-export function unwiredBatchRunner(): BatchRunner {
-  return {
-    run: () =>
-      Promise.reject(
-        new NotWiredError(
-          "the batch runner",
-          "the world factory over the seed's batch entries (packages/bff/src/worlds, WP-31) and the local flows' entries, worker and targets (tests/flows/support, WP-25 to WP-30)",
-        ),
-      ),
-  };
 }
 
 /** One JSON object per non-empty line; a line that does not parse is reported with its number. */
@@ -109,19 +97,18 @@ export async function runScriptedBatch(options: ScriptedBatchOptions): Promise<B
     for (const operation of await world.data.operations.listOperations(world.firmId, { clockId: world.clockId })) {
       const ref: KpiRef = { firmId: BATCH_FIRM_ID, source: "BATCH", clockId: world.clockId, operationId: operation.operationId };
       const existing = await options.target.getKpi(ref);
+      if (existing !== undefined && (existing.runId !== options.runId || existing.agentMode !== "SCRIPTED")) throw new Error(`${world.clockId}/${operation.operationId} already has a batch row of another run (${existing.runId ?? "no run id"}, ${existing.agentMode})`);
+      const row = produced.find((kpi) => kpi.operationId === operation.operationId);
+      const status = { dossierStatus: operation.dossierStatus, openedAtSim: operation.openedAtSim, ...(row?.completedAtSim === undefined ? {} : { completedAtSim: row.completedAtSim }) };
       if (existing !== undefined) {
-        if (existing.runId !== options.runId || existing.agentMode !== "SCRIPTED") throw new Error(`${world.clockId}/${operation.operationId} already has a batch row of another run (${existing.runId ?? "no run id"}, ${existing.agentMode})`);
+        // A run cut between the two writes left the counters without the status: complete it, never count twice.
+        if (existing.dossierStatus === undefined) await options.target.updateKpi(ref, status);
         skipped += 1;
         continue;
       }
-      const row = produced.find((kpi) => kpi.operationId === operation.operationId);
       const found = audit.violations.filter((violation) => violation.operationId === operation.operationId).length;
       await options.target.incrementKpi(ref, countersOf(row, found), { agentMode: "SCRIPTED", runId: options.runId });
-      await options.target.updateKpi(ref, {
-        dossierStatus: operation.dossierStatus,
-        openedAtSim: operation.openedAtSim,
-        ...(row?.completedAtSim === undefined ? {} : { completedAtSim: row.completedAtSim }),
-      });
+      await options.target.updateKpi(ref, status);
       rows += 1;
       turns += row?.turns ?? 0;
       violations += found;
@@ -139,18 +126,21 @@ async function main(): Promise<void> {
   const file = resolve(process.cwd(), argument("--inputs") ?? BATCH_INPUTS_FILE);
   if (!existsSync(file)) throw new Error(`${file} does not exist: generate the seed first (npm run seed:generate)`);
   const all = readBatchInputs(readFileSync(file, "utf8"));
-  const limit = argument("--limit") === undefined ? undefined : Number(argument("--limit"));
+  const limitArgument = argument("--limit");
+  const limit = limitArgument === undefined ? undefined : Number(limitArgument);
+  if (limit !== undefined && (!Number.isInteger(limit) || limit < 1)) throw new Error("--limit takes a whole number of entries, 1 or more");
   if (limit === undefined && all.length !== BATCH_SIZE) throw new Error(`${file} has ${all.length} entries, the seed declares ${BATCH_SIZE}`);
   const now = () => new Date();
+  const local = await localBatchRunner();
   const summary = await runScriptedBatch({
     entries: limit === undefined ? all : all.slice(0, limit),
-    runner: unwiredBatchRunner(),
+    runner: local.runner,
     // `stage` needs the linked tables of `sst shell`; memory is a dry run that prints the summary.
     target: argument("--target") === "stage" ? connector().metrics : createMemoryStores({ now }).connector.metrics,
     runId: argument("--run-id") ?? `local-${ulid(now().getTime())}`,
     now,
     log: createLogger({ bindings: { component: "metrics-batch-local" } }),
-  });
+  }).finally(() => local.close());
   console.log(`metrics:batch-local: ${summary.worlds} world(s), ${summary.rows} row(s) written, ${summary.skipped} already there, ${summary.turns} turn(s), ${summary.violations} violation(s) (run ${summary.runId}).`);
   if (summary.violations > 0) process.exit(1);
 }

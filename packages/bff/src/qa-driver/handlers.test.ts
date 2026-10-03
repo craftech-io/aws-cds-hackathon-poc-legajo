@@ -6,8 +6,8 @@ import { testDocumentUrls } from "../auth/testing";
 import { createLogger } from "../lib/log";
 import { consoleServiceWorld } from "../routers/console-testing";
 import { buildHandlers, type HandlerDeps } from "./handlers";
-import { type QaPorts, unwiredPorts } from "./ports";
-import { QA_CLOCK, driverUnderTest, key, qaDriverStores } from "./testing";
+import type { QaPorts } from "./ports";
+import { QA_CLOCK, driverUnderTest, key, qaDriverStores, refusingPorts } from "./testing";
 
 const TOKEN = "A".repeat(43);
 
@@ -36,7 +36,7 @@ const toImporter: NewEntity<typeof Message> = {
 
 const unused = () => Promise.reject(new Error("not used by this test"));
 
-function deps(overrides: Partial<HandlerDeps> = {}, ports: QaPorts = unwiredPorts()): HandlerDeps {
+function deps(overrides: Partial<HandlerDeps> = {}, ports: QaPorts = refusingPorts()): HandlerDeps {
   return {
     table: undefined as never,
     ports,
@@ -50,6 +50,9 @@ function deps(overrides: Partial<HandlerDeps> = {}, ports: QaPorts = unwiredPort
     memoryIdentity: { of: (operation) => ({ actorId: `${operation.importerId}-e${operation.worldEpoch}`, sessionId: "s".repeat(48) }) },
     upload: { presign: unused, done: unused },
     console: { documents: testDocumentUrls, whatsappMode: () => "simulated", loggerFor: (correlationId) => createLogger({ correlationId, sink: () => undefined }) },
+    signup: () => {
+      throw new Error("SC-26's ports are not part of this test");
+    },
     ...overrides,
   };
 }
@@ -134,18 +137,44 @@ describe("QaDriver actions over stored state", () => {
       received.push(input);
       return Promise.resolve({ messageId: "msg-in-1" });
     };
-    const ports = { ...unwiredPorts(), channels: { ...unwiredPorts().channels, whatsappInbound } };
+    const ports = { ...refusingPorts(), channels: { ...refusingPorts().channels, whatsappInbound } };
     const { driver, stores } = await setup({}, ports);
     await stores.connector.conversations.appendMessage(toImporter);
     const answer = await driver({ action: "wa.inbound", idempotencyKey: key(7), input: { operationId: "op-7001", message: { type: "button", action: "SUPPLIER_SENDS" } } });
     expect(answer).toMatchObject({ ok: true, result: { wamid: expect.stringMatching(/^wamid\.SIM\./), messageId: "msg-in-1" } });
-    expect(received).toEqual([expect.objectContaining({ clockId: QA_CLOCK, from: "IMPORTER", message: { type: "button", action: "SUPPLIER_SENDS", nonce: "nonce-supplier-01" } })]);
+    expect(received).toEqual([expect.objectContaining({ clockId: QA_CLOCK, from: "IMPORTER", message: { type: "tap", content: { type: "button_reply", nonce: "nonce-supplier-01", title: "Los manda el proveedor" } } })]);
   });
 
-  it("answers NOT_WIRED for a module that is not deployed with the driver, never a shortcut", async () => {
-    const { driver } = await setup();
-    const answer = await driver({ action: "clock.advanceToNext", idempotencyKey: key(8), input: { clockId: QA_CLOCK } });
-    expect(answer).toMatchObject({ ok: false, error: { code: "UNAVAILABLE", reason: "NOT_WIRED" } });
-    expect(await driver({ action: "probe.mocks", idempotencyKey: key(8, "b"), input: {} })).toMatchObject({ ok: true, result: { reader: "ok", platform: "ok", worker: "not-wired" } });
+  it("probes the worker through the queue and waits for its PROBE#; platform.get reads only numbers of the world", async () => {
+    let stores: Awaited<ReturnType<typeof qaDriverStores>> | undefined;
+    const healthProbe = async (input: { readonly probeId: string }) => void (await stores?.connector.runtime.putProbe({ probeId: input.probeId, kind: "HEALTH", ok: true, detail: {}, atReal: REAL_NOW }));
+    const platformRows: string[] = [];
+    const get = (firmId: string, operationNumber: string) => {
+      platformRows.push(`${firmId}#${operationNumber}`);
+      return Promise.resolve({ eta: START_SIM } as never);
+    };
+    const platform = { get, moveEta: unused, customsStatus: unused };
+    const test = await setup({ platform }, { ...refusingPorts(), worker: { ...refusingPorts().worker, healthProbe } });
+    stores = test.stores;
+    expect(await test.driver({ action: "probe.mocks", idempotencyKey: key(8), input: {} })).toMatchObject({ ok: true, result: { reader: "ok", platform: "ok", worker: "ok" } });
+    expect(await test.driver({ action: "platform.get", idempotencyKey: key(8, "b"), input: { firmId: "firm-qa", operationNumber: "7001", clockId: QA_CLOCK } })).toMatchObject({ ok: true });
+    expect(await test.driver({ action: "platform.get", idempotencyKey: key(8, "c"), input: { firmId: "firm-qa", operationNumber: "4471", clockId: QA_CLOCK } })).toMatchObject({ ok: false, error: { code: "FORBIDDEN", reason: "QA_FENCE" } });
+    expect(platformRows).toEqual(["firm-qa#7001"]);
+  });
+
+  it("publishes a replayed platform event with the instant of its first publication", async () => {
+    const calls: Array<{ occurredAtSim: string; idempotencyKey: string }> = [];
+    const moveEta = (input: { occurredAtSim: string; idempotencyKey: string }) => {
+      calls.push(input);
+      return Promise.resolve({ event: { detail: { eventId: "evt-1" } }, replayed: calls.length > 1 });
+    };
+    const { driver, stores } = await setup({ platform: { get: unused, moveEta: moveEta as never, customsStatus: unused } });
+    const first = key(9);
+    expect(await driver({ action: "feed.eta", idempotencyKey: first, input: { operationId: "op-7001", newEta: "2026-10-20T08:00:00-03:00" } })).toMatchObject({ ok: true });
+    const clock = await stores.connector.world.getClock(QA_CLOCK);
+    await stores.connector.world.updateClock(QA_CLOCK, { pausedSimNow: "2026-10-16T09:00:00-03:00" }, clock.version);
+    expect(await driver({ action: "feed.eta", idempotencyKey: key(9, "b"), input: { operationId: "op-7001", newEta: "2026-10-20T08:00:00-03:00", platformKey: first } })).toMatchObject({ ok: true });
+    expect(calls.map((call) => call.idempotencyKey)).toEqual([first, first]);
+    expect(calls[1]?.occurredAtSim).toBe(calls[0]?.occurredAtSim);
   });
 });

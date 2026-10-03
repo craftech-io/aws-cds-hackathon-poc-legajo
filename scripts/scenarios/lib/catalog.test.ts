@@ -27,22 +27,27 @@ for (const flow of flows) {
   }
 }
 
-// The public-surface scenario is cited by FL-101 … FL-132 ahead of its file (docs/test-plan.md §2.2).
-const SCENARIOS_AHEAD = ["SC-26"];
-
 describe("scenarios against the flow catalog", () => {
   it("every cited step exists and declares its flow (SC-23 waits for P-01)", () => {
     const missing: string[] = [];
     for (const [key, ids] of cited) {
       const [scenarioId = "", n = "0"] = key.split("/");
-      if (SCENARIOS_AHEAD.includes(scenarioId)) continue;
       const step = SCENARIOS.find((scenario) => scenario.id === scenarioId)?.steps.find((candidate) => candidate.n === Number(n));
       for (const id of ids) if (step === undefined || !step.flows.includes(id)) missing.push(`${key} ${id}`);
     }
     expect(missing).toEqual([]);
   });
 
-  it.todo("[WP-37:pending] SC-26 declares every step FL-101 … FL-132 cite, with the qa-signup-<runId>-* mailboxes and lead.purge");
+  it("SC-26 declares every step FL-101 … FL-132 cite, runs alone before SC-20 and purges its qa-signup-<runId>-* leads", () => {
+    const sc26 = SCENARIOS.find((scenario) => scenario.id === "SC-26");
+    const cites = [...cited.keys()].filter((key) => key.startsWith("SC-26/")).map((key) => Number(key.split("/")[1])).sort((a, b) => a - b);
+    expect(cites).toEqual(Array.from({ length: 14 }, (_, index) => index + 1));
+    expect(sc26?.steps.map((step) => step.n)).toEqual(cites);
+    expect(sc26?.alone).toBe(true);
+    expect(sc26?.cleanup?.toString()).toContain("lead.purge");
+    const source = readFileSync(join(ROOT, "scripts/scenarios/sc-26-public-signup.ts"), "utf8");
+    expect(source).not.toMatch(/@(?!sim\.|legajo\.demo\.craftech\.io)[a-z0-9-]+\.[a-z]{2,}/i);
+  });
 
   it("no step declares a flow the catalog does not cite for it", () => {
     const extra: string[] = [];
@@ -58,7 +63,7 @@ describe("scenarios against the flow catalog", () => {
   it("the smoke is SC-00; the full suite has every scenario, SC-25 before SC-24 in one lane and SC-20 last", () => {
     expect(scenariosOf("smoke").map((scenario) => scenario.id)).toEqual(["SC-00"]);
     const full = scenariosOf("full").map((scenario) => scenario.id);
-    const expected = Array.from({ length: 26 }, (_, index) => `SC-${String(index).padStart(2, "0")}`).filter((id) => id !== "SC-23");
+    const expected = Array.from({ length: 27 }, (_, index) => `SC-${String(index).padStart(2, "0")}`).filter((id) => id !== "SC-23");
     expect([...full].sort()).toEqual(expected);
     expect(full.indexOf("SC-25")).toBeLessThan(full.indexOf("SC-24"));
     expect(SCENARIOS.filter((scenario) => scenario.last).map((scenario) => scenario.id)).toEqual(["SC-20"]);
@@ -79,6 +84,8 @@ describe("npm run scenarios arguments", () => {
     expect(parseRunArgs(["--suite", "smoke"], {}, 0)).toMatchObject({ suite: "smoke", maxTurns: DEFAULT_MAX_TURNS.smoke, parallel: 4, allowDkimPending: false });
     expect(parseRunArgs(["--scenario", "SC-09", "--scenario", "SC-20", "--max-turns", "120", "--allow-dkim-pending"], { GITHUB_RUN_ID: "9", GITHUB_RUN_ATTEMPT: "1" }, 0)).toMatchObject({ suite: "full", scenarios: ["SC-09", "SC-20"], maxTurns: 120, runId: "9-1", allowDkimPending: true });
     expect(parseRunArgs(["--parallel", "9"], {}, 0).parallel).toBe(4);
+    expect(parseRunArgs(["--max-cost-usd", "2.5"], {}, 0).maxCostUsd).toBe(2.5);
+    expect(() => parseRunArgs(["--max-cost-usd", "0"], {}, 0)).toThrow(RangeError);
     expect(() => parseRunArgs(["--suite", "nightly"], {}, 0)).toThrow(RangeError);
     expect(() => parseRunArgs(["--run-id", "../../etc"], {}, 0)).toThrow();
     expect(() => parseRunArgs(["--verbose"], {}, 0)).toThrow(RangeError);

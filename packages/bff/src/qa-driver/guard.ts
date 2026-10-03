@@ -29,6 +29,12 @@ export const GUEST_TEST_ACTIONS: readonly string[] = ["world.destroy", "snapshot
 export const WORLDLESS_ACTIONS: ReadonlySet<QaActionName> = new Set<QaActionName>(["guardrail.probe", "probe.mocks", "alarm.history"]);
 
 /**
+ * SC-26's actions of the public sign-up (docs/test-plan.md §4.1): no world and no firm id in their
+ * input; their own fence is the `qa-signup-<runId>-<key>` mailbox they build (signup-fence.ts).
+ */
+export const SIGNUP_ACTIONS: ReadonlySet<QaActionName> = new Set<QaActionName>(["signup.readCode", "lead.inspect", "lead.purge"]);
+
+/**
  * Console routers the driver may call (docs/tool-catalog.md); account, tour and activity are the user's
  * own, and the phone simulator's path is `wa.inbound`.
  */
@@ -49,6 +55,8 @@ export interface Scope {
   readonly actors?: readonly ScopedActor[];
   /** A console call that names only other firms: `firmProcedure` refuses it (CROSS_FIRM) before any read. */
   readonly crossFirmProbe?: true;
+  /** Of a console call: whether the procedure is a query or a mutation. */
+  readonly procedureKind?: "query" | "mutation" | "subscription";
 }
 
 export interface ScopedOperation {
@@ -77,6 +85,8 @@ export interface GuardLookups {
   findImporter(importerId: string): Promise<ScopedParty | undefined>;
   findSupplier(supplierId: string): Promise<ScopedParty | undefined>;
   worldEpochOf(clockId: string): Promise<number | undefined>;
+  /** Query or mutation of a console procedure (console.ts `procedureKind`). */
+  procedureKind?(procedure: string): "query" | "mutation" | "subscription" | undefined;
 }
 
 /** Memory actor of an importer in one world epoch (docs/architecture.md §9.1): `<importerId>-e<worldEpoch>`. */
@@ -90,8 +100,12 @@ function forbidden(message: string): ToolError {
 export function checkFence(scope: Scope): void {
   if (!QA_FIRM_IDS.includes(scope.firmId)) throw forbidden(`the QA driver only acts on QA firms, not ${scope.firmId}`);
   if (scope.clockId === undefined) {
-    if (scope.crossFirmProbe === true && scope.name.startsWith("console.") && scope.firmId === "firm-qa") return;
-    if (!WORLDLESS_ACTIONS.has(scope.name as QaActionName)) throw forbidden(`${scope.name} needs a world`);
+    // A cross-firm probe only reads (SC-20/3): a mutation naming another firm's ids never reaches a router.
+    if (scope.crossFirmProbe === true && scope.name.startsWith("console.") && scope.firmId === "firm-qa") {
+      if (scope.procedureKind !== "query") throw forbidden(`${scope.name} names only other firms' ids and is not a query`);
+      return;
+    }
+    if (!WORLDLESS_ACTIONS.has(scope.name as QaActionName) && !SIGNUP_ACTIONS.has(scope.name as QaActionName)) throw forbidden(`${scope.name} needs a world`);
     return;
   }
   const parsed = parseClockId(scope.clockId);
@@ -165,7 +179,10 @@ async function consoleScope(procedure: string, input: unknown, lookups: GuardLoo
   const firms = [...clocks.map(firmOfClockId), ...found.map((operation) => operation.firmId), ...parties.map((party) => party.firmId)];
   const foreign = firms.some((firmId) => firmId !== undefined && !isQaFirm(firmId));
   if (clockId !== undefined && isQaFirm(firmOfClockId(clockId))) return worldOf(name, clockId, ours, ourParties);
-  if (foreign && ours.length === 0 && ourParties.length === 0) return { name, firmId: "firm-qa", operations: [], crossFirmProbe: true };
+  if (foreign && ours.length === 0 && ourParties.length === 0) {
+    const kind = lookups.procedureKind?.(procedure);
+    return { name, firmId: "firm-qa", operations: [], crossFirmProbe: true, ...(kind === undefined ? {} : { procedureKind: kind }) };
+  }
   if (clockId === undefined) throw forbidden(`${name} must name its world (clockId) or an operation of it`);
   return worldOf(name, clockId, ours, ourParties);
 }
@@ -202,7 +219,7 @@ export function checkWorldKey(idempotencyKey: string, input: QaParsedInput<"worl
 /** Resolves what `action` touches from its parsed input and the stored operations. */
 export async function resolveScope(action: QaActionName, raw: unknown, lookups: GuardLookups): Promise<Scope> {
   const input = raw as Record<string, unknown>;
-  if (WORLDLESS_ACTIONS.has(action)) return { name: action, firmId: "firm-qa", operations: [] };
+  if (WORLDLESS_ACTIONS.has(action) || SIGNUP_ACTIONS.has(action)) return { name: action, firmId: "firm-qa", operations: [] };
   if (action === "console") {
     const call = raw as QaParsedInput<"console">;
     return consoleScope(call.procedure, call.input, lookups);

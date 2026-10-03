@@ -130,6 +130,8 @@ export const SupplierContact = defineEntity({
   sourceMessageId: MessageId.optional(),
   bouncedAt: ZonedInstant.optional(),
   complainedAt: ZonedInstant.optional(),
+  /** Simulated instant of the last `REMINDER` that went out to this contact (FL-028). */
+  lastReminderAt: ZonedInstant.optional(),
   statusHistory: z.array(ContactStatusEvent).min(1),
 });
 export type SupplierContact = z.output<typeof SupplierContact>;

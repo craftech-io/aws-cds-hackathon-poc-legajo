@@ -1,16 +1,14 @@
-// Procedures of the shell whose routers the BFF registers later (docs/build-plan.md WP-33: `clock`
-// and `account`), called through tRPC's untyped client and validated with zod, like every edge of
-// the console. The shapes below are the contract the shell relies on; the routers may answer more
-// fields (the clock view reads the next events), never fewer.
+// Procedures of the shell (`clock` and `account`), called through the typed `AppRouter` client and
+// validated with zod, like every edge of the console. The shapes below are the contract the shell
+// relies on; the routers may answer more fields (the clock view reads the next events), never fewer.
 import { IsoInstant } from "@legajo/shared";
-import { getUntypedClient } from "@trpc/client";
 import { z } from "zod";
 import type { ConsoleClient } from "./trpc";
 import { type ClockMove, ClockSnapshot, moveRequest } from "./world-clock";
 
 /** `clock.get`: mode, simulated now, `busy` and the pendings of the user's world. */
 export async function fetchClock(trpc: ConsoleClient, signal?: AbortSignal): Promise<ClockSnapshot> {
-  const raw = await getUntypedClient(trpc).query("clock.get", undefined, signal ? { signal } : undefined);
+  const raw = await trpc.clock.get.query(undefined, signal ? { signal } : undefined);
   return ClockSnapshot.parse(raw);
 }
 
@@ -20,8 +18,9 @@ export async function fetchClock(trpc: ConsoleClient, signal?: AbortSignal): Pro
  * snapshot; the shell polls again either way.
  */
 export async function moveClock(trpc: ConsoleClient, move: ClockMove, force = false): Promise<ClockSnapshot | undefined> {
-  const { path, input } = moveRequest(move, force);
-  const raw = await getUntypedClient(trpc).mutation(path, input);
+  moveRequest(move, force); // refuses a move outside 1 minute to 14 days before anything is sent
+  const forced = force ? { force: true } : {};
+  const raw = move.kind === "next" ? await trpc.clock.advanceToNext.mutate(forced) : await trpc.clock.advance.mutate({ minutes: move.minutes, ...forced });
   const parsed = ClockSnapshot.safeParse(raw);
   return parsed.success ? parsed.data : undefined;
 }
@@ -35,6 +34,6 @@ export const AccountSession = z.looseObject({
 export type AccountSession = z.infer<typeof AccountSession>;
 
 export async function fetchAccountSession(trpc: ConsoleClient, signal?: AbortSignal): Promise<AccountSession> {
-  const raw = await getUntypedClient(trpc).query("account.session", undefined, signal ? { signal } : undefined);
+  const raw = await trpc.account.session.query(undefined, signal ? { signal } : undefined);
   return AccountSession.parse(raw);
 }

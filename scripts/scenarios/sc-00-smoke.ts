@@ -3,7 +3,7 @@
 // first deploy may still be PENDING: with `--allow-dkim-pending` (deploy.yml) a round trip through SES
 // that does not complete is a WARN of step 5 instead of a failure.
 import { SENT_STATUSES, allValid, milestone, outbound } from "./lib/asserts";
-import { WAITS } from "./lib/eventually";
+import { WAITS, WaitTimeout } from "./lib/eventually";
 import { checkSupplierEmail, delegateToSupplier, expectTemplateRequest } from "./lib/flows";
 import { cognitoAllowed, fetchPage, healthOf, landingProblems } from "./lib/site";
 import { defineScenario } from "./lib/steps";
@@ -87,7 +87,8 @@ export const sc00 = defineScenario({
           await advanceToTimer(ctx, operationId, "SIM_REPLY");
           await awaitState(ctx, operationId, "three documents VALID after the round trip through SES", allValid, WAITS.sesRoundTripSec);
         } catch (error) {
-          if (!SMOKE_OPTIONS.allowDkimPending) throw error;
+          // Only the SES round trip timing out is the pending DKIM; any other failure fails the step.
+          if (!SMOKE_OPTIONS.allowDkimPending || !(error instanceof WaitTimeout)) throw error;
           ctx.warn(`round trip through SES skipped on a first deploy (DKIM may be PENDING): ${error instanceof Error ? error.message : String(error)}`);
         }
       },

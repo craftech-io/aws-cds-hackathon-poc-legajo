@@ -4,12 +4,10 @@
 // (qa-driver/driver.ts). Linked resources are read through lib/resource.ts (`Resource`, never
 // `process.env`); every AWS client carries its deadline and retry budget.
 //
-// The modules the driver drives but does not own (world factory, clock, channel entries, SES client,
-// supplier simulator, worker, recipient fence, metrics batch) are ports: the world factory is wired
-// (`world.create`/`world.destroy`, qa-driver/worlds-port.ts, Memory passes 2+ handed to `WorldJanitor`)
-// and so is the supplier simulator (`supplier.sendNow` invokes `SimMail` synchronously); until each of
-// the others is wired with this function, its actions answer UNAVAILABLE / NOT_WIRED (qa-driver/ports.ts).
-import { ToolError } from "@legajo/shared";
+// What the driver drives but does not own (world factory, clock, channel entries, SES client, supplier
+// simulator, worker, recipient fence, metrics batch) comes in as ports over the modules that own them
+// (qa-driver/stage-ports.ts); the SC-26 actions get the mail bucket, `Leads` and the pool
+// (qa-driver/aws-signup.ts).
 import { connector, tableClient } from "../connector/index";
 import { createLogger } from "../lib/log";
 import { bucketName, channelMode } from "../lib/resource";
@@ -17,51 +15,15 @@ import { subkey } from "../lib/secrets";
 import { agentCoreMemoryReader } from "../qa-driver/aws-memory";
 import { mocksHealth, platformClient, readerFaultWriter } from "../qa-driver/aws-mocks";
 import { cloudWatchAlarmHistory, g1Probe, sqsDlq } from "../qa-driver/aws-queue";
+import { stageSignupActionDeps } from "../qa-driver/aws-signup";
 import type { QaResponse } from "../qa-driver/contract";
 import { type QaDriver, createQaDriver } from "../qa-driver/driver";
 import { type MemoryIdentity, buildHandlers } from "../qa-driver/handlers";
-import { type QaPorts, unwiredPorts } from "../qa-driver/ports";
+import type { QaPorts } from "../qa-driver/ports";
+import { stagePorts } from "../qa-driver/stage-ports";
 import { browserUpload } from "../qa-driver/upload";
-import { worldFactoryPort } from "../qa-driver/worlds-port";
 import { s3DocumentUrlSigner } from "../routers/document-url";
-import { lambdaSimMailInvoker } from "../sim-mail/invoke";
-import { lambdaAsyncInvoker } from "../signup/invoke";
 import { harnessIdentity } from "../turns/identity";
-import { type WorldsDeps, stageWorldsDeps } from "../worlds/deps";
-import { qaWorldObjectsGrant, s3WorldObjects } from "../worlds/objects";
-
-/** `supplier.sendNow` over `SimMail` (`sim_reply`, mode `SEND_NOW`): a refusal is the step's error. */
-function simMailPort(): QaPorts["simMail"] {
-  const simMail = lambdaSimMailInvoker();
-  return {
-    async sendNow(input) {
-      const result = await simMail.sendNow({ ...input, docTypes: [...input.docTypes] });
-      if (result.status === "REFUSED") throw new ToolError(result.code, `SimMail refused the send: ${result.reason}`, result.reason);
-    },
-  };
-}
-
-/**
- * The world factory with the stage's links, built on first use: objects only under `QaWorldObjects`
- * (`qa/` and the guest-test world's prefix; no upload links, no raw MIME: the buckets' lifecycle takes
- * them), and Memory passes 2+ handed to `WorldJanitor` (`MEMORY_PURGE`, asynchronous).
- */
-function stageQaWorlds(): () => WorldsDeps {
-  let deps: WorldsDeps | undefined;
-  return () => {
-    if (deps !== undefined) return deps;
-    const invoker = lambdaAsyncInvoker();
-    const base = stageWorldsDeps({ log: createLogger({ bindings: { service: "qa-driver-worlds" } }), continuePurge: (target) => invoker.invoke("WorldJanitor", { ...target, kind: "MEMORY_PURGE" }) });
-    deps = { ...base, objects: s3WorldObjects({ grant: qaWorldObjectsGrant }), mailPrefixes: () => [] };
-    return deps;
-  };
-}
-
-/** The ports wired in this deployment; the others answer NOT_WIRED until their modules land. */
-function stagePorts(): QaPorts {
-  const unwired = unwiredPorts();
-  return { ...unwired, worlds: worldFactoryPort(stageQaWorlds()), simMail: simMailPort() };
-}
 
 /** Harness identity of an operation (turns/identity.ts, the worker's and the purge's own). */
 export const harnessMemoryIdentity: MemoryIdentity = {
@@ -71,15 +33,14 @@ export const harnessMemoryIdentity: MemoryIdentity = {
   },
 };
 
-export function createDefaultQaDriver(ports: QaPorts = stagePorts()): QaDriver {
-  const now = () => new Date();
-  const platform = platformClient();
+export function createDefaultQaDriver(ports?: QaPorts): QaDriver {
+  const data = connector();
   return createQaDriver({
-    data: connector(),
+    data,
     handlers: buildHandlers({
       table: tableClient(),
-      ports,
-      platform,
+      ports: ports ?? stagePorts(data),
+      platform: platformClient(),
       mocksHealth: mocksHealth(),
       readerFaults: readerFaultWriter(),
       dlq: sqsDlq(),
@@ -89,8 +50,9 @@ export function createDefaultQaDriver(ports: QaPorts = stagePorts()): QaDriver {
       memoryIdentity: harnessMemoryIdentity,
       upload: browserUpload(),
       console: { documents: s3DocumentUrlSigner({ bucket: () => bucketName("Documents") }), whatsappMode: () => channelMode("whatsapp") },
+      signup: stageSignupActionDeps(),
     }),
-    now,
+    now: () => new Date(),
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     loggerFor: (correlationId) => createLogger({ correlationId, bindings: { service: "qa-driver" } }),
   });

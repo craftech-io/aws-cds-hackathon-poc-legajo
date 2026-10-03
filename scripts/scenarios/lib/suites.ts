@@ -27,10 +27,11 @@ import { sc21 } from "../sc-21-complaint";
 import { sc22 } from "../sc-22-observations";
 import { sc24 } from "../sc-24-guest";
 import { sc25 } from "../sc-25-guest-sessions";
+import { sc26 } from "../sc-26-public-signup";
 import type { ScenarioDef, Suite } from "./steps";
 
-/** In the order they are listed; the runner puts lanes and `last` in place. SC-25 goes before SC-24. */
-export const SCENARIOS: readonly ScenarioDef[] = [sc00, sc01, sc02, sc03, sc04, sc05, sc06, sc07, sc08, sc09, sc10, sc11, sc12, sc13, sc14, sc15, sc16, sc17, sc18, sc19, sc21, sc22, sc25, sc24, sc20, loadLight];
+/** In the order they are listed; the runner puts lanes, `alone` and `last` in place. SC-25 goes before SC-24. */
+export const SCENARIOS: readonly ScenarioDef[] = [sc00, sc01, sc02, sc03, sc04, sc05, sc06, sc07, sc08, sc09, sc10, sc11, sc12, sc13, sc14, sc15, sc16, sc17, sc18, sc19, sc21, sc22, sc25, sc24, sc26, sc20, loadLight];
 
 export function scenariosOf(suite: Suite): ScenarioDef[] {
   return SCENARIOS.filter((scenario) => scenario.suites.includes(suite));

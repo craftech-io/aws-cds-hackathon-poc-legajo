@@ -8,7 +8,7 @@ import { REAL_NOW, START_SIM, contactFixture, hashOf, importerFixture, memorySto
 import { createLogger } from "../lib/log";
 import { QA_ACTIONS, type QaActionName } from "./contract";
 import { type QaDriver, createQaDriver } from "./driver";
-import type { ActionHandlers } from "./ports";
+import type { ActionHandlers, QaPorts } from "./ports";
 
 export const RUN_ID = "812-1";
 export const QA_CLOCK = "qa-812-1-sc01";
@@ -115,3 +115,17 @@ export async function driverUnderTest(handlers: ActionHandlers, stores?: MemoryS
 }
 
 export const key = (step: number, label?: string): string => `${RUN_ID}/sc01/${step}${label === undefined ? "" : `/${label}`}`;
+
+/** Ports whose every call fails: a test that reaches one drives a module it did not wire. */
+export function refusingPorts(): QaPorts {
+  const off = (what: string) => () => Promise.reject(new Error(`${what} is not part of this test`));
+  return {
+    worlds: { create: off("world.create"), destroy: off("world.destroy") },
+    clock: { advance: off("clock.advance"), fireMilestone: off("clock.fireMilestone"), unfreeze: off("clock.unfreeze"), freeze: off("clock.freeze") },
+    channels: { whatsappInbound: off("wa.inbound"), injectEmail: off("email.inject"), redeliverEmail: off("email.redeliver") },
+    simMail: { sendNow: off("supplier.sendNow") },
+    worker: { poison: off("event.poison"), forceNextTurnFailure: off("turn.forceFailure"), healthProbe: off("probe.mocks"), fireStale: off("schedule.fireStale") },
+    fence: { probe: off("fence.probe") },
+    batch: { run: off("batch.run") },
+  };
+}

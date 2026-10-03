@@ -108,7 +108,12 @@ export function signInNameOf(principal: Principal): string | undefined {
   return principal.email ?? principal.username;
 }
 
-/** How the header names the person: never the Cognito `sub`. */
+/**
+ * How the header names the person: never the Cognito `sub`. A guest is not named at all: its email is
+ * a lead's and its username an internal account id, and no view shows either (FL-131); the role says
+ * "Invitado".
+ */
 export function displayNameOf(principal: Principal): string | undefined {
+  if (principal.isGuest) return undefined;
   return principal.name ?? principal.email ?? principal.username;
 }

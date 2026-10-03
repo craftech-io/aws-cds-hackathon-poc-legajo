@@ -14,14 +14,27 @@ import type { OPERATIONS_TOOLS } from "./schema";
 
 type Input = ToolInput<(typeof OPERATIONS_TOOLS)["assign_responsible"]>;
 
-/** Who the matrix names for the observation, with `SENDER` resolved to the party of the version it came in. */
-async function matrixPartyOf(ctx: ToolContext<Input>, observation: Observation): Promise<Party> {
+/** A matrix responsible with `SENDER` resolved to the party of the version the observation came in. */
+async function partyOf(ctx: ToolContext<Input>, observation: Observation, responsible: MatrixResponsible): Promise<Party> {
+  if (responsible !== "SENDER") return responsible;
+  const version = await ctx.connector.documents.findVersion(observation.lastDocVersionId);
+  return version?.source.party ?? "BROKER";
+}
+
+/**
+ * Who the matrix names for this step of the observation: its first responsible, or the one that
+ * follows (`then`, `BUYER_DATA_MISMATCH`: importer, then supplier) once the first one has it and the
+ * agent hands it on (FL-039).
+ */
+async function matrixPartyOf(ctx: ToolContext<Input>, observation: Observation, chosen: Party): Promise<Party> {
   const { connector, scope } = ctx;
   const matrix = await connector.firms.getResponsibilityMatrix(scope.firmId);
-  const responsible: MatrixResponsible = matrix === undefined ? "BROKER" : matrixDefault(matrix, observation.docType, observation.code).responsible;
-  if (responsible !== "SENDER") return responsible;
-  const version = await connector.documents.findVersion(observation.lastDocVersionId);
-  return version?.source.party ?? "BROKER";
+  if (matrix === undefined) return "BROKER";
+  const row = matrixDefault(matrix, observation.docType, observation.code);
+  const first = await partyOf(ctx, observation, row.responsible);
+  if (row.then === undefined || observation.responsibleParty !== first) return first;
+  const then = await partyOf(ctx, observation, row.then);
+  return chosen === then ? then : first;
 }
 
 export const assignResponsible: ToolImplementation<Input> = async (ctx) => {
@@ -29,7 +42,7 @@ export const assignResponsible: ToolImplementation<Input> = async (ctx) => {
   const observation = await connector.documents.findObservation(scope.operationId, input.observationId);
   if (observation === undefined) return fail("NOT_FOUND", "no such observation in this operation");
   if (!OPEN_OBSERVATION_STATUSES.includes(observation.status)) return fail("CONFLICT", `the observation is ${observation.status}; it needs no responsible`);
-  const fromMatrix = await matrixPartyOf(ctx, observation);
+  const fromMatrix = await matrixPartyOf(ctx, observation, input.responsibleParty);
   const matchesMatrix = input.responsibleParty === fromMatrix;
   const flaggedForReview = !matchesMatrix || input.responsibleParty === "BROKER";
   await connector.documents.updateObservation(

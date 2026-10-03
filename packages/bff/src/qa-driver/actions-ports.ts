@@ -3,10 +3,12 @@
 // registered address of a contact of the same world) and derives provider ids from the step's key,
 // so the scenario never writes an id and a retried step never duplicates an effect.
 import { QA_INJECTOR_PREFIX, SIM_MAIL_DOMAIN, ToolError } from "@legajo/shared";
-import { qaEventId, qaMailId, qaMessageId, simulatedWamid } from "./contract";
+import { qaEventId, qaMailId, simulatedWamid } from "./contract";
 import type { QaParsedInput } from "./contract-inputs";
-import { lastNonce } from "./actions-state";
-import type { ActionContext, QaPorts, WhatsAppInbound } from "./ports";
+import { tapContent } from "../channels/whatsapp/simulator";
+import type { Message, MessageButton } from "../domain/conversations";
+import { lastButton } from "./actions-state";
+import type { ActionContext, QaPorts, TapContent, WhatsAppInbound } from "./ports";
 
 /** The world an operation named inside an input must belong to (the guard checks the top-level ids). */
 async function operationInWorld(ctx: ActionContext, operationId: string) {
@@ -22,16 +24,21 @@ export function injectorAddress(idempotencyKey: string): string {
   return `${QA_INJECTOR_PREFIX}${runId}-${scenario}@${SIM_MAIL_DOMAIN}`;
 }
 
-async function choiceNonce(ctx: ActionContext, operationId: string, choose: string): Promise<string> {
+async function choiceButton(ctx: ActionContext, operationId: string, choose: string): Promise<{ readonly message: Message; readonly button: MessageButton }> {
   const messages = (await ctx.data.conversations.listMessages(operationId, { direction: "OUT" })).filter((message) => message.kind === "OPERATION_CHOICE").reverse();
   for (const message of messages) {
     for (const button of message.buttons) {
       if (button.action !== "CHOOSE_OPERATION" || button.nonce === undefined) continue;
       const nonce = await ctx.data.runtime.getNonce(button.nonce);
-      if (nonce?.operationId === choose) return button.nonce;
+      if (nonce?.operationId === choose) return { message, button };
     }
   }
   throw new ToolError("NOT_FOUND", `no OPERATION_CHOICE of ${operationId} offers ${choose}`);
+}
+
+/** The reply a tap sends, answering the message's own provider id (as the phone simulator does). */
+function tapOf(message: Message, button: MessageButton): WhatsAppInbound {
+  return { type: "tap", content: tapContent(message, button) as TapContent, ...(message.providerMessageId === undefined ? {} : { contextWamid: message.providerMessageId }) };
 }
 
 async function whatsappMessage(input: QaParsedInput<"wa.inbound">, ctx: ActionContext): Promise<WhatsAppInbound> {
@@ -42,11 +49,14 @@ async function whatsappMessage(input: QaParsedInput<"wa.inbound">, ctx: ActionCo
       return message;
     case "button": {
       const holder = message.nonceFrom === undefined ? input.operationId : (await operationInWorld(ctx, message.nonceFrom)).operationId;
-      return { type: "button", action: message.action, nonce: await lastNonce(ctx, holder, message.action) };
+      const found = await lastButton(ctx, holder, message.action);
+      return tapOf(found.message, found.button);
     }
-    case "choice":
+    case "choice": {
       await operationInWorld(ctx, message.choose);
-      return { type: "choice", nonce: await choiceNonce(ctx, input.operationId, message.choose) };
+      const found = await choiceButton(ctx, input.operationId, message.choose);
+      return tapOf(found.message, found.button);
+    }
     case "document": {
       const operation = await ctx.data.operations.getOperation(input.operationId);
       return { type: "document", docType: message.docType, version: message.version, templateOperation: operation.templateOperation };
@@ -93,7 +103,6 @@ export function portActions(ports: QaPorts) {
           autoReply: input.autoReply,
           attachments: input.attachments.map((attachment) => ({ ...attachment, templateOperation: templateOperation ?? "" })),
           mailId,
-          messageIdHeader: await qaMessageId(ctx.idempotencyKey, SIM_MAIL_DOMAIN),
           ...(target === undefined ? {} : { operationId: target.operationId }),
         },
         ctx,

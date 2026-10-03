@@ -62,7 +62,7 @@ describe("[FL-121] the lead data never leaves Leads", () => {
   });
 
   it("[FL-121] fences the QaDriver to the SC-26 actions of docs/test-plan.md §4.1", () => {
-    expect([...LEADS_ACCESS.QaDriver.actions].sort()).toEqual(["dynamodb:DeleteItem", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query"]);
+    expect([...LEADS_ACCESS.QaDriver.actions].sort()).toEqual(["dynamodb:DeleteItem", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query", "dynamodb:Scan"]);
     expect(LAMBDA_CAPABILITIES.QaDriver.capabilities).toContain("QA_SIGNUP");
     expect(read("docs/architecture.md")).toContain("DynamoDB `Leads` (`GetItem`, `Query`, `DeleteItem`, `PutItem`)");
   });

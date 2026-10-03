@@ -41,6 +41,19 @@ describe("confirm_supplier_contact [FL-011] [FL-014]", () => {
     expect(actions).toEqual(["CONTACT_CONFIRMED"]);
   });
 
+  it("[FL-012] the importer's CONFIRM_CONTACT about the contact that already works stamps confirmedBy IMPORTER and opens the turn, once per tap", async () => {
+    const world = await serviceWorld();
+    const services = channelServices(world.deps);
+    const known = { ...decision("CONFIRM"), contactId: "ctc-qingdao-1" };
+    await services.confirmContact(known);
+    expect(await world.stores.connector.parties.getContact("sup-qingdao", "ctc-qingdao-1")).toMatchObject({ status: "ACTIVE", confirmedBy: "IMPORTER" });
+    expect(world.events).toMatchObject([{ trigger: "CONTACT_CONFIRMED", operationId: "op-4471", eventId: turnEventId("CONTACT_CONFIRMED", WAMID) }]);
+    await services.confirmContact(known);
+    expect(world.events).toHaveLength(1);
+    const answer = unwrapDirect(await confirmSupplierContactHandler(world.deps)({ caller: consoleCaller(), contactId: "ctc-qingdao-1" }));
+    expect(answer).toMatchObject({ changed: false, turns: 0 });
+  });
+
   it("[FL-014] a rejection discards the proposed contact and its address claim, without a turn", async () => {
     const world = await serviceWorld();
     await proposed(world);

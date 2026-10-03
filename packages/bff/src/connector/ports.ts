@@ -111,6 +111,8 @@ export interface PartiesPort {
   /** The contact and its email claim in one transaction; an email in use is a CONFLICT. */
   createContact(contact: NewContact): Promise<SupplierContact>;
   transitionContact(transition: ContactTransition): Promise<SupplierContact>;
+  /** A `REMINDER` went out to the contact at `atSim` (`lastReminderAt`, FL-028); an earlier instant never overwrites a later one. */
+  markContactReminder(supplierId: string, contactId: string, atSim: string): Promise<SupplierContact>;
   /**
    * The importer said "No" to a proposed contact: a PENDING_CONFIRMATION contact and its email claim
    * go away together (a contact that was ever ACTIVE keeps its history for `PolicyAudit`).

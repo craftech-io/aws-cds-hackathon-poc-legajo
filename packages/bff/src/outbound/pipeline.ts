@@ -27,7 +27,7 @@ import { ERROR_REASON, NOTICES_ADDRESS, ToolError, fail, type RuleId } from "@le
 import { countMetric } from "../channels/adapter";
 import type { Message } from "../domain/conversations";
 import type { PolicyDecision, PolicyVerdict } from "../policy/types";
-import { type SendContext, loadSendContext, policyInputOf, responsiblesOf } from "./context";
+import { type SendContext, loadSendContext, policyInputOf, responsiblesOf, workingContact } from "./context";
 import { allowanceOf, textOf, textsOf } from "./content";
 import { decideSend, deniedByQuota } from "./decide";
 import { deferSend } from "./defer";
@@ -44,6 +44,8 @@ export const POLICY_DENIALS_METRIC = "PolicyDenials";
 
 /** Buttons whose nonce carries what only the code knows (a contact, an operation of a list). */
 const CODE_ONLY_BUTTONS = new Set(["CONFIRM_CONTACT", "REJECT_CONTACT", "CHOOSE_OPERATION"]);
+/** The contact buttons a `CONTACT_CONFIRMATION` may name: the code binds their nonces to the contact. */
+const CONTACT_BUTTONS = new Set(["CONFIRM_CONTACT", "REJECT_CONTACT"]);
 
 /** The SYSTEM fence (email) or the registry (WhatsApp) for the recipient the registry gave. */
 export async function fenceVerdictOf(deps: OutboundDeps, request: OutboundRequest, context: SendContext): Promise<PolicyVerdict> {
@@ -120,12 +122,29 @@ async function refuseContent(deps: OutboundDeps, call: OutboundCall, request: Ou
   return refuse(deps, call, request, context, { failure: fail("GROUNDING_FAIL", message.slice(0, 900), OUTBOUND_REASON.GROUNDING_FAIL), ruleIds, decision, ...guardrail }, { checks: outcome.failures.map((failure) => failure.check) });
 }
 
+/**
+ * FL-011: a `CONTACT_CONFIRMATION` about the supplier's known contact names `CONFIRM_CONTACT` /
+ * `REJECT_CONTACT`, and the code binds both nonces to the ACTIVE contact that works for the
+ * operation's supplier (never to an id the caller wrote). Without one there is nothing to confirm.
+ */
+export async function bindContactButtons(deps: Pick<OutboundDeps, "data">, request: OutboundRequest): Promise<OutboundRequest> {
+  if (request.channel !== "WHATSAPP" || request.kind !== "CONTACT_CONFIRMATION") return request;
+  const buttons = request.buttons ?? [];
+  if (!buttons.some((button) => CONTACT_BUTTONS.has(button.action) && button.payload === undefined)) return request;
+  const operation = await deps.data.operations.getOperation(request.operationId);
+  const contact = workingContact(await deps.data.parties.listContacts(operation.supplierId));
+  if (contact === undefined) throw new ToolError("INVALID", "the supplier has no active contact to confirm; ask the importer for one", OUTBOUND_REASON.RESERVED_BUTTON);
+  const payload = { supplierId: contact.supplierId, contactId: contact.contactId };
+  return { ...request, buttons: buttons.map((button) => (CONTACT_BUTTONS.has(button.action) && button.payload === undefined ? { ...button, payload } : button)) };
+}
+
 /** Step 0: what the transports would refuse, before anything is issued or written. */
 export function checkShape(request: OutboundRequest): void {
   if (request.channel !== "WHATSAPP") return;
   checkWhatsAppShape(request, request.kind);
-  if (request.textSource === "MODEL" && (request.buttons ?? []).some((button) => CODE_ONLY_BUTTONS.has(button.action))) {
-    throw new ToolError("INVALID", "contact and operation-choice buttons are written by the code (propose_supplier_contact), never by a send", OUTBOUND_REASON.RESERVED_BUTTON);
+  const reserved = (request.buttons ?? []).some((button) => CODE_ONLY_BUTTONS.has(button.action) && !(request.kind === "CONTACT_CONFIRMATION" && CONTACT_BUTTONS.has(button.action) && button.payload !== undefined));
+  if (request.textSource === "MODEL" && reserved) {
+    throw new ToolError("INVALID", "operation-choice buttons, and contact buttons outside a CONTACT_CONFIRMATION, are written by the code, never by a send", OUTBOUND_REASON.RESERVED_BUTTON);
   }
 }
 
@@ -142,9 +161,10 @@ export function replayOf(message: Message): OutboundResult {
 }
 
 /** The pipeline for one send. */
-export async function sendOutbound(deps: OutboundDeps, request: OutboundRequest, call: OutboundCall): Promise<OutboundResult> {
-  const log = call.log.child({ service: "outbound", channel: request.channel, kind: request.kind });
+export async function sendOutbound(deps: OutboundDeps, asked: OutboundRequest, call: OutboundCall): Promise<OutboundResult> {
+  const log = call.log.child({ service: "outbound", channel: asked.channel, kind: asked.kind });
   const scoped: OutboundCall = { ...call, log };
+  const request = await bindContactButtons(deps, asked);
   checkShape(request);
   if (request.messageId !== undefined) {
     const existing = await deps.data.conversations.getMessage(request.operationId, request.messageId);

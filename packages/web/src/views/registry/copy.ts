@@ -133,6 +133,7 @@ export const registryCopy = {
   reasons: {
     RECIPIENT_NOT_ALLOWED: "Esa dirección no pasa el cerco de destinatarios de la demo: usá un buzón simulado del dominio de simulación o el simulador de rebotes de SES.",
     CONFLICT: "Ese teléfono o email ya pertenece a otro contacto o a otro estudio.",
+    GUEST_SYNTHETIC_ONLY: "Tu mundo de prueba solo guarda datos ficticios: teléfonos del bloque de numeración de tu mundo (como los de los importadores que ya tiene) y buzones simulados del dominio de simulación.",
   } as Readonly<Record<string, string>>,
 } as const;
 

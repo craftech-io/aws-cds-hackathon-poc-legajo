@@ -52,8 +52,16 @@ export const PASSING_GUARDRAIL: GuardrailScript = (input) => ({
 
 const NO_USAGE = { topicPolicyUnits: 0, contentPolicyUnits: 0, wordPolicyUnits: 0, sensitiveInformationPolicyUnits: 0, sensitiveInformationPolicyFreeUnits: 0, contextualGroundingPolicyUnits: 0 };
 
+/** One `SendEmail` and the `MessageId` the fake answered (the `<id@email.amazonses.com>` of the mail). */
+export interface SentEmail {
+  readonly input: SendEmailCommandInput;
+  readonly messageId: string;
+}
+
 export interface AwsFakes {
   readonly sesSent: SendEmailCommandInput[];
+  /** Every `SendEmail` with its id, in order (what the in-process mailroom delivers). */
+  readonly sesMessages: SentEmail[];
   readonly whatsappSent: SendWhatsAppMessageCommandInput[];
   readonly queue: FifoQueue;
   readonly visibilityChanges: ChangeMessageVisibilityCommandInput[];
@@ -85,6 +93,7 @@ export function installAwsFakes(options: { readonly now?: () => Date } = {}): Aw
   if (installed) throw new Error("the AWS fakes are already installed: close the previous world before creating another");
   installed = true;
   const sesSent: SendEmailCommandInput[] = [];
+  const sesMessages: SentEmail[] = [];
   const whatsappSent: SendWhatsAppMessageCommandInput[] = [];
   const visibilityChanges: ChangeMessageVisibilityCommandInput[] = [];
   const schedules = new Map<string, CreateScheduleCommandInput>();
@@ -102,7 +111,9 @@ export function installAwsFakes(options: { readonly now?: () => Date } = {}): Aw
   ses.onAnyCommand().rejects(notFaked("SES v2"));
   ses.on(SendEmailCommand).callsFake((input: SendEmailCommandInput) => {
     sesSent.push(input);
-    return { MessageId: nextId("ses-local-") };
+    const messageId = nextId("ses-local-");
+    sesMessages.push({ input, messageId });
+    return { MessageId: messageId };
   });
 
   const social = mockClient(SocialMessagingClient);
@@ -203,6 +214,7 @@ export function installAwsFakes(options: { readonly now?: () => Date } = {}): Aw
   const stubs = [ses, social, sqs, scheduler, runtime, agentcore, s3, eventBridge, ...closed];
   return {
     sesSent,
+    sesMessages,
     whatsappSent,
     queue,
     visibilityChanges,

@@ -1,13 +1,14 @@
 // Runs a suite of scenarios against `poc` (docs/test-plan.md §4.4):
 //
 //   - up to 4 scenarios at a time; the scenarios of one lane run one after the other (SC-25 then
-//     SC-24 share the guest account) and a `last` scenario (SC-20) runs alone at the end, with the
-//     results of every earlier one;
+//     SC-24 share the guest account); then the `alone` ones (SC-26), one by one; and a `last` scenario
+//     (SC-20) runs alone at the end, with the results of every earlier one;
 //   - inside a scenario the steps run in order; after a failed step the rest are SKIPPED, never
 //     retried (a step that waits for the agent already allows up to two turns);
 //   - the cleanup always runs: the scenario's own, then the usage of each world, its policy audit and
 //     `world.destroy`;
 //   - the turn budget (`--max-turns`) is checked before each scenario: past it the rest are skipped.
+import { QA_REASON } from "@legajo/bff/qa-driver/contract";
 import { WaitTimeout } from "./eventually";
 import type { DriverClient } from "./driver-client";
 import { type RunReport, type ScenarioResult, type StepResult, type Usage, type Verdict, flowVerdicts, worst } from "./report";
@@ -33,7 +34,7 @@ export interface RunOptions {
 export const CLEANUP_STEP = 999;
 
 function verdictOf(error: unknown): Verdict {
-  if (error instanceof DriverRefusal && error.reason === "NOT_WIRED") return "BLOCKED";
+  if (error instanceof DriverRefusal && error.reason === QA_REASON.NOT_WIRED) return "BLOCKED";
   return "FAIL";
 }
 
@@ -134,19 +135,20 @@ function skipped(scenario: ScenarioDef, reason: string): ScenarioResult {
   };
 }
 
-/** Lanes of the parallel part: one per scenario, except the scenarios that share a lane. */
-export function lanesOf(scenarios: readonly ScenarioDef[]): { readonly lanes: ScenarioDef[][]; readonly last: ScenarioDef[] } {
+/** Lanes of the parallel part (one per scenario, except those that share a lane), then the ones that run alone. */
+export function lanesOf(scenarios: readonly ScenarioDef[]): { readonly lanes: ScenarioDef[][]; readonly alone: ScenarioDef[]; readonly last: ScenarioDef[] } {
   const lanes = new Map<string, ScenarioDef[]>();
+  const alone: ScenarioDef[] = [];
   const last: ScenarioDef[] = [];
   for (const scenario of scenarios) {
-    if (scenario.last) {
-      last.push(scenario);
+    if (scenario.last || scenario.alone) {
+      (scenario.last ? last : alone).push(scenario);
       continue;
     }
     const lane = scenario.lane ?? scenario.id;
     lanes.set(lane, [...(lanes.get(lane) ?? []), scenario]);
   }
-  return { lanes: [...lanes.values()], last };
+  return { lanes: [...lanes.values()], alone, last };
 }
 
 export async function runSuite(options: RunOptions): Promise<RunReport> {
@@ -162,9 +164,15 @@ export async function runSuite(options: RunOptions): Promise<RunReport> {
     }));
 
   async function runOne(scenario: ScenarioDef): Promise<void> {
+    // The cost cap fails closed: with a cap set, a cost that cannot be estimated (unverified rates) stops the run.
+    const unknownCost = options.maxCostUsd !== undefined && budget.costUsd === null;
     const overCost = options.maxCostUsd !== undefined && budget.costUsd !== null && budget.costUsd >= options.maxCostUsd;
-    if (budget.turns >= options.maxTurns || overCost) {
-      budget.aborted ??= overCost ? `cost budget of USD ${options.maxCostUsd} reached` : `turn budget of ${options.maxTurns} reached`;
+    if (budget.turns >= options.maxTurns || overCost || unknownCost) {
+      budget.aborted ??= unknownCost
+        ? `the cost of the run is unknown (unverified rates): the cap of USD ${options.maxCostUsd} cannot be checked`
+        : overCost
+          ? `cost budget of USD ${options.maxCostUsd} reached`
+          : `turn budget of ${options.maxTurns} reached`;
       results.set(scenario.id, skipped(scenario, budget.aborted));
       return;
     }
@@ -174,13 +182,13 @@ export async function runSuite(options: RunOptions): Promise<RunReport> {
     results.set(scenario.id, result);
   }
 
-  const { lanes, last } = lanesOf(options.scenarios);
+  const { lanes, alone, last } = lanesOf(options.scenarios);
   const queue = [...lanes];
   const workers = Array.from({ length: Math.max(1, Math.min(options.parallel ?? 4, queue.length)) }, async () => {
     for (let lane = queue.shift(); lane !== undefined; lane = queue.shift()) for (const scenario of lane) await runOne(scenario);
   });
   await Promise.all(workers);
-  for (const scenario of last) await runOne(scenario);
+  for (const scenario of [...alone, ...last]) await runOne(scenario);
 
   const scenarios = options.scenarios.map((scenario) => results.get(scenario.id)).filter((result) => result !== undefined);
   return {
