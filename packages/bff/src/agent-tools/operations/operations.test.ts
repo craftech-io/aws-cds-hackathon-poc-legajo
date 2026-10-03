@@ -137,6 +137,27 @@ describe("operations target: the reads of the turn's operation", () => {
     });
   });
 
+  it("get_counterpart_profile IMPORTER: a message at exactly nowSim (paused world, a tapped button) opens the window", async () => {
+    await world.stores.connector.conversations.appendMessage({
+      messageId: "msg-01J9ZQNOW",
+      operationId: OPERATION,
+      firmId: FIRM,
+      clockId: CLOCK,
+      channel: "WHATSAPP",
+      counterpart: "IMPORTER",
+      importerId: "imp-norpampa",
+      direction: "IN",
+      status: "RECEIVED",
+      author: "IMPORTER",
+      to: "simulated",
+      from: "simulated",
+      body: "Los manda el proveedor",
+      sentAtSim: START_SIM,
+      sentAtReal: REAL_NOW,
+    });
+    expect(await call("get_counterpart_profile", { party: "IMPORTER" })).toMatchObject({ ok: true, importer: { windowOpen: true } });
+  });
+
   it("get_counterpart_profile IMPORTER: no message, no consent, no authorization → closed and false", async () => {
     expect(await call("get_counterpart_profile", { party: "IMPORTER" })).toMatchObject({ ok: true, importer: { optIn: { active: false }, windowOpen: false, supplierContactAuthorized: false } });
   });

@@ -22,8 +22,9 @@ const OPEN_DOSSIERS: readonly DossierStatus[] = ["OPEN", "READY_FOR_REVIEW", "RE
 /** Last WhatsApp message of the importer at or before `nowSim`, if any (only those open the window). */
 async function lastImporterMessageAt(ctx: ToolContext<Input>): Promise<number | undefined> {
   const { connector, scope } = ctx;
-  const messages = await connector.conversations.listCounterpartMessages(importerCounterpartKey(scope.importerId), { direction: "IN", toSim: scope.nowSim });
   const now = Date.parse(scope.nowSim);
+  // `toSim` is exclusive: in a paused world the importer's message carries exactly `nowSim`, and it opens the window.
+  const messages = await connector.conversations.listCounterpartMessages(importerCounterpartKey(scope.importerId), { direction: "IN", toSim: new Date(now + 1).toISOString() });
   const instants = messages.filter((message) => message.channel === "WHATSAPP" && Date.parse(message.sentAtSim) <= now).map((message) => Date.parse(message.sentAtSim));
   return instants.length === 0 ? undefined : Math.max(...instants);
 }
