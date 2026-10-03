@@ -94,7 +94,7 @@ export function readerRetryAction(deps: IntakeDeps): TimerAction {
   return async ({ timer, firing }) => {
     const payload = ReaderRetryPayload.safeParse(timer.payload);
     if (!payload.success) return { outcome: "SKIPPED", reason: "PAYLOAD_INVALID" };
-    const eventId = firing.eventId ?? timerEventId(firing.operationId, firing.timerKey, firing.dueAtSim, firing.version);
+    const eventId = firing.eventId ?? timerEventId(firing.operationId, firing.timerKey, firing.dueAtSim, firing.version, timer.worldEpoch);
     const outcome = await retryReading(deps, { operationId: timer.operationId, payload: payload.data, eventId, atSim: firing.eventAtSim });
     if (outcome.kind === "SKIPPED") return { outcome: "SKIPPED", reason: outcome.reason };
     return { outcome: "FIRED", detail: { reading: outcome.kind, docVersionId: outcome.version.docVersionId } };

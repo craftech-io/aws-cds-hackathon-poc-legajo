@@ -11,6 +11,8 @@ export type TimerId = z.infer<typeof TimerId>;
 export const Timer = defineEntity({
   operationId: OperationId,
   clockId: ClockId,
+  /** World epoch the timer belongs to (the clock's at creation): its TIMER event id changes with every reset. */
+  worldEpoch: z.number().int().min(1).default(1),
   kind: TimerKind,
   /** Milestone name for `MILESTONE`, a generated id for the rest. */
   timerId: TimerId,

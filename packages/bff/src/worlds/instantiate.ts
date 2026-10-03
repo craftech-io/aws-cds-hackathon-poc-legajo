@@ -103,6 +103,8 @@ async function derive(item: Record<string, unknown>, options: InstanceOptions, t
       threads.set(String(item.operationId), address);
       return { ...item, worldEpoch: options.stamp.worldEpoch, threadTag, threadAddress: address };
     }
+    case "Timer":
+      return { ...item, worldEpoch: options.stamp.worldEpoch };
     case "Importer":
       return { ...item, phoneHash: phoneHash(options.keys.phoneHash, String(item.phoneE164)) };
     case "SupplierContact":

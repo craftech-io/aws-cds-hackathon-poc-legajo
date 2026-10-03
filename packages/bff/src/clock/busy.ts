@@ -68,7 +68,7 @@ export async function worldPending(data: Pick<Connector, "world" | "timers">, cl
   // lost) waits since the clock reached it or since it was written, whichever is later.
   const inFlight = new Set(events.map((event) => event.detail));
   const timers = due
-    .filter((timer) => !inFlight.has(timerEventId(timer.operationId, timerKeyOf(timer.kind, timer.timerId), timer.dueAtSim, timer.version)))
+    .filter((timer) => !inFlight.has(timerEventId(timer.operationId, timerKeyOf(timer.kind, timer.timerId), timer.dueAtSim, timer.version, timer.worldEpoch)))
     .map((timer): WorldPending => ({ kind: "EVENT", ...withNumber(timer.operationId), detail: `TIMER ${timer.kind}`, sinceReal: new Date(Math.max(Date.parse(clock.updatedAt), Date.parse(timer.updatedAt))).toISOString() }));
   return [...events, ...mails, ...scans, ...timers];
 }

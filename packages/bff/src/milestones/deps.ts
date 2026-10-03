@@ -60,6 +60,6 @@ export interface MilestoneDeps extends EscalationDeps {
 
 /** The `TIMER` event id of the firing (the turn's id derives from it). */
 export function firingEventId(fired: FiredTimer): string {
-  const { firing } = fired;
-  return firing.eventId ?? timerEventId(firing.operationId, firing.timerKey, firing.dueAtSim, firing.version);
+  const { firing, timer } = fired;
+  return firing.eventId ?? timerEventId(firing.operationId, firing.timerKey, firing.dueAtSim, firing.version, timer.worldEpoch);
 }

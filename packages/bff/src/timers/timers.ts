@@ -54,7 +54,7 @@ export function timerEventOf(due: DueTimer): TimerEvent {
   const timerKey = timerKeyOf(timer.kind, timer.timerId);
   return {
     type: "TIMER",
-    eventId: timerEventId(timer.operationId, timerKey, timer.dueAtSim, timer.version),
+    eventId: timerEventId(timer.operationId, timerKey, timer.dueAtSim, timer.version, timer.worldEpoch),
     operationId: timer.operationId,
     clockId: timer.clockId,
     firmId: due.firmId,
@@ -160,9 +160,11 @@ export interface ArmedTimer {
 
 /** Creates a SCHEDULED timer (CONFLICT when the key exists) and gives it its schedule if its world runs. */
 export async function armTimer(spec: TimerSpec, deps: TimerDeps): Promise<ArmedTimer> {
+  const clock = await deps.data.world.getClock(spec.clockId);
   const fields: NewEntity<typeof Timer> = {
     operationId: spec.operationId,
     clockId: spec.clockId,
+    worldEpoch: clock.worldEpoch,
     kind: spec.kind,
     timerId: spec.timerId,
     dueAtSim: spec.dueAtSim,
@@ -171,7 +173,6 @@ export async function armTimer(spec: TimerSpec, deps: TimerDeps): Promise<ArmedT
     payload: { ...(spec.payload ?? {}) },
   };
   const timer = await deps.data.timers.createTimer(fields);
-  const clock = await deps.data.world.getClock(spec.clockId);
   return { timer, schedule: await syncSchedule(timer, clock, deps) };
 }
 

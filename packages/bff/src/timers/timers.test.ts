@@ -54,6 +54,13 @@ describe("timers: TIMER#<kind> with GSI3 and at most one schedule", () => {
     expect(timerEventId(OPERATION, "TIMER#MILESTONE#DOCS_REQUEST", DUE, 1)).not.toBe(timerEventId(OPERATION, "TIMER#MILESTONE#DOCS_REQUEST", DUE, 2));
   });
 
+  it("a reset world (next epoch) gives the same timer a new TIMER event id, so it is not deduplicated against the old world", () => {
+    const key = "TIMER#MILESTONE#DOCS_REQUEST";
+    expect(timerEventId(OPERATION, key, DUE, 1, 1)).toBe(timerEventId(OPERATION, key, DUE, 1));
+    expect(timerEventId(OPERATION, key, DUE, 1, 2)).not.toBe(timerEventId(OPERATION, key, DUE, 1, 1));
+    expect(timerEventId(OPERATION, key, DUE, 1, 3)).not.toBe(timerEventId(OPERATION, key, DUE, 1, 2));
+  });
+
   it("[FL-064] a firing at another version is stale: audited, no action, the timer unchanged", async () => {
     const world = await timeWorld();
     await world.timer("MILESTONE", "FOLLOWUP", DUE);

@@ -97,7 +97,7 @@ export function workerPort(data: Connector, sink: () => OperationEventSink): Wor
       if (input.version >= timer.version) throw new ToolError("INVALID", `version ${input.version} is not older than the timer's ${timer.version}`, "NOT_STALE");
       await sink().enqueue({
         type: "TIMER",
-        eventId: timerEventId(input.operationId, input.timerKey, timer.dueAtSim, input.version),
+        eventId: timerEventId(input.operationId, input.timerKey, timer.dueAtSim, input.version, timer.worldEpoch),
         operationId: input.operationId,
         clockId: input.clockId,
         firmId: operation.firmId,
