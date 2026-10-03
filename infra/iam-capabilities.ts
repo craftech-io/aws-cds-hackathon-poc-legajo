@@ -74,6 +74,8 @@ export const CAPABILITIES: Readonly<Record<CapabilityName, Capability>> = {
   },
   SEND_WHATSAPP: {
     actions: ["social-messaging:SendWhatsAppMessage"],
+    // The adapter (simulated and live) reads the size, type and digest of an outbound media object.
+    buckets: { Media: "read" },
     fence: "phone-number-id of the secret; statement omitted while it is not-connected",
   },
   PIPELINE: {
