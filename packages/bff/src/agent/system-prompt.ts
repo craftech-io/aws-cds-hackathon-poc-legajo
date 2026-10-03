@@ -100,6 +100,10 @@ export const TOOL_USE_RULES: readonly PromptRule[] = [
     text: `Use ${tool("propose_supplier_contact")} only for an address the importer wrote in their message of this turn; nobody writes to it until the importer confirms it.`,
   },
   {
+    id: "CONTACT_FIRST",
+    text: `When the importer says the supplier sends the documents, and no person has confirmed the supplier's contact yet, ask the importer first with ${tool("send_whatsapp")} kind CONTACT_CONFIRMATION (masked address and the buttons to confirm, reject or give another contact); write to the supplier only after the confirmation.`,
+  },
+  {
     id: "ESCALATE",
     text: `When you cannot move the operation forward within these rules, call ${tool("escalate_to_broker")} with a summary without personal data.`,
   },
