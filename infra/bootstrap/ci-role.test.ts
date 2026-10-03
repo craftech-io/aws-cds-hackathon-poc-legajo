@@ -39,6 +39,14 @@ describe.each(Object.entries(TRUSTS))("trust of the %s role", (_role, trust) => 
 
 });
 
+describe("qa-runner session", () => {
+  it("lasts as long as the scenarios job may run (120 min), and the workflow asks for exactly that", () => {
+    expect(block(template, "  QaRunnerRole:", "AssumeRolePolicyDocument:")).toContain("MaxSessionDuration: 7200");
+    expect(read(".github/workflows/scenarios.yml")).toMatch(/role-duration-seconds: 7200\b/);
+    expect(read(".github/workflows/scenarios.yml")).toMatch(/timeout-minutes: 120\b/);
+  });
+});
+
 describe("repository parameters", () => {
   it.each(["GitHubOrgId", "GitHubRepoId"])("makes %s mandatory and numeric", (parameter) => {
     const definition = parameterBlock(parameter);

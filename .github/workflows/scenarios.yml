@@ -1,8 +1,15 @@
-# Scenario suite against the deployed stage `poc` (docs/test-plan.md §4), on demand. The runner
-# drives every flow through the QA driver Lambda with the qa-runner role of the bootstrap
-# (ADR-0005); no human credentials. Only `main` can assume the role, so dispatch it from main. The
-# browser scenarios sign in with the synthetic `guest-test` account: its password comes only from the
-# GUEST_TEST_PASSWORD secret and is never printed.
+# Scenario suite against the deployed stage `poc` (docs/test-plan.md §4-§5), on demand: the full suite
+# (SC-00 to SC-26, the public-surface scenarios and the guest walkthrough included) before every
+# delivery, three times in a row on the same commit for "100 % tested". The runner drives every flow
+# through the QA driver Lambda with the qa-runner role of the bootstrap (ADR-0005); no human
+# credentials. Only `main` can assume the role (its trust binds this file on main), so dispatch it from
+# main. The browser scenarios (SC-24, SC-25, SC-26) run Playwright's Chromium against the public URL;
+# SC-24 and SC-25 sign in with the synthetic `guest-test` account, whose password comes only from the
+# GUEST_TEST_PASSWORD secret and is never printed. The job declares no `environment:` (it would
+# change the OIDC `sub` the trust expects).
+#
+# The report (scenario-report.json and .md, no PII: ids, codes and counts) is kept as an artifact and
+# copied to the run summary, pass or fail.
 name: Scenarios poc
 
 on:
@@ -27,6 +34,7 @@ concurrency:
 env:
   CI: "true"
   AWS_REGION: us-east-1
+  REPORT_DIR: test-results/scenarios
 
 jobs:
   scenarios:
@@ -34,6 +42,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
+      - name: Only from main (the qa-runner trust accepts nothing else)
+        if: ${{ github.ref != 'refs/heads/main' }}
+        run: |
+          echo "::error::Dispatch this workflow from main: the qa-runner role trusts only scenarios.yml on main."
+          exit 1
+
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
@@ -46,20 +60,37 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install the Playwright browser (SC-24, SC-25, SC-26)
+        if: ${{ inputs.suite == 'full' }}
+        run: npx playwright install --with-deps chromium
+
+      # The session lasts as long as the job may (120 min); the role's MaxSessionDuration in
+      # infra/bootstrap/ci-role.yaml must allow it.
       - name: Assume the qa-runner role (OIDC, no access keys)
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: ${{ vars.AWS_QA_RUNNER_ROLE_ARN || 'arn:aws:iam::776805327629:role/aws-cds-hackathon-poc-legajo-qa-runner' }}
           role-session-name: github-scenarios-${{ github.run_id }}
+          role-duration-seconds: 7200
           aws-region: us-east-1
 
       - name: Run the suite
         env:
           SUITE: ${{ inputs.suite }}
           GUEST_TEST_PASSWORD: ${{ secrets.GUEST_TEST_PASSWORD }}
+        run: npm run scenarios -- --suite "${SUITE}" --report-dir "${REPORT_DIR}"
+
+      - name: Report in the run summary
+        if: ${{ !cancelled() }}
         run: |
-          if [ ! -f scripts/scenarios/run.ts ]; then
-            echo "::notice::scenarios skipped: scripts/scenarios/run.ts is not in the repository yet (WP-37)."
-            exit 0
-          fi
-          npm run scenarios -- --suite "${SUITE}"
+          report="${REPORT_DIR}/scenario-report.md"
+          if [ -f "$report" ]; then cat "$report" >> "$GITHUB_STEP_SUMMARY"; else echo "::warning::The suite wrote no report."; fi
+
+      - name: Keep the report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: scenario-report-${{ inputs.suite }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.REPORT_DIR }}/
+          if-no-files-found: warn
+          retention-days: 90

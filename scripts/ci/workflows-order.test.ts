@@ -13,12 +13,16 @@ const WORKFLOWS_DIR = resolve(import.meta.dirname, "../../.github/workflows");
 interface Step {
   readonly name?: string;
   readonly run?: string;
+  readonly uses?: string;
+  readonly with?: Readonly<Record<string, string | number>>;
   readonly env?: Readonly<Record<string, string>>;
 }
 
 interface Job {
   readonly name?: string;
   readonly environment?: unknown;
+  readonly needs?: string | readonly string[];
+  readonly if?: string;
   readonly steps: readonly Step[];
 }
 
@@ -116,5 +120,47 @@ describe.each(["deploy.yml", "scenarios.yml"])("[FL-125] %s and the synthetic ac
     for (const step of withSecret) expect(step.env?.[SECRET_ENV], step.name).toBe(`\${{ secrets.${SECRET_ENV} }}`);
     for (const step of steps(workflow)) expect(step.run ?? "", step.name).not.toContain(SECRET_ENV);
     for (const job of Object.values(workflow.jobs)) expect(job.environment).toBeUndefined();
+  });
+});
+
+// WP-40: the smoke after the seed in deploy.yml, the Lighthouse job after a successful deploy, and the
+// reports of both workflows kept as artifacts.
+const QA_ROLE = /qa-runner/;
+const UPLOAD = /^actions\/upload-artifact@[0-9a-f]{40}$/;
+
+describe("[WP-40] deploy.yml smoke and landing performance", () => {
+  const workflow = load("deploy.yml");
+  const deploySteps = workflow.jobs.deploy?.steps ?? [];
+  const indexOf = (predicate: (step: Step) => boolean): number => deploySteps.findIndex(predicate);
+  const runs = (command: string) => (step: Step) => commandsOf(step.run ?? "").includes(command);
+
+  it("loads the seed, then assumes qa-runner, then runs the smoke suite, all after sst deploy", () => {
+    const deploy = indexOf(runs(DEPLOY));
+    const seed = indexOf(runs("npm run seed:load"));
+    const assume = indexOf((step) => String(step.with?.["role-to-assume"] ?? "").match(QA_ROLE) !== null);
+    const smoke = indexOf((step) => commandsOf(step.run ?? "").some((command) => command.startsWith("npm run scenarios -- --suite smoke --allow-dkim-pending")));
+    expect(deploy).toBeGreaterThanOrEqual(0);
+    expect(seed).toBeGreaterThan(deploy);
+    expect(assume).toBeGreaterThan(seed);
+    expect(smoke).toBeGreaterThan(assume);
+  });
+
+  it("runs Lighthouse in its own job, only after a successful deploy", () => {
+    const job = workflow.jobs["landing-performance"];
+    expect(job).toBeDefined();
+    expect(job?.needs).toBe("deploy");
+    expect(job?.if ?? "").toContain("needs.deploy.outputs.deployed == 'true'");
+    expect(job?.steps.some((step) => (step.run ?? "").includes("lighthouse@"))).toBe(true);
+  });
+});
+
+describe.each(["deploy.yml", "scenarios.yml"])("[WP-40] %s keeps its reports", (file) => {
+  it("uploads them with a pinned actions/upload-artifact", () => {
+    const uploads = steps(load(file)).filter((step) => (step.uses ?? "").startsWith("actions/upload-artifact@"));
+    expect(uploads.length).toBeGreaterThan(0);
+    for (const step of uploads) {
+      expect(step.uses ?? "", step.name).toMatch(UPLOAD);
+      expect(step.with?.path, step.name).toBeTruthy();
+    }
   });
 });

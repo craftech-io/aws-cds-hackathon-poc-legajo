@@ -1,5 +1,5 @@
 // `Reference` (docs/seed-spec.md §12): holidays checked against the official calendar, the eight
-// WhatsApp templates, the rate card (provisional until WP-41), the customs-status glossary, the
+// WhatsApp templates, the verified rate card of ratecard.ts (WP-41), the customs-status glossary, the
 // observation labels, the evaluation truth of every seeded observation and the name checks. Every
 // text comes from packages/bff/src/copy/, never written twice.
 import { WhatsAppTemplateName, observationId, operationId as opId } from "@legajo/shared";
@@ -7,11 +7,11 @@ import { DISPATCH_GLOSSARY, DISPATCH_GLOSSARY_KEYS } from "@legajo/bff/copy/disp
 import { DISPATCH_GLOSS, TEMPLATE_GLOSS } from "@legajo/bff/copy/en-gloss";
 import { OBSERVATION_LABELS } from "@legajo/bff/copy/observation-labels";
 import { TEMPLATES } from "@legajo/bff/copy/templates";
-import { SES_OUTBOUND_RATE_KEY, bedrockRateKey, whatsappRateKey } from "@legajo/bff/services/ratecard";
 import { ObservationCode } from "@legajo/shared";
 import { CHECKED_AT } from "../lib/constants";
 import { templateItem, type SeedItem } from "../lib/items";
 import { OPERATIONS } from "./catalog-operations";
+import { rateCardItems } from "./ratecard";
 import { NAME_CHECKS } from "./namecheck";
 
 /** Official calendar of Argentina (argentina.gob.ar, dataset of the 2026 holidays page), checked on CHECKED_AT. */
@@ -48,17 +48,6 @@ function templates(): SeedItem[] {
   });
 }
 
-/** Rate rows are seeded without price and `provisional` (WP-41 loads verified prices with source and date). */
-function rateCard(): SeedItem[] {
-  const rows: { rateId: string; unit: string }[] = [
-    ...(["input", "output", "cacheRead", "cacheWrite"] as const).map((kind) => ({ rateId: bedrockRateKey(kind), unit: "PER_1M_TOKENS" })),
-    { rateId: SES_OUTBOUND_RATE_KEY, unit: "PER_1K_MESSAGES" },
-    { rateId: whatsappRateKey("utility"), unit: "PER_MESSAGE" },
-    { rateId: whatsappRateKey("service"), unit: "PER_MESSAGE" },
-  ];
-  return rows.map((row) => templateItem("RateCard", { rateId: row.rateId, price: null, unit: row.unit, currency: "USD", provisional: true }));
-}
-
 function glossary(): SeedItem[] {
   return DISPATCH_GLOSSARY_KEYS.map((key) => {
     const [status, channel] = key.split("#");
@@ -85,5 +74,5 @@ function nameChecks(): SeedItem[] {
 }
 
 export function referenceItems(): SeedItem[] {
-  return [...holidays(), ...templates(), ...rateCard(), ...glossary(), ...observationCodes(), ...evalTruth(), ...nameChecks()];
+  return [...holidays(), ...templates(), ...rateCardItems(), ...glossary(), ...observationCodes(), ...evalTruth(), ...nameChecks()];
 }

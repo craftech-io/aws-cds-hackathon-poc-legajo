@@ -71,8 +71,8 @@ Regla de verificación: después de cada WP que copie o adapte, `npm run lint:fo
 | Ruta | Decisión | Qué cambia | WP |
 |---|---|---|---|
 | `ci.yml` | Adaptar | Checks de `docs/architecture.md` §18 | WP-03 |
-| `deploy.yml` | Adaptar | Sin el smoke del canal descartado; prechequeo del rule set activo; build de la web y `lint:forbidden -- --dist`; asume `qa-runner` para `SC-00` | WP-03, WP-40 |
-| — | Nuevo | `scenarios.yml` | WP-03, WP-40 |
+| `deploy.yml` | Adaptar | Sin el smoke del canal descartado; prechequeo del rule set activo; build de la web y `lint:forbidden -- --dist`; asume `qa-runner` para `SC-00` (`--suite smoke --allow-dkim-pending`) con el reporte como artefacto; job aparte `landing-performance` (Lighthouse mobile pinneado, mediana de 3, no bloquea el deploy) | WP-03, WP-40 |
+| — | Nuevo | `scenarios.yml`: solo desde `main`, sesión de `qa-runner` de 7.200 s, reporte en el resumen y como artefacto (90 días) | WP-03, WP-40 |
 
 ## `packages/shared`
 

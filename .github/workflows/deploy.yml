@@ -11,12 +11,16 @@
 # never a wildcard in the trust policy.
 #
 # Order (docs/architecture.md §15 step 5): the checks of ci.yml, then assume the deploy role, prove
-# who we are, check the active receipt rule set, deploy, load the seed (idempotent), smoke. Steps
-# whose script is not in the repository yet print a notice and pass (never the forbidden terms nor
-# the neutral-surfaces guard, which needs no secret: ADR-0014 §6). As in ci.yml, the guard's source
-# pass runs right after the forbidden terms of the tree and its build pass right after the web
-# build, both before `sst deploy` (scripts/ci/workflows-order.test.ts). GUEST_TEST_PASSWORD is the
-# password of the synthetic `guest-test` account, read only from the secret and never printed.
+# who we are, check the active receipt rule set (failing closed when it cannot be read), deploy, load
+# the seed (idempotent), assume qa-runner and run the smoke suite (SC-00, docs/test-plan.md §5) with
+# its report as an artifact. As in ci.yml, the guard's source pass runs right after the forbidden
+# terms of the tree and its build pass right after the web build, both before `sst deploy`
+# (scripts/ci/workflows-order.test.ts); the guard needs no secret (ADR-0014 §6). GUEST_TEST_PASSWORD
+# is the password of the synthetic `guest-test` account, read only from the secret and never printed.
+#
+# A second job measures the landing on the deployed stage with Lighthouse mobile (docs/landing-spec.md
+# §5.3). It runs only after `sst deploy` succeeded, never blocks the deploy, and its own red check is
+# what qa reads before accepting a wave.
 name: Deploy poc
 
 on:
@@ -44,6 +48,8 @@ jobs:
     name: Checks, then sst deploy --stage poc
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    outputs:
+      deployed: ${{ steps.sst.outputs.deployed }}
     steps:
       - name: Checkout (full history, the commit messages are checked too)
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -123,15 +129,22 @@ jobs:
 
       - name: "Pre-check: the active SES receipt rule set is ours or none"
         # SES has one active rule set per region; activating ours would deactivate another project's.
+        # Any API error (throttling, AccessDenied, network) stops the deploy: never read as "none".
         run: |
-          active="$(aws ses describe-active-receipt-rule-set --query 'Metadata.Name' --output text 2>/dev/null || true)"
+          if ! active="$(aws ses describe-active-receipt-rule-set --query 'Metadata.Name' --output text)"; then
+            echo "::error::Could not read the active receipt rule set; stopping before sst deploy (docs/architecture.md §15 step 0)."
+            exit 1
+          fi
           case "$active" in
             ""|"None"|"aws-cds-hackathon-poc-legajo-inbound") echo "Active rule set: ${active:-none}." ;;
             *) echo "::error::Another project's receipt rule set is active; stop and ask the CTO (docs/architecture.md §15 step 0)."; exit 1 ;;
           esac
 
       - name: Deploy stage poc
-        run: npx sst deploy --stage poc
+        id: sst
+        run: |
+          npx sst deploy --stage poc
+          echo "deployed=true" >> "$GITHUB_OUTPUT"
 
       - name: Publish the deployed URL in the run summary
         run: |
@@ -143,27 +156,99 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Load the synthetic seed into poc (idempotent)
-        run: |
-          if [ ! -f scripts/seed/load.ts ]; then
-            echo "::notice::seed:load skipped: scripts/seed/load.ts is not in the repository yet (WP-31)."
-            exit 0
-          fi
-          npm run seed:load
-
-      - name: Interim smoke (until SC-00 exists)
-        if: ${{ hashFiles('scripts/scenarios/sc-00-smoke.ts') == '' }}
-        run: npx tsx scripts/smoke/interim.ts --base-url "${APP_URL}" --aws
+        run: npm run seed:load
 
       - name: Assume the qa-runner role (OIDC)
-        if: ${{ hashFiles('scripts/scenarios/sc-00-smoke.ts') != '' }}
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: ${{ vars.AWS_QA_RUNNER_ROLE_ARN || 'arn:aws:iam::776805327629:role/aws-cds-hackathon-poc-legajo-qa-runner' }}
           role-session-name: github-qa-${{ github.run_id }}
           aws-region: us-east-1
 
+      # A first deploy's DKIM may still be PENDING: the SES round trip of SC-00 then warns instead of
+      # failing (docs/test-plan.md §5). Any other failure turns the run red.
       - name: Smoke scenarios (SC-00)
-        if: ${{ hashFiles('scripts/scenarios/sc-00-smoke.ts') != '' }}
         env:
           GUEST_TEST_PASSWORD: ${{ secrets.GUEST_TEST_PASSWORD }}
-        run: npm run scenarios -- --suite smoke
+        run: npm run scenarios -- --suite smoke --allow-dkim-pending --report-dir test-results/scenarios
+
+      - name: Smoke report in the run summary
+        if: ${{ !cancelled() && steps.sst.outputs.deployed == 'true' }}
+        run: |
+          report="test-results/scenarios/scenario-report.md"
+          if [ -f "$report" ]; then cat "$report" >> "$GITHUB_STEP_SUMMARY"; else echo "::warning::The smoke wrote no report."; fi
+
+      - name: Keep the smoke report
+        if: ${{ !cancelled() && steps.sst.outputs.deployed == 'true' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: smoke-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-results/scenarios/
+          if-no-files-found: warn
+          retention-days: 30
+
+  landing-performance:
+    name: Landing performance on poc (Lighthouse mobile)
+    needs: deploy
+    # After a successful `sst deploy`, whatever the smoke said; never before, and never blocking it.
+    if: ${{ !cancelled() && needs.deploy.outputs.deployed == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      # Pinned; Lighthouse 13 needs Node 22.19 or later, so this job does not use .nvmrc.
+      LIGHTHOUSE_VERSION: 13.5.0
+    steps:
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24"
+
+      # Mobile form factor with simulated slow 4G and 4x CPU (Lighthouse's defaults, stated anyway).
+      # Three runs; the budget is checked on the median of each metric.
+      - name: Measure / three times
+        run: |
+          mkdir -p lighthouse
+          for n in 1 2 3; do
+            npx --yes "lighthouse@${LIGHTHOUSE_VERSION}" "${APP_URL}/" \
+              --form-factor=mobile --throttling-method=simulate --only-categories=performance \
+              --output=json --output=html --output-path="lighthouse/run-${n}" \
+              --chrome-flags="--headless=new --no-sandbox" --quiet
+          done
+
+      - name: Check the budget (LCP < 2.5 s, CLS < 0.05, TBT < 200 ms)
+        run: |
+          node --input-type=module <<'EOF'
+          import { appendFileSync, readFileSync } from "node:fs";
+          const BUDGET = [
+            { audit: "largest-contentful-paint", label: "LCP", max: 2500, unit: "ms" },
+            { audit: "cumulative-layout-shift", label: "CLS", max: 0.05, unit: "" },
+            { audit: "total-blocking-time", label: "TBT", max: 200, unit: "ms" },
+          ];
+          const runs = [1, 2, 3].map((n) => JSON.parse(readFileSync(`lighthouse/run-${n}.report.json`, "utf8")));
+          const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
+          const rows = BUDGET.map(({ audit, label, max, unit }) => {
+            const values = runs.map((run) => run.audits[audit]?.numericValue);
+            if (values.some((value) => typeof value !== "number")) return { label, value: NaN, max, unit, ok: false };
+            const value = median(values);
+            return { label, value, max, unit, ok: value < max };
+          });
+          const show = (value, unit) => (Number.isNaN(value) ? "not measured" : unit === "ms" ? `${Math.round(value)} ms` : value.toFixed(3));
+          const lines = ["### Landing performance on poc (Lighthouse mobile, median of 3)", "", "| Metric | Median | Budget | Verdict |", "|---|---|---|---|"];
+          for (const row of rows) lines.push(`| ${row.label} | ${show(row.value, row.unit)} | < ${show(row.max, row.unit)} | ${row.ok ? "pass" : "FAIL"} |`);
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join("\n")}\n`);
+          const failed = rows.filter((row) => !row.ok);
+          for (const row of failed) console.log(`::error::${row.label} ${show(row.value, row.unit)} is over the budget of ${show(row.max, row.unit)} (docs/landing-spec.md §5.3).`);
+          if (failed.length > 0) process.exit(1);
+          console.log("Landing within the performance budget.");
+          EOF
+
+      - name: Keep the Lighthouse reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: lighthouse-${{ github.run_id }}-${{ github.run_attempt }}
+          path: lighthouse/
+          if-no-files-found: warn
+          retention-days: 30
