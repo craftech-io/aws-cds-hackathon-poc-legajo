@@ -80,7 +80,7 @@ export const DOCUMENTED_METRICS: readonly MetricSpec[] = [
 /**
  * Metrics the channel code already counts beyond the list of §12 (their constants say a filter of
  * this module counts them): the thread address check of inbound email, the bounce state of the
- * account emails and the WhatsApp adapter. §12 lists them in their own line.
+ * account emails, the WhatsApp adapter and the marks a sent message leaves in the dossier. §12 lists them in their own line.
  */
 export const CODE_METRICS: readonly MetricSpec[] = [
   { name: "ThreadAddressInvalid", emitters: ["InboundEmail"], unit: "Count", source: `${BFF}/channels/email/config.ts` },
@@ -92,6 +92,7 @@ export const CODE_METRICS: readonly MetricSpec[] = [
   { name: "WhatsAppSendFailed", emitters: ["InboundWhatsApp"], unit: "Count", source: `${BFF}/channels/whatsapp/events.ts` },
   { name: "WhatsAppPricingCategory", emitters: ["InboundWhatsApp"], unit: "Count", source: `${BFF}/channels/whatsapp/events.ts` },
   { name: "WhatsAppStatusUnknownMessage", emitters: ["InboundWhatsApp"], unit: "Count", source: `${BFF}/channels/whatsapp/events.ts` },
+  { name: "OutboundEffectFailed", emitters: PIPELINE_RUNNERS, unit: "Count", source: `${BFF}/outbound/effects.ts` },
 ];
 
 export const METRICS: readonly MetricSpec[] = [...DOCUMENTED_METRICS, ...CODE_METRICS];

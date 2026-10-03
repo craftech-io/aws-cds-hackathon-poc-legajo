@@ -5,7 +5,8 @@
 // (always the simulated one in a guest world, ADR-0015 §4). The message ends `SENT` (`DELIVERED` for
 // the simulated transport, which records Meta's statuses itself) with the provider's id, or `FAILED`
 // with an `ACTION SEND_FAILED`; nothing is retried here (a send that may have reached the party is
-// never repeated blindly). A send that went out leaves its marks in the dossier (effects.ts).
+// never repeated blindly). A send that went out leaves its marks in the dossier (effects.ts), best
+// effort: a failure there is logged and counted and never turns the SENT into an error.
 import { ChannelError, type Guardrail, fail, toToolFailure } from "@legajo/shared";
 import { countMetric } from "../channels/adapter";
 import { EMAIL_METRICS } from "../channels/email/config";
@@ -101,7 +102,7 @@ export async function deliver(deps: OutboundDeps, call: OutboundCall, input: Del
     ...(sent.rfcMessageId === undefined ? {} : { rfcMessageId: sent.rfcMessageId }),
     ...(sent.mailId === undefined ? {} : { mailId: sent.mailId }),
   });
-  await applySentEffects(deps, { request, context, sentAtSim: row.sentAtSim, actor: call.actor });
+  await applySentEffects(deps, { request, context, sentAtSim: row.sentAtSim, actor: call.actor, messageId, log: call.log });
   if (rendered.whatsapp !== undefined) countMetric(call.log, EMAIL_METRICS.outboundSent, { channel: "WHATSAPP", kind: request.kind, simulated: rendered.content.simulated });
   call.log.info("outbound.sent", { messageId, channel: request.channel, kind: request.kind });
   return {

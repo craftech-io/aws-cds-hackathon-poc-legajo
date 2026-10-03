@@ -22,7 +22,7 @@ import { uploadLinkUrl } from "../copy/templates";
 import type { DeferredTimerSpec, OutboundDeps } from "./deps";
 import { type G2Input, type G2Verdict, GuardrailUnavailableError } from "./grounding";
 import { whatsappRoutes } from "./routes";
-import type { OutboundCall } from "./types";
+import type { OutboundCall, OutboundRequest } from "./types";
 
 export { CLOCK, FIRM, QINGDAO, REAL_NOW, SIM_NOW };
 
@@ -165,3 +165,21 @@ export async function outboundWorld(options: { readonly demoRecipients?: readonl
 
 /** The supplier's ACTIVE contact address of op 4471 (from channels/email/testing.ts). */
 export const SUPPLIER_ADDRESS = QINGDAO;
+
+/** What `get_dossier` returned in the turn of a send of op 4471. */
+export const DOSSIER = {
+  operationNumber: "4471",
+  firmName: "Estudio Delta",
+  vessel: "Austral Aurora",
+  etaText: "22/10",
+  invoiceNumber: "QBT-2026-0917",
+  missingDocuments: "certificado de origen y packing list",
+  deadlines: { supplier: { text: "October 19, 10:00 (Asia/Shanghai)" } },
+};
+
+/** The agent's first request to the supplier of op 4471, by email. */
+export function supplierEmail(turnId: string, eventAtSim: string, text: string): OutboundRequest {
+  return { operationId: "op-4471", channel: "EMAIL", counterpart: "SUPPLIER", kind: "DOCS_REQUEST", author: "AGENT", textSource: "MODEL", trigger: "CONTACT_CONFIRMED", turnId, eventAtSim, text, refs: { docTypes: ["PACKING_LIST", "CERTIFICATE_OF_ORIGIN"] } };
+}
+
+export const EMAIL_TEXT = "Hello, for invoice QBT-2026-0917 we still need the packing list and the certificate of origin. Please send them by October 19, 10:00 (Asia/Shanghai). Thank you.";

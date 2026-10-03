@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { resendDeferred } from "./defer";
 import { orderedMessageId, sendOrdered } from "./ordered";
 import { sendOutbound } from "./pipeline";
-import { FRI_10_QINGDAO, IMPORTER_PHONE, QINGDAO, THU_10_AR, outboundWorld, type OutboundWorld } from "./testing";
+import { DOSSIER, EMAIL_TEXT, FRI_10_QINGDAO, IMPORTER_PHONE, QINGDAO, THU_10_AR, outboundWorld, supplierEmail, type OutboundWorld } from "./testing";
 import type { OutboundRequest } from "./types";
 
 let world: OutboundWorld;
@@ -15,16 +15,6 @@ let world: OutboundWorld;
 beforeEach(async () => {
   world = await outboundWorld();
 });
-
-const DOSSIER = {
-  operationNumber: "4471",
-  firmName: "Estudio Delta",
-  vessel: "Austral Aurora",
-  etaText: "22/10",
-  invoiceNumber: "QBT-2026-0917",
-  missingDocuments: "certificado de origen y packing list",
-  deadlines: { supplier: { text: "October 19, 10:00 (Asia/Shanghai)" } },
-};
 
 async function audit(): Promise<Awaited<ReturnType<OutboundWorld["stores"]["connector"]["audit"]["listByOperation"]>>> {
   return world.stores.connector.audit.listByOperation("op-4471");
@@ -45,11 +35,6 @@ function docsTemplate(turnId: string): OutboundRequest {
   };
 }
 
-function supplierEmail(turnId: string, eventAtSim: string, text: string): OutboundRequest {
-  return { operationId: "op-4471", channel: "EMAIL", counterpart: "SUPPLIER", kind: "DOCS_REQUEST", author: "AGENT", textSource: "MODEL", trigger: "CONTACT_CONFIRMED", turnId, eventAtSim, text, refs: { docTypes: ["PACKING_LIST", "CERTIFICATE_OF_ORIGIN"] } };
-}
-
-const EMAIL_TEXT = "Hello, for invoice QBT-2026-0917 we still need the packing list and the certificate of origin. Please send them by October 19, 10:00 (Asia/Shanghai). Thank you.";
 
 describe("[FL-007] a template to the importer", () => {
   it("goes out with its nonces and upload link, and leaves the message and its ALLOW", async () => {
