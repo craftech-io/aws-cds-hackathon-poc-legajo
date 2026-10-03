@@ -50,10 +50,6 @@ export async function signupFromLanding(page: Page, query: string): Promise<URL>
   return new URL(page.url());
 }
 
-export async function hasWafToken(context: BrowserContext): Promise<boolean> {
-  return (await context.cookies(SITE)).some((cookie) => cookie.name === "aws-waf-token");
-}
-
 export interface SignupFields {
   readonly email: string;
   readonly password: string;

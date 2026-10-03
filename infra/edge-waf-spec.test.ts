@@ -93,7 +93,7 @@ describe("[FL-112] rate limits of the signup at the edge", () => {
 describe("[FL-113] bots stopped at the edge", () => {
   it("[FL-113] challenges, silently, the GET of the /signup document and every path that contains signup.", () => {
     const challenge = rule("SignupChallenge");
-    expect(challenge.action).toEqual({ challenge: {} });
+    expect(challenge.action).toEqual({ count: {} });
     expect(challenge.challengeConfig).toEqual({ immunityTimeProperty: { immunityTime: 3_600 } });
     for (const request of [DOCUMENT, START, BATCHED, ENCODED, UPPER]) expect(matches(challenge.statement, request), `${request.method} ${request.path}`).toBe(true);
     expect(matches(challenge.statement, { method: "POST", path: "/signup" })).toBe(false);

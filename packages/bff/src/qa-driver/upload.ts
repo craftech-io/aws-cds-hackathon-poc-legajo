@@ -45,6 +45,8 @@ export interface UploadOutcome {
   readonly key?: string;
   /** Status S3 answered to the POST of the file. */
   readonly storageStatus?: number;
+  /** S3's `<Code>`/`<Message>` when it refused the POST (no keys or signatures). */
+  readonly storageError?: string;
 }
 
 async function postJson(doFetch: typeof fetch, url: string, body: unknown): Promise<{ status: number; json: unknown }> {
@@ -77,7 +79,11 @@ export function browserUpload(deps: UploadDeps = {}) {
       for (const [name, value] of Object.entries(post.fields)) form.append(name, value);
       form.append("file", new Blob([bytes], { type: "application/pdf" }), `${file.docType.toLowerCase()}.pdf`);
       const stored = await retry(() => doFetch(post.url, { method: "POST", body: form, signal: AbortSignal.timeout(TIMEOUT_MS) }));
-      return { status: answer.status, key: post.key, storageStatus: stored.status };
+      if (stored.status < 300) return { status: answer.status, key: post.key, storageStatus: stored.status };
+      const xml = await stored.text().catch(() => "");
+      const code = /<Code>([^<]{0,80})<\/Code>/.exec(xml)?.[1] ?? "";
+      const message = /<Message>([^<]{0,200})<\/Message>/.exec(xml)?.[1] ?? "";
+      return { status: answer.status, key: post.key, storageStatus: stored.status, storageError: `${code} ${message}`.trim() };
     },
 
     async done(token: string, keys: readonly string[]): Promise<UploadOutcome> {

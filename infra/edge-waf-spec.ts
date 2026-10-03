@@ -76,7 +76,7 @@ export type WafStatement = ByteMatch | RateBased | ManagedGroup | OrOfStatements
 export interface WafRule {
   readonly name: string;
   readonly priority: number;
-  readonly action?: { block: Record<string, never> } | { challenge: Record<string, never> };
+  readonly action?: { block: Record<string, never> } | { challenge: Record<string, never> } | { count: Record<string, never> };
   readonly overrideAction?: { none: Record<string, never> };
   readonly challengeConfig?: { immunityTimeProperty: { immunityTime: number } };
   readonly statement: WafStatement;
@@ -142,7 +142,11 @@ export function edgeWafRules(): WafRule[] {
     {
       name: "SignupChallenge",
       priority: 3,
-      action: { challenge: {} },
+      // Count, not Challenge: the interstitial needs inline script and challenge.js from *.token.awswaf.com,
+      // which the console's CSP (script-src 'self') refuses on poc, so a challenged visitor never reached the
+      // form. Bots stay stopped by the reputation list, the two rate rules, the honeypot, the minimum time and
+      // the email code (ADR-0015 §3); the rule keeps its metric.
+      action: { count: {} },
       challengeConfig: immunity,
       statement: { orStatement: { statements: [SIGNUP_DOCUMENT_MATCH, SIGNUP_PATH_MATCH] } },
       visibilityConfig: visibility("SignupChallenge"),
@@ -165,7 +169,7 @@ export function webAclSettings(app: string, stage: string): WebAclSettings {
   return {
     name: webAclName(app, stage),
     scope: WEB_ACL_SCOPE,
-    description: "Edge of the console: IP reputation, rate limits and a silent challenge on the signup.",
+    description: "Edge of the console: IP reputation, rate limits and a counted signup rule.",
     defaultAction: { allow: {} },
     rules: edgeWafRules(),
     challengeConfig: { immunityTimeProperty: { immunityTime: EDGE_WAF.challengeImmunitySeconds } },

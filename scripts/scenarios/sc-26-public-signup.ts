@@ -18,7 +18,6 @@ import {
   directForgotPassword,
   directSignUp,
   enterCode,
-  hasWafToken,
   logMentions,
   openContext,
   refreshOutcome,
@@ -108,7 +107,7 @@ export const sc26 = defineScenario({
   steps: [
     {
       n: 1,
-      title: "mobile-es: the landing's CTA keeps the UTM, the WAF challenge resolves by itself and /signup loads",
+      title: "mobile-es: the landing's CTA keeps the UTM and /signup loads (the signup WAF rule counts, it does not challenge)",
       flows: ["FL-101", "FL-130"],
       async run(ctx) {
         for (const key of KEYS) await ctx.qa("lead.purge", { key });
@@ -118,7 +117,6 @@ export const sc26 = defineScenario({
         run.clientId = watchClientId(run.mobile);
         const url = await signupFromLanding(run.mobile, UTM);
         ctx.check(url.searchParams.get("utm_source") === "qa" && url.searchParams.get("utm_campaign") === "sc26", "/signup keeps the utm_* of the landing");
-        ctx.check(await hasWafToken(run.contexts[0] as BrowserContext), "the WAF challenge resolved (aws-waf-token): otherwise /signup needs its own policy");
         await expect(run.mobile.getByRole("heading", { level: 1, name: copyOf("mobile-es").signup.title })).toBeVisible();
       },
     },

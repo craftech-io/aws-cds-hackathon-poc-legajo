@@ -16,6 +16,7 @@ interface Upload {
   readonly refusal?: string;
   readonly key?: string;
   readonly storageStatus?: number;
+  readonly storageError?: string;
 }
 
 async function presign(ctx: ScenarioContext, operationId: string, file: { kind: "pdf" | "notPdf" | "oversize"; docType: "CERTIFICATE_OF_ORIGIN" | "PACKING_LIST" }): Promise<Upload> {
@@ -54,7 +55,7 @@ export const sc07 = defineScenario({
       async run(ctx) {
         const { operationId } = opOf(ctx, "a");
         const upload = await presign(ctx, operationId, { kind: "pdf", docType: "CERTIFICATE_OF_ORIGIN" });
-        ctx.check(upload.status === 200 && upload.storageStatus !== undefined && upload.storageStatus < 300, `the presigned POST was accepted (${upload.storageStatus ?? upload.status})`);
+        ctx.check(upload.status === 200 && upload.storageStatus !== undefined && upload.storageStatus < 300, `the presigned POST was accepted (${upload.storageStatus ?? upload.status}${upload.storageError ? `: ${upload.storageError}` : ""})`);
         ensure(upload.key !== undefined, "the page issued an object key");
         const done = (await ctx.qa("upload.done", { operationId, keys: [upload.key] })) as Upload;
         ctx.check(done.status === 200, `"Listo" answered ${done.status}`);
