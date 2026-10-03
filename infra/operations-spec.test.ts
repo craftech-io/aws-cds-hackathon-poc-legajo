@@ -307,13 +307,13 @@ describe("timers: EventBridge Scheduler (ADR-0004)", () => {
     expect(policy.role).toBe("SchedulerInvocationRole.id");
     expect(JSON.parse(String(policy.policy))).toEqual({
       Version: "2012-10-17",
-      Statement: [{ Sid: "InvokeScheduleDispatchOnly", Effect: "Allow", Action: ["lambda:InvokeFunction"], Resource: ["ScheduleDispatch.arn"] }],
+      Statement: [{ Sid: "InvokeScheduleDispatchOnly", Effect: "Allow", Action: ["lambda:InvokeFunction"], Resource: ["arn:aws:lambda:data.region:data.accountId:function:aws-cds-hackathon-poc-legajo-poc-schedule-dispatch"] }],
     });
   });
 
   it("`Scheduler` is TIMERS: the schedule actions on the group's schedules, PassRole of that role only to the Scheduler", async () => {
     const { properties, include } = (await fake.args("sst.Linkable", "Scheduler")) as { properties: unknown; include: Statement[] };
-    expect(properties).toEqual({ groupName: "Schedules.name", roleArn: "SchedulerInvocationRole.arn", targetArn: "ScheduleDispatch.arn" });
+    expect(properties).toEqual({ groupName: "Schedules.name", roleArn: "SchedulerInvocationRole.arn", targetArn: "arn:aws:lambda:data.region:data.accountId:function:aws-cds-hackathon-poc-legajo-poc-schedule-dispatch" });
     expect(include).toEqual([
       allow(["scheduler:CreateSchedule", "scheduler:UpdateSchedule", "scheduler:DeleteSchedule", "scheduler:GetSchedule"], ["arn:aws:scheduler:data.region:data.accountId:schedule/Schedules.name/*"]),
       allow(["iam:PassRole"], ["SchedulerInvocationRole.arn"], [{ test: "StringEquals", variable: "iam:PassedToService", values: ["scheduler.amazonaws.com"] }]),

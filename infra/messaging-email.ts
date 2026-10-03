@@ -82,6 +82,7 @@ import {
   quarantineObjectArns,
   receiptRules,
   s3ObjectsArn,
+  SES_REGION,
   sendStatement,
   type ConfigurationSetPurpose,
   type EmailFunction,
@@ -90,6 +91,7 @@ import {
   type Place,
   type SenderProfile,
 } from "./messaging-email-spec";
+import { splitOutput } from "./output-arns";
 import { SeedOverrides, SessionTokenKey } from "./secrets";
 import { buckets, documentsBucket, inboundMailBucket, tables } from "./storage";
 import { SES_PRINCIPAL, inboundRuleSetName, receiptRuleArn, storageFor } from "./storage-keys";
@@ -191,7 +193,13 @@ function sender(profile: SenderProfile): sst.Linkable<{ profile: SenderProfile; 
     : scope.apply((where) => sendStatement(profile, where));
   return new sst.Linkable(spec.linkName, {
     properties: { profile, configurationSet: setName(spec.configurationSet) },
-    include: [sst.aws.permission({ actions: [...SEND_ACTIONS], resources: statement.resources, conditions: statement.conditions })],
+    include: [
+      sst.aws.permission({
+        actions: [...SEND_ACTIONS],
+        resources: splitOutput(statement.apply((built) => built.resources), sendStatement(profile, { account: "000000000000", region: SES_REGION, app: $app.name, stage: $app.stage }).resources.length),
+        conditions: statement.conditions,
+      }),
+    ],
   });
 }
 
@@ -226,7 +234,7 @@ export const inboundMailLinks = Object.fromEntries(
 /** `Resource.DocumentsQuarantine.{name, prefix}`; grants PutObject under `quarantine/` (and its `qa/<runId>/` form). */
 export const DocumentsQuarantine = new sst.Linkable(QUARANTINE_LINK, {
   properties: { name: documentsBucket.name, prefix: QUARANTINE_PREFIX },
-  include: [sst.aws.permission({ actions: [...QUARANTINE_WRITE_ACTIONS], resources: documentsBucket.name.apply(quarantineObjectArns) })],
+  include: [sst.aws.permission({ actions: [...QUARANTINE_WRITE_ACTIONS], resources: splitOutput(documentsBucket.name.apply(quarantineObjectArns), quarantineObjectArns("bucket").length) })],
 });
 
 const linkablesByName = new Map<string, unknown>([

@@ -51,6 +51,7 @@ import {
   type SignupStatementKind,
 } from "./leads-spec";
 import { emailLinks, inboundMailLinks } from "./messaging-email";
+import { splitOutput } from "./output-arns";
 import { LeadNoticeTo, OriginVerifyKey, SessionTokenKey } from "./secrets";
 import { documentsBucket, inboundMailBucket, mediaBucket, uploadsBucket } from "./storage-buckets";
 import { Runtime, RuntimeKeys, leadsTable } from "./storage-tables";
@@ -95,7 +96,7 @@ function bucketPermissions(name: $util.Output<string>, build: (bucket: string) =
   const built = name.apply(build);
   return build("bucket").map((shape, index) => ({
     actions: shape.actions,
-    resources: built.apply((list) => list[index]?.resources ?? []),
+    resources: splitOutput(built.apply((list) => list[index]?.resources ?? []), shape.resources.length),
     ...(shape.conditions === undefined ? {} : { conditions: built.apply((list) => list[index]?.conditions ?? []) }),
   }));
 }

@@ -157,8 +157,7 @@ describe("receipt rules", () => {
   it("keep the one rule set of docs/architecture.md §1, fenced by the deploy.yml pre-check (receipt actions have no resource-level IAM)", () => {
     expect(inboundRuleSetName(APP)).toBe("aws-cds-hackathon-poc-legajo-inbound");
     expect(architecture).toContain("| Receipt rule set SES activo | `aws-cds-hackathon-poc-legajo-inbound` |");
-    expect(bootstrap).toContain("ses:SetActiveReceiptRuleSet");
-    expect(read(".github/workflows/deploy.yml")).toContain("aws-cds-hackathon-poc-legajo-inbound");
+    expect([bootstrap.includes("ses:SetActiveReceiptRuleSet"), read(".github/workflows/deploy.yml").includes(inboundRuleSetName(APP))]).toEqual([true, true]);
   });
 
   it("are the two rules of the table of docs/architecture.md §2", () => {

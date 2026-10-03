@@ -229,9 +229,8 @@ export const Harness = new sst.Linkable(HARNESS_LINK, {
   include: [
     sst.aws.permission({
       actions: [...HARNESS_INVOKE_ACTIONS],
-      resources: $util
-        .all([harness.arn, harnessEndpoint.arn, runtimeEnvironment])
-        .apply(([harnessArn, endpointArn, runtime]) => (runtime.arn === undefined ? [harnessArn, endpointArn] : [harnessArn, endpointArn, runtime.arn])),
+      // One element per ARN (infra/output-arns.ts); without a runtime ARN the third repeats the Harness.
+      resources: [harness.arn, harnessEndpoint.arn, $util.all([harness.arn, runtimeEnvironment]).apply(([harnessArn, runtime]) => runtime.arn ?? harnessArn)],
     }),
   ],
 });
