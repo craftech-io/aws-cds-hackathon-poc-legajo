@@ -10,6 +10,7 @@
 //
 // Pure on purpose (no runtime imports), so the SST program can load it from infra/.
 import type { GatewayToolName } from "@legajo/shared";
+import { TEMPLATES } from "../copy/templates";
 
 /** `inbound-` plus 6 lower-case hex characters, new for every turn (`inbound-7f3a9c`). */
 export const TURN_DELIMITER_PATTERN = /^inbound-[0-9a-f]{6}$/;
@@ -94,6 +95,12 @@ export const TOOL_USE_RULES: readonly PromptRule[] = [
   {
     id: "SEND_OUTCOMES",
     text: "DEFERRED: the message goes out later by itself, never resend it. TEMPLATE_REQUIRED: in a milestone or follow-up turn use the approved template; in any other turn leave it in the note. GROUNDING_FAIL: rewrite once with the tool data, or escalate. CONTROL_BROKER: stop, a person of the firm took the conversation. POLICY_DENIED, FORBIDDEN, RECIPIENT_NOT_ALLOWED: do not insist; escalate if the operation cannot move without it.",
+  },
+  {
+    id: "TEMPLATES",
+    text: `Approved templates (name: kind; parameters in order). Pass exactly those parameters, each copied from a tool result of this turn, and no buttons (a template's buttons are fixed): ${Object.values(TEMPLATES)
+      .map((template) => `${template.name}: ${template.kind}; ${template.params.map((param) => param.name).join(", ") || "none"}`)
+      .join(" | ")}.`,
   },
   {
     id: "SUPPLIER_CONTACT",

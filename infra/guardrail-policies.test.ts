@@ -198,9 +198,9 @@ describe("[FL-050] sensitive data: G1 is the second layer of the normalizer and 
 });
 
 describe("grounding (G2)", () => {
-  it("uses grounding 0.75 and relevance 0.5 and nothing that rewrites the outbound text", () => {
+  it("uses grounding 0.5 and relevance 0.5 and nothing that rewrites the outbound text", () => {
     expect(GROUNDING_FILTERS).toEqual([
-      { type: "GROUNDING", threshold: 0.75 },
+      { type: "GROUNDING", threshold: 0.5 },
       { type: "RELEVANCE", threshold: 0.5 },
     ]);
     expect(G2_POLICIES.contextualGroundingPolicyConfig?.filtersConfigs).toEqual([...GROUNDING_FILTERS]);

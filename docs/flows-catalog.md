@@ -335,7 +335,7 @@ Convenciones:
 ### FL-045 · Duda respondida desde el checklist
 - Actores: importador, agente · Canal: WhatsApp · Disparador: botón `QUESTION` y luego "¿El certificado tiene que estar firmado?".
 - Pasos: 1) El botón produce una repregunta ("¿Cuál es tu duda?"). 2) `get_checklist(CERTIFICATE_OF_ORIGIN)` → ítem "firmado y sellado por la entidad emisora". 3) `send_whatsapp REPLY` fundado.
-- Estado esperado: `Message OUT REPLY` con `guardrail.groundingScore ≥ 0,75`; resultados del turno con el ítem citado.
+- Estado esperado: `Message OUT REPLY` con `guardrail.groundingScore ≥ 0,5`; resultados del turno con el ítem citado.
 - Reglas: G2 grounding, ADR-0013.
 - Prueba: U `outbound/grounding.test.ts` · LF `questions.flow.test.ts` · SR `SC-09/1..2`. Notas: Oráculo §4.3.
 

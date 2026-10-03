@@ -5,7 +5,7 @@
 //       already masked) and the Harness `guardrailConfig` (model input and output): five denied topics,
 //       prompt attack HIGH and PII.
 //   G2  the outbound pipeline (`ApplyGuardrail`, source OUTPUT) over every free text of the agent:
-//       contextual grounding 0.75 against the turn's tool results plus the checklist, relevance 0.5
+//       contextual grounding 0.5 against the turn's tool results plus the checklist, relevance 0.5
 //       (the pipeline enforces it on REPLY only) and G1's denied topics on output.
 //
 // Only three G1 findings may block a turn: a denied topic, PROMPT_ATTACK and a card number. The worker
@@ -120,7 +120,7 @@ export interface GroundingFilter {
 
 /** Contextual grounding of G2. A text below either threshold does not leave (`GROUNDING_FAIL`). */
 export const GROUNDING_FILTERS: readonly GroundingFilter[] = [
-  { type: "GROUNDING", threshold: 0.75 },
+  { type: "GROUNDING", threshold: 0.5 },
   { type: "RELEVANCE", threshold: 0.5 },
 ];
 

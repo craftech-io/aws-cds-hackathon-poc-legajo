@@ -89,7 +89,7 @@ describe("the shape is checked before anything is issued", () => {
     expect(refused({}, "REPLY")).toBe("send either a text or a template");
     expect(refused({ text: "Hola", template: { name: "legajo_escalado", params: ["4471", "Estudio Delta"] } }, "REPLY")).toBe("send either a text or a template");
     expect(refused({ template: { name: "legajo_escalado", params: ["4471", "Estudio Delta"] } }, "REPLY")).toBe("template legajo_escalado carries ESCALATION_NOTICE, not REPLY");
-    expect(refused({ template: { name: "legajo_escalado", params: ["4471"] } }, "ESCALATION_NOTICE")).toBe("template legajo_escalado takes 2 parameters, got 1");
+    expect(refused({ template: { name: "legajo_escalado", params: ["4471"] } }, "ESCALATION_NOTICE")).toBe("template legajo_escalado takes 2 parameters in this order: operationNumber, firmName; got 1");
     expect(refused({ template: { name: "legajo_contacto_proveedor", params: ["4471", "Qingdao"] }, buttons: [{ action: "UPLOAD" }] }, "CONTACT_REQUEST")).toContain("are fixed");
     expect(refused({ template: { name: "legajo_escalado", params: ["4471", "Estudio Delta"] } }, "ESCALATION_NOTICE")).toBeUndefined();
   });

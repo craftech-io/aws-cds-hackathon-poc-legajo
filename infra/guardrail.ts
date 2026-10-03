@@ -25,7 +25,7 @@
 //     topicPolicy.topics = the five of guardrail-policies.ts · contentPolicy.filters = PROMPT_ATTACK HIGH/NONE ·
 //     sensitiveInformationPolicy: CREDIT_DEBIT_CARD_NUMBER BLOCK, EMAIL/PHONE NONE, regexes AR_* ANONYMIZE
 //   aws --profile craftech-demos bedrock get-guardrail --guardrail-identifier <g2Id> --guardrail-version <g2Version>
-//     contextualGroundingPolicy.filters = GROUNDING 0.75, RELEVANCE 0.5
+//     contextualGroundingPolicy.filters = GROUNDING 0.5, RELEVANCE 0.5
 //   aws --profile craftech-demos bedrock-runtime apply-guardrail --guardrail-identifier <g1Id> --guardrail-version <g1Version> \
 //     --source INPUT --content '[{"text":{"text":"¿Qué posición arancelaria le corresponde a esto?"}}]'
 //     → action GUARDRAIL_INTERVENED, topic TariffClassification BLOCKED

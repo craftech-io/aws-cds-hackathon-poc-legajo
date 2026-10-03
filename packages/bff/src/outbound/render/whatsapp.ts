@@ -67,7 +67,9 @@ export function checkWhatsAppShape(input: Pick<WhatsAppRenderInput, "text" | "te
   if (template !== undefined) {
     const definition = TEMPLATES[template.name];
     if (definition.kind !== kind) throw invalid(`template ${template.name} carries ${definition.kind}, not ${kind}`);
-    if (template.params.length !== definition.params.length) throw invalid(`template ${template.name} takes ${definition.params.length} parameters, got ${template.params.length}`);
+    if (template.params.length !== definition.params.length) {
+      throw invalid(`template ${template.name} takes ${definition.params.length} parameters in this order: ${definition.params.map((param) => param.name).join(", ")}; got ${template.params.length}`);
+    }
     const expected = templateActions(template.name);
     if (buttons.length > 0 && (buttons.length !== expected.length || buttons.some((button, index) => button.action !== expected[index]))) {
       throw invalid(`the buttons of ${template.name} are fixed: ${expected.join(", ") || "none"}`);

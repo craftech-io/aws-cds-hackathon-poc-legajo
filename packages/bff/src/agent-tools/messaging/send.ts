@@ -90,7 +90,8 @@ export function sendWhatsApp(ports: MessagingPorts): ToolImplementation<SendWhat
       kind: input.kind,
       ...(input.text === undefined ? {} : { text: input.text }),
       ...(input.template === undefined ? {} : { template: { name: input.template.name, params: [...(input.template.params ?? [])] } }),
-      ...(input.buttons === undefined ? {} : { buttons: input.buttons.map((button) => ({ action: button.action })) }),
+      // A template's buttons are fixed by the template: whatever the model listed next to one is ignored.
+      ...(input.buttons === undefined || input.template !== undefined ? {} : { buttons: input.buttons.map((button) => ({ action: button.action })) }),
       ...(refs === undefined ? {} : { refs }),
     };
     return answerOf(await sendOutbound(ports.outbound(), request, outboundCall(ctx)));
