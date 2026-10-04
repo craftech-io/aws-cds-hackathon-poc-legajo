@@ -9,7 +9,7 @@ Solo lo que depende de alguien fuera del equipo de agentes (el CTO, Meta, AWS Pa
 | P-03 | Video de 3 minutos | CTO | Abierto | §3 |
 | P-04 | Decisión de marca pública | CTO | Abierto | §4 |
 | P-05 | Credenciales de las cuentas reservadas `guest-NN` en las instrucciones privadas de prueba de la submission | CTO con el operador | Abierto | §5 |
-| P-06 | Datos del responsable para la política de privacidad, casilla de privacidad, destinatario del aviso de lead e inscripción de la base en la AAIP | CTO | Abierto | §6 |
+| P-06 | Datos del responsable para la política de privacidad, casilla de privacidad, destinatario del aviso de lead e inscripción de la base en la AAIP | CTO | Cerrado el 2026-10-04 (CTO: Craftech, CABA, sales@craftech.io; aviso a janu@craftech.io) | §6 |
 | P-07 | Ola de superficies públicas: costos y límites a aceptar, secretos y bootstrap, supuesto de `CustomMessage`, alta de aceptación A-01 registrada como lead | CTO; el operador ejecuta | Abierto | §7 |
 
 ## 1. Conectar WhatsApp (P-01)

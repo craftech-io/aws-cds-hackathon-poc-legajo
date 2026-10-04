@@ -84,7 +84,7 @@ describe("landing copy [FL-089]", () => {
   });
 
   it("is Powered by Craftech in both languages", () => {
-    for (const lang of LANGS) expect(LANDING_COPY[lang].footer.product).toBe("Legajo listo · Powered by Craftech");
+    for (const lang of LANGS) expect(LANDING_COPY[lang].footer.product).toMatch(/^Legajo listo.*SIDOM · Powered by Craftech$/);
   });
 });
 

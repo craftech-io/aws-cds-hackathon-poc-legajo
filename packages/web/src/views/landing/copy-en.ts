@@ -11,7 +11,7 @@ import { MEDIA_EN } from "./media-copy-en";
 export const en: LandingCopy = {
   meta: {
     code: "en",
-    title: "Legajo listo · Coordination agent for customs brokers",
+    title: "SIDOM Legajo listo · Coordination agent for customs brokers",
     description: "Every import file complete before the vessel arrives: an agent that chases the commercial invoice, the packing list and the certificate of origin of every import.",
   },
   lang: { switchTo: "Español", switchLabel: "Ver la página en español" },
@@ -28,7 +28,7 @@ export const en: LandingCopy = {
   motion: { paused: "Pause animations", resume: "Resume animations" },
   session: { signedIn: "You have an open session." },
   hero: {
-    eyebrow: "For customs brokerage firms",
+    eyebrow: "SIDOM · For customs brokerage firms",
     title: "Every import file complete before the vessel arrives.",
     lead: "Legajo listo chases the commercial invoice, the packing list and the certificate of origin of every import: the importer on WhatsApp, the foreign supplier by email, in English. It decides who must fix each finding, reschedules deadlines when the ETA moves and leaves the file ready for you to approve.",
     primary: "Try Legajo listo",
@@ -248,7 +248,7 @@ export const en: LandingCopy = {
     talkLead: "Tell us how you work today and we will look at it together.",
     talk: "Let's talk",
   },
-  footer: { product: "Legajo listo · Powered by Craftech", synthetic: "Dossier coordination for customs brokerage firms.", legal: "Legal", privacy: "Privacy", terms: "Terms", contact: "Contact", rights: "© 2026 Craftech" },
+  footer: { product: "Legajo listo by SIDOM · Powered by Craftech", synthetic: "Dossier coordination for customs brokerage firms.", legal: "Legal", privacy: "Privacy", terms: "Terms", contact: "Contact", rights: "© 2026 Craftech" },
   phone: {
     simulator: "WhatsApp",
     fictitious: "customs broker",

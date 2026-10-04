@@ -38,7 +38,7 @@ function list<T>(items: readonly T[]): readonly T[] {
 export const es = {
   meta: {
     code: "es-AR",
-    title: "Legajo listo · Agente de coordinación para despachantes de aduana",
+    title: "SIDOM Legajo listo · Agente de coordinación para despachantes de aduana",
     description: "Cada legajo completo antes de que llegue el buque: un agente que persigue la factura comercial, el packing list y el certificado de origen de cada importación.",
   },
   lang: { switchTo: "English", switchLabel: "Ver la página en inglés" },
@@ -55,7 +55,7 @@ export const es = {
   motion: { paused: "Pausar animaciones", resume: "Reanudar animaciones" },
   session: { signedIn: "Tenés una sesión abierta." },
   hero: {
-    eyebrow: "Para estudios de despachantes de aduana",
+    eyebrow: "SIDOM · Para estudios de despachantes de aduana",
     title: "Cada legajo completo antes de que llegue el buque.",
     lead: "Legajo listo persigue la factura comercial, el packing list y el certificado de origen de cada importación: al importador por WhatsApp, al proveedor extranjero por email y en inglés. Decide quién corrige cada observación, recalcula los plazos cuando se mueve la ETA y te deja el legajo listo para aprobar.",
     primary: "Probar Legajo listo",
@@ -262,7 +262,7 @@ export const es = {
     talkLead: "Contanos cómo trabajan hoy y lo vemos juntos.",
     talk: "Hablemos",
   },
-  footer: { product: "Legajo listo · Powered by Craftech", synthetic: "Coordinación de legajos para estudios de despachantes de aduana.", legal: "Legales", privacy: "Privacidad", terms: "Términos", contact: "Contacto", rights: "© 2026 Craftech" },
+  footer: { product: "Legajo listo, de SIDOM · Powered by Craftech", synthetic: "Coordinación de legajos para estudios de despachantes de aduana.", legal: "Legales", privacy: "Privacidad", terms: "Términos", contact: "Contacto", rights: "© 2026 Craftech" },
   phone: {
     simulator: "WhatsApp",
     fictitious: "despachante de aduana",
