@@ -37,7 +37,7 @@ interface Registered {
  * and appends an entry here; an existing entry is never edited.
  */
 const REGISTERED: Readonly<Record<TextId, Registered>> = {
-  "privacy-page": { governedBy: "privacy", history: [{ version: "2026-10-02", sha256: "82e50eec0159ffb936a95565e86a68004b5a55d56dd993202e535d22cc108a25" }] },
+  "privacy-page": { governedBy: "privacy", history: [{ version: "2026-10-02", sha256: "82e50eec0159ffb936a95565e86a68004b5a55d56dd993202e535d22cc108a25" }, { version: "2026-10-04", sha256: "fd539d9257e40519b209b98819202c3fd717d32df81f802a43f471b8c3fbc4b6" }] },
   "terms-page": { governedBy: "terms", history: [{ version: "2026-10-02", sha256: "c02dc92d10cb55232c660f9f8d155afbf7da854159a713fead435666d0e096f6" }] },
   "consent-terms": { governedBy: "terms", history: [{ version: "2026-10-02", sha256: "f96deb2e3af4fdd451ce543fd401d36c1f30618b74ec33650c914d0f756454d3" }] },
   "consent-contact": { governedBy: "contact", history: [{ version: "2026-10-02", sha256: "6b6b7602fcfbe42dfc839cf74d9ecc12a27e064c4f208d20bd70e8ef455f1eec" }] },
