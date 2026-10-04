@@ -1,5 +1,5 @@
 // The hero (docs/landing-spec.md §2.2 and §4.4): who it is for, the value line as the page's only
-// `h1` (the LCP element: text, no image), the lead, "Probar la demo" (a full page load of `/signup`),
+// `h1` (the LCP element: text, no image), the lead, "Probar Legajo listo" (a full page load of `/signup`),
 // "Ingresar" and "Ver cómo funciona", three trust points and the synthetic-data note. Beside it, the
 // importer's phone writes the real first request and the delegation to the supplier once (≤ 12 s),
 // pausing out of view or in a hidden tab; a visually hidden transcript carries the whole conversation

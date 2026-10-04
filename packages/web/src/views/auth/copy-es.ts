@@ -16,7 +16,7 @@ export const AUTH_ES = {
     tagline: "Agente de coordinación para estudios de despachantes de aduana",
     title: "Cada legajo completo antes del arribo.",
     lead: "Factura comercial, packing list y certificado de origen: el agente los pide al importador por WhatsApp y al proveedor por email, decide quién corrige cada observación y te deja el legajo listo para aprobar.",
-    points: ["La aprobación es siempre tuya", "Política de contacto en código", "Datos 100 % sintéticos en esta demo"],
+    points: ["La aprobación es siempre tuya", "Política de contacto en código", "Serverless en AWS"],
     backHome: "Volver al inicio",
     privacy: "Privacidad",
     terms: "Términos",
@@ -32,7 +32,7 @@ export const AUTH_ES = {
   },
   signup: {
     title: "Probá Legajo listo",
-    lead: "Creá tu cuenta y en un minuto tenés un estudio ficticio propio, con la operación 4471 lista para recorrer. Todo con datos sintéticos.",
+    lead: "Creá tu cuenta y en un minuto tenés tu estudio de prueba, con la operación 4471 lista para recorrer.",
     email: "Email de trabajo",
     emailHint: "Te enviamos un código para verificarlo.",
     password: "Contraseña",
@@ -44,7 +44,7 @@ export const AUTH_ES = {
     submit: "Crear cuenta",
     submitting: "Enviando…",
     haveAccount: "¿Ya tenés cuenta? Ingresá",
-    syntheticNote: "En la demo operás solo sobre empresas y personas ficticias. No cargues datos reales de tu estudio ni de tus clientes.",
+    syntheticNote: "Tu estudio de prueba trabaja con datos de ejemplo: no cargues datos reales de tu estudio ni de tus clientes.",
     honeypot: "No completes este campo",
     errors: {
       email: "Escribí un email válido.",
@@ -111,17 +111,17 @@ export const AUTH_ES = {
   },
   welcome: {
     title: "Preparando tu mundo",
-    lead: "Estamos creando tu estudio ficticio con datos sintéticos. Tarda unos segundos.",
+    lead: "Estamos preparando tu estudio de prueba. Tarda unos segundos.",
     preparing: "Preparando…",
     includesTitle: "Qué vas a encontrar",
-    includes: ["Tu estudio ficticio", "Importadores y proveedores", "La operación 4471 y cinco más", "El reloj en pausa el 14/10 a las 10:30"],
+    includes: ["Tu estudio de prueba", "Importadores y proveedores", "La operación 4471 y cinco más", "El reloj en pausa el 14/10 a las 10:30"],
     expired: (inactiveHours: number, maxAgeHours: number) =>
       `Tu mundo anterior se borró: pasaron ${inactiveHours} h sin uso o ${maxAgeHours} h desde que lo creamos. Te preparamos uno nuevo desde el día 0.`,
     ttl: (inactiveHours: number, maxAgeHours: number) =>
-      `Tu mundo de demo se borra después de ${inactiveHours} h sin uso o a las ${maxAgeHours} h de creado. Tu cuenta sigue: al volver, te preparamos uno nuevo.`,
+      `Tu estudio de prueba se borra después de ${inactiveHours} h sin uso o a las ${maxAgeHours} h de creado. Tu cuenta sigue: al volver, te preparamos uno nuevo.`,
     capacity: {
-      title: "La demo está completa",
-      lead: "La demo está completa en este momento. Tu cuenta ya está creada: probá de nuevo más tarde.",
+      title: "No hay lugar por ahora",
+      lead: "En este momento no hay lugar para nuevos estudios de prueba. Tu cuenta ya está creada: probá de nuevo más tarde.",
       note: "Cuando vuelvas a ingresar, lo intentamos de nuevo. Si querés verlo con alguien del equipo, hablemos.",
       talk: "Hablemos",
     },
@@ -134,12 +134,12 @@ export const AUTH_ES = {
     signOut: "Cerrar sesión",
   },
   quota: {
-    day: (what: string, time: string) => `Llegaste al límite de esta demo por hoy (${what}); se renueva a las ${time}.`,
-    hour: (what: string, time: string) => `Llegaste al límite de esta demo por esta hora (${what}); se renueva a las ${time}.`,
-    global: (time: string) => `La demo llegó a su límite de uso de hoy; se renueva a las ${time}.`,
-    usage: "Uso de tu demo",
+    day: (what: string, time: string) => `Llegaste al límite de tu estudio de prueba por hoy (${what}); se renueva a las ${time}.`,
+    hour: (what: string, time: string) => `Llegaste al límite de tu estudio de prueba por esta hora (${what}); se renueva a las ${time}.`,
+    global: (time: string) => `Se alcanzó el límite de uso de hoy; se renueva a las ${time}.`,
+    usage: "Uso de tu estudio de prueba",
     usageLine: (used: number, limit: number) => `${used} de ${limit}`,
-    globalExhausted: "La demo llegó a su límite de uso de hoy.",
+    globalExhausted: "Se alcanzó el límite de uso de hoy.",
     dismiss: "Entendido",
     kinds: {
       AGENT_TURNS: "turnos del agente",

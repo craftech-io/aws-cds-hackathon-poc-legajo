@@ -12,7 +12,7 @@ export const AUTH_EN: AuthCopy = {
     tagline: "Coordination agent for customs brokerage firms",
     title: "Every file complete before arrival.",
     lead: "Commercial invoice, packing list and certificate of origin: the agent asks the importer on WhatsApp and the supplier by email, decides who fixes each finding and leaves the file ready for you to approve.",
-    points: ["Approval is always yours", "Contact policy in code", "100 % synthetic data in this demo"],
+    points: ["Approval is always yours", "Contact policy in code", "Serverless on AWS"],
     backHome: "Back to the home page",
     privacy: "Privacy",
     terms: "Terms",
@@ -28,7 +28,7 @@ export const AUTH_EN: AuthCopy = {
   },
   signup: {
     title: "Try Legajo listo",
-    lead: "Create your account and in a minute you get your own fictitious firm, with operation 4471 ready to walk through. All with synthetic data.",
+    lead: "Create your account and in a minute you get your trial firm, with operation 4471 ready to walk through.",
     email: "Work email",
     emailHint: "We will send you a code to verify it.",
     password: "Password",
@@ -40,7 +40,7 @@ export const AUTH_EN: AuthCopy = {
     submit: "Create account",
     submitting: "Sending…",
     haveAccount: "Already have an account? Sign in",
-    syntheticNote: "In the demo you only work with fictitious companies and people. Do not enter real data about your firm or your clients.",
+    syntheticNote: "Your trial firm works with sample data: do not enter real data about your firm or your clients.",
     honeypot: "Do not fill in this field",
     errors: {
       email: "Enter a valid email.",
@@ -107,17 +107,17 @@ export const AUTH_EN: AuthCopy = {
   },
   welcome: {
     title: "Preparing your world",
-    lead: "We are creating your fictitious firm with synthetic data. It takes a few seconds.",
+    lead: "We are preparing your trial firm. It takes a few seconds.",
     preparing: "Preparing…",
     includesTitle: "What you will find",
-    includes: ["Your fictitious firm", "Importers and suppliers", "Operation 4471 and five more", "The clock paused on 14/10 at 10:30"],
+    includes: ["Your trial firm", "Importers and suppliers", "Operation 4471 and five more", "The clock paused on 14/10 at 10:30"],
     expired: (inactiveHours: number, maxAgeHours: number) =>
       `Your previous world was deleted: ${inactiveHours} h went by without use, or ${maxAgeHours} h since we created it. We are preparing a new one from day 0.`,
     ttl: (inactiveHours: number, maxAgeHours: number) =>
-      `Your demo world is deleted after ${inactiveHours} h without use or ${maxAgeHours} h after it was created. Your account stays: when you come back, we prepare a new one.`,
+      `Your trial firm is deleted after ${inactiveHours} h without use or ${maxAgeHours} h after it was created. Your account stays: when you come back, we prepare a new one.`,
     capacity: {
-      title: "The demo is full",
-      lead: "The demo is full right now. Your account is already created: try again later.",
+      title: "No room right now",
+      lead: "There is no room for new trial firms right now. Your account is already created: try again later.",
       note: "When you sign in again, we will try again. If you would like to see it with someone from the team, let's talk.",
       talk: "Let's talk",
     },
@@ -130,12 +130,12 @@ export const AUTH_EN: AuthCopy = {
     signOut: "Sign out",
   },
   quota: {
-    day: (what: string, time: string) => `You reached this demo's limit for today (${what}); it resets at ${time}.`,
-    hour: (what: string, time: string) => `You reached this demo's limit for this hour (${what}); it resets at ${time}.`,
-    global: (time: string) => `The demo reached its usage limit for today; it resets at ${time}.`,
-    usage: "Your demo's usage",
+    day: (what: string, time: string) => `You reached your trial firm's limit for today (${what}); it resets at ${time}.`,
+    hour: (what: string, time: string) => `You reached your trial firm's limit for this hour (${what}); it resets at ${time}.`,
+    global: (time: string) => `The daily usage limit was reached; it resets at ${time}.`,
+    usage: "Your trial firm's usage",
     usageLine: (used: number, limit: number) => `${used} of ${limit}`,
-    globalExhausted: "The demo reached its usage limit for today.",
+    globalExhausted: "The daily usage limit was reached.",
     dismiss: "Got it",
     kinds: {
       AGENT_TURNS: "agent turns",

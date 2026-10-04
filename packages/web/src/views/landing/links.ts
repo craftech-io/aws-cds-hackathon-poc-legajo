@@ -1,4 +1,4 @@
-// Where the landing's calls to action go (docs/landing-spec.md §9, ADR-0016 §1). "Probar la demo" opens
+// Where the landing's calls to action go (docs/landing-spec.md §9, ADR-0016 §1). "Probar Legajo listo" opens
 // the sign-up with a full page load (an `<a href>` the router never intercepts, so WAF can challenge the
 // document, ADR-0015 §3.3) and keeps the campaign parameters; "Hablemos" opens Craftech's public
 // contact page in a new tab, with UTM parameters that say which button was used. That address is this

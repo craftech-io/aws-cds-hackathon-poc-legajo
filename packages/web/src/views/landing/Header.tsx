@@ -132,14 +132,14 @@ export function Header() {
         {nav.skip}
       </a>
       <div className="mx-auto flex h-16 max-w-content items-center gap-3 px-gutter">
-        <a href="#top" className="mr-auto inline-flex min-h-11 items-center" aria-label="Legajo listo">
+        <a href="#top" className="mr-auto inline-flex min-h-11 shrink-0 items-center" aria-label="SIDOM Legajo listo">
           <LegajoWordmark tone="dark" size="lg" />
         </a>
         <nav aria-label={nav.label} className="hidden xl:block">
           <ul className="flex items-center gap-1">
             {SECTION_LINKS.map((anchor) => (
               <li key={anchor}>
-                <a href={`#${anchor}`} className="inline-flex min-h-11 items-center rounded-pill px-3 text-sm font-semibold text-foam-muted hover:text-foam">
+                <a href={`#${anchor}`} className="inline-flex min-h-11 items-center whitespace-nowrap rounded-pill px-2.5 text-sm font-semibold text-foam-muted hover:text-foam">
                   {nav[anchor]}
                 </a>
               </li>
@@ -152,8 +152,8 @@ export function Header() {
         </div>
         <SignInLink className="hidden min-h-11 items-center px-2 text-sm font-semibold text-foam underline-offset-4 hover:underline md:inline-flex" />
         <a href={signupHref(search)} aria-label={cta.try} className={buttonClass("primary-signal")}>
-          <span className="md:hidden">{cta.tryShort}</span>
-          <span className="hidden md:inline">{cta.try}</span>
+          <span className="whitespace-nowrap 2xl:hidden">{cta.tryShort}</span>
+          <span className="hidden whitespace-nowrap 2xl:inline">{cta.try}</span>
         </a>
         <button
           ref={menuButton}
