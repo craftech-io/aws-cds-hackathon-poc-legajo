@@ -191,7 +191,7 @@ El Harness de AgentCore que decide qué hacer ante cada evento de una operación
 _Avoid_: bot, asistente virtual, IA
 
 **Turno** (`Turn`):
-Una invocación del Harness para una operación, disparada por un **evento** (`TurnTrigger`: `IMPORTER_MESSAGE`, `SUPPLIER_EMAIL`, `DOCUMENT_READ`, `MILESTONE`, `ETA_CHANGED`, `EMAIL_BOUNCED`, `CONTACT_CONFIRMED`, `UPLOAD_COMPLETED`, `BROKER_RELEASED`, `FOLLOWUP_DUE`). Los turnos de una operación corren de a uno, en orden. Cada evento lleva un `eventId` (`evt_…`) que sale de su origen (el `wamid`, el `Message-ID`, el temporizador) para que una reentrega se procese una sola vez.
+Una invocación del Harness para una operación, disparada por un **evento** (`TurnTrigger`: `IMPORTER_MESSAGE`, `SUPPLIER_EMAIL`, `DOCUMENT_READ`, `MILESTONE`, `ETA_CHANGED`, `EMAIL_BOUNCED`, `CONTACT_CONFIRMED`, `UPLOAD_COMPLETED`, `BROKER_RELEASED`, `FOLLOWUP_DUE`). Los turnos de una operación corren de a uno, en orden. Cada evento lleva un `eventId` (`evt_…`) que sale de su origen (el `wamid`, el `Message-ID`, el temporizador) para que una reentrega se procese una sola vez. Un turno abierto por un mensaje del importador corre en la sesión de conversación del importador, compartida por sus operaciones (ADR-0017).
 _Avoid_: ejecución, request, conversación
 
 **Checklist** (`Checklist`):

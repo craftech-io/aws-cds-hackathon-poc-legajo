@@ -141,23 +141,27 @@ describe("importer flows on WhatsApp", () => {
     expect(confirmations).toHaveLength(1);
   });
 
-  it("[FL-019] free text of an importer with several open operations gets a deterministic OPERATION_CHOICE and no turn; the choice runs one turn on the chosen operation with the original text", async () => {
-    const flow = await open({ "4475": { IMPORTER_MESSAGE: [{ steps: [READ_DOSSIER], note: "Leí el legajo." }] } });
+  it("[FL-019] free text of an importer with several open operations is a turn in the operation the chat is about; the agent moves it to the one it means, and the next text stays there", async () => {
+    const flow = await open({ "4474": { IMPORTER_MESSAGE: [{ steps: [READ_DOSSIER], note: "Es de otra operación." }] }, "4475": { IMPORTER_MESSAGE: [{ steps: [READ_DOSSIER], note: "Leí el legajo." }, { steps: [READ_DOSSIER], note: "Sigo en la 4475." }] } });
     const phone = await flow.phoneOf("imp-patagonia");
 
-    const asked = await flow.phone(phone, { type: "text", text: "¿ya llegó lo del proveedor?" });
+    const asked = await flow.phone(phone, { type: "text", text: "¿ya llegó lo de la 4475?" });
 
-    expect(asked.summary.records[0]?.messages[0]).toMatchObject({ outcome: "OPERATION_CHOICE", operationId: "op-4474" });
-    expect(flow.harness.turns).toEqual([]);
-    const choice = (await flow.messages("op-4474")).find((message) => message.kind === "OPERATION_CHOICE");
-    expect(choice?.author).toBe("SYSTEM");
-    expect(choice?.buttons.map((button) => button.title)).toEqual(["Operación 4474", "Operación 4475", "Operación 4482", "Operación 4490"]);
+    const landed = asked.summary.records[0]?.messages[0];
+    expect(landed).toMatchObject({ outcome: "TURN", operationId: "op-4474" });
+    expect((await flow.messages("op-4474")).some((message) => message.kind === "OPERATION_CHOICE")).toBe(false);
+    const [first] = flow.harness.turns;
+    expect(first?.envelope.event).toMatchObject({ type: "IMPORTER_MESSAGE", operation: "4474" });
+    for (const number of ["4474", "4475", "4482", "4490"]) expect(first?.invocation.text).toContain(`importerOperation number="${number}"`);
 
-    const chosen = await flow.choose("imp-patagonia", "4475");
+    await flow.route({ operationId: landed?.operationId ?? "", messageId: landed?.messageId ?? "" }, "4475");
 
-    expect(chosen.summary.records[0]?.messages[0]).toMatchObject({ outcome: "CHOICE_APPLIED", operationId: "op-4475" });
-    expect(flow.harness.turns.map((turn) => [turn.envelope.event.type, turn.envelope.event.operation])).toEqual([["IMPORTER_MESSAGE", "4475"]]);
-    expect(flow.harness.turns[0]?.envelope.text).toContain("¿ya llegó lo del proveedor?");
+    expect(flow.harness.turns.map((turn) => [turn.envelope.event.type, turn.envelope.event.operation])).toEqual([["IMPORTER_MESSAGE", "4474"], ["IMPORTER_MESSAGE", "4475"]]);
+    expect(flow.harness.turns[1]?.invocation.text).toContain("¿ya llegó lo de la 4475?");
+    expect(flow.harness.turns[1]?.invocation.runtimeSessionId).toBe(first?.invocation.runtimeSessionId);
+
+    const next = await flow.phone(phone, { type: "text", text: "¿y el certificado?" });
+    expect(next.summary.records[0]?.messages[0]).toMatchObject({ outcome: "TURN", operationId: "op-4475" });
   });
 
   it("[FL-017] a packing list PDF from the phone simulator goes through the scan, the choice of operation and the in-process reader: version from WHATSAPP, PACKING_LIST VALID and a DOCUMENT_READ turn that tells the importer", async () => {

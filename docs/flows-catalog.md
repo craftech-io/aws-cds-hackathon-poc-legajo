@@ -145,11 +145,11 @@ Convenciones:
 - Prueba: U `channels/whatsapp/inbound.test.ts` · SR `SC-08/3`.
 
 ### FL-019 · Importador con dos operaciones abiertas
-- Actores: importador (Patagonia Frío), agente · Canal: WhatsApp · Disparador: texto libre "¿ya llegó lo del proveedor?" sin botón.
-- Pasos: 1) `InboundWhatsApp` ve dos operaciones abiertas. 2) Respuesta determinista `OPERATION_CHOICE` (lista con nonce por operación). 3) La elección encola el turno en la operación elegida con el texto original.
-- Estado esperado: ningún turno hasta la elección; después, turno en una sola operación.
-- Reglas: identidad por teléfono; operación nunca asumida.
-- Prueba: U `channels/whatsapp/routing.test.ts` · LF `importer.flow.test.ts` · SR `SC-18/4..5`.
+- Actores: importador (Patagonia Frío), agente · Canal: WhatsApp · Disparador: texto libre sin botón.
+- Pasos (ADR-0017): 1) `InboundWhatsApp` ve varias operaciones abiertas y manda el texto a la **operación activa** (la del último mensaje de las últimas 24 h; si no hay, la ancla), que abre un turno sin lista. 2) El sobre lista las operaciones del importador (`importerOperation`) y `get_operation` devuelve `otherOperations`. 3) Si el mensaje es de otra operación, el agente llama a `route_to_operation` y el worker copia el mensaje (`routedFrom`) y corre el turno allá, en la misma sesión de conversación del importador (Memory). 4) Si pregunta por varias, contesta donde cayó; si no se entiende, repregunta nombrando las operaciones.
+- Estado esperado: un turno por texto, o dos si se movió; ninguna lista `OPERATION_CHOICE` por un texto; el siguiente texto va a la operación activa.
+- Reglas: identidad por teléfono; la operación destino tiene que ser del importador y de su mundo; una copia no se vuelve a mover; un PDF con varias operaciones sigue esperando la elección (FL-017).
+- Prueba: U `channels/whatsapp/routing.test.ts` · LF `importer.flow.test.ts` · A `tests/agent/conversation.agent.test.ts` · SR `SC-18/4..5`.
 
 ### FL-020 · "¿Qué me falta?"
 - Actores: importador, agente · Canal: WhatsApp · Disparador: texto.

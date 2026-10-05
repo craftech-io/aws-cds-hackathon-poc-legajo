@@ -18,7 +18,7 @@ export interface PlanContext {
   readonly calls: readonly GatewayCall[];
 }
 
-export type PlanInput = Readonly<Record<string, unknown>> | ((context: PlanContext) => Readonly<Record<string, unknown>>);
+export type PlanInput = Readonly<Record<string, unknown>> | ((context: PlanContext) => Readonly<Record<string, unknown>> | Promise<Readonly<Record<string, unknown>>>);
 
 export interface PlanStep {
   readonly tool: GatewayToolName;
@@ -117,8 +117,8 @@ export function invocationText(input: Pick<InvokeHarnessCommandInput, "messages"
   return text;
 }
 
-function resolveInput(step: PlanStep, context: PlanContext): Record<string, unknown> {
-  const written = typeof step.input === "function" ? step.input(context) : step.input;
+async function resolveInput(step: PlanStep, context: PlanContext): Promise<Record<string, unknown>> {
+  const written = typeof step.input === "function" ? await step.input(context) : step.input;
   return step.withoutSessionToken ? { ...written } : { ...written, sessionToken: context.envelope.sessionToken };
 }
 
@@ -163,7 +163,7 @@ export function createScriptedHarness(options: { readonly gateway: LocalGateway;
     const calls: GatewayCall[] = [];
     for (const step of plan.steps) {
       if (step.when !== undefined && !step.when({ envelope, calls })) continue;
-      calls.push(await options.gateway.call(step.tool, resolveInput(step, { envelope, calls })));
+      calls.push(await options.gateway.call(step.tool, await resolveInput(step, { envelope, calls })));
     }
     const turn: ScriptedTurn = {
       invocation,

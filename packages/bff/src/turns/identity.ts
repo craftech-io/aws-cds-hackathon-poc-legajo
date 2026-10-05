@@ -7,11 +7,15 @@
 //                     runs or scenarios share an actor, and a reset (new epoch) starts a new one.
 //   runtimeSessionId  keyed hash of operation, clock and both epochs (lib/crypto.ts); a guardrail block
 //                     of the Harness raises `sessionEpoch` and the next turn starts a clean session.
+//                     A turn opened by the importer's own message (`IMPORTER_MESSAGE`) uses the
+//                     importer's conversation session instead (ADR-0017): one Harness session for the
+//                     whole WhatsApp chat, whichever operation the turn runs in, so AgentCore Memory
+//                     carries the conversation across operations.
 //
 // Neither carries a phone, an email or a name.
-import { ImporterId } from "@legajo/shared";
+import { ImporterId, type TurnTrigger } from "@legajo/shared";
 import type { Operation } from "../domain/operations";
-import { type SecretKey, runtimeSessionId } from "../lib/crypto";
+import { type SecretKey, importerSessionId, runtimeSessionId } from "../lib/crypto";
 
 export interface HarnessIdentity {
   readonly actorId: string;
@@ -26,10 +30,17 @@ export function actorIdOf(importerId: string, worldEpoch: number): string {
   return `${ImporterId.parse(importerId)}-e${worldEpoch}`;
 }
 
-/** Actor and session of an operation's turns; `runtimeSessionKey` is the `runtime-session` subkey. */
-export function harnessIdentity(runtimeSessionKey: SecretKey, operation: IdentityOperation): HarnessIdentity {
+/** Triggers whose turns run in the importer's conversation session. */
+export const CONVERSATION_TRIGGERS: ReadonlySet<TurnTrigger> = new Set<TurnTrigger>(["IMPORTER_MESSAGE"]);
+
+/** Actor and session of a turn; `runtimeSessionKey` is the `runtime-session` subkey. */
+export function harnessIdentity(runtimeSessionKey: SecretKey, operation: IdentityOperation, trigger?: TurnTrigger): HarnessIdentity {
+  const actorId = actorIdOf(operation.importerId, operation.worldEpoch);
+  if (trigger !== undefined && CONVERSATION_TRIGGERS.has(trigger)) {
+    return { actorId, runtimeSessionId: importerSessionId(runtimeSessionKey, { importerId: operation.importerId, clockId: operation.clockId, worldEpoch: operation.worldEpoch, sessionEpoch: operation.sessionEpoch }) };
+  }
   return {
-    actorId: actorIdOf(operation.importerId, operation.worldEpoch),
+    actorId,
     runtimeSessionId: runtimeSessionId(runtimeSessionKey, {
       operationId: operation.operationId,
       clockId: operation.clockId,

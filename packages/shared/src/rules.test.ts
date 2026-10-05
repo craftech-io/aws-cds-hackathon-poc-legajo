@@ -76,7 +76,7 @@ describe("Cedar statements and Lambda fences", () => {
 });
 
 describe("gateway tools", () => {
-  it("are the 15 tools of docs/tool-catalog.md, by target", () => {
+  it("are the 16 tools of docs/tool-catalog.md, by target", () => {
     const byTarget: Record<string, string[]> = {};
     let target = "";
     for (const line of TOOL_CATALOG.split("\n")) {
@@ -87,7 +87,7 @@ describe("gateway tools", () => {
       if (tool !== undefined && target !== "") (byTarget[target] ??= []).push(tool);
     }
     expect(byTarget).toEqual(GATEWAY_TOOLS);
-    expect(GatewayToolName.options).toHaveLength(15);
+    expect(GatewayToolName.options).toHaveLength(16);
   });
 
   it("gateway action names are <target>___<tool>", () => {

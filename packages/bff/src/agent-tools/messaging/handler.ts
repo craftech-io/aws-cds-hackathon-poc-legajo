@@ -3,6 +3,7 @@
 // (outbound/); the ports come from the Lambda entry (index.ts) or from the tests.
 import type { Implementations } from "../common/context";
 import { proposeSupplierContact } from "./propose-contact";
+import { routeToOperation } from "./route-operation";
 import type { MESSAGING_TOOLS } from "./schema";
 import { type MessagingPorts, sendEmail, sendWhatsApp } from "./send";
 
@@ -13,5 +14,6 @@ export function messagingImplementations(ports: MessagingPorts): Implementations
     send_whatsapp: sendWhatsApp(ports),
     send_email: sendEmail(ports),
     propose_supplier_contact: proposeSupplierContact(ports),
+    route_to_operation: routeToOperation(),
   };
 }

@@ -3,6 +3,7 @@
 // comes from the scope the wrapper derived from the session (never from the model), every business
 // date is the world's (`scope.nowSim`, ADR-0007) and goes out with its `…Text` already formatted.
 import { DocType, MilestoneName, ok } from "@legajo/shared";
+import { openOperationsOf } from "../../channels/whatsapp/routing";
 import { labelsEsAR } from "../../copy/es-AR";
 import { DISPATCH_GLOSSARY, dispatchGlossaryKey } from "../../copy/dispatch-glossary";
 import { OBSERVATION_LABELS } from "../../copy/observation-labels";
@@ -28,9 +29,30 @@ export const SUPPLIER_DEADLINE = { days: -4, time: "17:00" } as const;
 export const CHECKLIST_COVERAGE_NOTE =
   "Answer the importer only with these items. Anything they do not cover is not answered: escalate it with escalate_to_broker (OUT_OF_CHECKLIST).";
 
+/**
+ * The importer's other open operations (ADR-0017): number, ETA, dossier and documents, so an answer
+ * across operations is grounded on a tool result of the turn, like every number the agent writes.
+ */
+async function otherOperationsOf(connector: Pick<Connector, "operations" | "documents">, scope: Pick<ToolScope, "operationId" | "firmId" | "importerId" | "clockId">) {
+  const operations = await openOperationsOf(connector, scope);
+  const others = operations.filter((operation) => operation.operationId !== scope.operationId);
+  return Promise.all(
+    others.map(async (operation) => {
+      const documents = await connector.documents.listDocuments(operation.operationId);
+      return {
+        operationNumber: operation.operationNumber,
+        etaText: textAr(operation.eta),
+        dossierStatus: operation.dossierStatus,
+        documentsValid: documents.filter((document) => document.status === "VALID").length,
+        missing: DocType.options.filter((docType) => !documents.some((document) => document.docType === docType && document.status !== "MISSING")),
+      };
+    }),
+  );
+}
+
 export const getOperation: ToolImplementation<ToolInput<Tools["get_operation"]>> = async ({ connector, scope }) => {
   const operation = await connector.operations.getOperation(scope.operationId);
-  const [firm, importer, supplier] = await Promise.all([connector.firms.getFirm(scope.firmId), connector.parties.getImporter(scope.importerId), connector.parties.getSupplier(scope.supplierId)]);
+  const [firm, importer, supplier, otherOperations] = await Promise.all([connector.firms.getFirm(scope.firmId), connector.parties.getImporter(scope.importerId), connector.parties.getSupplier(scope.supplierId), otherOperationsOf(connector, scope)]);
   return ok({
     operation: {
       operationNumber: operation.operationNumber,
@@ -51,6 +73,7 @@ export const getOperation: ToolImplementation<ToolInput<Tools["get_operation"]>>
     },
     nowSim: isoAr(scope.nowSim),
     nowSimText: textAr(scope.nowSim),
+    otherOperations,
   });
 };
 

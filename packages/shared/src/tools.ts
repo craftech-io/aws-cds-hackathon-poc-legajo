@@ -1,4 +1,4 @@
-// The 15 tools of the AgentCore Gateway, grouped by their 5 Lambda targets (docs/tool-catalog.md,
+// The 16 tools of the AgentCore Gateway, grouped by their 5 Lambda targets (docs/tool-catalog.md,
 // docs/design-brief.md §5.3). The zod schemas of each tool live in
 // packages/bff/src/agent-tools/<target>/schema.ts; this file only fixes the names so the schemas, the
 // Cedar statements (infra/policy-rules.ts) and the audit log agree on the same strings.
@@ -10,7 +10,7 @@ export type ToolTarget = z.infer<typeof ToolTarget>;
 export const GATEWAY_TOOLS = {
   operations: ["get_operation", "get_dossier", "assign_responsible", "get_counterpart_profile", "get_checklist", "get_dispatch_status"],
   documents: ["read_document", "create_upload_link"],
-  messaging: ["send_whatsapp", "send_email", "propose_supplier_contact"],
+  messaging: ["send_whatsapp", "send_email", "propose_supplier_contact", "route_to_operation"],
   followups: ["schedule_followup", "estimate_delay_risk"],
   handoff: ["escalate_to_broker", "request_approval"],
 } as const satisfies Record<ToolTarget, readonly string[]>;

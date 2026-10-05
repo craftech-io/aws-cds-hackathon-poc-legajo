@@ -22,7 +22,7 @@ import { QA_DELETE_CONDITION } from "../connector/world-conditions";
 import { clockKey, firmPartition, mailboxPartition, operationPartition, uploadLinkKey } from "../connector/keys";
 import type { Item, Key, TableClient, WriteCondition } from "../connector/table-client";
 import type { Operation } from "../domain/operations";
-import { runtimeSessionId } from "../lib/crypto";
+import { importerSessionId, runtimeSessionId } from "../lib/crypto";
 import type { TableName } from "../lib/resource";
 import { actorIdOf } from "../turns/identity";
 import type { WorldsDeps } from "./deps";
@@ -138,12 +138,14 @@ async function deletePlatform(firmId: string, facts: WorldFacts, client: TableCl
 export function purgeTargetOf(clockId: string, epoch: number, operations: ReadonlyArray<Pick<Operation, "operationId" | "importerId" | "sessionEpoch">>, importerIds: readonly string[], deps: Pick<WorldsDeps, "keys">): Omit<PurgeTarget, "startedAtReal"> {
   const actorIds = [...new Set(importerIds.map((importerId) => actorIdOf(importerId, epoch)))];
   const sessions = operations.flatMap((operation) =>
-    Array.from({ length: Math.max(operation.sessionEpoch, NAMED_SESSION_EPOCHS) + 1 }, (_, sessionEpoch) => ({
-      actorId: actorIdOf(operation.importerId, epoch),
-      sessionId: runtimeSessionId(deps.keys.runtimeSession, { operationId: operation.operationId, clockId, worldEpoch: epoch, sessionEpoch }),
-    })),
+    Array.from({ length: Math.max(operation.sessionEpoch, NAMED_SESSION_EPOCHS) + 1 }, (_, sessionEpoch) => [
+      { actorId: actorIdOf(operation.importerId, epoch), sessionId: runtimeSessionId(deps.keys.runtimeSession, { operationId: operation.operationId, clockId, worldEpoch: epoch, sessionEpoch }) },
+      // The importer's conversation session (ADR-0017), under every session epoch an operation of it reached.
+      { actorId: actorIdOf(operation.importerId, epoch), sessionId: importerSessionId(deps.keys.runtimeSession, { importerId: operation.importerId, clockId, worldEpoch: epoch, sessionEpoch }) },
+    ]).flat(),
   );
-  return { clockId, epoch, actorIds, sessions };
+  const unique = [...new Map(sessions.map((session) => [`${session.actorId}|${session.sessionId}`, session])).values()];
+  return { clockId, epoch, actorIds, sessions: unique };
 }
 
 /** Destroys the world of `clockId` (see the header); a world without a clock answers `destroyed: false`. */

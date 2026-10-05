@@ -258,7 +258,7 @@ export function toolActions(fn: LambdaName): string[] {
  * not rewrite it on every deploy. A PR that changes a tool schema lists the changed targets here; once CI
  * deployed it, the next PR empties the list. The digest in the description shows what is live.
  */
-export const GATEWAY_SCHEMA_ROLLOUT: readonly ToolTarget[] = [];
+export const GATEWAY_SCHEMA_ROLLOUT: readonly ToolTarget[] = ["messaging"];
 
 export const TARGET_IGNORED_FIELDS = ["metadataConfiguration", "targetConfiguration", "description"] as const;
 

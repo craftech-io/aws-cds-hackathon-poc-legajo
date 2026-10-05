@@ -35,11 +35,11 @@ function everyNode(node: GatewaySchemaNode, visit: (node: GatewaySchemaNode, pat
 }
 
 describe("npm run tools:build-schemas", () => {
-  it("generates 5 payloads with the 15 Gateway tools, in the order of GATEWAY_TOOLS, and nothing to fix", () => {
+  it("generates 5 payloads with the 16 Gateway tools, in the order of GATEWAY_TOOLS, and nothing to fix", () => {
     expect(checkGatewayBuild(build)).toEqual([]);
     expect(Object.keys(build.payloads)).toEqual([...ToolTarget.options]);
     for (const target of ToolTarget.options) expect(build.payloads[target].map((tool) => tool.name)).toEqual([...GATEWAY_TOOLS[target]]);
-    expect(EXPECTED_TOOL_COUNT).toBe(15);
+    expect(EXPECTED_TOOL_COUNT).toBe(16);
     expect(buildSummary(build)).toHaveLength(5);
   });
 
@@ -113,7 +113,7 @@ describe("npm run tools:build-schemas", () => {
         expect.stringMatching(/^get_operation\.shape: "type" undefined is not a single Gateway type$/),
         "operations___get_dossier: tool without schema",
         "handoff___schedule_followup: not a tool of the handoff target",
-        "the Gateway has 12 tools, expected 15",
+        "the Gateway has 13 tools, expected 16",
       ]),
     );
   });

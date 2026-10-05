@@ -46,7 +46,7 @@ export function boundedText(max: number, description: string) {
   return z.string().trim().min(1).max(max).describe(description);
 }
 
-/** What the model reads about `sessionToken`, the same on the 15 tools. */
+/** What the model reads about `sessionToken`, the same on the 16 tools. */
 export const SESSION_TOKEN_DESCRIPTION = 'Token of this turn, copied verbatim from the <session token="…"/> line of the turn envelope. Required in every call; never write it yourself.';
 
 /** Callers of the console and of the `QaDriver` (which reaches the console handlers through the real appRouter). */

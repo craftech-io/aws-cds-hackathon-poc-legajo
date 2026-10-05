@@ -10,6 +10,7 @@ import { ARGENTINA_TIME_ZONE, zonedParts } from "../../services/business-hours";
 import { BUTTON_LABELS, operationRowTitle } from "../../copy/buttons";
 import { importerEsAR } from "../../copy/es-AR";
 import type { Connector } from "../../connector/connector";
+import { importerCounterpartKey } from "../../connector/keys";
 import type { Message } from "../../domain/conversations";
 import type { Operation } from "../../domain/operations";
 import type { Importer } from "../../domain/parties";
@@ -28,6 +29,24 @@ export async function openOperationsOf(data: Pick<Connector, "operations">, impo
   return operations
     .filter((operation) => operation.importerId === importer.importerId && operation.clockId === importer.clockId && operation.dispatch.status !== "LIBERADO")
     .sort((a, b) => approvedLast(a) - approvedLast(b) || Date.parse(a.eta) - Date.parse(b.eta) || a.operationNumber.localeCompare(b.operationNumber));
+}
+
+/** Hours a chat keeps its operation: Meta's customer service window. */
+export const CONVERSATION_WINDOW_HOURS = 24;
+
+/**
+ * The operation the importer's chat is about (ADR-0017): the one of the latest message, either way, of
+ * the last 24 h among the open ones (the system's operation choice lists do not count), or the anchor
+ * when the chat is quiet. A free text goes there; the agent moves it if it is about another one.
+ */
+export async function activeOperationOf(data: Pick<Connector, "conversations">, importerId: string, operations: readonly Operation[], nowReal: Date): Promise<Operation | undefined> {
+  const open = new Map(operations.map((operation) => [operation.operationId, operation]));
+  const since = nowReal.getTime() - CONVERSATION_WINDOW_HOURS * 3_600_000;
+  const latest = (await data.conversations.listCounterpartMessages(importerCounterpartKey(importerId)))
+    .filter((message) => message.kind !== "OPERATION_CHOICE" && open.has(message.operationId) && Date.parse(message.sentAtReal) >= since)
+    // A message the agent moved shares its instant with the original: the copy wins, the chat moved with it.
+    .sort((a, b) => Date.parse(b.sentAtReal) - Date.parse(a.sentAtReal) || Number(b.interactive?.routedFrom !== undefined) - Number(a.interactive?.routedFrom !== undefined))[0];
+  return (latest === undefined ? undefined : open.get(latest.operationId)) ?? operations[0];
 }
 
 /** "22/10": the ETA of a row, in Argentina's wall clock. */

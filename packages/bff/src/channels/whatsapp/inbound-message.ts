@@ -22,7 +22,7 @@ import { type WaInboundMessage, e164Of, instantOf } from "./payloads";
 import { type NormalizedText, normalizeInboundText } from "../normalizer";
 import { type InboundDelivery, admitInbound, completeInbound, isProcessed, rateLimitOf } from "../rate-limit";
 import { appendInbound, derivedMessageId, importerTurn, recordDecision } from "./records";
-import { applyOperationChoice, offerOperationChoice, openOperationsOf } from "./routing";
+import { activeOperationOf, applyOperationChoice, offerOperationChoice, openOperationsOf } from "./routing";
 
 export type { InboundContext, MessageOutcome, MessageResult } from "./inbound-senders";
 
@@ -57,12 +57,16 @@ interface Unrouted {
 async function route(ctx: InboundContext, sender: Sender, message: WaInboundMessage, unrouted: Unrouted): Promise<MessageResult> {
   const { deps } = ctx;
   const wamid = message.id;
-  const [target] = sender.operations;
-  if (target === undefined) {
+  const [anchor] = sender.operations;
+  if (anchor === undefined) {
     for (const media of unrouted.media) await deps.media.delete(media.objectKey);
     await recordDecision(deps.data, { firmId: sender.importer.firmId, clockId: sender.importer.clockId, decision: "DENY", action: "NO_OPEN_OPERATION", atSim: sender.atSim, atReal: sender.atReal, importerId: sender.importer.importerId, wamid });
     return { wamid, outcome: "NO_OPEN_OPERATION" };
   }
+  // A text alone goes to the operation the chat is about (ADR-0017); a PDF still needs the importer's
+  // choice when there are several open operations, because a document in the wrong dossier is costly.
+  const choosing = sender.operations.length > 1 && unrouted.media.length > 0;
+  const target = choosing || !unrouted.hasText ? anchor : ((await activeOperationOf(deps.data, sender.importer.importerId, sender.operations, sender.now)) ?? anchor);
   const persisted = await appendInbound(deps.data, {
     wamid,
     importer: sender.importer,
@@ -78,11 +82,11 @@ async function route(ctx: InboundContext, sender: Sender, message: WaInboundMess
   });
   const base = { wamid, operationId: target.operationId, messageId: persisted.messageId };
   if (unrouted.rejected !== undefined) await reply(ctx, { key: unrouted.rejected, importer: sender.importer, operationId: target.operationId, source: persisted, atSim: sender.atSim });
-  if (sender.operations.length > 1 && (unrouted.hasText || unrouted.media.length > 0)) {
+  if (choosing) {
     await offerOperationChoice(deps, { importer: sender.importer, phoneHash: sender.hash, wamid, operations: sender.operations, source: { messageId: persisted.messageId, hasText: unrouted.hasText, media: unrouted.media }, atSim: sender.atSim, now: sender.now });
     return { ...base, outcome: "OPERATION_CHOICE" };
   }
-  if (sender.operations.length === 1 && unrouted.hasText) {
+  if (unrouted.hasText) {
     await deps.events.enqueue(importerTurn({ importer: sender.importer, operationId: target.operationId, messageId: persisted.messageId, wamid, atSim: sender.atSim }));
   }
   for (const media of unrouted.media) {

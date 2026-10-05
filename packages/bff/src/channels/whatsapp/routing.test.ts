@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { importerEsAR } from "../../copy/es-AR";
 import { turnEventId } from "../adapter";
 import { processWhatsAppEvent } from "./inbound";
-import { etaRowText } from "./routing";
+import { moveToOperation } from "../../turns/routed";
+import { activeOperationOf, openOperationsOf } from "./routing";
 import { CLOCK, REAL_NOW, type WaWorld, addOperation, simEvent, waWorld } from "./testing";
 
 const TEXT_WAMID = "wamid.SIM.01JAB3C4D5E6F7G8H9J0TEXT01";
@@ -25,56 +25,41 @@ async function choose(world: WaWorld, row: number, wamid: string) {
 }
 
 describe("[FL-019] an importer with two open operations", () => {
-  it("[FL-019] free text gets the deterministic OPERATION_CHOICE list and no turn", async () => {
+  it("[FL-019] free text of a quiet chat is a turn in the anchor, with no list (ADR-0017)", async () => {
     const world = await twoOperations();
     const summary = await processWhatsAppEvent(simEvent({ type: "text", text: "¿Ya llegó lo del proveedor?" }, { wamid: TEXT_WAMID }), world.deps);
-    expect(summary.records[0]?.messages[0]).toMatchObject({ outcome: "OPERATION_CHOICE", operationId: "op-4471" });
-    expect(world.events).toEqual([]);
-    const [offer] = world.replies;
-    expect(offer).toMatchObject({ kind: "OPERATION_CHOICE", textKey: "operationChoice", body: importerEsAR.operationChoice.body, operationId: "op-4471" });
-    expect(offer?.list?.buttonTitle).toBe("Elegir operación");
-    expect(offer?.list?.rows.map((row) => [row.operationId, row.title])).toEqual([
-      ["op-4471", "Operación 4471"],
-      ["op-4476", "Operación 4476"],
-    ]);
-    expect(offer?.list?.rows[1]?.description).toBe(`Qingdao Bluewave Textiles Co., Ltd. · arribo estimado ${etaRowText("2026-10-29T10:00:00-03:00")}`);
-    expect(offer?.buttons.map((button) => button.action)).toEqual(["CHOOSE_OPERATION", "CHOOSE_OPERATION"]);
-    for (const row of offer?.list?.rows ?? []) {
-      expect(await world.stores.connector.runtime.getNonce(row.nonce)).toMatchObject({ action: "CHOOSE_OPERATION", operationId: row.operationId, importerId: "imp-norpampa", clockId: CLOCK });
-    }
-    expect((await messagesOf(world, "op-4471")).map((message) => message.body)).toEqual(["¿Ya llegó lo del proveedor?"]);
+    expect(summary.records[0]?.messages[0]).toMatchObject({ outcome: "TURN", operationId: "op-4471" });
+    expect(world.replies).toEqual([]);
+    const [original] = await messagesOf(world, "op-4471");
+    expect(world.events).toEqual([expect.objectContaining({ type: "AGENT_TURN", trigger: "IMPORTER_MESSAGE", operationId: "op-4471", messageId: original?.messageId, eventId: turnEventId("IMPORTER_MESSAGE", TEXT_WAMID) })]);
     expect(await messagesOf(world, "op-4476")).toEqual([]);
   });
 
-  it("[FL-019] the choice runs one turn in the chosen operation, with the original text", async () => {
+  it("[FL-019] a moved message runs one more turn in the target, never moves again, and makes the chat about it", async () => {
     const world = await twoOperations();
-    await processWhatsAppEvent(simEvent({ type: "text", text: "¿Ya llegó lo del proveedor?" }, { wamid: TEXT_WAMID }), world.deps);
-    const summary = await choose(world, 1, "wamid.SIM.CHOICE1");
-    expect(summary.records[0]?.messages[0]).toMatchObject({ outcome: "CHOICE_APPLIED", operationId: "op-4476" });
+    await processWhatsAppEvent(simEvent({ type: "text", text: "¿Y la 4476?" }, { wamid: TEXT_WAMID }), world.deps);
     const [original] = await messagesOf(world, "op-4471");
-    const chosen = await messagesOf(world, "op-4476");
-    const copy = chosen.find((message) => message.interactive?.routedFrom !== undefined);
-    expect(copy).toMatchObject({ body: "¿Ya llegó lo del proveedor?", interactive: { routedFrom: { operationId: "op-4471", messageId: original?.messageId } } });
-    expect(copy?.providerMessageId).toBeUndefined();
-    expect(chosen.find((message) => message.providerMessageId === "wamid.SIM.CHOICE1")).toMatchObject({ interactive: { buttonAction: "CHOOSE_OPERATION", buttonResolved: true } });
-    expect(world.events).toEqual([
-      { type: "AGENT_TURN", eventId: turnEventId("IMPORTER_MESSAGE", TEXT_WAMID), trigger: "IMPORTER_MESSAGE", operationId: "op-4476", clockId: CLOCK, firmId: "firm-delta", messageId: copy?.messageId, eventAtSim: "2026-10-14T13:30:00.000Z", intakeEventIds: [] },
-    ]);
+    const operation = await world.stores.connector.operations.getOperation("op-4471");
+    const sink = { enqueue: async (event: unknown) => void world.events.push(event as never) };
+    const log = { info: () => undefined, warn: () => undefined } as never;
+    const moved = await moveToOperation(world.stores.connector, { sink: sink as never, log }, { operation, messageId: original?.messageId ?? "", eventAtSim: original?.sentAtSim ?? "", targetId: "op-4476" });
+    const [copy] = await messagesOf(world, "op-4476");
+    expect(copy).toMatchObject({ messageId: moved?.messageId, body: "¿Y la 4476?", interactive: { routedFrom: { operationId: "op-4471", messageId: original?.messageId } } });
+    expect(world.events.at(-1)).toMatchObject({ trigger: "IMPORTER_MESSAGE", operationId: "op-4476", messageId: copy?.messageId, eventId: turnEventId("IMPORTER_MESSAGE", `${TEXT_WAMID}#to#op-4476`) });
+    const target = await world.stores.connector.operations.getOperation("op-4476");
+    expect(await moveToOperation(world.stores.connector, { sink: sink as never, log }, { operation: target, messageId: copy?.messageId ?? "", eventAtSim: copy?.sentAtSim ?? "", targetId: "op-4471" })).toBeUndefined();
+    const open = await openOperationsOf(world.stores.connector, { firmId: "firm-delta", importerId: "imp-norpampa", clockId: CLOCK });
+    expect((await activeOperationOf(world.stores.connector, "imp-norpampa", open, new Date(REAL_NOW)))?.operationId).toBe("op-4476");
   });
 
-  it("[FL-019] choosing the anchor needs no copy; the list is used up, so a later row never runs a second turn", async () => {
-    const world = await twoOperations();
-    await processWhatsAppEvent(simEvent({ type: "text", text: "Consulta" }, { wamid: TEXT_WAMID }), world.deps);
-    await choose(world, 0, "wamid.SIM.CHOICE1");
-    const [original] = (await messagesOf(world, "op-4471")).filter((message) => message.providerMessageId === TEXT_WAMID);
-    expect(world.events).toEqual([expect.objectContaining({ operationId: "op-4471", messageId: original?.messageId, eventId: turnEventId("IMPORTER_MESSAGE", TEXT_WAMID) })]);
-    for (const [row, wamid] of [[1, "wamid.SIM.CHOICE2"], [0, "wamid.SIM.CHOICE3"]] as const) {
-      expect((await choose(world, row, wamid)).records[0]?.messages[0]?.outcome).not.toBe("CHOICE_APPLIED");
-    }
-    // Nothing reached the other operation: no turn, so nothing of it is left in flight either.
-    expect(world.events.filter((event) => event.type === "AGENT_TURN" && event.operationId === "op-4476")).toEqual([]);
-    const refusals = await Promise.all(["op-4471", "op-4476"].map((operationId) => world.stores.connector.audit.listByOperation(operationId)));
-    expect(refusals.flat().filter((decision) => decision.action === "NONCE_USED")).toHaveLength(2);
+  it("[FL-019] the active operation ignores the system's choice lists and anything older than 24 h", async () => {
+    const operations = [{ operationId: "op-4471" }, { operationId: "op-4476" }] as never[];
+    const now = new Date("2026-10-14T12:00:00.000Z");
+    const message = (operationId: string, sentAtReal: string, kind?: string) => ({ operationId, sentAtReal, ...(kind === undefined ? {} : { kind }) });
+    const data = (messages: unknown[]) => ({ conversations: { listCounterpartMessages: async () => messages } }) as never;
+    expect((await activeOperationOf(data([message("op-4476", "2026-10-14T11:00:00.000Z"), message("op-4471", "2026-10-14T11:30:00.000Z", "OPERATION_CHOICE")]), "imp-norpampa", operations, now))?.operationId).toBe("op-4476");
+    expect((await activeOperationOf(data([message("op-4476", "2026-10-12T11:00:00.000Z")]), "imp-norpampa", operations, now))?.operationId).toBe("op-4471");
+    expect((await activeOperationOf(data([message("op-4999", "2026-10-14T11:00:00.000Z")]), "imp-norpampa", operations, now))?.operationId).toBe("op-4471");
   });
 
   it("[FL-019] a PDF of an importer with two operations waits for the choice, then goes to the chosen intake", async () => {

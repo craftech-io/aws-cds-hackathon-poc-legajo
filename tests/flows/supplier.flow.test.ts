@@ -13,6 +13,12 @@ import type { FlowWorld } from "./support/world";
 
 const worlds = useFlowWorld();
 
+/** The importer's latest WhatsApp in an operation: the message of the turn running there. */
+async function lastInbound(flow: FlowWorld | undefined, operationId: string): Promise<string> {
+  const inbound = (await flow?.messages(operationId))?.filter((message) => message.direction === "IN" && message.channel === "WHATSAPP");
+  return inbound?.at(-1)?.messageId ?? "";
+}
+
 const open = (plans: Parameters<typeof worlds.open>[0]): Promise<FlowWorld> => worlds.open(plans);
 
 const emailsOut = async (flow: FlowWorld, operationId: string) => (await flow.messages(operationId)).filter((message) => message.direction === "OUT" && message.channel === "EMAIL");
@@ -87,18 +93,16 @@ describe("supplier flows by email", () => {
 
   it("[FL-014] the importer writes another address of the supplier: propose_supplier_contact leaves it PENDING_CONFIRMATION with CONFIRM/REJECT buttons; CONFIRM_CONTACT makes it ACTIVE and the CONTACT_CONFIRMED turn writes to the new contact", async () => {
     const address = "supplier-konkan-ops@sim.legajo.demo.craftech.io";
-    let sourceMessageId = "";
-    const propose: Plan = { steps: [{ tool: "propose_supplier_contact", input: () => ({ email: address, sourceMessageId }) }], note: "Propuse el contacto." };
+    const world: { flow?: FlowWorld } = {};
+    const propose: Plan = { steps: [{ tool: "propose_supplier_contact", input: async () => ({ email: address, sourceMessageId: await lastInbound(world.flow, "op-4474") }) }], note: "Propuse el contacto." };
     const confirmed: Plan = {
       steps: [READ_OPERATION, READ_DOSSIER, READ_SUPPLIER, { ...EMAIL_DOCS_REQUEST, input: (context) => ({ ...(typeof EMAIL_DOCS_REQUEST.input === "function" ? EMAIL_DOCS_REQUEST.input(context) : EMAIL_DOCS_REQUEST.input), contactId: newContactId(context.calls) }) }],
       note: "Escribí al contacto nuevo.",
     };
     const flow = await open({ "4474": { IMPORTER_MESSAGE: [propose], CONTACT_CONFIRMED: [confirmed] } });
-    const phone = await flow.phoneOf("imp-patagonia");
+    world.flow = flow;
 
-    const asked = await flow.phone(phone, { type: "text", text: `escribile a ${address}` });
-    sourceMessageId = asked.summary.records[0]?.messages[0]?.messageId ?? "";
-    await flow.choose("imp-patagonia", "4474");
+    await flow.say("imp-patagonia", "4474", `escribile a ${address}`);
 
     const pending = (await flow.data.parties.listContacts("sup-konkan")).find((contact) => contact.email === address);
     expect(pending?.status).toBe("PENDING_CONFIRMATION");
@@ -115,14 +119,13 @@ describe("supplier flows by email", () => {
   });
 
   it("[FL-015] a proposed address outside the recipient fence is refused: RECIPIENT_NOT_ALLOWED, no contact, DENY CP-RECIPIENT-FENCE and an OTHER escalation", async () => {
-    let sourceMessageId = "";
-    const plan: Plan = { steps: [{ tool: "propose_supplier_contact", input: () => ({ email: "compras@example.com", sourceMessageId }) }, reply("REPLY", "El estudio va a revisar esa dirección."), escalate("OTHER", "El importador pasó una dirección que no podemos usar.")], note: "Dirección fuera del cerco." };
+    const world: { flow?: FlowWorld } = {};
+    const plan: Plan = { steps: [{ tool: "propose_supplier_contact", input: async () => ({ email: "compras@example.com", sourceMessageId: await lastInbound(world.flow, "op-4474") }) }, reply("REPLY", "El estudio va a revisar esa dirección."), escalate("OTHER", "El importador pasó una dirección que no podemos usar.")], note: "Dirección fuera del cerco." };
     const flow = await open({ "4474": { IMPORTER_MESSAGE: [plan] } });
+    world.flow = flow;
     const contactsBefore = await flow.data.parties.listContacts("sup-konkan");
 
-    const asked = await flow.phone(await flow.phoneOf("imp-patagonia"), { type: "text", text: "escribile a compras@example.com" });
-    sourceMessageId = asked.summary.records[0]?.messages[0]?.messageId ?? "";
-    await flow.choose("imp-patagonia", "4474");
+    await flow.say("imp-patagonia", "4474", "escribile a compras@example.com");
 
     const turn = flow.harness.turns.find((candidate) => candidate.envelope.event.type === "IMPORTER_MESSAGE");
     expect(turn?.calls[0]?.output).toMatchObject({ ok: false, error: { code: "RECIPIENT_NOT_ALLOWED" } });

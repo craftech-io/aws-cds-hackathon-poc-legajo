@@ -78,28 +78,23 @@ export const sc18 = defineScenario({
     },
     {
       n: 4,
-      title: "an importer with two open operations gets the list and no turn yet",
+      title: "an importer with two open operations gets a turn in the operation the chat is about, with no list (ADR-0017)",
       flows: ["FL-019"],
       async run(ctx) {
         const { operationId } = opOf(ctx, "a");
         await importerSays(ctx, operationId, "¿Ya llegó lo del proveedor?");
-        await awaitState(ctx, operationId, "OPERATION_CHOICE", (snapshot) => outbound(snapshot, { kind: "OPERATION_CHOICE", status: [...SENT_STATUSES] }).length > 0);
-        for (const key of ["a", "b"]) {
-          const settled = await ctx.settled(opOf(ctx, key).operationId);
-          ctx.none(settled, `turns of ${key} before the choice`, settled.turnNotes);
-        }
+        const turned = await awaitState(ctx, operationId, "a turn of the text", (snapshot) => snapshot.turnNotes.length > 0);
+        ctx.none(turned, "an OPERATION_CHOICE list for a text", outbound(turned, { kind: "OPERATION_CHOICE" }));
       },
     },
     {
       n: 5,
-      title: "the choice runs the turn in the chosen operation only",
+      title: "a text about the other operation ends up answered there",
       flows: ["FL-019"],
       async run(ctx) {
         const [a, b] = [opOf(ctx, "a").operationId, opOf(ctx, "b").operationId];
-        await ctx.qa("wa.inbound", { operationId: a, message: { type: "choice", choose: b } });
-        await awaitState(ctx, b, "the turn in the chosen operation", (snapshot) => snapshot.turnNotes.length > 0);
-        const other = await ctx.settled(a);
-        ctx.none(other, "turns in the operation not chosen", other.turnNotes);
+        await importerSays(ctx, a, `¿Y qué me falta en la operación ${opOf(ctx, "b").operationNumber}?`);
+        await awaitState(ctx, b, "the turn in the other operation", (snapshot) => snapshot.turnNotes.length > 0);
       },
     },
     {

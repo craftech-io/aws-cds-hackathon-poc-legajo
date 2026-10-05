@@ -1,4 +1,4 @@
-// The definitions of the 15 Gateway tools by target, in the order of `GATEWAY_TOOLS`: what the Gateway
+// The definitions of the 16 Gateway tools by target, in the order of `GATEWAY_TOOLS`: what the Gateway
 // payloads are generated from (gateway-schema.ts) and what the tests walk. Pure, like the schemas: the
 // SST program loads it through infra/agent-tool-schemas.ts.
 import { GATEWAY_TOOLS, ToolTarget } from "@legajo/shared";

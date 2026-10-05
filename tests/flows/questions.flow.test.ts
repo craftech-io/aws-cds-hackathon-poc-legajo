@@ -129,7 +129,7 @@ describe("importer question flows", () => {
     expect(answer?.body).toContain(`USD ${risk.estimatedCostUsd.min.toLocaleString("es-AR")}`);
   });
 
-  it("[FL-053] \"¿Qué significa canal naranja?\" on the approved op-4487 with CANAL_ASIGNADO NARANJA: the choice list anchors on a dossier in work, get_dispatch_status and a REPLY grounded on genericExplanation goes out despite APPROVED", async () => {
+  it("[FL-053] \"¿Qué significa canal naranja?\" on the approved op-4487 with CANAL_ASIGNADO NARANJA: the text lands on the dossier in work and moves to op-4487, get_dispatch_status and a REPLY grounded on genericExplanation goes out despite APPROVED", async () => {
     const plan: Plan = { steps: [{ tool: "get_dispatch_status", input: {} }, reply("REPLY", (context) => String(outputOf(context.calls, "get_dispatch_status").genericExplanation))], note: "Expliqué el canal." };
     const flow = await open({ "4487": { IMPORTER_MESSAGE: [plan] } });
     await flow.console().clock.emitDispatchStatus({ operationId: "op-4487", status: "CANAL_ASIGNADO", channel: "NARANJA" });
@@ -138,10 +138,9 @@ describe("importer question flows", () => {
     const messageId = await flow.say("imp-norpampa", "4487", "¿Qué significa canal naranja?");
 
     expect(messageId).not.toBe("");
-    // The soonest ETA is the approved op-4487; the list goes out from op-4478, the next one still in work.
-    expect((await flow.messages("op-4487")).some((message) => message.kind === "OPERATION_CHOICE")).toBe(false);
-    expect((await flow.messages("op-4478")).some((message) => message.kind === "OPERATION_CHOICE")).toBe(true);
-    const [turn] = flow.harness.turns;
+    // A quiet chat lands on the anchor, op-4478 (the approved op-4487 goes last); the agent moves it to op-4487 (ADR-0017).
+    expect((await flow.messages("op-4478")).some((message) => message.kind === "OPERATION_CHOICE")).toBe(false);
+    const turn = flow.harness.turns.find((candidate) => candidate.envelope.event.operation === "4487");
     expect(turn?.envelope.event).toMatchObject({ type: "IMPORTER_MESSAGE", operation: "4487" });
     const status = turn?.calls[0]?.output as { status?: string; channel?: string; genericExplanation?: string };
     expect(status).toMatchObject({ ok: true, status: "CANAL_ASIGNADO", channel: "NARANJA" });

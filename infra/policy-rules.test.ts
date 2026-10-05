@@ -37,7 +37,7 @@ const byId = (id: string): CedarPolicyDefinition => {
   return found;
 };
 
-/** Input schemas of the 15 tools as docs/tool-catalog.md writes them (the spec WP-22's zod generates). */
+/** Input schemas of the 16 tools as docs/tool-catalog.md writes them (the spec WP-22's zod generates). */
 function catalogSchemas(): ToolInputSchemas {
   const catalog = readFileSync(resolve(process.cwd(), "docs/tool-catalog.md"), "utf8");
   const schemas: Record<string, { properties?: Record<string, { type?: string }> }> = {};
@@ -81,13 +81,13 @@ describe("statements", () => {
     expect(policyEngineName("aws-cds-hackathon-poc-legajo", "poc")).toBe("aws_cds_hackathon_poc_legajo_poc");
   });
 
-  it("permits exactly the 15 Gateway tools of docs/tool-catalog.md, one permit per target (CED-PERMIT-<TARGET>)", () => {
+  it("permits exactly the 16 Gateway tools of docs/tool-catalog.md, one permit per target (CED-PERMIT-<TARGET>)", () => {
     const permits = policies.filter((policy) => policy.effect === "permit");
     expect(permits.map((policy) => policy.id)).toEqual(GATEWAY_TARGETS.map(cedarPermitId));
     GATEWAY_TARGETS.forEach((target, index) => {
       expect(parseStatement(permits[index]?.statement ?? "").actions).toEqual(GATEWAY_TOOLS[target].map((tool) => gatewayActionName(tool)));
     });
-    expect(allActionIds()).toHaveLength(15);
+    expect(allActionIds()).toHaveLength(16);
     expect(allActionIds().sort()).toEqual(Object.keys(catalogSchemas()).sort());
   });
 

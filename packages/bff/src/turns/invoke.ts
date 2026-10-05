@@ -21,6 +21,7 @@ import type { TurnDeps, TurnOutcome } from "./deps";
 import { type TurnInbound, envelopeAttachments, envelopeEvent, envelopeFacts } from "./envelope";
 import { takeForcedFailure } from "./forced-failure";
 import { harnessIdentity } from "./identity";
+import { followRoute } from "./routed";
 import { FIXED_NOTES, type TurnRecordDeps, logTurnError, logTurnLatency, recordFirstResponse, recordUsage, writeTurnNote } from "./record";
 import { type OpenedTurn, closeTurnSession, openTurnSession } from "./session";
 
@@ -53,7 +54,7 @@ async function invokeHarness(deps: TurnDeps, ctx: WorkerContext & { readonly dea
   const envelope = await envelopeOf(deps, input, session, delimiter);
   const forced = await takeForcedFailure(deps.data.runtime, { operationId: input.operation.operationId, clockId: input.operation.clockId, turnId: session.turnId, atReal: ctx.now().toISOString() });
   if (forced) return { ran: false, cause: "TIMEOUT" };
-  const identity = harnessIdentity(deps.runtimeSessionKey(), input.operation);
+  const identity = harnessIdentity(deps.runtimeSessionKey(), input.operation, input.event.trigger);
   const started = ctx.now().getTime();
   try {
     const result = await deps.harness.invoke({ ...identity, envelope, systemPrompt: buildSystemPrompt({ delimiter }), deadlineMs: ctx.deadlineMs });
@@ -124,5 +125,7 @@ export async function invokeTurn(deps: TurnDeps, ctx: WorkerContext & { readonly
   }
   if (!invocation.ran) return failTurn(deps, ctx, input, session.turnId, invocation.cause);
   logTurnLatency(ctx.log, invocation.latencyMs, { trigger: input.event.trigger, outcome: invocation.result.outcome, toolUses: invocation.result.toolUses });
-  return finishTurn(deps, ctx, input, session.turnId, invocation.result);
+  const outcome = await finishTurn(deps, ctx, input, session.turnId, invocation.result);
+  if (outcome.kind === "COMPLETED") await followRoute(deps.data, ctx, { operation: input.operation, event: input.event, turnId: session.turnId });
+  return outcome;
 }

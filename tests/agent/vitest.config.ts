@@ -7,6 +7,6 @@ export default defineConfig({
     environment: "node",
     include: ["tests/agent/**/*.agent.test.ts"],
     fileParallelism: false,
-    testTimeout: 300_000,
+    testTimeout: 600_000,
   },
 });

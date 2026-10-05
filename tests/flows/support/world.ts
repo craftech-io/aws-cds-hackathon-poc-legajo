@@ -33,6 +33,7 @@ import { createScriptedHarness, type PlanSource, type ScriptedHarness } from "./
 import { loadDemoSeed, localWorldsDeps, mapSeedPdfStore, seedOnDisk, type SeedBucketObjects } from "./seed-world";
 import { type ConsoleCaller, type LocalPlatform, createLocalConsole, createLocalPlatform } from "./stage/console";
 import { type StageContext, createStageContext, localScheduler, stageTargets } from "./stage/context";
+import { moveToOperation } from "../../../packages/bff/src/turns/routed";
 import { type LocalEntries, createLocalEntries, simMailDeps, simReplyHandoff } from "./stage/entries";
 import { createStageWorker } from "./stage/worker";
 
@@ -116,6 +117,8 @@ export interface FlowWorld {
    * Answers the id of the importer's message in that operation.
    */
   say(importerId: string, operationNumber: string, text: string): Promise<string>;
+  /** What the agent's `route_to_operation` does (ADR-0017): moves a delivered message to `operationNumber` and settles; answers the copy's id. */
+  route(landed: { readonly operationId: string; readonly messageId: string }, operationNumber: string): Promise<string>;
   /** Registered phone of an importer of the seed. */
   phoneOf(importerId: string): Promise<string>;
   /** Messages of an operation in `sentAtSim` order. */
@@ -179,6 +182,15 @@ export async function createFlowWorld(options: FlowWorldOptions = {}): Promise<F
     const settle = () => (entries as LocalEntries).settle();
     const messages = async (operationId: string) => [...(await stores.connector.conversations.listMessages(operationId))].sort((a, b) => Date.parse(a.sentAtSim) - Date.parse(b.sentAtSim));
 
+    const route = async (landed: { readonly operationId: string; readonly messageId: string }, operationNumber: string): Promise<string> => {
+      const operation = await stores.connector.operations.getOperation(landed.operationId);
+      const source = await stores.connector.conversations.getMessage(landed.operationId, landed.messageId);
+      const eventAtSim = source?.sentAtSim ?? (await simNow()).toISOString();
+      const moved = await moveToOperation(stores.connector, { sink: (stage as StageContext).sink, log }, { operation, messageId: landed.messageId, eventAtSim, targetId: `op-${operationNumber}` });
+      await settle();
+      return moved?.messageId ?? "";
+    };
+
     const choose = async (importerId: string, operationNumber: string): Promise<PhoneSent> => {
       const importer = await stores.connector.parties.getImporter(importerId);
       const lists = (await stores.connector.conversations.listCounterpartMessages(importerCounterpartKey(importerId), { direction: "OUT" })).filter((message) => message.kind === "OPERATION_CHOICE");
@@ -234,15 +246,16 @@ export async function createFlowWorld(options: FlowWorldOptions = {}): Promise<F
       async say(importerId, operationNumber, text) {
         const importer = await stores.connector.parties.getImporter(importerId);
         realMs += PHONE_PAUSE_MS;
-      const sent = await sendFromPhone(phoneDeps(), { phoneE164: importer.phoneE164, content: { type: "text", text } });
+        const sent = await sendFromPhone(phoneDeps(), { phoneE164: importer.phoneE164, content: { type: "text", text } });
         await settle();
         const first = (sent.summary as InboundSummary).records[0]?.messages[0];
         const operationId = `op-${operationNumber}`;
-        if (first?.outcome !== "OPERATION_CHOICE") return first?.messageId ?? "";
-        await choose(importerId, operationNumber);
-        const copy = (await messages(operationId)).filter((message) => message.direction === "IN" && message.body === text).at(-1);
-        return copy?.messageId ?? "";
+        if (first?.messageId === undefined || first.operationId === undefined || first.operationId === operationId) return first?.messageId ?? "";
+        // The text landed in the operation the chat was about (ADR-0017); the agent would move it with
+        // route_to_operation, and the scripted world does the same for the test.
+        return route({ operationId: first.operationId, messageId: first.messageId }, operationNumber);
       },
+      route,
       phoneOf: async (importerId) => (await stores.connector.parties.getImporter(importerId)).phoneE164,
       messages,
       async advance(move, clockId = DEMO_CLOCK) {

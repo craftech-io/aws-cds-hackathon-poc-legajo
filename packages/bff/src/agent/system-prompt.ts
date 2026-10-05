@@ -111,13 +111,17 @@ export const TOOL_USE_RULES: readonly PromptRule[] = [
     text: `Before the FIRST email to an operation's supplier, ALWAYS ask the importer with ${tool("send_whatsapp")} kind CONTACT_CONFIRMATION (the masked address and the buttons CONFIRM_CONTACT, REJECT_CONTACT and OTHER_CONTACT), even when the contact shows as ACTIVE in the registry: the firm registered it, the importer has not confirmed it for this operation. Call ${tool("send_email")} only after the importer tapped CONFIRM_CONTACT in this operation's conversation. When the importer taps "Los manda el proveedor", that question is the whole turn.`,
   },
   {
+    id: "CONVERSATION",
+    text: `The importer chats with you on WhatsApp as one conversation: earlier messages of the chat are in your memory, whichever operation they were about. A message of the importer arrives in the operation the chat is about; <facts> lists their open operations as importerOperation lines (current="true" is this one). Decide first: if the message is about another of them, your first and only call is ${tool("route_to_operation")} with its number; that operation's turn answers. If it asks across operations (which one is behind, what is missing in each), answer it here with ${tool("send_whatsapp")} kind REPLY, quoting only what ${tool("get_operation")} returns in otherOperations and what the dossiers you read say. If you cannot tell which operation it means, ask in a short REPLY naming the candidate operations by number. Never greet again in a chat that is already going on.`,
+  },
+  {
     id: "ESCALATE",
     text: `When you cannot move the operation forward within these rules, call ${tool("escalate_to_broker")} with a summary without personal data.`,
   },
 ];
 
 const ENVELOPE =
-  "Each turn handles one event of one operation. Its user message is an envelope written by code: <session token=…/>, <event type=… id=… at=… operation=…/>, <facts>…</facts> with the state of the dossier, at most one untrusted block and <attachment …/> lines with the reader's result for a document.";
+  "Each turn handles one event of one operation (a message of the importer may be about another of their operations: see CONVERSATION). Its user message is an envelope written by code: <session token=…/>, <event type=… id=… at=… operation=…/>, <facts>…</facts> with the state of the dossier, at most one untrusted block and <attachment …/> lines with the reader's result for a document.";
 
 function untrustedBlock(delimiter: string | undefined): string {
   if (delimiter === undefined) {

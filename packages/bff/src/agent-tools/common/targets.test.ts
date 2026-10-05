@@ -18,6 +18,7 @@ const MINIMAL_INPUT: { readonly [T in GatewayToolName]: Readonly<Record<string, 
   send_whatsapp: { recipientRole: "IMPORTER", kind: "REPLY", text: "Recibimos el packing list." },
   send_email: { recipientRole: "SUPPLIER", kind: "DOCS_REQUEST", text: "Please send the packing list of invoice QBT-2026-0917.", refs: { docTypes: ["PACKING_LIST"] } },
   propose_supplier_contact: { email: "ops@supplier.sim.legajo.demo.craftech.io", sourceMessageId: "msg-01J9ZQIN" },
+  route_to_operation: { toOperationNumber: "4478" },
   schedule_followup: { party: "SUPPLIER", atSim: "2026-10-16T10:00:00-03:00", reason: "PROMISED_BY_SUPPLIER" },
   estimate_delay_risk: {},
   escalate_to_broker: { reason: "IMPORTER_ASKED", summary: "The importer asked to talk to a person." },
@@ -36,7 +37,7 @@ const OFFLINE_PORTS: GatewayTargetPorts = {
 };
 
 describe("the five targets as the Gateway reaches them", () => {
-  it("routes each of the 15 Gateway actions to its own tool behind every guard", async () => {
+  it("routes each of the 16 Gateway actions to its own tool behind every guard", async () => {
     const world = await toolWorld();
     // The importer's message that holds the proposed address (LAM-OP-SCOPE reads it).
     await world.stores.connector.conversations.appendMessage({
@@ -69,7 +70,7 @@ describe("the five targets as the Gateway reaches them", () => {
         reached.push(tool);
       }
     }
-    expect(reached).toHaveLength(15);
+    expect(reached).toHaveLength(16);
   });
 
   it("refuses an action the Gateway names outside the target that receives it", async () => {

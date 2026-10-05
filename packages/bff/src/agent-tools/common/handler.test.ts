@@ -144,7 +144,7 @@ describe("LAM-TRIGGER: the trigger comes from the session, never from the input"
   async function messaging(world: ToolWorld) {
     const whatsapp = recording(() => ok({ status: "SENT" }));
     const contact = recording(() => ok({ status: "PENDING_CONFIRMATION" }));
-    const target = createMessagingTarget(world.deps, { send_whatsapp: whatsapp.implementation, send_email: recording().implementation, propose_supplier_contact: contact.implementation });
+    const target = createMessagingTarget(world.deps, { send_whatsapp: whatsapp.implementation, send_email: recording().implementation, propose_supplier_contact: contact.implementation, route_to_operation: recording().implementation });
     return { target, whatsapp, contact };
   }
   const reminder = { recipientRole: "IMPORTER", kind: "REMINDER", template: { name: "legajo_recordatorio", params: ["Lucía", "4471"] } };

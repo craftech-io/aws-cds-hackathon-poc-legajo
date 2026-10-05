@@ -162,6 +162,27 @@ export function runtimeSessionId(runtimeSessionKey: SecretKey, input: RuntimeSes
   return hmacSha256Hex(runtimeSessionKey, message).slice(0, RUNTIME_SESSION_ID_LENGTH);
 }
 
+export interface ImporterSessionInput {
+  readonly importerId: string;
+  readonly clockId: string;
+  readonly worldEpoch: number;
+  readonly sessionEpoch: number;
+}
+
+/**
+ * `runtimeSessionId` of the importer's WhatsApp conversation (ADR-0017): the turns an importer's
+ * messages open share one Harness session across operations, so AgentCore Memory keeps the chat.
+ * Same key, length and epochs as the operation's; a distinct prefix keeps both spaces apart.
+ */
+export function importerSessionId(runtimeSessionKey: SecretKey, input: ImporterSessionInput): string {
+  for (const [name, epoch] of [["worldEpoch", input.worldEpoch], ["sessionEpoch", input.sessionEpoch]] as const) {
+    if (!Number.isInteger(epoch) || epoch < 0) throw new RangeError(`invalid ${name} ${epoch}`);
+  }
+  if (input.importerId === "" || input.clockId === "") throw new RangeError("importerId and clockId are required");
+  const message = ["imp", input.importerId, input.clockId, input.worldEpoch, input.sessionEpoch].join("|");
+  return hmacSha256Hex(runtimeSessionKey, message).slice(0, RUNTIME_SESSION_ID_LENGTH);
+}
+
 const CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
 function encodeBase32(value: bigint, length: number): string {

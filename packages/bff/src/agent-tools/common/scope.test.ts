@@ -122,7 +122,7 @@ describe("LAM-OP-SCOPE through createToolHandler", () => {
     const contact = recording(() => ok({ status: "PENDING_CONFIRMATION" }));
     const any = recording().implementation;
     const operations = createOperationsTarget(world.deps, { assign_responsible: assign.implementation, get_operation: any, get_dossier: any, get_counterpart_profile: any, get_checklist: any, get_dispatch_status: any });
-    const messaging = createMessagingTarget(world.deps, { send_email: email.implementation, send_whatsapp: whatsapp.implementation, propose_supplier_contact: contact.implementation });
+    const messaging = createMessagingTarget(world.deps, { send_email: email.implementation, send_whatsapp: whatsapp.implementation, propose_supplier_contact: contact.implementation, route_to_operation: any });
     return { operations, messaging, assign, email, whatsapp, contact };
   }
 

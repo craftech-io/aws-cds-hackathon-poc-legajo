@@ -11,6 +11,7 @@
 //                  observations each one left.
 import type { Channel, GuardrailSource, TurnTrigger } from "@legajo/shared";
 import { normalizeInboundText } from "../channels/normalizer";
+import { openOperationsOf } from "../channels/whatsapp/routing";
 import type { Connector } from "../connector/index";
 import type { Message } from "../domain/conversations";
 import { OPEN_OBSERVATION_STATUSES } from "../domain/documents";
@@ -102,7 +103,26 @@ export async function envelopeFacts(data: Pick<Connector, "documents" | "operati
     { name: "dispatch", attributes: { status: operation.dispatch.status, ...(operation.dispatch.channel === undefined ? {} : { channel: operation.dispatch.channel }) } },
   ];
   if (event.milestone !== undefined) facts.push({ name: "milestone", attributes: { name: event.milestone } });
+  if (event.trigger === "IMPORTER_MESSAGE") facts.push(...(await importerOperationFacts(data, operation)));
   return facts;
+}
+
+/**
+ * The importer's open operations, this one marked `current` (ADR-0017): what lets the agent answer a
+ * question across them or move the message with `route_to_operation`. Numbers, instants and counts only.
+ */
+export async function importerOperationFacts(data: Pick<Connector, "documents" | "operations">, operation: Operation): Promise<FactLine[]> {
+  const operations = await openOperationsOf(data, { firmId: operation.firmId, importerId: operation.importerId, clockId: operation.clockId });
+  if (operations.length < 2) return [];
+  return Promise.all(
+    operations.map(async (open): Promise<FactLine> => {
+      const documents = await data.documents.listDocuments(open.operationId);
+      return {
+        name: "importerOperation",
+        attributes: { number: open.operationNumber, current: open.operationId === operation.operationId, eta: zoned(open.eta), dossier: open.dossierStatus, documentsValid: documents.filter((document) => document.status === "VALID").length, documents: documents.length },
+      };
+    }),
+  );
 }
 
 /** The reader's result for the versions the turn is about (at most 20, of this operation only). */

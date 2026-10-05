@@ -75,4 +75,15 @@ export const MESSAGING_TOOLS = {
     callers: [],
     triggers: () => ["IMPORTER_MESSAGE"],
   }),
+
+  route_to_operation: defineTool({
+    name: "route_to_operation",
+    description:
+      "The importer's message of this turn is about another of their open operations (the envelope lists them). Moves the message there; that operation's turn answers. Use it only when the importer names or clearly means that operation; when it is unclear, ask in a REPLY instead. Do not send anything in this turn after it.",
+    fields: {
+      toOperationNumber: OperationNumber.describe("Number of the importer's other open operation, as the envelope lists it."),
+    },
+    callers: [],
+    triggers: () => ["IMPORTER_MESSAGE"],
+  }),
 } as const;

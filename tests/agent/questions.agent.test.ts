@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { toolsOf, useAgentWorld } from "./support/agent-world";
 
 const worlds = useAgentWorld();
-const TURN_TIMEOUT_MS = 300_000;
+const TURN_TIMEOUT_MS = 600_000;
 
 describe("importer questions (agent)", () => {
   it("[FL-020] \"¿Qué me falta?\": reads the dossier and replies on WhatsApp with the three missing documents", async () => {

@@ -458,6 +458,7 @@ exports[`enum snapshots > tools, rules, callers, clocks, keys and flows 1`] = `
     "send_whatsapp",
     "send_email",
     "propose_supplier_contact",
+    "route_to_operation",
     "schedule_followup",
     "estimate_delay_risk",
     "escalate_to_broker",

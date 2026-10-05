@@ -1,6 +1,6 @@
 # Catálogo de tools y handlers
 
-Tools expuestas al Harness por AgentCore Gateway (5 targets Lambda, **15 tools**), handlers deterministas de invocación directa (no están en el Gateway), procedimientos de la consola (tRPC) y acciones del `QaDriver`. Nombres en inglés, `snake_case`. Los schemas se escriben en JSON para leer; la fuente única es zod en `packages/bff/src/agent-tools/<target>/schema.ts`, de donde `npm run tools:build-schemas` genera el `inlinePayload` de cada target.
+Tools expuestas al Harness por AgentCore Gateway (5 targets Lambda, **16 tools**), handlers deterministas de invocación directa (no están en el Gateway), procedimientos de la consola (tRPC) y acciones del `QaDriver`. Nombres en inglés, `snake_case`. Los schemas se escriben en JSON para leer; la fuente única es zod en `packages/bff/src/agent-tools/<target>/schema.ts`, de donde `npm run tools:build-schemas` genera el `inlinePayload` de cada target.
 
 ## Convenciones
 
@@ -40,7 +40,7 @@ Vocabulario fijo fuera de los enums (`@legajo/shared`). Estos módulos solo fija
 | Módulo | Qué fija | Fuente |
 |---|---|---|
 | `rules.ts` | Ids de regla que cita una decisión: `CP-*` en el orden del motor, `CED-*` (con `CED-PERMIT-<TARGET>` y `CED-SESSION-<TARGET>` por target), `LAM-*`, y `RESP-MATRIX`, `G1`, `G2`; `PolicyResult` | `docs/design-brief.md` §5.5-5.7 |
-| `tools.ts` | Los 5 targets y sus 15 tools; nombre de acción en el Gateway y en Cedar `<target>___<tool>` | Este catálogo; `docs/architecture.md` §9.2 |
+| `tools.ts` | Los 5 targets y sus 16 tools; nombre de acción en el Gateway y en Cedar `<target>___<tool>` | Este catálogo; `docs/architecture.md` §9.2 |
 | `clock-ids.ts` | `clockId` (`GLOBAL#<firmId>`, `GUEST#<firmId>`, `qa-<runId>-<escenario>`, `sim-<batchId>`), su alcance (`GLOBAL`, `GUEST`, `QA`, `SIM`), los estudios de tipo QA (`firm-qa`, `firm-sim`, `firm-guest-test`) y los relojes fijos `GLOBAL#firm-qa` y `GUEST#firm-guest-test` | `docs/architecture.md` §8; ADR-0005 y ADR-0007 |
 | `addresses.ts` | Dominios del stage (`legajo.demo.craftech.io`, `sim.legajo.demo.craftech.io`, `simulator.amazonses.com`), `avisos@`, los prefijos `qainject-` (inyector) y `qa-` (partes QA), los dominios reservados que el cerco rechaza y la dirección de operación con su etiqueta HMAC de 6 caracteres | `docs/architecture-integrations.md` §1; `docs/seed-spec.md` §2 |
 | `document-keys.ts` | Claves de objeto de `Documents`, `Uploads`, `Media` y `Seed` (prefijo `qa/<runId>/` en mundos QA), la referencia `sim-media:<clave>` del simulador y los nombres de plantilla de mundo | `docs/architecture.md` §6; `docs/architecture-integrations.md` §4.2 |
@@ -179,6 +179,16 @@ Determinista · escribe `Parties/SUP#…/CONTACT#` (`PENDING_CONFIRMATION`), `Co
 ```
 
 Reglas: solo en sesiones con disparador `IMPORTER_MESSAGE` (`LAM-TRIGGER`, leído de la sesión); `sourceMessageId` tiene que ser un mensaje entrante del importador de la sesión y contener la dirección textual (`LAM-EVIDENCE`); la dirección pasa el cerco de destinatarios (si no, `RECIPIENT_NOT_ALLOWED` y el agente escala); la tool manda al importador los botones `CONFIRM_CONTACT` / `REJECT_CONTACT`. Solo el botón del importador (o la consola) activa el contacto (`confirm_supplier_contact`); mientras está `PENDING_CONFIRMATION`, un email que llegue desde esa dirección va a cuarentena (`UNTRUSTED_SENDER`).
+
+### `route_to_operation`
+Determinista · lee `Operations` · escribe `AuditLog` · invocan: `harness`.
+
+```json
+{"input": {"type": "object", "properties": {"sessionToken": {"type": "string"}, "toOperationNumber": {"type": "string", "description": "número de otra operación abierta del importador, como la lista el sobre"}}, "required": ["sessionToken", "toOperationNumber"]},
+ "output": {"ok": "boolean", "routed": "boolean", "operationId": "string", "operationNumber": "string", "note": "string", "error": "Error"}}
+```
+
+Reglas (ADR-0017): solo en sesiones con disparador `IMPORTER_MESSAGE` (`LAM-TRIGGER`). `toOperationNumber` tiene que ser una operación abierta del importador de la sesión, en su mundo, y distinta de la actual; si no, `NOT_FOUND` / `INVALID` y `DENY` auditado. La tool no mueve nada: cuando el turno cierra, el worker copia el mensaje a esa operación (`routedFrom`) y corre su turno `IMPORTER_MESSAGE` en la misma sesión de conversación del importador (Memory). Un mensaje ya movido no se vuelve a mover.
 
 ---
 
