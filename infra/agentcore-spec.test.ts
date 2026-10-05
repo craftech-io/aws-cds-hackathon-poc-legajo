@@ -36,6 +36,8 @@ import {
   WILDCARD_SIDS,
   agentCoreTrustPolicy,
   agentModelArns,
+  agentModelProfileName,
+  agentModelSourceArn,
   agentRoleName,
   gatewayArnPattern,
   gatewayName,
@@ -64,6 +66,7 @@ import { GATEWAY_TARGETS, cedarPolicies, inputSchemasByAction, schemaProblems } 
 const APP = "aws-cds-hackathon-poc-legajo";
 const STAGE = "poc";
 const PLACE = { account: "776805327629", region: "us-east-1" };
+const PROFILE_ARN = "arn:aws:bedrock:us-east-1:776805327629:application-inference-profile/abc123";
 const root = process.cwd();
 const read = (path: string): string => readFileSync(resolve(root, path), "utf8");
 
@@ -140,10 +143,13 @@ describe("Harness (docs/architecture.md §4)", () => {
     expect(HARNESS_LIFECYCLE.idleRuntimeSessionTimeoutSeconds).toBeGreaterThan(HARNESS_LIMITS.timeoutSeconds);
   });
 
-  it("puts G1 in the model parameters and invokes only the global profile and its model", () => {
+  it("puts G1 in the model parameters and invokes only the tagged application profile, the global profile it copies and its model", () => {
     const guardrail = { guardrailConfig: { guardrailIdentifier: "g1", guardrailVersion: "1", trace: "enabled" } };
-    expect(harnessBedrockModelConfig(guardrail)).toEqual({ modelId: AGENT_MODEL_ID, apiFormat: "converse_stream", additionalParams: guardrail });
-    expect(agentModelArns(PLACE)).toEqual([
+    expect(harnessBedrockModelConfig(PROFILE_ARN, guardrail)).toEqual({ modelId: PROFILE_ARN, apiFormat: "converse_stream", additionalParams: guardrail });
+    expect(agentModelProfileName(APP, STAGE)).toBe("aws-cds-hackathon-poc-legajo-poc-agent-model");
+    expect(agentModelSourceArn(PLACE)).toBe(`arn:aws:bedrock:us-east-1:776805327629:inference-profile/${AGENT_MODEL_ID}`);
+    expect(agentModelArns(PLACE, PROFILE_ARN)).toEqual([
+      PROFILE_ARN,
       "arn:aws:bedrock:us-east-1:776805327629:inference-profile/global.anthropic.claude-opus-5",
       "arn:aws:bedrock:::foundation-model/anthropic.claude-opus-5",
       "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-opus-5",
@@ -200,13 +206,13 @@ describe("Memory (docs/architecture.md §9.3)", () => {
 });
 
 describe("[FL-050] sensitive data never reaches long-term memory: the exclusion rules of the three strategies", () => {
-  const strategies = memoryStrategyArgs().map((entry) => entry.customMemoryStrategy);
+  const strategies = memoryStrategyArgs(PROFILE_ARN).map((entry) => entry.customMemoryStrategy);
 
   it("overrides every prompt of the three custom strategies with the same rules and the agent model", () => {
     expect(strategies.map((strategy) => strategy.name)).toEqual(Object.keys(MEMORY_STRATEGIES));
     const prompts = strategies.flatMap((strategy) => Object.values(strategy.configuration).flatMap((override: object) => Object.values(override) as Array<{ appendToPrompt: string; modelId: string }>));
     expect(prompts).toHaveLength(5);
-    for (const prompt of prompts) expect(prompt).toEqual({ appendToPrompt: MEMORY_EXCLUSION_INSTRUCTION, modelId: AGENT_MODEL_ID });
+    for (const prompt of prompts) expect(prompt).toEqual({ appendToPrompt: MEMORY_EXCLUSION_INSTRUCTION, modelId: PROFILE_ARN });
     expect(Object.keys(strategies[0]?.configuration ?? {})).toEqual(["userPreferenceOverride"]);
     expect(Object.keys(strategies[1]?.configuration ?? {})).toEqual(["semanticOverride"]);
     expect(Object.keys(strategies[2]?.configuration ?? {})).toEqual(["summaryOverride"]);
@@ -318,12 +324,12 @@ describe("runtime log group and content in traces (docs/architecture.md §12)", 
 });
 
 describe("IAM of the agent roles (docs/architecture.md §14)", () => {
-  const resources = { gatewayArn: "arn:gateway", memoryArn: "arn:memory", guardrailArn: "arn:g1" };
+  const resources = { modelProfileArn: PROFILE_ARN, gatewayArn: "arn:gateway", memoryArn: "arn:memory", guardrailArn: "arn:g1" };
   const harness = harnessRoleStatements(PLACE, APP, STAGE, resources);
   const bySid = (statements: readonly AgentStatement[], sid: string): AgentStatement | undefined => statements.find((statement) => statement.sid === sid);
 
   it("gives the Harness the model, G1, the Gateway and the Memory, each on its own resource only", () => {
-    expect(bySid(harness, "Model")).toMatchObject({ actions: ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"], resources: agentModelArns(PLACE) });
+    expect(bySid(harness, "Model")).toMatchObject({ actions: ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"], resources: agentModelArns(PLACE, PROFILE_ARN) });
     expect(bySid(harness, "GuardrailG1")).toMatchObject({ actions: ["bedrock:ApplyGuardrail"], resources: ["arn:g1"] });
     expect(bySid(harness, "Gateway")).toMatchObject({ actions: ["bedrock-agentcore:InvokeGateway"], resources: ["arn:gateway"] });
     expect(bySid(harness, "Memory")).toMatchObject({ actions: [...HARNESS_MEMORY_ACTIONS], resources: ["arn:memory"] });
@@ -349,7 +355,7 @@ describe("IAM of the agent roles (docs/architecture.md §14)", () => {
     expect(bySid(statements, "InvokeToolTargets")).toEqual({ sid: "InvokeToolTargets", actions: ["lambda:InvokeFunction"], resources: arns });
     expect(statements.flatMap((statement) => statement.actions).filter((action) => action.startsWith("lambda:"))).toEqual(["lambda:InvokeFunction"]);
     expect(bySid(statements, "PolicyEngineAuthorization")?.resources).toEqual(["arn:engine", "arn:aws:bedrock-agentcore:us-east-1:776805327629:gateway/aws-cds-hackathon-poc-legajo-poc-*"]);
-    expect(memoryRoleStatements(PLACE)).toEqual([{ sid: "ExtractionModel", actions: ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"], resources: agentModelArns(PLACE) }]);
+    expect(memoryRoleStatements(PLACE, PROFILE_ARN)).toEqual([{ sid: "ExtractionModel", actions: ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"], resources: agentModelArns(PLACE, PROFILE_ARN) }]);
   });
 
   it("trusts AgentCore of this account only, from the stage's gateways for the Gateway role", () => {

@@ -5,8 +5,8 @@
 //   <app>-<stage>-gateway  lambda:InvokeFunction on the five target Lambdas and nothing else, plus the three
 //                          policy engine actions the Gateway needs to evaluate Cedar. The target Lambdas
 //                          name this role in their resource policy (infra/agent-tools.ts).
-//   <app>-<stage>-harness  the Harness execution role: the model (inference profile and its two foundation
-//                          model ARNs), ApplyGuardrail on G1, InvokeGateway, the Memory event and retrieval
+//   <app>-<stage>-harness  the Harness execution role: the model (the application inference profile, the
+//                          global profile it copies and its two foundation model ARNs), ApplyGuardrail on G1, InvokeGateway, the Memory event and retrieval
 //                          actions, its own runtime logs, traces, metrics and the managed image pull.
 //   <app>-<stage>-memory   assumed by Memory to run the agent model of the three custom strategies (a
 //                          strategy with a prompt override requires a memory execution role).
@@ -30,6 +30,8 @@
 import {
   agentCoreArnPrefix,
   agentCoreTrustPolicy,
+  agentModelProfileName,
+  agentModelSourceArn,
   agentRoleName,
   gatewayArnPattern,
   gatewayRoleStatements,
@@ -44,6 +46,16 @@ export const agentPlace: $util.Output<AgentPlace> = $util
   .all([aws.getCallerIdentityOutput({}).accountId, aws.getRegionOutput({}).region])
   .apply(([account, region]) => ({ account, region }));
 
+// ---- Model ------------------------------------------------------------------------------------------
+// Tagged by the provider's defaultTags (Project, sst:app…): the model tokens of the Harness and Memory bill
+// against it, which the untaggable global profile cannot.
+
+export const agentModelProfile = new aws.bedrock.InferenceProfile("AgentModelProfile", {
+  name: agentModelProfileName($app.name, $app.stage),
+  description: `Agent model of ${$app.name} (${$app.stage}), for cost attribution.`,
+  modelSource: { copyFrom: agentPlace.apply(agentModelSourceArn) },
+});
+
 const anyAgentCoreResource = agentPlace.apply((place) => agentCoreTrustPolicy(place, `${agentCoreArnPrefix(place)}:*`));
 
 // ---- Memory execution role --------------------------------------------------------------------------
@@ -56,7 +68,7 @@ export const memoryRole = new aws.iam.Role("AgentMemoryRole", {
 
 export const memoryRolePolicy = new aws.iam.RolePolicy("AgentMemoryRolePolicy", {
   role: memoryRole.id,
-  policy: agentPlace.apply((place) => policyDocument(memoryRoleStatements(place))),
+  policy: $util.all([agentPlace, agentModelProfile.arn]).apply(([place, profileArn]) => policyDocument(memoryRoleStatements(place, profileArn))),
 });
 
 // ---- Gateway service role ---------------------------------------------------------------------------
@@ -92,6 +104,7 @@ export const harnessRole = new aws.iam.Role("AgentHarnessRole", {
 });
 
 export interface HarnessRolePolicyArgs {
+  readonly modelProfileArn: $util.Input<string>;
   readonly gatewayArn: $util.Input<string>;
   readonly memoryArn: $util.Input<string>;
   /** G1 (infra/guardrail.ts), the guardrail of the Harness model calls. */
@@ -102,7 +115,9 @@ export function createHarnessRolePolicy(args: HarnessRolePolicyArgs): aws.iam.Ro
   return new aws.iam.RolePolicy("AgentHarnessRolePolicy", {
     role: harnessRole.id,
     policy: $util
-      .all([agentPlace, args.gatewayArn, args.memoryArn, args.guardrailArn])
-      .apply(([place, gatewayArn, memoryArn, guardrailArn]) => policyDocument(harnessRoleStatements(place, $app.name, $app.stage, { gatewayArn, memoryArn, guardrailArn }))),
+      .all([agentPlace, args.modelProfileArn, args.gatewayArn, args.memoryArn, args.guardrailArn])
+      .apply(([place, modelProfileArn, gatewayArn, memoryArn, guardrailArn]) =>
+        policyDocument(harnessRoleStatements(place, $app.name, $app.stage, { modelProfileArn, gatewayArn, memoryArn, guardrailArn })),
+      ),
   });
 }

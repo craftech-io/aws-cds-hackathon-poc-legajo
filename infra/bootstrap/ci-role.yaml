@@ -369,6 +369,7 @@ Resources:
               - acm:AddTagsToCertificate
               - acm:RequestCertificate
               - bedrock:CreateGuardrail
+              - bedrock:CreateInferenceProfile
               - bedrock:TagResource
               - bedrock-agentcore:Create*
               - bedrock-agentcore:TagResource

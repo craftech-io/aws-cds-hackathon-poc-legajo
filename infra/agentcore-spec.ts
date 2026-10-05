@@ -31,13 +31,18 @@ export const AGENT_FOUNDATION_MODEL = "anthropic.claude-opus-5";
 export const HARNESS_API_FORMAT = "converse_stream";
 export const MODEL_INVOKE_ACTIONS = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"] as const;
 
-/** What `bedrock:InvokeModel` must name to call the global profile: the profile and its two model ARNs, no wildcard. */
-export function agentModelArns(place: AgentPlace): string[] {
-  return [
-    `arn:aws:bedrock:${place.region}:${place.account}:inference-profile/${AGENT_MODEL_ID}`,
-    `arn:aws:bedrock:::foundation-model/${AGENT_FOUNDATION_MODEL}`,
-    `arn:aws:bedrock:${place.region}::foundation-model/${AGENT_FOUNDATION_MODEL}`,
-  ];
+/** Application inference profile the Harness and Memory call: a tagged copy of the (untaggable) global profile, so Cost Explorer attributes the tokens to the app. */
+export const agentModelProfileName = (app: string, stage: string): string => `${app}-${stage}-agent-model`;
+
+/** The global profile the application profile copies (`modelSource.copyFrom`). */
+export function agentModelSourceArn(place: AgentPlace): string {
+  return `arn:aws:bedrock:${place.region}:${place.account}:inference-profile/${AGENT_MODEL_ID}`;
+}
+
+/** What `bedrock:InvokeModel` must name to call through the application profile: it, the global profile and its two model ARNs, no wildcard. */
+export function agentModelArns(place: AgentPlace, profileArn: string): string[] {
+  const foundation = `foundation-model/${AGENT_FOUNDATION_MODEL}`;
+  return [profileArn, agentModelSourceArn(place), `arn:aws:bedrock:::${foundation}`, `arn:aws:bedrock:${place.region}::${foundation}`];
 }
 
 // ---- Names ------------------------------------------------------------------------------------------
@@ -82,8 +87,8 @@ export const HARNESS_LIMITS = { maxIterations: 12, maxTokens: 2_048, timeoutSeco
 export const HARNESS_LIFECYCLE = { idleRuntimeSessionTimeoutSeconds: 300, maxLifetimeSeconds: 3_600 } as const;
 
 /** `model.bedrockModelConfig` of the Harness: G1 rides in `additionalParams` (docs/architecture.md §9.4; needs converse_stream). */
-export function harnessBedrockModelConfig<G>(guardrailConfig: G): { modelId: string; apiFormat: typeof HARNESS_API_FORMAT; additionalParams: G } {
-  return { modelId: AGENT_MODEL_ID, apiFormat: HARNESS_API_FORMAT, additionalParams: guardrailConfig };
+export function harnessBedrockModelConfig<M, G>(modelId: M, guardrailConfig: G): { modelId: M; apiFormat: typeof HARNESS_API_FORMAT; additionalParams: G } {
+  return { modelId, apiFormat: HARNESS_API_FORMAT, additionalParams: guardrailConfig };
 }
 
 /** First 16 hex characters of the SHA-256 of a text: tags the Harness with the prompt that is live. */
@@ -158,8 +163,8 @@ function strategyConfiguration(override: MemoryOverride, prompt: PromptOverride)
   return override === "userPreference" ? { userPreferenceOverride: both } : { semanticOverride: both };
 }
 
-/** The three custom strategies, each with the exclusion rules and the agent model. */
-export function memoryStrategyArgs(modelId: string = AGENT_MODEL_ID): Array<{ customMemoryStrategy: CustomStrategyArgs }> {
+/** The three custom strategies, each with the exclusion rules and the agent model (its application profile). */
+export function memoryStrategyArgs(modelId: string): Array<{ customMemoryStrategy: CustomStrategyArgs }> {
   const prompt: PromptOverride = { appendToPrompt: MEMORY_EXCLUSION_INSTRUCTION, modelId };
   return (Object.keys(MEMORY_STRATEGIES) as MemoryStrategyName[]).map((name) => {
     const strategy = MEMORY_STRATEGIES[name];
@@ -343,8 +348,8 @@ export function policyDocument(statements: readonly AgentStatement[]): string {
 }
 
 /** Memory execution role: the model of the three strategy overrides, nothing else. */
-export function memoryRoleStatements(place: AgentPlace): AgentStatement[] {
-  return [{ sid: "ExtractionModel", actions: MODEL_INVOKE_ACTIONS, resources: agentModelArns(place) }];
+export function memoryRoleStatements(place: AgentPlace, profileArn: string): AgentStatement[] {
+  return [{ sid: "ExtractionModel", actions: MODEL_INVOKE_ACTIONS, resources: agentModelArns(place, profileArn) }];
 }
 
 /** Gateway role: invoke exactly the five target Lambdas and evaluate Cedar on this stage's engine. */
@@ -358,6 +363,8 @@ export function gatewayRoleStatements(place: AgentPlace, app: string, stage: str
 }
 
 export interface HarnessRoleResources {
+  /** The application inference profile of the agent model. */
+  readonly modelProfileArn: string;
   readonly gatewayArn: string;
   readonly memoryArn: string;
   /** G1 (infra/guardrail.ts), the guardrail of the Harness model calls. */
@@ -373,7 +380,7 @@ export function harnessRoleStatements(place: AgentPlace, app: string, stage: str
   const logs = `arn:aws:logs:${place.region}:${place.account}:log-group:${RUNTIME_LOG_GROUP_PREFIX}${runtime}*`;
   const identity = `${agentCoreArnPrefix(place)}:workload-identity-directory/default`;
   return [
-    { sid: "Model", actions: MODEL_INVOKE_ACTIONS, resources: agentModelArns(place) },
+    { sid: "Model", actions: MODEL_INVOKE_ACTIONS, resources: agentModelArns(place, resources.modelProfileArn) },
     { sid: "GuardrailG1", actions: ["bedrock:ApplyGuardrail"], resources: [resources.guardrailArn] },
     { sid: "Gateway", actions: ["bedrock-agentcore:InvokeGateway"], resources: [resources.gatewayArn] },
     { sid: "Memory", actions: HARNESS_MEMORY_ACTIONS, resources: [resources.memoryArn] },

@@ -14,7 +14,8 @@
 //               chain, with ignoreChanges (GATEWAY_SCHEMA_ROLLOUT says how a schema change ships).
 //   Policies    the Cedar statements CED-* of WP-09, attached after the LAST target: the engine validates
 //               each statement against the Gateway's tool schemas.
-//   Harness     global.anthropic.claude-opus-5 over converse_stream with G1 in the model parameters;
+//   Harness     global.anthropic.claude-opus-5 (through the tagged application profile <app>-<stage>-agent-model,
+//               also the Memory model) over converse_stream with G1 in the model parameters;
 //               maxIterations 12, maxTokens 2048, timeout 120 s, sliding window 40; tools = the Gateway
 //               only (`@legajo-tools/*`), so no shell, file or code tools; the default system prompt of
 //               packages/bff/src/agent/system-prompt.ts; public network, idle microVMs stopped after 5
@@ -43,11 +44,10 @@ import { DEFAULT_SYSTEM_PROMPT } from "../packages/bff/src/agent/system-prompt";
 import { ToolTarget } from "../packages/shared/src/tools";
 import { gatewayInlinePayloads, gatewayToolSchemas } from "./agent-tool-schemas";
 import { toolFunctions, toolGatewayInvokePermissions } from "./agent-tools";
-import { createGatewayRolePolicy, createHarnessRolePolicy, gatewayRole, harnessRole, memoryRole, memoryRolePolicy } from "./agentcore-iam";
+import { agentModelProfile, createGatewayRolePolicy, createHarnessRolePolicy, gatewayRole, harnessRole, memoryRole, memoryRolePolicy } from "./agentcore-iam";
 import {
   AGENT_LINK,
   AGENT_LOG_RETENTION_DAYS,
-  AGENT_MODEL_ID,
   GATEWAY_TOOL_NAME,
   HARNESS_ALLOWED_TOOLS,
   HARNESS_ENDPOINT_NAME,
@@ -85,7 +85,7 @@ export const memory = new awsnative.bedrockagentcore.Memory(
     description: `Importer preferences, facts and operation summaries of the ${$app.name} agent, stage ${$app.stage}.`,
     eventExpiryDuration: MEMORY_EVENT_EXPIRY_DAYS,
     memoryExecutionRoleArn: memoryRole.arn,
-    memoryStrategies: memoryStrategyArgs(AGENT_MODEL_ID),
+    memoryStrategies: agentModelProfile.arn.apply(memoryStrategyArgs),
     tags: tagMap(),
   },
   { dependsOn: [memoryRolePolicy] },
@@ -147,7 +147,7 @@ export const gatewayPolicies = attachGatewayPolicies({
 
 // ---- Harness, its runtime log group and the endpoint --------------------------------------------------
 
-const harnessRolePolicy = createHarnessRolePolicy({ gatewayArn: gateway.gatewayArn, memoryArn: memory.memoryArn, guardrailArn: g1.guardrailArn });
+const harnessRolePolicy = createHarnessRolePolicy({ modelProfileArn: agentModelProfile.arn, gatewayArn: gateway.gatewayArn, memoryArn: memory.memoryArn, guardrailArn: g1.guardrailArn });
 
 export const harness = new awsnative.bedrockagentcore.Harness(
   "AgentHarness",
@@ -155,7 +155,7 @@ export const harness = new awsnative.bedrockagentcore.Harness(
     harnessName: harnessName($app.name, $app.stage),
     executionRoleArn: harnessRole.arn,
     // G1 on every model call (infra/guardrail.ts); the turn's own prompt comes from the worker.
-    model: { bedrockModelConfig: harnessBedrockModelConfig(harnessGuardrailConfig) },
+    model: { bedrockModelConfig: harnessBedrockModelConfig(agentModelProfile.arn, harnessGuardrailConfig) },
     systemPrompt: [{ text: DEFAULT_SYSTEM_PROMPT }],
     environment: {
       agentCoreRuntimeEnvironment: {
