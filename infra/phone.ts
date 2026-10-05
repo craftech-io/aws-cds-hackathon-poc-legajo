@@ -48,7 +48,8 @@ export const phoneInstance = new aws.connect.Instance(
     identityManagementType: "CONNECT_MANAGED",
     inboundCallsEnabled: true,
     outboundCallsEnabled: false,
-    contactFlowLogsEnabled: true,
+    // Off: Connect would create an untagged log group the CI role cannot create; the recordings are the evidence.
+    contactFlowLogsEnabled: false,
   },
   keep,
 );
