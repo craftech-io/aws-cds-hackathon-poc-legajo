@@ -13,7 +13,7 @@ import { sha256Hex } from "../../lib/crypto";
 import { type RetryOptions, withRetry } from "../../lib/retry";
 import { STAGE_REGION } from "../../public-web/presign";
 import { MEDIA_TIMEOUTS, META_API_VERSION, SEND_RETRY, SEND_TIMEOUTS } from "./config";
-import { MetaMessage, metaMessageBytes } from "./meta-message";
+import { MetaMessage, eumMessageBytes } from "./meta-message";
 import type { FetchedMedia, MediaFetch, MediaStore, WhatsAppSendRequest, WhatsAppSendResult, WhatsAppTransport } from "./transport";
 
 export interface LiveTransportDeps {
@@ -89,7 +89,7 @@ export function liveWhatsAppTransport(deps: LiveTransportDeps): WhatsAppTranspor
         const template = await deps.templates.getTemplate(message.template.name);
         if (template?.status !== "APPROVED") throw new ChannelError("INVALID", "WHATSAPP", `template ${message.template.name} is not APPROVED by Meta`);
       }
-      const bytes = metaMessageBytes(message);
+      const bytes = eumMessageBytes(message);
       const output = await retry("SendWhatsAppMessage", false, () => sdk().send(new SendWhatsAppMessageCommand({ originationPhoneNumberId: deps.phoneNumberId, message: bytes, metaApiVersion: META_API_VERSION })));
       if (output.messageId === undefined || output.messageId === "") throw new ChannelError("SEND_FAILED", "WHATSAPP", "SendWhatsAppMessage returned no message id");
       return { providerMessageId: output.messageId, simulated: false, status: "SENT", sentAtReal: (await deps.realClock.now()).toISOString() };

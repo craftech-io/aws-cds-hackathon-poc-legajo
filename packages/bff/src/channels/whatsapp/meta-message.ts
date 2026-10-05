@@ -198,6 +198,15 @@ export function metaMessageBytes(message: MetaMessage): Uint8Array {
   return new TextEncoder().encode(JSON.stringify(message));
 }
 
+/**
+ * What `SendWhatsAppMessage` takes: the Meta JSON with the recipient in E.164 (`+` first). End User
+ * Messaging Social refuses Meta's bare digits ("Invalid destination phone number"), so the `+` is added
+ * here, at the AWS boundary; the message itself keeps Meta's format (simulator, fixtures, nonces).
+ */
+export function eumMessageBytes(message: MetaMessage): Uint8Array {
+  return metaMessageBytes({ ...message, to: `+${message.to}` } as MetaMessage);
+}
+
 /** The nonces a message carries (quick-reply payloads, reply-button and list-row ids). */
 export function noncesOf(message: MetaMessage): string[] {
   if (message.type === "text") return [];

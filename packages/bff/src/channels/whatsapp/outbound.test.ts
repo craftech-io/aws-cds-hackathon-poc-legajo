@@ -86,14 +86,14 @@ describe("[FL-091] the Meta JSON of every send", () => {
 });
 
 describe("[FL-091] SendWhatsAppMessage in live mode", () => {
-  it("[FL-091] sends the exact JSON with the connected number and the pinned API version", async () => {
+  it("[FL-091] sends the exact JSON with the connected number and the pinned API version, the recipient in E.164 as End User Messaging Social wants it", async () => {
     sdk.on(SendWhatsAppMessageCommand).resolves({ messageId: "wamid.HBgNNTQ5MTE1NTUwMDEwMRUCABEYEjdBQkZFM0U4RjBGMzQ1RjY3RgA=" });
     const transport = await liveTransport({ approved: true });
     const result = await transport.send({ message: toMetaMessage(DOCS_REQUEST), record: { operationId: "op-4471", clockId: "GLOBAL#firm-delta", messageId: "msg-0a1b" } });
     expect(result).toMatchObject({ providerMessageId: "wamid.HBgNNTQ5MTE1NTUwMDEwMRUCABEYEjdBQkZFM0U4RjBGMzQ1RjY3RgA=", simulated: false, status: "SENT" });
     const input = sdk.commandCalls(SendWhatsAppMessageCommand)[0]?.args[0].input;
     expect(input).toMatchObject({ originationPhoneNumberId: PHONE_NUMBER_ID, metaApiVersion: META_API_VERSION });
-    expect(sentJson()).toEqual(expected("send-template.json"));
+    expect(sentJson()).toEqual({ ...(expected("send-template.json") as object), to: `+${(expected("send-template.json") as { to: string }).to}` });
   });
 
   it("[FL-091] a template Meta has not approved is refused before calling AWS", async () => {
