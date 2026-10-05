@@ -102,7 +102,8 @@ export default $config({
     await import("./infra/feeds"); // WP-21
     await import("./infra/agent-tool-schemas"); // WP-22
     await import("./infra/agent-tools"); // WP-23
-    await import("./infra/agentcore"); // WP-23
+    const { gateway: agentGateway } = await import("./infra/agentcore"); // WP-23
+    const agentGatewayId = agentGateway.gatewayIdentifier;
     await import("./infra/operations"); // WP-24
     await import("./infra/scheduler"); // WP-24
     await import("./infra/bff"); // WP-32
@@ -117,6 +118,7 @@ export default $config({
       url: appUrl,
       channels: channelModes,
       whatsappNumber: whatsappPhoneNumber,
+      agentGatewayId: agentGatewayId,
     };
   },
 });

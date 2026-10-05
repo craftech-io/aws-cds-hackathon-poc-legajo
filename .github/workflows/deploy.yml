@@ -157,6 +157,10 @@ jobs:
           npx sst deploy --stage poc
           echo "deployed=true" >> "$GITHUB_OUTPUT"
 
+      # A changed tool schema goes to its Gateway target here, not through Pulumi (ADR-0017 §5).
+      - name: Push the Gateway tool schemas that changed
+        run: npx tsx scripts/agent/push-gateway-schemas.ts --apply
+
       - name: Publish the deployed URL in the run summary
         run: |
           {

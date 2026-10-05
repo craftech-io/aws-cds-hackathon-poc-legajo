@@ -253,12 +253,12 @@ export function toolActions(fn: LambdaName): string[] {
 // ---- Gateway targets (docs/architecture.md §9.2) -------------------------------------------------------
 
 /**
- * Targets whose `targetConfiguration` this deploy pushes. Every other target ignores
- * `metadataConfiguration`, `targetConfiguration` and `description`, so the Cloud Control read-back does
- * not rewrite it on every deploy. A PR that changes a tool schema lists the changed targets here; once CI
- * deployed it, the next PR empties the list. The digest in the description shows what is live.
+ * Targets whose `targetConfiguration` Pulumi pushes. Empty on purpose: with the Cedar policy engine
+ * attached, AgentCore adds a restricted header to every target's `metadataConfiguration` and a Cloud
+ * Control update is refused. scripts/agent/push-gateway-schemas.ts pushes a changed schema after every
+ * deploy instead (ADR-0017 §5). The digest in the description shows what is live.
  */
-export const GATEWAY_SCHEMA_ROLLOUT: readonly ToolTarget[] = ["messaging"];
+export const GATEWAY_SCHEMA_ROLLOUT: readonly ToolTarget[] = [];
 
 export const TARGET_IGNORED_FIELDS = ["metadataConfiguration", "targetConfiguration", "description"] as const;
 
