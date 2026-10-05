@@ -21,6 +21,10 @@
 # A second job measures the landing on the deployed stage with Lighthouse mobile (docs/landing-spec.md
 # §5.3). It runs only after `sst deploy` succeeded, never blocks the deploy, and its own red check is
 # what qa reads before accepting a wave.
+# Checks are OFF by default (CTO, 2026-10-05: every smoke and Lighthouse run costs model tokens and
+# time). Lint, tests, flows, neutral surfaces, the landing budget, the smoke and Lighthouse run only
+# when the repository variable DEPLOY_CHECKS is `on`; tests run locally instead. The forbidden-terms
+# guard, the web build, the receipt-rule pre-check, the deploy and the idempotent seed always run.
 name: Deploy poc
 
 on:
@@ -75,6 +79,7 @@ jobs:
         run: npm ci
 
       - name: Lint, duplicates, typecheck and tests
+        if: ${{ vars.DEPLOY_CHECKS == 'on' }}
         run: |
           npm run lint
           npm run lint:duplicates
@@ -82,6 +87,7 @@ jobs:
           npm test
 
       - name: Seed, flows, tour, ownership, tool schemas, channel modes and reader contract
+        if: ${{ vars.DEPLOY_CHECKS == 'on' }}
         env:
           FORBIDDEN_TERMS: ${{ secrets.FORBIDDEN_TERMS }}
         run: |
@@ -100,12 +106,14 @@ jobs:
         run: npm run lint:forbidden
 
       - name: Neutral surfaces (visible sources and seed PDFs)
+        if: ${{ vars.DEPLOY_CHECKS == 'on' }}
         run: npm run lint:neutral-surfaces
 
       - name: Build the console
         run: npm run build -w packages/web
 
       - name: Neutral surfaces (web build)
+        if: ${{ vars.DEPLOY_CHECKS == 'on' }}
         run: npm run lint:neutral-surfaces -- --dist
 
       - name: Forbidden terms (web build)
@@ -114,6 +122,7 @@ jobs:
         run: npm run lint:forbidden -- --dist
 
       - name: Landing manifest, images, renders and bundle budget
+        if: ${{ vars.DEPLOY_CHECKS == 'on' }}
         run: |
           run_if() { if [ -f "$1" ]; then npm run "$2"; else echo "::notice::$2 skipped: $1 is not in the repository yet (WP-48)."; fi; }
           run_if scripts/landing/check.ts landing:check
@@ -161,6 +170,7 @@ jobs:
         run: npm run seed:load
 
       - name: Assume the qa-runner role (OIDC)
+        if: ${{ vars.DEPLOY_CHECKS == 'on' }}
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: ${{ vars.AWS_QA_RUNNER_ROLE_ARN || 'arn:aws:iam::776805327629:role/aws-cds-hackathon-poc-legajo-qa-runner' }}
@@ -170,18 +180,19 @@ jobs:
       # A first deploy's DKIM may still be PENDING: the SES round trip of SC-00 then warns instead of
       # failing (docs/test-plan.md §5). Any other failure turns the run red.
       - name: Smoke scenarios (SC-00)
+        if: ${{ vars.DEPLOY_CHECKS == 'on' }}
         env:
           GUEST_TEST_PASSWORD: ${{ secrets.GUEST_TEST_PASSWORD }}
         run: npm run scenarios -- --suite smoke --allow-dkim-pending --report-dir test-results/scenarios
 
       - name: Smoke report in the run summary
-        if: ${{ !cancelled() && steps.sst.outputs.deployed == 'true' }}
+        if: ${{ !cancelled() && vars.DEPLOY_CHECKS == 'on' && steps.sst.outputs.deployed == 'true' }}
         run: |
           report="test-results/scenarios/scenario-report.md"
           if [ -f "$report" ]; then cat "$report" >> "$GITHUB_STEP_SUMMARY"; else echo "::warning::The smoke wrote no report."; fi
 
       - name: Keep the smoke report
-        if: ${{ !cancelled() && steps.sst.outputs.deployed == 'true' }}
+        if: ${{ !cancelled() && vars.DEPLOY_CHECKS == 'on' && steps.sst.outputs.deployed == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: smoke-report-${{ github.run_id }}-${{ github.run_attempt }}
@@ -193,7 +204,7 @@ jobs:
     name: Landing performance on poc (Lighthouse mobile)
     needs: deploy
     # After a successful `sst deploy`, whatever the smoke said; never before, and never blocking it.
-    if: ${{ !cancelled() && needs.deploy.outputs.deployed == 'true' }}
+    if: ${{ !cancelled() && vars.DEPLOY_CHECKS == 'on' && needs.deploy.outputs.deployed == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:

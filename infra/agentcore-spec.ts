@@ -37,9 +37,7 @@ export const agentModelProfileName = (app: string, stage: string): string => `${
 export const agentModelProfileDescription = (app: string, stage: string): string => `Agent model of ${app} stage ${stage} for cost attribution`;
 
 /** The global profile the application profile copies (`modelSource.copyFrom`). */
-export function agentModelSourceArn(place: AgentPlace): string {
-  return `arn:aws:bedrock:${place.region}:${place.account}:inference-profile/${AGENT_MODEL_ID}`;
-}
+export const agentModelSourceArn = (place: AgentPlace): string => `arn:aws:bedrock:${place.region}:${place.account}:inference-profile/${AGENT_MODEL_ID}`;
 
 /** What `bedrock:InvokeModel` must name to call through the application profile: it, the global profile and its two model ARNs, no wildcard. */
 export function agentModelArns(place: AgentPlace, profileArn: string): string[] {
@@ -349,9 +347,12 @@ export function policyDocument(statements: readonly AgentStatement[]): string {
   return JSON.stringify({ Version: "2012-10-17", Statement: rendered });
 }
 
+/** AgentCore resolves the application profile before it accepts it as a model. */
+const modelProfileRead = (profileArn: string): AgentStatement => ({ sid: "ModelProfileRead", actions: ["bedrock:GetInferenceProfile"], resources: [profileArn] });
+
 /** Memory execution role: the model of the three strategy overrides, nothing else. */
 export function memoryRoleStatements(place: AgentPlace, profileArn: string): AgentStatement[] {
-  return [{ sid: "ExtractionModel", actions: MODEL_INVOKE_ACTIONS, resources: agentModelArns(place, profileArn) }];
+  return [{ sid: "ExtractionModel", actions: MODEL_INVOKE_ACTIONS, resources: agentModelArns(place, profileArn) }, modelProfileRead(profileArn)];
 }
 
 /** Gateway role: invoke exactly the five target Lambdas and evaluate Cedar on this stage's engine. */
@@ -383,6 +384,7 @@ export function harnessRoleStatements(place: AgentPlace, app: string, stage: str
   const identity = `${agentCoreArnPrefix(place)}:workload-identity-directory/default`;
   return [
     { sid: "Model", actions: MODEL_INVOKE_ACTIONS, resources: agentModelArns(place, resources.modelProfileArn) },
+    modelProfileRead(resources.modelProfileArn),
     { sid: "GuardrailG1", actions: ["bedrock:ApplyGuardrail"], resources: [resources.guardrailArn] },
     { sid: "Gateway", actions: ["bedrock-agentcore:InvokeGateway"], resources: [resources.gatewayArn] },
     { sid: "Memory", actions: HARNESS_MEMORY_ACTIONS, resources: [resources.memoryArn] },

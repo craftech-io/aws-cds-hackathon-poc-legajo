@@ -332,6 +332,7 @@ describe("IAM of the agent roles (docs/architecture.md §14)", () => {
 
   it("gives the Harness the model, G1, the Gateway and the Memory, each on its own resource only", () => {
     expect(bySid(harness, "Model")).toMatchObject({ actions: ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"], resources: agentModelArns(PLACE, PROFILE_ARN) });
+    expect(bySid(harness, "ModelProfileRead")).toMatchObject({ actions: ["bedrock:GetInferenceProfile"], resources: [PROFILE_ARN] });
     expect(bySid(harness, "GuardrailG1")).toMatchObject({ actions: ["bedrock:ApplyGuardrail"], resources: ["arn:g1"] });
     expect(bySid(harness, "Gateway")).toMatchObject({ actions: ["bedrock-agentcore:InvokeGateway"], resources: ["arn:gateway"] });
     expect(bySid(harness, "Memory")).toMatchObject({ actions: [...HARNESS_MEMORY_ACTIONS], resources: ["arn:memory"] });
@@ -357,7 +358,10 @@ describe("IAM of the agent roles (docs/architecture.md §14)", () => {
     expect(bySid(statements, "InvokeToolTargets")).toEqual({ sid: "InvokeToolTargets", actions: ["lambda:InvokeFunction"], resources: arns });
     expect(statements.flatMap((statement) => statement.actions).filter((action) => action.startsWith("lambda:"))).toEqual(["lambda:InvokeFunction"]);
     expect(bySid(statements, "PolicyEngineAuthorization")?.resources).toEqual(["arn:engine", "arn:aws:bedrock-agentcore:us-east-1:776805327629:gateway/aws-cds-hackathon-poc-legajo-poc-*"]);
-    expect(memoryRoleStatements(PLACE, PROFILE_ARN)).toEqual([{ sid: "ExtractionModel", actions: ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"], resources: agentModelArns(PLACE, PROFILE_ARN) }]);
+    expect(memoryRoleStatements(PLACE, PROFILE_ARN)).toEqual([
+      { sid: "ExtractionModel", actions: ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"], resources: agentModelArns(PLACE, PROFILE_ARN) },
+      { sid: "ModelProfileRead", actions: ["bedrock:GetInferenceProfile"], resources: [PROFILE_ARN] },
+    ]);
   });
 
   it("trusts AgentCore of this account only, from the stage's gateways for the Gateway role", () => {
