@@ -189,7 +189,7 @@
     {
       "PK": "REF#TEMPLATE#WHATSAPP",
       "SK": "legajo_nuevo_plazo",
-      "body": "Operación {{1}}: el arribo estimado cambió al {{2}}. El nuevo plazo para la documentación es el {{3}}.",
+      "body": "Operación {{1}}: el arribo estimado cambió al {{2}}. El nuevo plazo para la documentación es el {{3}}. Si tenés dudas, respondé este mensaje.",
       "buttons": [
         {
           "action": "QUESTION",

@@ -35,33 +35,45 @@ async function ignoreMissing(call: Promise<unknown>): Promise<void> {
   }
 }
 
+/** A listing of an actor or session Memory never saw: AgentCore answers "not found", which is an empty list. */
+async function emptyWhenMissing(list: () => Promise<string[]>): Promise<string[]> {
+  try {
+    return await list();
+  } catch (error) {
+    if (error instanceof ResourceNotFoundException) return [];
+    throw error;
+  }
+}
+
 export function agentCoreMemoryAdmin(options: { readonly memoryId?: () => string; readonly client?: BedrockAgentCoreClient } = {}): MemoryAdmin {
   const memoryId = options.memoryId ?? (() => readLinked("Agent", AgentLink).memoryId);
   let client = options.client;
   const agentCore = (): BedrockAgentCoreClient => (client ??= new BedrockAgentCoreClient({ region: STAGE_REGION, ...awsClientConfig(MEMORY_TIMEOUTS) }));
 
   return {
-    async listSessionIds(actorId) {
-      const ids: string[] = [];
-      let nextToken: string | undefined;
-      do {
-        const page = await agentCore().send(new ListSessionsCommand({ memoryId: memoryId(), actorId, maxResults: PAGE_SIZE, nextToken }));
-        ids.push(...(page.sessionSummaries ?? []).flatMap((session) => (session.sessionId ? [session.sessionId] : [])));
-        nextToken = page.nextToken;
-      } while (nextToken);
-      return ids;
-    },
+    listSessionIds: (actorId) =>
+      emptyWhenMissing(async () => {
+        const ids: string[] = [];
+        let nextToken: string | undefined;
+        do {
+          const page = await agentCore().send(new ListSessionsCommand({ memoryId: memoryId(), actorId, maxResults: PAGE_SIZE, nextToken }));
+          ids.push(...(page.sessionSummaries ?? []).flatMap((session) => (session.sessionId ? [session.sessionId] : [])));
+          nextToken = page.nextToken;
+        } while (nextToken);
+        return ids;
+      }),
 
-    async listEventIds(actorId, sessionId) {
-      const ids: string[] = [];
-      let nextToken: string | undefined;
-      do {
-        const page = await agentCore().send(new ListEventsCommand({ memoryId: memoryId(), actorId, sessionId, includePayloads: false, maxResults: PAGE_SIZE, nextToken }));
-        ids.push(...(page.events ?? []).flatMap((event) => (event.eventId ? [event.eventId] : [])));
-        nextToken = page.nextToken;
-      } while (nextToken);
-      return ids;
-    },
+    listEventIds: (actorId, sessionId) =>
+      emptyWhenMissing(async () => {
+        const ids: string[] = [];
+        let nextToken: string | undefined;
+        do {
+          const page = await agentCore().send(new ListEventsCommand({ memoryId: memoryId(), actorId, sessionId, includePayloads: false, maxResults: PAGE_SIZE, nextToken }));
+          ids.push(...(page.events ?? []).flatMap((event) => (event.eventId ? [event.eventId] : [])));
+          nextToken = page.nextToken;
+        } while (nextToken);
+        return ids;
+      }),
 
     async deleteEvent(actorId, sessionId, eventId) {
       await ignoreMissing(agentCore().send(new DeleteEventCommand({ memoryId: memoryId(), actorId, sessionId, eventId })));

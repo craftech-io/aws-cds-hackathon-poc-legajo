@@ -154,7 +154,7 @@ Textos en `packages/bff/src/copy/templates.ts` y `Reference/TEMPLATE#WHATSAPP`; 
 | `legajo_recordatorio` | "Operación {{1}}: siguen faltando {{2}}. El plazo es el {{3}}. Podés subirlos o avisarnos." | URL "Subir documentos" · "Los manda el proveedor" · "Tengo una duda" |
 | `legajo_observacion_proveedor` | "Operación {{1}}: el proveedor tiene que corregir {{2}}. Ya se lo pedimos; no tenés que hacer nada por ahora." | "Tengo una duda" |
 | `legajo_contacto_proveedor` | "Operación {{1}}: no pudimos entregar el correo a tu proveedor ({{2}}). ¿Nos pasás otro contacto?" | "Te paso otro contacto" · "Hablar con el estudio" |
-| `legajo_nuevo_plazo` | "Operación {{1}}: el arribo estimado cambió al {{2}}. El nuevo plazo para la documentación es el {{3}}." | "Tengo una duda" |
+| `legajo_nuevo_plazo` | "Operación {{1}}: el arribo estimado cambió al {{2}}. El nuevo plazo para la documentación es el {{3}}. Si tenés dudas, respondé este mensaje." | "Tengo una duda" |
 | `legajo_escalado` | "Operación {{1}}: una persona de {{2}} va a seguir con vos por este chat." | — |
 | `legajo_aprobado` | "Operación {{1}}: el estudio aprobó el legajo. Te vamos a avisar las novedades del despacho por acá." | — |
 | `despacho_estado` | "Operación {{1}}: {{2}}. {{3}} Ante cualquier duda, consultá con el estudio." | "Hablar con el estudio" |

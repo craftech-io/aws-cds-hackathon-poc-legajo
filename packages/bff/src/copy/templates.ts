@@ -81,7 +81,7 @@ export const TEMPLATES: Readonly<Record<WhatsAppTemplateName, TemplateDefinition
   legajo_nuevo_plazo: template(
     "legajo_nuevo_plazo",
     "ETA_CHANGE",
-    "Operación {{1}}: el arribo estimado cambió al {{2}}. El nuevo plazo para la documentación es el {{3}}.",
+    "Operación {{1}}: el arribo estimado cambió al {{2}}. El nuevo plazo para la documentación es el {{3}}. Si tenés dudas, respondé este mensaje.",
     [operationNumber, { name: "etaText", example: "20/10" }, { name: "deadlineText", example: "17/10 10:00" }],
     [questionButton],
   ),
