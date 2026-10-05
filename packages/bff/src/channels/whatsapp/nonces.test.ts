@@ -55,6 +55,14 @@ describe("[FL-095] a foreign or expired nonce does nothing", () => {
     expect(world.events.map((event) => event.type)).toEqual(["AGENT_TURN", "AGENT_TURN"]);
   });
 
+  it("[FL-095] a reply that quotes a message the stage does not know (a live send, stored under its AWS id) resolves on the nonce alone", async () => {
+    const world = await waWorld();
+    const sent = await sentWithButtons(world, [{ action: "SUPPLIER_SENDS" }], { template: true });
+    await tap(world, sent.nonces[0] ?? "", { contextWamid: "wamid.HBgNNTQ5MTEzMjEwMzU2MhUCABEYEkIxQkI1MTA0RkUyMEQ0OEIyAA==" });
+    expect(await denials(world, "op-4471")).toEqual([]);
+    expect(world.events).toMatchObject([{ type: "AGENT_TURN", operationId: "op-4471" }]);
+  });
+
   it("[FL-095] the same nonce from its own importer and message still resolves", async () => {
     const world = await waWorld();
     const sent = await sentWithButtons(world, [{ action: "SUPPLIER_SENDS" }], { template: true });

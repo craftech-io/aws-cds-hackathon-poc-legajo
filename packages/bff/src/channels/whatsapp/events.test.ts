@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { WHATSAPP_METRICS, applyStatuses, nextStatus, statusEventId } from "./events";
 import { processWhatsAppEvent } from "./inbound";
-import type { WaStatus } from "./payloads";
+import { WaChangeValue, type WaStatus } from "./payloads";
 import { PHONE, type WaWorld, liveEvent, sentWithButtons, waWorld } from "./testing";
 
 const SENT = "wamid.HBgNNTQ5MTE1NTUwMDEwMRUCABEYEjdBQkZFM0U4RjBGMzQ1RjY3RgA=";
@@ -83,5 +83,19 @@ describe("status order", () => {
     expect(nextStatus("READ", "failed")).toBeUndefined();
     expect(nextStatus("SENT", "failed")).toBe("FAILED");
     expect(nextStatus("DEFERRED", "delivered")).toBeUndefined();
+  });
+});
+
+describe("statuses Meta adds over time", () => {
+  it("drops an item with an unknown status and keeps the rest of the event", () => {
+    const value = WaChangeValue.parse({
+      messaging_product: "whatsapp",
+      metadata: { phone_number_id: "1410678835454641" },
+      statuses: [
+        { id: "wamid.A1B2C3", status: "deleted", timestamp: "1791228000", recipient_id: "5491132103562" },
+        { id: "wamid.A1B2C4", status: "read", timestamp: "1791228001", recipient_id: "5491132103562" },
+      ],
+    });
+    expect(value.statuses.map((status) => status.status)).toEqual(["read"]);
   });
 });

@@ -128,8 +128,11 @@ export async function resolveNonce(data: Pick<Connector, "runtime" | "conversati
   if (isExpired(nonce.expiresAt, input.now)) return refuse("NONCE_EXPIRED", nonce);
   if (nonce.phoneHash !== input.phoneHash || nonce.importerId !== input.importer.importerId || nonce.clockId !== input.importer.clockId) return refuse("NONCE_FOREIGN", nonce);
   if (input.contextWamid !== undefined) {
+    // A live send is stored under the id End User Messaging Social returns, not Meta's `wamid`, so the
+    // quoted message may be unknown; the nonce itself already binds message, operation, importer, phone
+    // and world. A quoted message that IS known must be the one the nonce was issued for.
     const replied = await data.conversations.findMessageByProviderId(input.contextWamid);
-    if (replied === undefined || (nonce.messageId !== undefined && replied.messageId !== nonce.messageId)) return refuse("NONCE_OTHER_OPERATION", nonce);
+    if (replied !== undefined && nonce.messageId !== undefined && replied.messageId !== nonce.messageId) return refuse("NONCE_OTHER_OPERATION", nonce);
   }
   const operation = await data.operations.findOperation(nonce.operationId);
   if (operation === undefined || operation.importerId !== input.importer.importerId || operation.clockId !== input.importer.clockId) return refuse("NONCE_OTHER_OPERATION", nonce);

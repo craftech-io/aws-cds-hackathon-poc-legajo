@@ -109,7 +109,13 @@ export const WaChangeValue = z.looseObject({
   messaging_product: z.literal("whatsapp"),
   metadata: z.looseObject({ phone_number_id: z.string().min(1).max(128), display_phone_number: z.string().max(32).optional() }),
   messages: z.array(WaInboundMessage).max(100).default([]),
-  statuses: z.array(WaStatus).max(100).default([]),
+  // Meta adds states over time (`deleted`, `warning`, …): those items are dropped, not the whole event.
+  statuses: z
+    .array(z.unknown())
+    .max(100)
+    .default([])
+    .transform((items) => items.filter((item) => WaStatusValue.safeParse((item as { status?: unknown } | null)?.status).success))
+    .pipe(z.array(WaStatus)),
 });
 export type WaChangeValue = z.infer<typeof WaChangeValue>;
 
