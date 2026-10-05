@@ -920,7 +920,10 @@ Resources:
               - iam:UpdateRole
               - iam:UpdateRoleDescription
               - sts:AssumeRole
-            NotResource: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${AppName}/*"
+            NotResource:
+              - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${AppName}/*"
+              # Connect writes the recordings bucket into its service-linked role's inline policy.
+              - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/aws-service-role/connect.amazonaws.com/*"
           - Sid: DenyRoleTagsOfOtherStages
             Effect: Deny
             Action:

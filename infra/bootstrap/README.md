@@ -140,6 +140,11 @@ condition key, so a real deploy is the final check.
 
 Stated instead of hidden.
 
+- **Connect service-linked roles.** `DenyIamOutsideAppPath` leaves out `aws-service-role/connect.amazonaws.com/*`,
+  because associating the recordings bucket makes Connect write it into its service-linked role. Connect creates
+  one such role per instance with a random suffix, unknown when the bootstrap is applied, so the fence is the
+  service path: the deploy role could also edit the inline policy of another project's Connect instance role.
+
 - **Active receipt rule set.** SES keeps one active rule set per region and account; activating
   ours deactivates any other. The receipt rule actions (`CreateReceiptRuleSet`, `SetActiveReceiptRuleSet`,
   `CreateReceiptRule`, …) have no resource-level permission in IAM (`iam simulate-custom-policy`

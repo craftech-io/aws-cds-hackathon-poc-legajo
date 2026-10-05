@@ -111,6 +111,7 @@ describe("permissions of the deploy role and of the boundary", () => {
     expect(createRole).toContain("iam:PermissionsBoundary: !Ref DeployBoundary");
     const outside = block(template, "Sid: DenyIamOutsideAppPath", "- Sid: DenyBoundaryRemovalOrSwap");
     expect(outside).toContain("NotResource:");
+    expect(outside.match(/arn:\$\{AWS::Partition\}:iam::\$\{AWS::AccountId\}:role\/[^"]+/g)).toEqual(["arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${AppName}/*", "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/aws-service-role/connect.amazonaws.com/*"]);
     for (const action of ["iam:UpdateAssumeRolePolicy", "iam:PassRole", "iam:AttachRolePolicy", "iam:PutRolePolicy", "sts:AssumeRole"]) {
       expect(outside).toContain(action);
     }
