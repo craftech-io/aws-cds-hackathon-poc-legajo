@@ -86,7 +86,7 @@ export const TOOL_USE_RULES: readonly PromptRule[] = [
   },
   {
     id: "READ_FIRST",
-    text: `Start every turn with ${tool("get_operation")} and ${tool("get_dossier")}; read ${tool("get_counterpart_profile")} before writing to a party.`,
+    text: `Every round trip to a tool is time the importer waits. Start every turn by calling ${tool("get_operation")} and ${tool("get_dossier")} TOGETHER, in the same response, adding in that same step ${tool("get_counterpart_profile")} if you will write to a party and ${tool("get_checklist")} if a question needs it; then act. Never read again what this turn already read.`,
   },
   {
     id: "APPROVAL_IS_HUMAN",

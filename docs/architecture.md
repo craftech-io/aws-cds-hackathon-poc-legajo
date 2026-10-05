@@ -14,7 +14,7 @@ Topología, datos, agente, seguridad, IAM, orden de deploy y lecciones heredadas
 | Dominios | Consola y landing `legajo.demo.craftech.io`; hilos de operación `op-<número>-<etiqueta>@legajo.demo.craftech.io` (en los documentos se abrevia `op-4471@`, `docs/architecture-integrations.md` §1); avisos al estudio `avisos@legajo.demo.craftech.io`; buzones simulados `*@sim.legajo.demo.craftech.io`; MAIL FROM propio `bounce.legajo.demo.craftech.io` |
 | Identidad SES | Dominio `legajo.demo.craftech.io` (cubre `sim.` para enviar), Easy DKIM (firma con `d=legajo.demo.craftech.io`, alineado en modo relajado con todo `From` de los dos dominios), MAIL FROM `bounce.legajo.demo.craftech.io` (MX de feedback de SES + TXT SPF `v=spf1 include:amazonses.com -all`) para que también SPF quede alineado |
 | DMARC | Registros explícitos por **cada dominio desde el que enviamos o del que aceptamos correo**, todos `v=DMARC1; p=reject; adkim=r; aspf=r`: `_dmarc.legajo.demo.craftech.io` y `_dmarc.sim.legajo.demo.craftech.io`. Un receptor (RFC 7489) busca `_dmarc.<dominio del From>` y después el del dominio organizacional (`_dmarc.craftech.io`, en `craftech-root`, que este proyecto no gestiona): sin el registro de `sim.` el veredicto de nuestro propio simulador dependería de una zona ajena. Los declara `infra/messaging-email.ts` junto a los MX |
-| Modelo | `global.anthropic.claude-sonnet-5-5` (perfil de inferencia global; verificar `ACTIVE` y la cuota de tokens por minuto, §17 ítems 6 y 7) |
+| Modelo | `global.anthropic.claude-haiku-4-5-20251001-v1:0` (perfil de inferencia global; verificar `ACTIVE` y la cuota de tokens por minuto, §17 ítems 6 y 7) |
 | Providers | `aws` 7.32.0, `aws-native` 1.74.1 (pinneados; cambio solo con ADR); SST `4.17.1`; Node 22 arm64 (versión exacta en `.nvmrc` y `engines`) |
 
 Nombres fijos (sin prefijo de stage, únicos por cuenta, dentro de la cerca de prefijo del rol de CI):
@@ -68,7 +68,7 @@ Verificación: `npx sst secret list --stage poc` (imprime valores: no se compart
 
 | Componente | Servicio | Por qué |
 |---|---|---|
-| Agente | **Bedrock AgentCore Harness** (`awsnative.bedrockagentcore.Harness`) con endpoint `live`; modelo `global.anthropic.claude-sonnet-5-5`, `converse_stream`, `maxIterations 12`, `maxTokens 2048`, `timeoutSeconds 120`, `truncation sliding_window 40`; `tools` = solo el Gateway; `allowedTools: ["@legajo-tools/*"]`; sin shell, archivos ni code interpreter; guardrail G1 | Loop gestionado, tools por Gateway, memoria y guardrail por invocación; el mismo patrón probado en el scaffolding (ADR-0001) |
+| Agente | **Bedrock AgentCore Harness** (`awsnative.bedrockagentcore.Harness`) con endpoint `live`; modelo `global.anthropic.claude-haiku-4-5-20251001-v1:0`, `converse_stream`, `maxIterations 12`, `maxTokens 2048`, `timeoutSeconds 120`, `truncation sliding_window 40`; `tools` = solo el Gateway; `allowedTools: ["@legajo-tools/*"]`; sin shell, archivos ni code interpreter; guardrail G1 | Loop gestionado, tools por Gateway, memoria y guardrail por invocación; el mismo patrón probado en el scaffolding (ADR-0001) |
 | Tools | **AgentCore Gateway** MCP (`AWS_IAM`, exclusivo del Harness) + 5 `GatewayTarget` Lambda (`operations`, `documents`, `messaging`, `followups`, `handoff`) con `toolSchema.inlinePayload` generado desde zod | Un target por dominio, permisos mínimos por Lambda |
 | Autorización de tools | **AgentCore Policy** (Cedar `ENFORCE`) + `sessionToken` HMAC + zod `.strict()` en cada Lambda | Cedar: permits por target y cercas estáticas; identidad y alcance por sesión en la Lambda (`docs/design-brief.md` §5.6) |
 | Memoria | **AgentCore Memory** con tres estrategias propias con instrucción de exclusión | §9.3 |
@@ -130,7 +130,7 @@ flowchart LR
   SCH["EventBridge Scheduler<br/>un schedule por temporizador"]
   Q["SQS FIFO<br/>OperationEvents por operación"]
   W["OperationWorker<br/>intake, temporizadores, turnos"]
-  H["AgentCore Harness<br/>Claude Sonnet 5.5"]
+  H["AgentCore Harness<br/>Claude Haiku 4.5"]
   MEM["AgentCore Memory<br/>importador y operación"]
   GW["AgentCore Gateway<br/>Cedar ENFORCE"]
   T["5 targets Lambda<br/>tools del agente"]
@@ -555,8 +555,8 @@ Cada una ya viene resuelta en el código o el template que se reusa (`docs/reuse
 | 3 | Provider OIDC de GitHub | Ya existe en la cuenta | `aws --profile craftech-demos iam list-open-id-connect-providers` |
 | 4 | Cuentas de consola: despachantes de demo, invitados reservados `guest-01..NN` (§10) y `guest-test` | `scripts/console/invite.ts` (SDK v3, por el operador): despachantes con `AdminCreateUser` + grupo + `custom:firmId`; invitados reservados con `--guest <n>` (`AdminSetUserPassword Permanent=true`, MFA apagado, grupo `GUEST`, `firm-guest-<nn>`). Las contraseñas de las reservadas van solo a las instrucciones privadas de prueba del formulario de la submission; la de `guest-test` (generada por `console:invite --guest-test`, nunca de una persona) va solo al secreto de GitHub `GUEST_TEST_PASSWORD`, que usan `SC-24` y las capturas, sin mostrarse. Antes de entregar credenciales: WP-41 cerrado (tarifas verificadas) | `aws --profile craftech-demos cognito-idp list-users-in-group --user-pool-id <id> --group-name GUEST` |
 | 5 | WABA, número, display name, plantillas, destino de eventos | Pasos del CTO (`docs/pending.md` P-01) + `scripts/channels/whatsapp-templates.ts` y `scripts/channels/waba-event-destination.ts` | `aws --profile craftech-demos socialmessaging list-linked-whatsapp-business-accounts` · `list-whatsapp-message-templates --id <WabaId>` |
-| 6 | Modelo | Nada que crear | `aws --profile craftech-demos bedrock list-inference-profiles --query "inferenceProfileSummaries[?inferenceProfileId=='global.anthropic.claude-sonnet-5-5'].status"` → `ACTIVE` |
-| 7 | Cuota de tokens por minuto del modelo | Solo lectura; si no alcanza para 5 turnos concurrentes, se pide aumento (CTO) | `aws --profile craftech-demos service-quotas list-service-quotas --service-code bedrock --query "Quotas[?contains(QuotaName, 'Sonnet 5.5')]"` |
+| 6 | Modelo | Nada que crear | `aws --profile craftech-demos bedrock list-inference-profiles --query "inferenceProfileSummaries[?inferenceProfileId=='global.anthropic.claude-haiku-4-5-20251001-v1:0'].status"` → `ACTIVE` |
+| 7 | Cuota de tokens por minuto del modelo | Solo lectura; si no alcanza para 5 turnos concurrentes, se pide aumento (CTO) | `aws --profile craftech-demos service-quotas list-service-quotas --service-code bedrock --query "Quotas[?contains(QuotaName, 'Haiku 4.5')]"` |
 | 8 | Tag de asignación de costos `Project` activo (lo usa el presupuesto de §12) | Activación de cuenta en Billing, una vez | `aws --profile craftech-demos ce list-cost-allocation-tags --tag-keys Project` → `Active` |
 | 9 | Destinatario del aviso de lead | El operador carga el secreto `LeadNoticeTo` (§3); nunca en el código | `npx sst secret list --stage poc` (no se comparte) y un alta de prueba que llega a esa casilla |
 | 10 | Exportar leads antes de cualquier `sst remove` | `Leads` tiene removal `remove` como todo el stage: el operador corre `npm run leads:export` antes de remover | Archivo CSV fuera del repo con la cantidad de filas esperada |

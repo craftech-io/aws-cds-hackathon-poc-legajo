@@ -95,6 +95,11 @@ export function liveWhatsAppTransport(deps: LiveTransportDeps): WhatsAppTranspor
       return { providerMessageId: output.messageId, simulated: false, status: "SENT", sentAtReal: (await deps.realClock.now()).toISOString() };
     },
 
+    async markReadTyping(wamid: string): Promise<void> {
+      const payload = { messaging_product: "whatsapp", status: "read", message_id: wamid, typing_indicator: { type: "text" } };
+      await sdk().send(new SendWhatsAppMessageCommand({ originationPhoneNumberId: deps.phoneNumberId, message: new TextEncoder().encode(JSON.stringify(payload)), metaApiVersion: META_API_VERSION }));
+    },
+
     async fetchMedia(input: MediaFetch): Promise<FetchedMedia> {
       if (parseSimMediaRef(input.mediaId) !== undefined) throw new ChannelError("INVALID", "WHATSAPP", "a simulated media reference in live mode");
       if (!SAFE_SEGMENT.test(input.mediaId)) throw new ChannelError("INVALID", "WHATSAPP", "unexpected characters in a media id");

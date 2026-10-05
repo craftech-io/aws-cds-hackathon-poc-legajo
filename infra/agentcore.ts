@@ -14,7 +14,7 @@
 //               chain, with ignoreChanges (GATEWAY_SCHEMA_ROLLOUT says how a schema change ships).
 //   Policies    the Cedar statements CED-* of WP-09, attached after the LAST target: the engine validates
 //               each statement against the Gateway's tool schemas.
-//   Harness     global.anthropic.claude-sonnet-5-5 (through the tagged application profile <app>-<stage>-agent-model,
+//   Harness     global.anthropic.claude-haiku-4-5-20251001-v1:0 (through the tagged application profile <app>-<stage>-agent-model,
 //               also the Memory model) over converse_stream with G1 in the model parameters;
 //               maxIterations 12, maxTokens 2048, timeout 120 s, sliding window 40; tools = the Gateway
 //               only (`@legajo-tools/*`), so no shell, file or code tools; the default system prompt of

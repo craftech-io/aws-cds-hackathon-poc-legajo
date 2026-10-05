@@ -88,6 +88,8 @@ async function route(ctx: InboundContext, sender: Sender, message: WaInboundMess
   }
   if (unrouted.hasText) {
     await deps.events.enqueue(importerTurn({ importer: sender.importer, operationId: target.operationId, messageId: persisted.messageId, wamid, atSim: sender.atSim }));
+    // A real phone sees its message read and the "typing…" animation while the agent thinks.
+    if (!ctx.simulated) await deps.transport.markReadTyping?.(wamid).catch((error: unknown) => deps.log.warn("inbound_whatsapp.typing_failed", { error: error instanceof Error ? error.name : "unknown" }));
   }
   for (const media of unrouted.media) {
     await routeMedia(deps.data, deps.events, { ...media, operationId: target.operationId, clockId: sender.importer.clockId, firmId: sender.importer.firmId, messageId: persisted.messageId, eventAtSim: sender.atSim }, sender.atReal);

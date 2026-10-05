@@ -100,7 +100,7 @@ describe("dossier router", () => {
     await world.stores.connector.metrics.incrementKpi(ref, { inputTokens: 1_000_000, emailSent: 1_000 }, { agentMode: "REAL" });
     const stamp = { createdAt: START_SIM, updatedAt: START_SIM, version: 1, source: "https://aws.amazon.com/pricing/", asOf: "2026-09-20", provisional: false };
     vi.spyOn(world.stores.connector.reference, "listRateCard").mockResolvedValue([
-      RateCard.parse({ ...stamp, rateId: "bedrock:global.anthropic.claude-sonnet-5-5:input", price: 5, unit: "PER_1M_TOKENS" }),
+      RateCard.parse({ ...stamp, rateId: "bedrock:global.anthropic.claude-haiku-4-5-20251001-v1-0:input", price: 5, unit: "PER_1M_TOKENS" }),
       RateCard.parse({ ...stamp, rateId: "ses:outbound", price: 0.1, unit: "PER_1K_MESSAGES" }),
     ]);
     await world.caller(DIEGO).dossier.approve({ operationId: OPERATION });

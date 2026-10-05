@@ -147,14 +147,14 @@ describe("Harness (docs/architecture.md §4)", () => {
   it("puts G1 in the model parameters and invokes only the tagged application profile, the global profile it copies and its model", () => {
     const guardrail = { guardrailConfig: { guardrailIdentifier: "g1", guardrailVersion: "1", trace: "enabled" } };
     expect(harnessBedrockModelConfig(PROFILE_ARN, guardrail)).toEqual({ modelId: PROFILE_ARN, apiFormat: "converse_stream", additionalParams: guardrail });
-    expect(agentModelProfileName(APP, STAGE)).toBe("aws-cds-hackathon-poc-legajo-poc-sonnet-5-5");
+    expect(agentModelProfileName(APP, STAGE)).toBe("aws-cds-hackathon-poc-legajo-poc-haiku-4-5-20251001-v1:0");
     for (const value of [agentModelProfileName(APP, STAGE), agentModelProfileDescription(APP, STAGE)]) expect(value).toMatch(/^([0-9a-zA-Z:.][ _-]?)+$/);
     expect(agentModelSourceArn(PLACE)).toBe(`arn:aws:bedrock:us-east-1:776805327629:inference-profile/${AGENT_MODEL_ID}`);
     expect(agentModelArns(PLACE, PROFILE_ARN)).toEqual([
       PROFILE_ARN,
-      "arn:aws:bedrock:us-east-1:776805327629:inference-profile/global.anthropic.claude-sonnet-5-5",
-      "arn:aws:bedrock:::foundation-model/anthropic.claude-sonnet-5-5",
-      "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-5-5",
+      "arn:aws:bedrock:us-east-1:776805327629:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "arn:aws:bedrock:::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
+      "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
     ]);
   });
 

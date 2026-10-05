@@ -8,7 +8,7 @@ import { z } from "zod";
 import { CalendarDate } from "@legajo/shared";
 
 /** Model of the Harness (docs/architecture.md §1); its token rows are keyed by this id. */
-export const HARNESS_MODEL_ID = "global.anthropic.claude-sonnet-5-5";
+export const HARNESS_MODEL_ID = "global.anthropic.claude-haiku-4-5-20251001-v1:0";
 
 export const TokenKind = z.enum(["input", "output", "cacheRead", "cacheWrite"]);
 export type TokenKind = z.infer<typeof TokenKind>;
@@ -17,7 +17,8 @@ export const WhatsAppPricing = z.enum(["utility", "service"]);
 export type WhatsAppPricing = z.infer<typeof WhatsAppPricing>;
 
 export function bedrockRateKey(kind: TokenKind, modelId: string = HARNESS_MODEL_ID): string {
-  return `bedrock:${modelId}:${kind}`;
+  // A model id may carry a version after ":" (`…-v1:0`); the key keeps one ":" per part.
+  return `bedrock:${modelId.replace(/:/g, "-")}:${kind}`;
 }
 
 export const SES_OUTBOUND_RATE_KEY = "ses:outbound";

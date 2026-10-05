@@ -96,6 +96,14 @@ describe("[FL-091] SendWhatsAppMessage in live mode", () => {
     expect(sentJson()).toEqual({ ...(expected("send-template.json") as object), to: `+${(expected("send-template.json") as { to: string }).to}` });
   });
 
+  it("[FL-091] marks the importer's message read with the typing animation, for the connected number", async () => {
+    sdk.on(SendWhatsAppMessageCommand).resolves({ messageId: "c8f309a2-0681-4e56-a132-54c5096bc4bb" });
+    const transport = await liveTransport();
+    await transport.markReadTyping?.("wamid.HBgNNTQ5MTEzMjEwMzU2MhUCABIYFDNCODBENzBCODM5ODZDMUE5RkZGAA==");
+    expect(sdk.commandCalls(SendWhatsAppMessageCommand)[0]?.args[0].input).toMatchObject({ originationPhoneNumberId: PHONE_NUMBER_ID, metaApiVersion: META_API_VERSION });
+    expect(sentJson()).toEqual({ messaging_product: "whatsapp", status: "read", message_id: "wamid.HBgNNTQ5MTEzMjEwMzU2MhUCABIYFDNCODBENzBCODM5ODZDMUE5RkZGAA==", typing_indicator: { type: "text" } });
+  });
+
   it("[FL-091] a template Meta has not approved is refused before calling AWS", async () => {
     const transport = await liveTransport();
     await expect(transport.send({ message: toMetaMessage(DOCS_REQUEST) })).rejects.toMatchObject({ code: "INVALID" });

@@ -49,6 +49,11 @@ export interface WhatsAppTransport extends ChannelTransport<WhatsAppSendRequest,
   readonly channel: "WHATSAPP";
   /** Live: `GetWhatsAppMessageMedia` into `Media/wa/<wamid>/<mediaId>`. Simulated: the `sim-media:` key the phone uploaded. */
   fetchMedia(input: MediaFetch): Promise<FetchedMedia>;
+  /**
+   * Live only: marks the importer's message read (blue ticks) and shows WhatsApp's "typing…" animation
+   * until the reply arrives or about 25 s pass. Best effort: a failure never stops the turn.
+   */
+  markReadTyping?(wamid: string): Promise<void>;
 }
 
 /** What the bytes of a media object say: its SHA-256 (hex) and whether they start with `%PDF-`. */

@@ -24,7 +24,7 @@
         "completeBeforeArrivalPct": 100,
         "consoleMinutesObserved": 2.3,
         "correctResponsiblePct": 100,
-        "costPerDossierUsd": 0.1632,
+        "costPerDossierUsd": 0.12,
         "humanMinutesPerDossier": 6.7,
         "interventionsPerDossier": 0.7,
         "latencyP50Ms": 41000,
@@ -32,7 +32,7 @@
         "manualBaselineMinutes": 95,
         "policyViolations": 0
       },
-      "sha256": "85fad5901adae22e35e1cdee3ad341aede4135403c17db2ff65de027e901ca98"
+      "sha256": "7f16764ca18e7be141095920bdb648b73d0adb9c55426a721f030dc81eb936e2"
     }
   },
   "pdfs": {
@@ -187,7 +187,7 @@
     },
     "Reference": {
       "count": 80,
-      "sha256": "302cf8ff603d9e7ccfd54bf821e674d04fa88becf9fa216482c5e13dc75f9cd7"
+      "sha256": "b913713873d57880e51e14157386fe3c338dc8dfcb5b41b639704f26f71f46c5"
     }
   },
   "validation": {

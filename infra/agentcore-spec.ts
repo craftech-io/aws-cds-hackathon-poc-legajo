@@ -25,9 +25,9 @@ export interface AgentPlace {
 // ---- Model ------------------------------------------------------------------------------------------
 
 /** The only model of the agent (docs/architecture.md §1), also the extraction model of Memory. */
-export const AGENT_MODEL_ID = "global.anthropic.claude-sonnet-5-5";
+export const AGENT_MODEL_ID = "global.anthropic.claude-haiku-4-5-20251001-v1:0";
 /** Foundation model behind the global inference profile (`bedrock get-inference-profile`). */
-export const AGENT_FOUNDATION_MODEL = "anthropic.claude-sonnet-5-5";
+export const AGENT_FOUNDATION_MODEL = "anthropic.claude-haiku-4-5-20251001-v1:0";
 export const HARNESS_API_FORMAT = "converse_stream";
 export const MODEL_INVOKE_ACTIONS = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"] as const;
 
