@@ -35,7 +35,7 @@ export async function processWhatsAppEvent(event: unknown, deps: WhatsAppInbound
   for (const record of parsed.data.Records) {
     const check = checkEnvelope(record, { mode: deps.mode, topicArn: deps.source.topicArn, accountId: deps.source.accountId, simEnvelopeKey: deps.keys.simEnvelope });
     if (!check.accepted) {
-      countMetric(deps.log, ENVELOPE_REJECTED_METRIC, { reason: check.reason, simulated: check.simulated, mode: deps.mode });
+      countMetric(deps.log, ENVELOPE_REJECTED_METRIC, { reason: check.reason, simulated: check.simulated, mode: deps.mode, ...(check.detail === undefined ? {} : { detail: check.detail }) });
       records.push({ accepted: false, simulated: check.simulated, reason: check.reason, messages: [], statuses: [] });
       continue;
     }

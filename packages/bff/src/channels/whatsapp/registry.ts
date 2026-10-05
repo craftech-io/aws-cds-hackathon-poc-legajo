@@ -21,7 +21,7 @@ export type EnvelopeRejection = "INVALID_PAYLOAD" | "BAD_SIGNATURE" | "NOT_FROM_
 
 export type EnvelopeCheck =
   | { readonly accepted: true; readonly simulated: boolean; readonly parsed: ParsedEnvelope }
-  | { readonly accepted: false; readonly simulated: boolean; readonly reason: EnvelopeRejection };
+  | { readonly accepted: false; readonly simulated: boolean; readonly reason: EnvelopeRejection; readonly detail?: string };
 
 export interface EnvelopeExpectations {
   readonly mode: ChannelMode;
@@ -35,17 +35,18 @@ export interface EnvelopeExpectations {
 /** The gate of every record `InboundWhatsApp` receives, before anything is read from it. */
 export function checkEnvelope(record: SnsRecord, expect: EnvelopeExpectations): EnvelopeCheck {
   let parsed: ParsedEnvelope | undefined;
-  let invalid = false;
+  let invalid: string | undefined;
   try {
     parsed = parseEnvelope(record.Sns.Message);
   } catch (error) {
     if (!(error instanceof PayloadError)) throw error;
-    invalid = true;
+    // Field paths only (payloads.ts `check`), never values: safe to log.
+    invalid = error.message;
   }
   const simulated = looksSimulated(record, parsed);
   if (simulated && !hasValidSimSignature(expect.simEnvelopeKey, record)) return { accepted: false, simulated, reason: "BAD_SIGNATURE" };
   if (!simulated && (record.EventSource !== SNS_EVENT_SOURCE || record.Sns.TopicArn !== expect.topicArn)) return { accepted: false, simulated, reason: "NOT_FROM_TOPIC" };
-  if (invalid || parsed === undefined) return { accepted: false, simulated, reason: "INVALID_PAYLOAD" };
+  if (invalid !== undefined || parsed === undefined) return { accepted: false, simulated, reason: "INVALID_PAYLOAD", ...(invalid === undefined ? {} : { detail: invalid }) };
   if (!simulated && parsed.envelope.aws_account_id !== expect.accountId) return { accepted: false, simulated, reason: "FOREIGN_ACCOUNT" };
   return { accepted: true, simulated, parsed };
 }
