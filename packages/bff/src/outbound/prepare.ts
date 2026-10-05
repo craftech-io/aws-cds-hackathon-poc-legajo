@@ -55,7 +55,7 @@ async function uploadToken(deps: OutboundDeps, request: OutboundRequest, context
 async function renderWhatsAppSend(deps: OutboundDeps, request: Extract<OutboundRequest, { channel: "WHATSAPP" }>, context: SendContext, messageId: string, reuseToken?: string): Promise<RenderedSend> {
   const { importer } = context;
   if (importer === undefined) throw new ToolError("NOT_FOUND", "the importer of the operation has no registered phone", OUTBOUND_REASON.NO_RECIPIENT);
-  const route = deps.whatsapp(context.operation.clockId);
+  const route = deps.whatsapp(context.operation.clockId, importer.phoneE164);
   const token = request.template !== undefined && needsUploadLink(request.template.name) ? await uploadToken(deps, request, context, reuseToken) : undefined;
   const rendered = await renderWhatsApp(deps.data.runtime, {
     messageId,

@@ -66,7 +66,7 @@ async function sendChoiceList(deps: OutboundDeps, request: SystemReplyRequest, c
   }
   const phone = context.importer?.phoneE164;
   if (phone === undefined) throw new ToolError("NOT_FOUND", "the importer of the operation has no registered phone");
-  const route = deps.whatsapp(context.operation.clockId);
+  const route = deps.whatsapp(context.operation.clockId, phone);
   const rendered = {
     content: { to: phone, from: route.from, body: request.body, buttons: [...request.buttons], simulated: route.mode === "simulated" },
     whatsapp: { message: systemReplyMessage(request, phone), route },

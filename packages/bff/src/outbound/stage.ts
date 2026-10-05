@@ -25,14 +25,14 @@ import { timerKeyOf } from "../domain/timers";
 import { emailHash, ulid } from "../lib/crypto";
 import type { Logger } from "../lib/log";
 import { channelMode } from "../lib/resource";
-import { subkey, whatsAppConnection } from "../lib/secrets";
+import { seedOverrides, subkey, whatsAppConnection } from "../lib/secrets";
 import { holidaysReader } from "../policy-audit/facts";
 import { eventBridgeScheduler } from "../timers/scheduler-client";
 import { armTimer, timerDispatcher } from "../timers/timers";
 import { linkedQueueSink } from "../worker/sink";
 import type { OutboundDeps, TimerArming, UploadLinks } from "./deps";
 import { createBedrockG2, linkedG2Config } from "./grounding";
-import { whatsappRoutes } from "./routes";
+import { demoPhoneMatcher, whatsappRoutes } from "./routes";
 
 const realNow = (): Date => new Date();
 
@@ -88,6 +88,7 @@ export function stageOutboundDeps(log: Logger, options: StageOutboundOptions = {
         if (connection === undefined) throw new ToolError("UNAVAILABLE", "live WhatsApp needs its connection (docs/pending.md P-01)");
         return { transport: factories.live(), phoneNumberId: connection.phoneNumberId };
       },
+      isLivePhone: demoPhoneMatcher(() => seedOverrides().demoRecipients.phones),
     }),
     guardrail: createBedrockG2(),
     g2Limits: linkedG2Config,

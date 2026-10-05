@@ -152,7 +152,7 @@ export function createStageContext(base: StageBase): StageContext {
     email: createEmailClient({ fence, world: data.world, runtime: data.runtime, audit: data.audit, configurationSet: (profile) => `legajo-local-${profile.toLowerCase()}`, stage: LOCAL_STAGE, now, newMailId: newId, log, ses: new SESv2Client(REGION) }),
     whatsapp: whatsappRoutes({ mode: () => "simulated", simulated: () => transport, live: () => {
         throw new ToolError("UNAVAILABLE", "the local flows have no live WhatsApp");
-      } }),
+      }, isLivePhone: () => false }),
     guardrail: createBedrockG2({ client: new BedrockRuntimeClient(REGION), config: () => LOCAL_G2, sleep: async () => undefined }),
     g2Limits: () => LOCAL_G2,
     fence,

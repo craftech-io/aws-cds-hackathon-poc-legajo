@@ -16,7 +16,7 @@ export type ChannelName = "email" | "whatsapp";
 
 export const channelModes = {
   email: "live",
-  whatsapp: "simulated", // live only after docs/pending.md P-01 is closed
+  whatsapp: "live", // P-01 closed on 2026-10-05
 } as const satisfies Record<ChannelName, ChannelMode>;
 
 export const ChannelModes = new sst.Linkable("ChannelModes", {

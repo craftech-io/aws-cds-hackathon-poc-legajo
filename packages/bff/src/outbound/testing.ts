@@ -70,7 +70,7 @@ async function seedWorld(world: EmailWorld): Promise<void> {
   await parties.setAuthorization({ importerId: "imp-norpampa", supplierId: "sup-qingdao", authorized: true, atSim: SEEDED, by: "SEED" });
 }
 
-export async function outboundWorld(options: { readonly demoRecipients?: readonly string[] } = {}): Promise<OutboundWorld> {
+export async function outboundWorld(options: { readonly demoRecipients?: readonly string[]; readonly isLivePhone?: (phoneE164: string) => boolean } = {}): Promise<OutboundWorld> {
   const world = await emailWorld();
   await seedWorld(world);
   const { connector } = world.stores;
@@ -97,7 +97,7 @@ export async function outboundWorld(options: { readonly demoRecipients?: readonl
   const deps: OutboundDeps = {
     data: connector,
     email: createEmailClient({ fence, world: connector.world, runtime: connector.runtime, audit: connector.audit, configurationSet: (profile) => `legajo-${profile.toLowerCase()}-${STAGE}`, stage: STAGE, now: () => new Date(REAL_NOW), newMailId: () => `01JQMAIL${String(++ids).padStart(18, "0")}`, log, ses: new SESv2Client({ region: "us-east-1" }) }),
-    whatsapp: whatsappRoutes({ mode: () => mode, simulated: () => simulated, live: () => ({ transport: live, phoneNumberId: "1098765432109876" }) }),
+    whatsapp: whatsappRoutes({ mode: () => mode, simulated: () => simulated, live: () => ({ transport: live, phoneNumberId: "1098765432109876" }), isLivePhone: options.isLivePhone ?? (() => true) }),
     guardrail: {
       check: async (input) => {
         g2.calls.push(input);

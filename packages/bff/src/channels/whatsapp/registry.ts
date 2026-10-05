@@ -2,8 +2,9 @@
 // `ChannelModes.whatsapp` (ADR-0002, FL-100). `channels/registry.ts` asks `createWhatsAppTransport` for
 // the transport of the mode; nothing else knows the mode. Envelopes:
 //
-//   simulated envelope + mode live       → refused (SIMULATED_IN_LIVE)
-//   simulated envelope + mode simulated  → accepted only with a valid `sim-envelope` signature
+//   simulated envelope, either mode      → accepted only with a valid `sim-envelope` signature: a live
+//                                          stage keeps the phone simulator for guest worlds and for every
+//                                          importer that is not a demo phone (outbound/routes.ts)
 //   live envelope, either mode           → accepted only from the stage's topic by SNS, for this account
 //                                          (the topic exists in every mode; its policy admits only
 //                                          `social-messaging.amazonaws.com` of the account)
@@ -16,7 +17,7 @@ import { hasValidSimSignature, looksSimulated } from "./sim-envelope";
 import { type SimulatedTransportDeps, type SimulatedWhatsAppTransport, simulatedWhatsAppTransport } from "./simulated-transport";
 import type { WhatsAppTransport } from "./transport";
 
-export type EnvelopeRejection = "INVALID_PAYLOAD" | "SIMULATED_IN_LIVE" | "BAD_SIGNATURE" | "NOT_FROM_TOPIC" | "FOREIGN_ACCOUNT";
+export type EnvelopeRejection = "INVALID_PAYLOAD" | "BAD_SIGNATURE" | "NOT_FROM_TOPIC" | "FOREIGN_ACCOUNT";
 
 export type EnvelopeCheck =
   | { readonly accepted: true; readonly simulated: boolean; readonly parsed: ParsedEnvelope }
@@ -42,7 +43,6 @@ export function checkEnvelope(record: SnsRecord, expect: EnvelopeExpectations): 
     invalid = true;
   }
   const simulated = looksSimulated(record, parsed);
-  if (simulated && expect.mode === "live") return { accepted: false, simulated, reason: "SIMULATED_IN_LIVE" };
   if (simulated && !hasValidSimSignature(expect.simEnvelopeKey, record)) return { accepted: false, simulated, reason: "BAD_SIGNATURE" };
   if (!simulated && (record.EventSource !== SNS_EVENT_SOURCE || record.Sns.TopicArn !== expect.topicArn)) return { accepted: false, simulated, reason: "NOT_FROM_TOPIC" };
   if (invalid || parsed === undefined) return { accepted: false, simulated, reason: "INVALID_PAYLOAD" };

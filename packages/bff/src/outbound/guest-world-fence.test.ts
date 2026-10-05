@@ -10,7 +10,7 @@ import { createLogger } from "../lib/log";
 import { consumeQuota } from "../worlds/guest-quotas";
 import { sendOutbound } from "./pipeline";
 import { emailFence } from "./recipient-fence";
-import { whatsappRouteFor } from "./routes";
+import { demoPhoneMatcher, whatsappRouteFor } from "./routes";
 import { DEMO_RECIPIENT, FRI_10_QINGDAO, GUEST_CLOCK, REAL_NOW, THU_10_AR, outboundWorld, type OutboundWorld } from "./testing";
 import type { OutboundRequest } from "./types";
 
@@ -29,9 +29,15 @@ function guestEmail(operationId: string, turnId: string): OutboundRequest {
 
 describe("[FL-123] WhatsApp of a guest world", () => {
   it("takes the simulated transport even when the stage runs live", async () => {
-    const transports = { mode: () => "live" as const, simulated: () => ({ name: "simulated" }) as never, live: () => ({ transport: { name: "live" } as never, phoneNumberId: "1098765432109876" }) };
-    expect(whatsappRouteFor(GUEST_CLOCK, transports)).toMatchObject({ mode: "simulated", from: "simulated", transport: { name: "simulated" } });
-    expect(whatsappRouteFor("GLOBAL#firm-delta", transports)).toMatchObject({ mode: "live", from: "1098765432109876", transport: { name: "live" } });
+    const transports = { mode: () => "live" as const, simulated: () => ({ name: "simulated" }) as never, live: () => ({ transport: { name: "live" } as never, phoneNumberId: "1098765432109876" }), isLivePhone: demoPhoneMatcher(() => ["+5491100000001"]) };
+    expect(whatsappRouteFor(GUEST_CLOCK, "+5491100000001", transports)).toMatchObject({ mode: "simulated", from: "simulated", transport: { name: "simulated" } });
+    expect(whatsappRouteFor("GLOBAL#firm-delta", "+54 9 11 0000-0001", transports)).toMatchObject({ mode: "live", from: "1098765432109876", transport: { name: "live" } });
+  });
+
+  it("keeps the phone simulator for every importer that is not a demo phone, in a live stage", () => {
+    const transports = { mode: () => "live" as const, simulated: () => ({ name: "simulated" }) as never, live: () => ({ transport: { name: "live" } as never, phoneNumberId: "1098765432109876" }), isLivePhone: demoPhoneMatcher(() => ["+5491100000001"]) };
+    expect(whatsappRouteFor("GLOBAL#firm-delta", "+5491155500123", transports)).toMatchObject({ mode: "simulated", transport: { name: "simulated" } });
+    expect(whatsappRouteFor("GLOBAL#firm-delta", undefined, transports)).toMatchObject({ mode: "simulated" });
   });
 
   it("never reaches the live transport from a guest operation", async () => {

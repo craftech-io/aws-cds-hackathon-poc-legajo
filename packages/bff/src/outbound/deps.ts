@@ -57,8 +57,11 @@ export interface OutboundDeps {
   readonly data: Connector;
   /** The single SES client (channels/email/outbound.ts): the fence runs again inside `send`. */
   readonly email: Pick<EmailClient, "send">;
-  /** A guest world always gets the simulated transport, whatever `ChannelModes.whatsapp` says (ADR-0015 §4). */
-  readonly whatsapp: (clockId: string) => WhatsAppRoute;
+  /**
+   * The transport of a send to `phoneE164` in a world: live only in a `live` stage, outside guest worlds
+   * (ADR-0015 §4) and to a demo phone of `SeedOverrides`; every other importer keeps the phone simulator.
+   */
+  readonly whatsapp: (clockId: string, phoneE164?: string) => WhatsAppRoute;
   readonly guardrail: OutputGuardrail;
   readonly g2Limits: () => Pick<G2Config, "queryMaxChars" | "groundingSourceMaxChars">;
   readonly fence: FenceDeps;

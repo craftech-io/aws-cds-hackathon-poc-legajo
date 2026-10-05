@@ -17,6 +17,15 @@ El importador vive en WhatsApp y el proveedor en el email. Email por Amazon SES 
 
 - `channels/whatsapp/` tiene dos transportes detrás de una interfaz; el registro instancia uno según el modo.
 - El topic `aws-cds-hackathon-poc-legajo-wa-inbound` y la suscripción existen siempre; solo el destino de eventos de la WABA espera a P-01.
-- Un check de CI impide `whatsapp: "live"` mientras P-01 esté abierto; `InboundWhatsApp` rechaza sobres simulados en modo vivo.
+- Un check de CI impide `whatsapp: "live"` mientras P-01 esté abierto. `InboundWhatsApp` rechazaba sobres simulados en modo vivo; la adenda del 2026-10-05 lo cambia.
 - La ventana de 24 h se mide con el reloj de la operación en modo simulado y con el reloj real en vivo, porque Meta mide tiempo real.
 - Los costos de WhatsApp de la demo se valorizan como si fueran vivos y se rotulan.
+
+## Adenda 2026-10-05: modo vivo con simulador
+
+Con P-01 cerrado, `whatsapp: "live"` ya no apaga el simulador. Una sola regla decide el transporte de cada envío (`outbound/routes.ts`):
+
+- **End User Messaging Social** solo cuando el stage está en `live`, el mundo no es de invitado (ADR-0015 §4) y el teléfono del importador es uno de `SeedOverrides.demoRecipients.phones`, los teléfonos reales del equipo.
+- **El simulador** para todo lo demás: importadores sintéticos del seed, QA e invitados.
+
+`InboundWhatsApp` acepta en cualquier modo los sobres simulados con firma `sim-envelope` válida; ya no existe el rechazo `SIMULATED_IN_LIVE`. Así un stage vivo sigue sirviendo el simulador a los jurados y visitantes, y el transporte vivo conserva su lista de teléfonos permitidos como segunda valla.

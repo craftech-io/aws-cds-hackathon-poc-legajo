@@ -4,7 +4,7 @@ Solo lo que depende de alguien fuera del equipo de agentes (el CTO, Meta, AWS Pa
 
 | # | Pendiente | Dueño | Estado | Qué falta |
 |---|---|---|---|---|
-| P-01 | Conectar WhatsApp: cuenta de WhatsApp Business, número y plantillas aprobadas | CTO (Meta); `devops` ejecuta los scripts; `qa` prueba en vivo | Abierto: pasos 1 a 6 hechos el 2026-10-05 (portfolio y WABA "Craftech", número +1 817 768 1029 de la instancia de Connect de `infra/phone.ts`, código leído por `PhoneOtp`, destino de eventos al topic, secretos cargados); faltan plantillas, teléfonos de demo y modo vivo | §1 |
+| P-01 | Conectar WhatsApp: cuenta de WhatsApp Business, número y plantillas aprobadas | CTO (Meta); `devops` ejecuta los scripts; `qa` prueba en vivo | Cerrado el 2026-10-05 por el CTO para el modo vivo: portfolio y WABA \"Craftech\", número +1 817 768 1029 (Connect, `infra/phone.ts`), destino de eventos, secretos y teléfono de demo del CTO en `SeedOverrides`; las 8 plantillas siguen en revisión de Meta (paso 7) y la prueba viva SC-23 queda para `qa` | §1 |
 | P-02 | Oportunidad ACE de la submission | CTO | Abierto | §2 |
 | P-03 | Video de 3 minutos | CTO | Abierto | §3 |
 | P-04 | Decisión de marca pública | CTO | Abierto | §4 |

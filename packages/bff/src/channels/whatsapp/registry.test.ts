@@ -19,12 +19,14 @@ async function nothingWritten(world: WaWorld) {
 }
 
 describe("[FL-100] the mode of WhatsApp decides which envelopes enter", () => {
-  it("[FL-100] a simulated envelope is refused while WhatsApp runs live, and nothing is written", async () => {
+  it("[FL-100] a live stage keeps the phone simulator: a signed simulated envelope enters, an unsigned one is refused", async () => {
+    const signed = recordOf(simEvent({ type: "text", text: "Hola" }));
+    expect(checkEnvelope(signed, { mode: "live", ...EXPECT })).toMatchObject({ accepted: true, simulated: true });
+    const unsigned = { ...signed, Sns: { ...signed.Sns, MessageAttributes: {} } };
+    expect(checkEnvelope(unsigned, { mode: "live", ...EXPECT })).toMatchObject({ accepted: false, simulated: true, reason: "BAD_SIGNATURE" });
     const world = await waWorld({ mode: "live" });
-    const summary = await processWhatsAppEvent(simEvent({ type: "text", text: "Hola" }), world.deps);
-    expect(summary.records).toEqual([{ accepted: false, simulated: true, reason: "SIMULATED_IN_LIVE", messages: [], statuses: [] }]);
+    await processWhatsAppEvent({ Records: [unsigned] }, world.deps);
     await nothingWritten(world);
-    expect(world.logs()).toContainEqual(expect.objectContaining({ metric: "WhatsAppEnvelopeRejected", reason: "SIMULATED_IN_LIVE", mode: "live" }));
   });
 
   it("[FL-100] a simulated envelope needs the signature of its own body", async () => {
@@ -56,7 +58,7 @@ describe("[FL-100] the mode of WhatsApp decides which envelopes enter", () => {
   it("[FL-100] a record from the topic carrying a simulated message id is still a simulated envelope and needs the signature", async () => {
     const forged = recordOf(liveEvent("sns-text.json", { TEXT: "Hola", WAMID: "wamid.SIM.FORGED0000000000000000000" }));
     expect(checkEnvelope(forged, { mode: "simulated", ...EXPECT })).toMatchObject({ accepted: false, simulated: true, reason: "BAD_SIGNATURE" });
-    expect(checkEnvelope(forged, { mode: "live", ...EXPECT })).toMatchObject({ accepted: false, reason: "SIMULATED_IN_LIVE" });
+    expect(checkEnvelope(forged, { mode: "live", ...EXPECT })).toMatchObject({ accepted: false, simulated: true, reason: "BAD_SIGNATURE" });
   });
 
   it("[FL-100] a malformed body or event is refused without being processed", async () => {

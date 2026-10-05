@@ -74,6 +74,6 @@ describe("repository state", () => {
     const modes = readFileSync(resolve(root, MODES_FILE), "utf8");
     const pendingMarkdown = readFileSync(resolve(root, PENDING_FILE), "utf8");
     expect(checkModes(modes, pendingMarkdown)).toEqual([]);
-    expect(readModes(modes)).toEqual({ email: "live", whatsapp: "simulated" });
+    expect(readModes(modes)).toEqual({ email: "live", whatsapp: "live" });
   });
 });

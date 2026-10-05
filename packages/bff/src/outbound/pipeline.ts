@@ -89,7 +89,7 @@ export interface Decided {
 export async function decide(deps: OutboundDeps, call: OutboundCall, request: OutboundRequest, messageId: string, kept?: Pick<LinkAllowance, "links"> & { readonly numbers: readonly string[] }): Promise<Decided> {
   const context = await loadSendContext(deps, request);
   const clockId = context.operation.clockId;
-  const whatsappMode = request.channel === "WHATSAPP" ? deps.whatsapp(clockId).mode : "simulated";
+  const whatsappMode = request.channel === "WHATSAPP" ? deps.whatsapp(clockId, context.importer?.phoneE164).mode : "simulated";
   const [fence, current, responsibles] = await Promise.all([fenceVerdictOf(deps, request, context), allowanceOf(deps, context), responsiblesOf(deps, request)]);
   const allowance: LinkAllowance = kept === undefined ? current : { ...current, links: [...current.links, ...kept.links], numbers: new Set([...current.numbers, ...kept.numbers]) };
   const foreignLinks = foreignLinksVerdict(textsOf(request), allowance);
