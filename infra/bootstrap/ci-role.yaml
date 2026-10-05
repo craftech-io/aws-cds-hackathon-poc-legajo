@@ -475,6 +475,7 @@ Resources:
             Action:
               - bedrock:ListFoundationModels
               - bedrock:ListInferenceProfiles
+              - bedrock-agentcore:ListGateways
               - cognito-idp:DescribeUserPoolDomain
               - guardduty:ListMalwareProtectionPlans
               - logs:DescribeLogGroups

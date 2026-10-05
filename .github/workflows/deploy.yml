@@ -151,15 +151,16 @@ jobs:
             *) echo "::error::Another project's receipt rule set is active; stop and ask the CTO (docs/architecture.md §15 step 0)."; exit 1 ;;
           esac
 
+      # A changed tool schema goes to its Gateway target here, before the deploy attaches Cedar
+      # statements that name its tools, and not through Pulumi (ADR-0017 §5).
+      - name: Push the Gateway tool schemas that changed
+        run: npx tsx scripts/agent/push-gateway-schemas.ts --apply
+
       - name: Deploy stage poc
         id: sst
         run: |
           npx sst deploy --stage poc
           echo "deployed=true" >> "$GITHUB_OUTPUT"
-
-      # A changed tool schema goes to its Gateway target here, not through Pulumi (ADR-0017 §5).
-      - name: Push the Gateway tool schemas that changed
-        run: npx tsx scripts/agent/push-gateway-schemas.ts --apply
 
       - name: Publish the deployed URL in the run summary
         run: |

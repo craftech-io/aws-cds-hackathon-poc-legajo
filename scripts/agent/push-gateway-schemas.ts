@@ -1,5 +1,6 @@
-// Pushes the Gateway tool schemas of the five targets when they changed (ADR-0017 §5). Runs right after
-// `sst deploy` in deploy.yml, and by hand with the operator's profile.
+// Pushes the Gateway tool schemas of the five targets when they changed (ADR-0017 §5). Runs right
+// BEFORE `sst deploy` in deploy.yml: the Cedar statements the deploy attaches are validated against the
+// live schemas, so a new tool has to be there first. Also by hand with the operator's profile.
 //
 // The targets ignore `targetConfiguration` in Pulumi (infra/agentcore-spec.ts `gatewayTargetIgnoreChanges`):
 // with a Cedar policy engine attached, AgentCore adds the restricted header
@@ -8,15 +9,17 @@
 // `metadataConfiguration`, so this script carries the new schema the same way every time.
 //
 // Idempotent: a target whose live description already carries the digest of the generated payload
-// (`gatewayTargetDescription`) is left as it is. The gateway id comes from `.sst/outputs.json`
-// (`agentGatewayId`) or `--gateway <id>`; without `--apply` it only prints the plan.
+// (`gatewayTargetDescription`) is left as it is. The gateway is found by its name (`gatewayName`) or
+// given with `--gateway <id>`; a stage without a gateway yet is skipped (Pulumi creates the targets with
+// their schema). Without `--apply` it only prints the plan.
 //
 //   npx tsx scripts/agent/push-gateway-schemas.ts [--gateway <id>] [--apply]
-import { readFileSync } from "node:fs";
-import { BedrockAgentCoreControlClient, GetGatewayTargetCommand, ListGatewayTargetsCommand, UpdateGatewayTargetCommand, type ToolDefinition } from "@aws-sdk/client-bedrock-agentcore-control";
+import { BedrockAgentCoreControlClient, GetGatewayTargetCommand, ListGatewayTargetsCommand, ListGatewaysCommand, UpdateGatewayTargetCommand, type ToolDefinition } from "@aws-sdk/client-bedrock-agentcore-control";
 import { ToolTarget } from "../../packages/shared/src/tools";
 import { gatewayToolSchemas } from "../../infra/agent-tool-schemas";
-import { gatewayTargetDescription } from "../../infra/agentcore-spec";
+import { gatewayName, gatewayTargetDescription } from "../../infra/agentcore-spec";
+
+const APP = "aws-cds-hackathon-poc-legajo";
 
 const REGION = "us-east-1";
 const READY_TIMEOUT_MS = 120_000;
@@ -26,18 +29,28 @@ function argValue(name: string): string | undefined {
   return index === -1 ? undefined : process.argv[index + 1];
 }
 
-function gatewayIdOf(): string {
+async function gatewayIdOf(client: BedrockAgentCoreControlClient): Promise<string | undefined> {
   const fromArg = argValue("--gateway");
   if (fromArg !== undefined) return fromArg;
-  const outputs = JSON.parse(readFileSync(".sst/outputs.json", "utf8")) as { agentGatewayId?: string };
-  if (outputs.agentGatewayId === undefined || outputs.agentGatewayId === "") throw new Error("no agentGatewayId in .sst/outputs.json: deploy first or pass --gateway <id>");
-  return outputs.agentGatewayId;
+  const name = gatewayName(APP, argValue("--stage") ?? "poc");
+  let nextToken: string | undefined;
+  do {
+    const page = await client.send(new ListGatewaysCommand({ maxResults: 50, nextToken }));
+    const found = (page.items ?? []).find((item) => item.name === name);
+    if (found?.gatewayId !== undefined) return found.gatewayId;
+    nextToken = page.nextToken;
+  } while (nextToken);
+  return undefined;
 }
 
 async function main(): Promise<void> {
   const apply = process.argv.includes("--apply");
-  const gatewayIdentifier = gatewayIdOf();
   const client = new BedrockAgentCoreControlClient({ region: REGION });
+  const gatewayIdentifier = await gatewayIdOf(client);
+  if (gatewayIdentifier === undefined) {
+    console.log("push-gateway-schemas: no gateway yet; the deploy creates the targets with their schemas");
+    return;
+  }
   const listed = await client.send(new ListGatewayTargetsCommand({ gatewayIdentifier, maxResults: 50 }));
   let changed = 0;
   for (const target of ToolTarget.options) {
