@@ -49,6 +49,8 @@ What each group of statements is for:
 | `DenyPublicFunctionUrlsBesidesTheEdge` | A Function URL with `AuthType NONE` only on `Bff` and `PublicWeb`; the mocks and every other function keep `AWS_IAM` |
 | `GuardDutyMalwareScanRule` (boundary) | The managed EventBridge rule GuardDuty Malware Protection for S3 creates through the plan's role |
 | `WhatsAppOfThisAccount` (boundary) | End User Messaging Social sends only from phone numbers of this account |
+| `TranscribeVerificationCalls` (boundary) | `PhoneOtp` transcribes Meta's verification call: only `transcription-job/otp-*` |
+| `ConnectServiceLinkedRole`, `ConnectServiceLinkedRolePolicies` | The Connect service-linked role (`aws-service-role/connect.amazonaws.com/*`): created once, and its inline policy updated when the recordings bucket is associated |
 | `HarnessUnderlyingRuntime` | The runtime AgentCore creates under the Harness, named `harness_<AgentNamePrefix>*` |
 | `CloudControlTransport` | `awsnative.*` resources go through the Cloud Control API, IAM prefix `cloudformation` |
 | Edge policy | CloudFront functions `<app>-poc-*`, the bootstrap key-value store and the declared cache policy only |
@@ -74,6 +76,10 @@ What each group of statements is for:
 | `DnsLookups` | `route53:GetChange` and `ListHostedZones` have no resource-level permission |
 | `HarnessImagePullBearerToken` | STS bearer token, only for `ecr-public.amazonaws.com` |
 | `ReadLogsOfThisApp` (qa-runner) | Fenced by the `sst:app` tag of the log group |
+| `ConnectOfThisApp` (phone policy) | Amazon Connect of this app (instance, number, flow), fenced by the `sst:app` tag of the resource; `DenyRetaggingOtherConnect` keeps another project's instance out |
+| `CreateConnectTaggedAsThisApp` | Creating the instance, claiming the number and creating the flow have no resource yet; fenced by the request tag |
+| `ConnectWithoutResourceLevel` | `ListInstances`, `SearchAvailablePhoneNumbers` and `ListPhoneNumbersV2` have no resource-level permission; region condition |
+| `DirectoryOfConnectInstances` | A `CONNECT_MANAGED` instance creates and deletes its own Directory Service directory, which has no ARN before it exists; region condition |
 
 ## Apply
 

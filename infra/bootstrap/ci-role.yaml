@@ -153,6 +153,12 @@ Resources:
               - logs:CreateLogStream
               - logs:PutLogEvents
             Resource: !Sub "arn:${AWS::Partition}:logs:${Region}:${AWS::AccountId}:log-group:*"
+          - Sid: TranscribeVerificationCalls
+            Effect: Allow
+            Action:
+              - transcribe:StartTranscriptionJob
+              - transcribe:GetTranscriptionJob
+            Resource: !Sub "arn:${AWS::Partition}:transcribe:${Region}:${AWS::AccountId}:transcription-job/otp-*"
           - Sid: AgentWorkloadIdentity
             Effect: Allow
             Action: bedrock-agentcore:GetWorkloadAccessToken*
@@ -504,6 +510,87 @@ Resources:
               - ses:TagResource
               - sns:TagResource
               - sqs:TagQueue
+            Resource: "*"
+            Condition:
+              StringNotEquals:
+                aws:ResourceTag/sst:app: !Ref AppName
+              "Null":
+                aws:ResourceTag/sst:app: "false"
+
+  # ---- The WhatsApp number: Amazon Connect instance, DID, flow and recordings storage ---------
+  DeployPhonePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AppName}-ci-deploy-phone"
+      Description: >-
+        Amazon Connect of this app (instance, number, flow, recordings storage) by sst:app tag, plus the
+        Directory Service and service-linked-role actions Connect needs to create an instance.
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ConnectOfThisApp
+            Effect: Allow
+            Action: connect:*
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref Region
+                aws:ResourceTag/sst:app: !Ref AppName
+          - Sid: CreateConnectTaggedAsThisApp
+            Effect: Allow
+            Action:
+              - connect:CreateInstance
+              - connect:ClaimPhoneNumber
+              - connect:CreateContactFlow
+              - connect:TagResource
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref Region
+                aws:RequestTag/sst:app: !Ref AppName
+          - Sid: ConnectWithoutResourceLevel
+            Effect: Allow
+            Action:
+              - connect:ListInstances
+              - connect:SearchAvailablePhoneNumbers
+              - connect:ListPhoneNumbersV2
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref Region
+          - Sid: DirectoryOfConnectInstances
+            Effect: Allow
+            Action:
+              - ds:AuthorizeApplication
+              - ds:CheckAlias
+              - ds:CreateAlias
+              - ds:CreateIdentityPoolDirectory
+              - ds:DeleteDirectory
+              - ds:DescribeDirectories
+              - ds:UnauthorizeApplication
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref Region
+          - Sid: ConnectServiceLinkedRole
+            Effect: Allow
+            Action: iam:CreateServiceLinkedRole
+            Resource: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/aws-service-role/connect.amazonaws.com/*"
+            Condition:
+              StringEquals:
+                iam:AWSServiceName: connect.amazonaws.com
+          - Sid: ConnectServiceLinkedRolePolicies
+            Effect: Allow
+            Action:
+              - iam:AttachRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:GetRole
+              - iam:GetRolePolicy
+              - iam:PutRolePolicy
+            Resource: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/aws-service-role/connect.amazonaws.com/*"
+          - Sid: DenyRetaggingOtherConnect
+            Effect: Deny
+            Action: connect:TagResource
             Resource: "*"
             Condition:
               StringNotEquals:
@@ -920,6 +1007,7 @@ Resources:
         - !Ref DeployNamedResourcesPolicy
         - !Ref DeployEdgePolicy
         - !Ref DeployDnsAndIamPolicy
+        - !Ref DeployPhonePolicy
       Tags:
         - { Key: Project, Value: !Ref AppName }
         - { Key: Stage, Value: shared }

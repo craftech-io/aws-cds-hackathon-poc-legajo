@@ -138,10 +138,9 @@ vi.mock("./secrets", () => ({
 }));
 vi.mock("./web", () => ({ router: fake.once("sst.aws.Router", "Router") }));
 vi.mock("./feeds", () => ({ feedEvents: fake.fn("FeedEvents") }));
+vi.mock("./phone", () => ({ phoneOtp: fake.fn("PhoneOtp") }));
 vi.mock("./messaging-whatsapp", () => ({ inboundWhatsApp: fake.fn("InboundWhatsApp") }));
-vi.mock("./agent-tools", () => ({
-  toolFunctions: Object.fromEntries(["operations", "documents", "messaging", "followups", "handoff"].map((target) => [target, fake.fn(`Tool${target.charAt(0).toUpperCase()}${target.slice(1)}`)])),
-}));
+vi.mock("./agent-tools", () => ({ toolFunctions: Object.fromEntries(["operations", "documents", "messaging", "followups", "handoff"].map((target) => [target, fake.fn(`Tool${target.charAt(0).toUpperCase()}${target.slice(1)}`)])) }));
 
 beforeAll(async () => {
   for (const [name, value] of Object.entries(fake.globals)) vi.stubGlobal(name, value);

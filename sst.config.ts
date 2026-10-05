@@ -96,6 +96,7 @@ export default $config({
     await import("./infra/auth"); // WP-11
     await import("./infra/messaging-email"); // WP-18
     await import("./infra/leads"); // WP-51: needs auth, storage and the SES senders; before scheduler and bff
+    const { whatsappPhoneNumber } = await import("./infra/phone"); // the WhatsApp number and its verification bot
     await import("./infra/messaging-whatsapp"); // WP-21
     await import("./infra/mocks"); // WP-21
     await import("./infra/feeds"); // WP-21
@@ -115,6 +116,7 @@ export default $config({
       region: REGION,
       url: appUrl,
       channels: channelModes,
+      whatsappNumber: whatsappPhoneNumber,
     };
   },
 });

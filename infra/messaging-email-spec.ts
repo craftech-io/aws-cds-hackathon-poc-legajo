@@ -239,7 +239,7 @@ export const SENDERS: Readonly<Record<SenderProfile, SenderSpec>> = {
 export const SEND_ACTIONS: readonly string[] = CAPABILITIES.SEND_EMAIL.actions;
 
 /** Functions that send without the SEND_EMAIL capability, each with its own profile (§14 rows). */
-const DIRECT_SENDERS: Readonly<Partial<Record<LambdaName, SenderProfile>>> = { SimMail: "SIMULATOR", QaDriver: "QA", LeadNotice: "LEAD_NOTICE" };
+const DIRECT_SENDERS: Readonly<Partial<Record<LambdaName, SenderProfile>>> = { SimMail: "SIMULATOR", QaDriver: "QA", LeadNotice: "LEAD_NOTICE", PhoneOtp: "LEAD_NOTICE" };
 
 /** The sender Linkable a function links: SYSTEM for every holder of SEND_EMAIL (PIPELINE included). */
 export function senderProfileOf(fn: LambdaName): SenderProfile | undefined {

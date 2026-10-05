@@ -46,6 +46,7 @@ import { bff, policyAudit, publicWeb, qaDriver } from "./bff";
 import { feedEvents } from "./feeds";
 import type { LambdaName } from "./iam-capabilities";
 import { leadNotice, signupDispatch } from "./leads";
+import { phoneOtp } from "./phone";
 import { channelEvents, inboundEmail, simMail } from "./messaging-email";
 import { inboundWhatsApp } from "./messaging-whatsapp";
 import { platformMockApi, readerMockApi } from "./mocks";
@@ -92,6 +93,7 @@ const functions = {
   PublicWeb: publicWeb,
   QaDriver: qaDriver,
   PolicyAudit: policyAudit,
+  PhoneOtp: phoneOtp,
   ...fromEntries(Object.entries(TOOL_FUNCTIONS).map(([target, fn]) => [fn, toolFunctions[target as keyof typeof toolFunctions]] as const)),
   ...fromEntries(TRIGGER_KEYS.map((key) => [COGNITO_TRIGGERS[key].fn, triggerFunctions[key]] as const)),
 } satisfies Record<LambdaName, sst.aws.Function>;

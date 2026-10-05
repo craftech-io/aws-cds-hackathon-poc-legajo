@@ -275,7 +275,7 @@ describe("send statements: the IAM half of the recipient fence", () => {
 
   it("give every sender of docs/architecture.md §14 exactly one profile", () => {
     const senders = LAMBDAS.filter((fn) => expectedActions(fn).includes("ses:SendEmail"));
-    const DIRECT: Partial<Record<LambdaName, SenderProfile>> = { SimMail: "SIMULATOR", QaDriver: "QA", LeadNotice: "LEAD_NOTICE" };
+    const DIRECT: Partial<Record<LambdaName, SenderProfile>> = { SimMail: "SIMULATOR", QaDriver: "QA", LeadNotice: "LEAD_NOTICE", PhoneOtp: "LEAD_NOTICE" };
     expect(senders.map((fn) => [fn, senderProfileOf(fn)])).toEqual(senders.map((fn) => [fn, DIRECT[fn] ?? "SYSTEM"]));
     expect(senders.filter((fn) => senderProfileOf(fn) === "SYSTEM").sort()).toEqual(["OperationWorker", "ToolHandoff", "ToolMessaging"]);
     for (const fn of LAMBDAS.filter((name) => !senders.includes(name))) expect(senderProfileOf(fn), fn).toBeUndefined();

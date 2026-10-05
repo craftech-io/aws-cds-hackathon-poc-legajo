@@ -44,10 +44,11 @@ describe("[FL-115] the lead notice to Craftech", () => {
     for (const file of files) expect(stripComments(read(`infra/${file}`)), file).not.toMatch(/[A-Za-z0-9._%+-]+@craftech\.io/);
   });
 
-  it("[FL-115] is the only function that links LeadNoticeTo, and it has no Runtime nor Conversations", () => {
+  it("[FL-115] LeadNotice and PhoneOtp (the WhatsApp verification code) are the only functions that link LeadNoticeTo; LeadNotice has no Runtime nor Conversations", () => {
     const files = readdirSync(resolve(process.cwd(), "infra")).filter((file) => file.endsWith(".ts") && !file.endsWith(".test.ts"));
     const users = files.filter((file) => /\bLeadNoticeTo\b/.test(stripComments(read(`infra/${file}`))));
-    expect(users.sort()).toEqual(["leads-spec.ts", "leads.ts", "secrets.ts"]);
+    expect(users.sort()).toEqual(["leads-spec.ts", "leads.ts", "phone.ts", "secrets.ts"]);
+    expect(Object.keys(LAMBDA_CAPABILITIES.PhoneOtp)).not.toContain("tables");
     expect(leadsModule).toContain("LeadNoticeTo,\n  EmailSenderLeadNotice: emailLinks(\"LeadNotice\")[0],");
     expect(Object.keys(LAMBDA_CAPABILITIES.LeadNotice.tables)).toEqual(["Leads"]);
     expect(architecture).toContain("**Sin `Runtime` ni `Conversations`**");

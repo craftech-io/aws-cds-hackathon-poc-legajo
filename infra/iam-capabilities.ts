@@ -280,6 +280,12 @@ export const LAMBDA_CAPABILITIES = {
     fence:
       "Leads GetItem and UpdateItem of noticeStatus; secret LeadNoticeTo; ses:FromAddress avisos@legajo.demo.craftech.io, ses:Recipients *@craftech.io, configuration set …-email-poc; no Runtime, no Conversations (LEAD_NOTICE is a profile without a clock); invoked asynchronously only by Bff and WorldJanitor",
   },
+  PhoneOtp: {
+    capabilities: [],
+    actions: ["ses:SendEmail", "s3:GetObject", "s3:PutObject", "s3:ListBucket", "transcribe:StartTranscriptionJob", "transcribe:GetTranscriptionJob"],
+    fence:
+      "s3 only on PhoneRecordings (name-only Linkable PhoneRecordingsBucket); transcribe only on transcription-job/otp-*; secret LeadNoticeTo; ses:FromAddress avisos@legajo.demo.craftech.io, ses:Recipients *@craftech.io (LEAD_NOTICE profile); invoked only by S3 notifications of PhoneRecordings",
+  },
   PolicyAudit: {
     capabilities: [],
     tables: { Conversations: "read", AuditLog: "write", Operations: "read", Parties: "read", Firms: "read", Reference: "read" },

@@ -143,7 +143,8 @@ describe("permissions of the deploy role and of the boundary", () => {
     expect(create).toContain("ses:CreateEmailIdentity");
     expect(create).toContain("ses:CreateConfigurationSet");
     expect(create).toContain("aws:RequestTag/sst:app: !Ref AppName");
-    expect(template).not.toMatch(/contact-list|ContactList|sms-voice|s3vectors|states:|transcribe/);
+    expect(template).not.toMatch(/contact-list|ContactList|sms-voice|s3vectors|states:/);
+    expect(template.match(/transcribe:[A-Za-z]+/g)).toEqual(["transcribe:StartTranscriptionJob", "transcribe:GetTranscriptionJob"]);
   });
 
   it("fences the runtime under the Harness by the name AgentCore gives it", () => {
@@ -303,6 +304,10 @@ const WILDCARD_SIDS = [
   "EdgeWafManagedRuleReads",
   "DnsLookups",
   "ReadLogsOfThisApp",
+  "ConnectOfThisApp",
+  "CreateConnectTaggedAsThisApp",
+  "ConnectWithoutResourceLevel",
+  "DirectoryOfConnectInstances",
 ] as const;
 
 describe("statements over every resource", () => {
