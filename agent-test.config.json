@@ -1,0 +1,9 @@
+{
+  "name": "aws-cds-hackathon-poc-legajo",
+  "defaultSuite": "smoke",
+  "suites": {
+    "smoke": { "command": "npx vitest run --config tests/agent/vitest.config.ts tests/agent/questions.agent.test.ts", "description": "Importer questions: the shortest agent turns." },
+    "all": { "command": "npx vitest run --config tests/agent/vitest.config.ts", "description": "Every agent scenario of tests/agent." }
+  },
+  "outDir": "test-results/agent-test"
+}

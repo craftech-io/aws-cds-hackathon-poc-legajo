@@ -25,7 +25,7 @@ import type { WorldsDeps } from "@legajo/bff/worlds/deps";
 import { type MilestoneName, operationNumberOf, type TurnTrigger, type WaButtonAction } from "@legajo/shared";
 import { fireMilestoneNow } from "@legajo/bff/clock/advance";
 import { testEnvelope } from "./envelope";
-import { installAwsFakes, type AwsFakes, type GuardrailScript } from "./fakes/aws";
+import { installAwsFakes, type AwsFakes, type GuardrailScript, type HarnessResponder } from "./fakes/aws";
 import { inProcessReader, type InProcessReader } from "./fakes/reader";
 import { createLocalGateway, localPolicies, type LocalGateway } from "./gateway";
 import type { ToolTargetsPort } from "./ports";
@@ -55,6 +55,8 @@ export interface FlowWorldOptions {
   readonly killSwitchActive?: boolean;
   /** G1 and G2 answers; everything passes by default. */
   readonly guardrail?: GuardrailScript;
+  /** A model-backed Harness over the world's Gateway (tests/agent); the scripted one answers otherwise. */
+  readonly agent?: (gateway: LocalGateway) => HarnessResponder;
 }
 
 export interface OpenTurnInput {
@@ -168,7 +170,7 @@ export async function createFlowWorld(options: FlowWorldOptions = {}): Promise<F
           throw new Error(`the test scripted no plan for the ${envelope.event.type} turn of ${envelope.event.operation}`);
         }),
     });
-    aws.answerHarness((input) => harness.invoke(input));
+    aws.answerHarness(options.agent === undefined ? (input) => harness.invoke(input) : options.agent(gateway));
     if (options.guardrail !== undefined) aws.scriptGuardrail(options.guardrail);
     const subkey = (purpose: SubkeyPurpose) => (stage as StageContext).key(purpose);
     const simNow = async (clockId: string = DEMO_CLOCK) => simNowOf(await stores.connector.world.getClock(clockId), realMs);
