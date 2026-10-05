@@ -25,14 +25,14 @@ export interface AgentPlace {
 // ---- Model ------------------------------------------------------------------------------------------
 
 /** The only model of the agent (docs/architecture.md §1), also the extraction model of Memory. */
-export const AGENT_MODEL_ID = "global.anthropic.claude-opus-5";
+export const AGENT_MODEL_ID = "global.anthropic.claude-sonnet-5-5";
 /** Foundation model behind the global inference profile (`bedrock get-inference-profile`). */
-export const AGENT_FOUNDATION_MODEL = "anthropic.claude-opus-5";
+export const AGENT_FOUNDATION_MODEL = "anthropic.claude-sonnet-5-5";
 export const HARNESS_API_FORMAT = "converse_stream";
 export const MODEL_INVOKE_ACTIONS = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"] as const;
 
 /** Application inference profile the Harness and Memory call: a tagged copy of the (untaggable) global profile, so Cost Explorer attributes the tokens to the app. */
-export const agentModelProfileName = (app: string, stage: string): string => `${app}-${stage}-agent-model`;
+export const agentModelProfileName = (app: string, stage: string): string => `${app}-${stage}-${AGENT_FOUNDATION_MODEL.replace("anthropic.claude-", "")}`;
 /** Bedrock takes `([0-9a-zA-Z:.][ _-]?)+` only: no parentheses, commas or slashes. */
 export const agentModelProfileDescription = (app: string, stage: string): string => `Agent model of ${app} stage ${stage} for cost attribution`;
 

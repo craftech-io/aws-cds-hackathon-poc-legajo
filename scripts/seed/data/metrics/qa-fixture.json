@@ -3,7 +3,7 @@
     "completeBeforeArrivalPct": 100,
     "consoleMinutesObserved": 2.3,
     "correctResponsiblePct": 100,
-    "costPerDossierUsd": 0.2927,
+    "costPerDossierUsd": 0.1632,
     "humanMinutesPerDossier": 6.7,
     "interventionsPerDossier": 0.7,
     "latencyP50Ms": 41000,

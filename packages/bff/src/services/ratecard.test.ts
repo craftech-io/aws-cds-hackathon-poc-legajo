@@ -27,10 +27,10 @@ describe("dossierCost", () => {
     expect(cost.status).toBe("VERIFIED");
     if (cost.status !== "VERIFIED") return;
     expect(cost.lines.map((line) => [line.key, line.usd])).toEqual([
-      ["bedrock:global.anthropic.claude-opus-5:input", 3],
-      ["bedrock:global.anthropic.claude-opus-5:output", 0.6],
-      ["bedrock:global.anthropic.claude-opus-5:cacheRead", 0.9],
-      ["bedrock:global.anthropic.claude-opus-5:cacheWrite", 0.5],
+      ["bedrock:global.anthropic.claude-sonnet-5-5:input", 3],
+      ["bedrock:global.anthropic.claude-sonnet-5-5:output", 0.6],
+      ["bedrock:global.anthropic.claude-sonnet-5-5:cacheRead", 0.9],
+      ["bedrock:global.anthropic.claude-sonnet-5-5:cacheWrite", 0.5],
       ["ses:outbound", 0.0004],
       ["whatsapp:AR:utility", 0.1],
       ["whatsapp:AR:service", 0],

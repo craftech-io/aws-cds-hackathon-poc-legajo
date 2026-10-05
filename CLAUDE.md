@@ -81,7 +81,7 @@ Estándar de Craftech: skill `poc-landing` del workspace (`../.claude/skills/poc
 | Capa | Elección |
 |---|---|
 | Monorepo | npm workspaces: `packages/{shared,bff,web,reader-contract,reader-mock,platform-mock}`, `infra/`, `scripts/`, `tests/` |
-| Agente | Bedrock AgentCore Harness (`global.anthropic.claude-opus-5`, endpoint `live`), Gateway MCP `AWS_IAM` con 5 targets Lambda, Memory, Policy Cedar, Guardrails G1/G2 |
+| Agente | Bedrock AgentCore Harness (`global.anthropic.claude-sonnet-5-5`, endpoint `live`), Gateway MCP `AWS_IAM` con 5 targets Lambda, Memory, Policy Cedar, Guardrails G1/G2 |
 | Orquestación | SQS FIFO `OperationEvents.fifo` por operación; temporizadores `TIMER#` con EventBridge Scheduler; relojes de mundo en pausa por defecto; bus `Feeds` |
 | Canales | SES v2 + receipt rules (`aws-cds-hackathon-poc-legajo-inbound`, DMARC `p=reject`); End User Messaging Social con modo `ChannelModes.whatsapp` |
 | Datos | DynamoDB (una tabla por agregado), S3 |

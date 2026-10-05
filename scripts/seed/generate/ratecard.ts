@@ -43,15 +43,15 @@ export interface VerifiedRate {
 }
 
 const BEDROCK = "AmazonBedrockFoundationModels";
-const BEDROCK_PUBLISHED = "2026-09-30";
+const BEDROCK_PUBLISHED = "2026-10-05";
 const bedrockLine = (usageType: string, description: string, usd: number): PriceListLine => ({ offer: BEDROCK, usageType, description, usd, publishedAt: BEDROCK_PUBLISHED });
 
-/** The Harness calls `global.anthropic.claude-opus-5`: the "Standard, Global" lines, 5-minute cache writes. */
+/** The Harness calls `global.anthropic.claude-sonnet-5-5`: the "Standard, Global" lines, 5-minute cache writes. */
 const BEDROCK_LINES: readonly { readonly kind: TokenKind; readonly line: PriceListLine }[] = [
-  { kind: "input", line: bedrockLine("USE1-MP:USE1_input_tokens_global_standard-Units", "Claude Opus 5 · Input Tokens - Standard, Global", 5) },
-  { kind: "output", line: bedrockLine("USE1-MP:USE1_output_tokens_global_standard-Units", "Claude Opus 5 · Output Tokens - Standard, Global", 25) },
-  { kind: "cacheRead", line: bedrockLine("USE1-MP:USE1_cache_read_tokens_global_standard-Units", "Claude Opus 5 · Cache Read Tokens - Standard, Global", 0.5) },
-  { kind: "cacheWrite", line: bedrockLine("USE1-MP:USE1_cache_write_tokens_global_standard-Units", "Claude Opus 5 · Cache Write Tokens - Standard, Global", 6.25) },
+  { kind: "input", line: bedrockLine("USE1-MP:USE1_input_tokens_global_standard-Units", "Claude Sonnet 5.5 · Input Tokens - Standard, Global", 2) },
+  { kind: "output", line: bedrockLine("USE1-MP:USE1_output_tokens_global_standard-Units", "Claude Sonnet 5.5 · Output Tokens - Standard, Global", 10) },
+  { kind: "cacheRead", line: bedrockLine("USE1-MP:USE1_cache_read_tokens_global_standard-Units", "Claude Sonnet 5.5 · Cache Read Tokens - Standard, Global", 0.2) },
+  { kind: "cacheWrite", line: bedrockLine("USE1-MP:USE1_cache_write_tokens_global_standard-Units", "Claude Sonnet 5.5 · Cache Write Tokens - Standard, Global", 2.5) },
 ];
 const BEDROCK_RATES: readonly VerifiedRate[] = BEDROCK_LINES.map(({ kind, line }) => ({ rateId: bedrockRateKey(kind), unit: "PER_1M_TOKENS", source: offerUrl(BEDROCK), lines: [line] }));
 
