@@ -33,6 +33,8 @@ export const MODEL_INVOKE_ACTIONS = ["bedrock:InvokeModel", "bedrock:InvokeModel
 
 /** Application inference profile the Harness and Memory call: a tagged copy of the (untaggable) global profile, so Cost Explorer attributes the tokens to the app. */
 export const agentModelProfileName = (app: string, stage: string): string => `${app}-${stage}-agent-model`;
+/** Bedrock takes `([0-9a-zA-Z:.][ _-]?)+` only: no parentheses, commas or slashes. */
+export const agentModelProfileDescription = (app: string, stage: string): string => `Agent model of ${app} stage ${stage} for cost attribution`;
 
 /** The global profile the application profile copies (`modelSource.copyFrom`). */
 export function agentModelSourceArn(place: AgentPlace): string {

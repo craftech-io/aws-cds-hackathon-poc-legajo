@@ -30,6 +30,7 @@
 import {
   agentCoreArnPrefix,
   agentCoreTrustPolicy,
+  agentModelProfileDescription,
   agentModelProfileName,
   agentModelSourceArn,
   agentRoleName,
@@ -52,7 +53,7 @@ export const agentPlace: $util.Output<AgentPlace> = $util
 
 export const agentModelProfile = new aws.bedrock.InferenceProfile("AgentModelProfile", {
   name: agentModelProfileName($app.name, $app.stage),
-  description: `Agent model of ${$app.name} (${$app.stage}), for cost attribution.`,
+  description: agentModelProfileDescription($app.name, $app.stage),
   modelSource: { copyFrom: agentPlace.apply(agentModelSourceArn) },
 });
 

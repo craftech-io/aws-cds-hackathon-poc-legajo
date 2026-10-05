@@ -36,6 +36,7 @@ import {
   WILDCARD_SIDS,
   agentCoreTrustPolicy,
   agentModelArns,
+  agentModelProfileDescription,
   agentModelProfileName,
   agentModelSourceArn,
   agentRoleName,
@@ -147,6 +148,7 @@ describe("Harness (docs/architecture.md §4)", () => {
     const guardrail = { guardrailConfig: { guardrailIdentifier: "g1", guardrailVersion: "1", trace: "enabled" } };
     expect(harnessBedrockModelConfig(PROFILE_ARN, guardrail)).toEqual({ modelId: PROFILE_ARN, apiFormat: "converse_stream", additionalParams: guardrail });
     expect(agentModelProfileName(APP, STAGE)).toBe("aws-cds-hackathon-poc-legajo-poc-agent-model");
+    for (const value of [agentModelProfileName(APP, STAGE), agentModelProfileDescription(APP, STAGE)]) expect(value).toMatch(/^([0-9a-zA-Z:.][ _-]?)+$/);
     expect(agentModelSourceArn(PLACE)).toBe(`arn:aws:bedrock:us-east-1:776805327629:inference-profile/${AGENT_MODEL_ID}`);
     expect(agentModelArns(PLACE, PROFILE_ARN)).toEqual([
       PROFILE_ARN,
