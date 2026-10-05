@@ -61,7 +61,9 @@ async function invokeHarness(deps: TurnDeps, ctx: WorkerContext & { readonly dea
     return { ran: true, result, latencyMs: ctx.now().getTime() - started };
   } catch (error) {
     if (!(error instanceof HarnessError) || error.kind === "THROTTLED") throw error;
-    ctx.log.warn("turn.harness_failed", { kind: error.kind, turnId: session.turnId });
+    // AWS's error name and message (no payload): what to fix, without guessing.
+    const cause = error.cause instanceof Error ? { causeName: error.cause.name, causeMessage: error.cause.message.slice(0, 300) } : {};
+    ctx.log.warn("turn.harness_failed", { kind: error.kind, turnId: session.turnId, ...cause });
     return { ran: false, cause: error.kind === "TIMEOUT" ? "TIMEOUT" : "HARNESS_ERROR" };
   }
 }
