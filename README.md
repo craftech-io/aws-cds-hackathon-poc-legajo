@@ -2,6 +2,8 @@
 
 **An AI coordination agent that gets every import file ready before the vessel arrives.**
 
+**Demo video (2:20):** https://youtu.be/tVyJvKUWe54 · **Live product:** https://legajo.demo.craftech.io
+
 ![AWS architecture of SIDOM Legajo listo](docs/assets/architecture.png)
 
 Before a shipment reaches port, a customs brokerage firm (*estudio de despachantes de aduana*) needs
@@ -54,9 +56,9 @@ grounding guardrail against the data the agent read; every decision is audited.
 
 | Service | What Legajo listo does with it |
 |---|---|
-| **AWS End User Messaging Social** (WhatsApp) | The firm's WhatsApp Business account and number. `SendWhatsAppMessage` sends approved templates with quick-reply buttons, free-text replies inside the 24-hour window, and list messages. Every inbound message marks the importer's message as read and shows WhatsApp's typing indicator while the agent works. Inbound messages, media (`GetWhatsAppMessageMedia`, scanned by GuardDuty before reading) and delivery statuses arrive through an Amazon SNS topic. Live today for the registered demo phones; every other world uses a phone simulator that enters through the same adapter. |
+| **AWS End User Messaging Social** (WhatsApp) | The firm's WhatsApp Business account and number. `SendWhatsAppMessage` sends message templates with quick-reply buttons (submitted to Meta for approval), free-text replies inside the 24-hour window, and list messages. Every inbound message marks the importer's message as read and shows WhatsApp's typing indicator while the agent works. Inbound messages, media (`GetWhatsAppMessageMedia`, scanned by GuardDuty before reading) and delivery statuses arrive through an Amazon SNS topic. Live today for the registered demo phones; every other world uses a phone simulator that enters through the same adapter. |
 | **Amazon SES v2** | Sends every supplier email from an address that belongs to the operation, so replies thread back to it; receives the supplier's replies and PDFs through receipt rules (spam and virus scan, TLS required) into S3 and a Lambda that verifies the sender (DMARC `p=reject`, registered contact). Configuration-set events (delivery, bounce, complaint) flow through Amazon EventBridge into message statuses and the contact policy (a complaint stops all email to that contact). Cognito's sign-up and recovery emails also go through SES. |
-| **Amazon Connect** (+ Amazon Transcribe) | The WhatsApp number is an Amazon Connect phone number declared in code. Meta verifies a number with a phone call; a Connect contact flow records it, Amazon Transcribe reads the six-digit code, and the operator gets it by email, after three failed calls a person takes over. Nobody needs a SIM card. |
+| **Plus Amazon Connect** (+ Amazon Transcribe), not a CDS service | The WhatsApp number is an Amazon Connect phone number declared in code. Meta verifies a number with a phone call; a Connect contact flow records it, Amazon Transcribe reads the six-digit code, and the operator gets it by email, after three failed calls a person takes over. Nobody needs a SIM card. |
 
 ## The agent
 

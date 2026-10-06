@@ -193,6 +193,13 @@ export const es = {
     diagramAlt:
       "Diagrama: el importador por WhatsApp y el proveedor por email llegan a una cola por operación; el agente decide con herramientas y políticas; los envíos salen por un pipeline con la política de contacto; el lector documental y el sistema de gestión se conectan por contrato.",
   },
+  video: {
+    eyebrow: "En dos minutos",
+    title: "Legajo listo, funcionando",
+    lead: "El importador conversa por WhatsApp y recibe respuestas en segundos, el proveedor recibe el pedido en inglés, el lector encuentra una diferencia y el despachante aprueba.",
+    note: "Narrado en inglés, con subtítulos. La conversación es con un teléfono real; las esperas entre mensajes están aceleradas y rotuladas.",
+    fallback: "Descargar el video",
+  },
   architecture: {
     eyebrow: "Arquitectura",
     title: "Cómo funciona por dentro",

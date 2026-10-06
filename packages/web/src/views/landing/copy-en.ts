@@ -170,6 +170,13 @@ export const en: LandingCopy = {
     diagramAlt:
       "Diagram: the importer on WhatsApp and the supplier by email reach a per-operation queue; the agent decides with tools and policies; sends leave through a pipeline with the contact policy; the document reader and the management system connect by contract.",
   },
+  video: {
+    eyebrow: "In two minutes",
+    title: "Legajo listo at work",
+    lead: "The importer chats on WhatsApp and gets answers in seconds, the supplier gets the request in English, the reader finds a mismatch and the broker approves.",
+    note: "Narrated in English, with captions. The conversation is with a real phone; waits between messages are sped up and labelled.",
+    fallback: "Download the video",
+  },
   architecture: {
     eyebrow: "Architecture",
     title: "How it works inside",

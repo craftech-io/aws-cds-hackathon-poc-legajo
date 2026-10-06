@@ -68,6 +68,7 @@ Idioma de este doc: español (Argentina). Los textos visibles van en §2 y §8, 
 |---|---|---|---|---|
 | 1 | Hero | `#top` | ¿Qué es y para quién? | Teléfono con la conversación que se escribe sola (§4.4) + CTA |
 | 2 | El problema | `#problem` | ¿Por qué me duele hoy? | 3 tarjetas con ícono lineal y una línea de tiempo "buque en camino" que se llena al hacer scroll |
+| 2.1 | Video del producto | `#video` | ¿Cómo se ve funcionando? | El video de la submission (2 min, narrado en inglés con subtítulos en la imagen), servido desde `public/landing/video/` con póster, sin reproducción automática y con `preload="none"`: no pesa en el presupuesto de la carga inicial (§5.3). Su texto respeta la voz de producto (sin "demo" ni "simulado") |
 | 3 | Recorrido del producto | `#tour` | ¿Cómo lo hace, paso a paso? | Scrollytelling de 8 pasos con escenario fijo (desktop) o carrusel (mobile) (§4.3) |
 | 4 | Qué hace, por actor | `#capabilities` | ¿Qué gana cada uno? | 3 columnas: importador, proveedor extranjero, estudio |
 | 5 | Lo que garantiza el código | `#guarantees` | ¿Puedo confiar en un agente? | 6 garantías con la regla que las hace cumplir (chips de regla reales) |

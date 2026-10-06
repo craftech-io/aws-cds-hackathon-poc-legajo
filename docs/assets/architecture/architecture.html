@@ -30,6 +30,7 @@
   .tag { position: absolute; font-size: 13px; color: var(--muted); background: #fff; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
   .legend { position: absolute; left: 40px; top: 1286px; width: 1840px; font-size: 14.5px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 32px; }
   .legend b { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 12px; margin-right: 8px; }
+  .cds { display: inline-block; font-size: 11px; font-weight: 700; color: #fff; background: var(--cds); border-radius: 4px; padding: 1px 5px; vertical-align: middle; letter-spacing: .04em; }
   svg { position: absolute; left: 0; top: 0; pointer-events: none; }
 </style>
 </head>
@@ -45,10 +46,10 @@
   <div class="box" style="left:40px; top:850px; width:260px; height:150px; --c: var(--web)"><img src="icons/AmazonCloudFront.svg" alt=""><div><div class="t">Web console</div><div class="d">CloudFront, AWS WAF, Amazon Cognito; tRPC BFF on Lambda</div></div></div>
 
   <!-- Column 2: AWS Communication Developer Services -->
-  <div class="group" style="--c: var(--cds); left:340px; top:120px; width:380px; height:530px"><div class="label">AWS Communication Developer Services</div></div>
-  <div class="box" style="left:360px; top:150px; width:340px; height:150px"><img src="icons/AWSEndUserMessaging.svg" alt=""><div><div class="t">AWS End User Messaging Social</div><div class="d">WhatsApp Business account: templates with buttons, free text, media, read receipt and typing indicator; events → Amazon SNS</div></div></div>
+  <div class="group" style="--c: var(--cds); left:340px; top:120px; width:380px; height:530px"><div class="label">Channels · AWS CDS + Amazon Connect</div></div>
+  <div class="box" style="left:360px; top:150px; width:340px; height:150px"><img src="icons/AWSEndUserMessaging.svg" alt=""><div><div class="t">AWS End User Messaging Social <span class="cds">CDS</span></div><div class="d">WhatsApp Business account: templates with buttons, free text, media, read receipt and typing indicator; events → Amazon SNS</div></div></div>
   <div class="box" style="left:360px; top:325px; width:340px; height:110px"><img src="icons/AmazonConnect.svg" alt=""><div><div class="t">Amazon Connect + Transcribe</div><div class="d">The business number, in code; Meta's verification call read automatically</div></div></div>
-  <div class="box" style="left:360px; top:460px; width:340px; height:170px"><img src="icons/AmazonSimpleEmailService.svg" alt=""><div><div class="t">Amazon SES v2</div><div class="d">SendEmail from one address per operation; receipt rules → S3 (DKIM, DMARC p=reject); delivery, bounce and complaint events → EventBridge</div></div></div>
+  <div class="box" style="left:360px; top:460px; width:340px; height:170px"><img src="icons/AmazonSimpleEmailService.svg" alt=""><div><div class="t">Amazon SES v2 <span class="cds">CDS</span></div><div class="d">SendEmail from one address per operation; receipt rules → S3 (DKIM, DMARC p=reject); delivery, bounce and complaint events → EventBridge</div></div></div>
 
   <!-- Column 3: entry -->
   <div class="group" style="--c: var(--flow); left:760px; top:120px; width:560px; height:640px"><div class="label">Orchestration</div></div>
