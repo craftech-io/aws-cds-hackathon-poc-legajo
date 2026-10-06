@@ -8,7 +8,7 @@ Solo lo que depende de alguien fuera del equipo de agentes (el CTO, Meta, AWS Pa
 | P-02 | Oportunidad ACE de la submission | CTO | Abierto | §2 |
 | P-03 | Video de 3 minutos | CTO | Cerrado el 2026-10-06 por el CTO: publicado en YouTube (https://youtu.be/tVyJvKUWe54, 2:20, público, subtítulos en inglés) y en la landing (`#video`) | §3 |
 | P-04 | Decisión de marca pública | CTO | Cerrado el 2026-10-04 por el CTO: co-brand "SIDOM Legajo listo · Powered by Craftech", aprobado por SIDOM por escrito; display name de WhatsApp "Craftech" | §4 |
-| P-05 | Credenciales de las cuentas reservadas `guest-NN` en las instrucciones privadas de prueba de la submission | CTO con el operador | Abierto | §5 |
+| P-05 | Credenciales de las cuentas reservadas `guest-NN` en las instrucciones privadas de prueba de la submission | CTO con el operador | Cuentas `guest-01` a `guest-15` creadas el 2026-10-06 por el operador (`console:invite`, grupo `GUEST`); las credenciales están fuera del repo, en el archivo privado del operador; falta pegarlas en el campo privado del formulario | §5 |
 | P-06 | Datos del responsable para la política de privacidad, casilla de privacidad, destinatario del aviso de lead e inscripción de la base en la AAIP | CTO | Cerrado el 2026-10-04 (CTO: Craftech, CABA, sales@craftech.io; aviso a janu@craftech.io) | §6 |
 | P-07 | Ola de superficies públicas: costos y límites a aceptar, secretos y bootstrap, supuesto de `CustomMessage`, alta de aceptación A-01 registrada como lead | CTO; el operador ejecuta | Abierto | §7 |
 
