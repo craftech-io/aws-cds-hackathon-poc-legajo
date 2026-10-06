@@ -1,9 +1,10 @@
 // Language and page metadata of an access screen: the D-02 language (lang.ts) with its switch, the
 // `<html lang>` and the document title of the screen, and `noindex` while it is open (robots.txt
 // already disallows these paths; ADR-0016 §1). React context, no state library. Outside a provider
-// (the console's security prompts) the texts are the Spanish ones, like the rest of the console.
+// (the console's security prompts) the texts follow the console's language, like the rest of the console.
 import type { Language } from "@legajo/shared";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { activeLang } from "../../lib/console-lang";
 import { useRouter } from "../../lib/router";
 import { AUTH_COPY, type AuthCopy } from "./copy";
 import { LANG_PARAM, currentLang, hrefWithLang, storeLang } from "./lang";
@@ -72,10 +73,14 @@ export function AuthLangProvider({ title, children }: { readonly title: TitleKey
   return <AuthLangContext.Provider value={value}>{children}</AuthLangContext.Provider>;
 }
 
-const CONSOLE_VALUE: AuthLangValue = { lang: "es", copy: AUTH_COPY.es, surface: "console", setLang: () => undefined };
+/** Inside the console the prompts follow the console's language, which the account menu changes (ADR-0020). */
+function consoleValue(): AuthLangValue {
+  const lang = activeLang();
+  return { lang, copy: AUTH_COPY[lang], surface: "console", setLang: () => undefined };
+}
 
 export function useAuthLang(): AuthLangValue {
-  return useContext(AuthLangContext) ?? CONSOLE_VALUE;
+  return useContext(AuthLangContext) ?? consoleValue();
 }
 
 export function useAuthCopy(): AuthCopy {

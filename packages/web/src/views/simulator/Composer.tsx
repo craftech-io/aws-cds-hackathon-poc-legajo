@@ -13,7 +13,13 @@ import type { SimThread, SimulatorAction } from "./simulator-api";
 import { pdfProblem } from "./simulator-model";
 
 const copy = simulatorCopy;
-const DOC_OPTIONS = DocType.options.map((value) => ({ value, label: copy.docTypes[value] }));
+// The label is a getter so the options follow the console's language after import.
+const DOC_OPTIONS = DocType.options.map((value) => ({
+  value,
+  get label() {
+    return copy.docTypes[value];
+  },
+}));
 
 interface ComposerProps {
   readonly thread: SimThread;

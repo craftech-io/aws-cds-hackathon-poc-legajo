@@ -21,12 +21,39 @@ import { RuleCountsTable } from "../audit/RuleCounts";
 import { metricsCopy } from "./copy";
 import { type Baseline, type BaselineRow, type KpiCard, type KpiTabValue, type MetricsSummary, TABS, baselineOf, decisionsByRuleOf, kpiCards, summaryLine } from "./metrics-model";
 
-const TAB_OPTIONS = TABS.map((value) => ({ value, label: metricsCopy.tabs[value] }));
+// The label is a getter so the options follow the console's language after import.
+const TAB_OPTIONS = TABS.map((value) => ({
+  value,
+  get label() {
+    return metricsCopy.tabs[value];
+  },
+}));
 
+// Headers are getters so the columns follow the console's language after import.
 const BASELINE_COLUMNS: readonly Column<BaselineRow>[] = [
-  { id: "action", header: metricsCopy.baseline.action, cell: (row) => row.action },
-  { id: "count", header: metricsCopy.baseline.count, cell: (row) => formatNumber(row.count), align: "right" },
-  { id: "minutes", header: metricsCopy.baseline.minutes, cell: (row) => formatNumber(row.minutes), align: "right" },
+  {
+    id: "action",
+    get header() {
+      return metricsCopy.baseline.action;
+    },
+    cell: (row) => row.action,
+  },
+  {
+    id: "count",
+    get header() {
+      return metricsCopy.baseline.count;
+    },
+    cell: (row) => formatNumber(row.count),
+    align: "right",
+  },
+  {
+    id: "minutes",
+    get header() {
+      return metricsCopy.baseline.minutes;
+    },
+    cell: (row) => formatNumber(row.minutes),
+    align: "right",
+  },
 ];
 
 /** Saves `csv` as a file named by the BFF: a blob of this page, nothing leaves the browser. */

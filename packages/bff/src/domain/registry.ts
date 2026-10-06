@@ -12,7 +12,7 @@ import { DossierKpi } from "./metrics";
 import { Escalation, Operation } from "./operations";
 import { AddressClaim, Consent, Importer, Supplier, SupplierAuthorization, SupplierContact, SupplierProfile } from "./parties";
 import { DispatchGlossary, EvalTruth, Holiday, NameCheck, ObservationCodeLabel, RateCard, Template } from "./reference";
-import { Counter, Idempotency, MailProbe, Nonce, Probe, RateCounter, Session, Turn, TurnCap, TurnResult, UploadLink } from "./runtime";
+import { AccountPreferences, Counter, Idempotency, MailProbe, Nonce, Probe, RateCounter, Session, Turn, TurnCap, TurnResult, UploadLink } from "./runtime";
 import { Timer } from "./timers";
 import { Clock, Lease, MailPending, OpState, ScanPending, Tombstone, WorldState } from "./world-state";
 
@@ -72,6 +72,7 @@ export const ENTITIES: Readonly<Record<EntityName, EntitySpec>> = {
   Tombstone: spec("Runtime", Tombstone),
   Probe: spec("Runtime", Probe),
   MailProbe: spec("Runtime", MailProbe),
+  AccountPreferences: spec("Runtime", AccountPreferences),
   DossierKpi: spec("LegajoMetrics", DossierKpi),
 };
 

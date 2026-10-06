@@ -1,5 +1,5 @@
 // "Recorrido guiado" (docs/design-brief.md §15), the shell's side panel, open from the start for a
-// guest: the 10 steps of steps.ts over the story of operation 4471, in Spanish or English. The current
+// guest: the 10 steps of steps.ts over the story of operation 4471, in the console's language. The current
 // step is the first with a move still to do; each button calls the console's own procedures, the
 // buttons that change the world wait for a quiet one (the shell's poll of `clock.get` says when), and
 // the hours of "Qué mirar" come from the pending timers of 4471 that `tour.steps` answers. Progress is kept per world
@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiErrorNotice } from "../../components/ApiErrorNotice";
 import { Callout } from "../../components/Callout";
-import { FilterPills } from "../../components/FilterPills";
+import { useConsoleLang } from "../../context/ConsoleLangContext";
 import { useSession } from "../../context/SessionContext";
 import { useLiveRemote, useWorldClock } from "../../context/WorldClockContext";
 import { useRouter } from "../../lib/router";
@@ -17,14 +17,11 @@ import { isBusy } from "../../lib/world-clock";
 import { CONSOLE_PREFIX, dossierPath } from "../../routes";
 import { clockDetailOf } from "../clock/clock-api";
 import { fetchThreads } from "../simulator/simulator-api";
-import { LANG_LABELS, TOUR_TEXTS } from "./copy";
+import { TOUR_TEXTS } from "./copy";
 import { StepCard } from "./StepCard";
-import { TOUR_STEPS, type TourLang, type TourMove, type TourStep } from "./steps";
+import { TOUR_STEPS, type TourMove, type TourStep } from "./steps";
 import { TOUR_OPERATION_MISSING, fetchTourContext, findTourOperation, runTourAction } from "./tour-api";
 import { currentStepIndex, glossFor, isStepDone, moveKey, parseProgress, progressKey } from "./tour-model";
-
-const LANG_KEY = "legajo.tour.lang";
-const LANG_OPTIONS = (["es", "en"] as const).map((value) => ({ value, label: LANG_LABELS[value] }));
 
 function readStorage(key: string): string | null {
   try {
@@ -68,7 +65,7 @@ export default function View() {
   const { trpc } = useSession();
   const { snapshot, refresh } = useWorldClock();
   const { navigate } = useRouter();
-  const [lang, setLang] = useState<TourLang>(() => (readStorage(LANG_KEY) === "en" ? "en" : "es"));
+  const { lang } = useConsoleLang();
   const detail = clockDetailOf(snapshot);
   const [progress, mark, restart] = useProgress(detail ? progressKey(detail.clockId, detail.worldEpoch) : undefined);
   const [selected, setSelected] = useState<number | undefined>(undefined);
@@ -105,19 +102,13 @@ export default function View() {
     return true;
   });
 
-  const changeLang = (value: TourLang) => {
-    setLang(value);
-    writeStorage(LANG_KEY, value);
-  };
-
   if (step === undefined) return null;
   const failure = action.state.status === "error" ? action.state.error : undefined;
   const missing = failure?.reason === TOUR_OPERATION_MISSING;
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
-        <FilterPills label={texts.lang} options={LANG_OPTIONS} value={lang} onChange={changeLang} variant="segmented" />
+      <div className="flex items-center justify-end gap-2">
         <button type="button" className="inline-flex min-h-11 items-center rounded-md px-2 text-sm font-semibold text-slate underline hover:bg-mist" onClick={restart}>
           {texts.restart}
         </button>

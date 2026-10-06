@@ -3,16 +3,34 @@
 // its internal username, ADR-0014 §2), then what the account can do: change the password and
 // turn on the verification code for brokers and analysts; a guest never sees either (it changes its
 // password only through recovery, ADR-0015 §1; the BFF refuses both as well) and sees the usage of its
-// trial firm instead (UsageIndicator). Signing out, for everyone, closes the menu: it revokes the
-// refresh token and lands on the landing's "Cerraste sesión".
+// trial firm instead (UsageIndicator). Everyone picks the console's language here ("Español | English",
+// ADR-0020): it applies at once and is kept with the account. Signing out, for everyone, closes the menu:
+// it revokes the refresh token and lands on the landing's "Cerraste sesión".
+import type { Language } from "@legajo/shared";
 import { useEffect, useId, useRef, useState } from "react";
+import { useConsoleLang } from "../../context/ConsoleLangContext";
 import { useFirm } from "../../context/FirmContext";
 import { usePrincipal, useSession } from "../../context/SessionContext";
 import { copy } from "../../copy/console";
 import { displayNameOf } from "../../lib/auth-claims";
+import { LANGUAGE_NAMES } from "../../lib/console-lang";
+import { FilterPills } from "../FilterPills";
 import { UsageIndicator } from "./UsageIndicator";
 
 const ITEM_CLASS = "flex min-h-11 w-full items-center rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-paper";
+
+const LANGUAGE_OPTIONS = (["es", "en"] as const satisfies readonly Language[]).map((value) => ({ value, label: LANGUAGE_NAMES[value] }));
+
+/** "Idioma: Español | English": each name in its own language, whatever the console reads now. */
+function LanguageChoice() {
+  const { lang, setLang } = useConsoleLang();
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-mist px-3 py-2">
+      <span className="text-sm text-ink">{copy.account.language}</span>
+      <FilterPills label={copy.account.language} options={LANGUAGE_OPTIONS} value={lang} onChange={setLang} variant="segmented" />
+    </div>
+  );
+}
 
 function Identity() {
   const principal = usePrincipal();
@@ -82,6 +100,7 @@ export function AccountMenu() {
               </button>
             </div>
           )}
+          <LanguageChoice />
           {principal.isGuest ? <UsageIndicator /> : null}
           <div className="pt-1">
             <button type="button" className={`${ITEM_CLASS} font-semibold text-danger`} onClick={choose(signOut)}>

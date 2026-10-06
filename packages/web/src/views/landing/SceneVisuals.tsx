@@ -4,6 +4,7 @@
 // person can give, and the contact policy's deferral with its real rule id. Each one takes the stage
 // of its short sequence (`stage`, final when nothing may move) and draws the real texts.
 import { RuleChip } from "../../components/RuleChip";
+import { inLang } from "../../lib/console-lang";
 import { dossierCopy } from "../dossier/copy";
 import { ESCALATION_EMAIL, STORY } from "./conversations";
 import { Icon } from "./icons";
@@ -175,7 +176,7 @@ export function ApprovalCard({ stage }: { readonly stage: number }) {
       </p>
       <div className="grid">
         <span aria-hidden={approved} lang="es-AR" className={`col-start-1 row-start-1 inline-flex min-h-11 items-center justify-center rounded-pill bg-signal px-5 font-semibold text-harbor-950 ${SHOW} ${approved ? "opacity-0" : "opacity-100"}`}>
-          {dossierCopy.approval.approve}
+          {inLang("es", () => dossierCopy.approval.approve)}
         </span>
         <span aria-hidden={!approved} className={`col-start-1 row-start-1 inline-flex min-h-11 items-center justify-center gap-2 rounded-pill bg-glass px-5 font-semibold text-harbor-950 ${shown(approved)}`}>
           <Icon name="personCheck" className="h-5 w-5" />

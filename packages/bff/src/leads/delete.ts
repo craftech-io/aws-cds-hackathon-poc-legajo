@@ -3,13 +3,14 @@
 //
 //   1 the account's world: a leased one is destroyed by `WorldJanitor` (`GUEST_DESTROY {firmId,
 //     reason, sub}`, with every S3 object of the world; it releases the slot by `SLOT#GUEST#<nn>`),
-//     and the account's lease `GUESTWORLD#<sub>` is deleted here either way
+//     and the account's lease `GUESTWORLD#<sub>` and preferences `ACCOUNT#<sub>` are deleted here either way
 //   2 every Cognito user of the email (`AdminDeleteUser`)
 //   3 the lead, the pending sign-ups of the email, `MAILSTATUS#` and the counters of its mailbox
 //   4 `DELETED#<leadId>` with when and why, without any personal data
 //
 // It returns only the `leadId`; the email never leaves the caller.
 import type { TableClient } from "../connector/index";
+import { accountPreferencesKey } from "../connector/keys";
 import { type SecretKey, leadEmailHash, mailboxQuotaHash } from "../lib/crypto";
 import { MAIL_BASES } from "../auth-triggers/custom-message";
 import { RUNTIME_TABLE, forgetWindowed } from "../signup/counters";
@@ -55,6 +56,7 @@ export async function deleteLead(deps: LeadDeleteDeps, email: string, reason: "R
         worldsDestroyed += 1;
       }
       if (lease !== undefined) await deps.client.delete(RUNTIME_TABLE, accountWorldKey(user.sub));
+      await deps.client.delete(RUNTIME_TABLE, accountPreferencesKey(user.sub));
     }
     await deps.cognito.deleteUser(user.username);
   }

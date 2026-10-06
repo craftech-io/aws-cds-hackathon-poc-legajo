@@ -1,9 +1,9 @@
 // Texts of the "Recorrido guiado" panel around the steps (the steps themselves live in steps.ts), in
-// Spanish and English: the panel has its own language switch (docs/design-brief.md §10).
+// Spanish and English: the panel reads in the console's language (context/ConsoleLangContext.tsx).
+// steps.ts keeps its own bilingual data, shared with scripts/, so these stay keyed by language.
 import type { TourLang } from "./steps";
 
 interface PanelTexts {
-  readonly lang: string;
   readonly intro: string;
   readonly progress: (number: number, total: number) => string;
   readonly steps: string;
@@ -22,7 +22,6 @@ interface PanelTexts {
 
 export const TOUR_TEXTS: Readonly<Record<TourLang, PanelTexts>> = {
   es: {
-    lang: "Idioma del recorrido",
     intro: "La historia de la operación 4471 en 10 pasos. Cada botón usa los mismos controles de la consola; esperá lo que indica cada paso antes de seguir.",
     progress: (number, total) => `Paso ${number} de ${total}`,
     steps: "Pasos del recorrido",
@@ -46,7 +45,6 @@ export const TOUR_TEXTS: Readonly<Record<TourLang, PanelTexts>> = {
     },
   },
   en: {
-    lang: "Tour language",
     intro: "The story of operation 4471 in 10 steps. Every button uses the console's own controls; wait as long as each step says before moving on.",
     progress: (number, total) => `Step ${number} of ${total}`,
     steps: "Tour steps",
@@ -70,5 +68,3 @@ export const TOUR_TEXTS: Readonly<Record<TourLang, PanelTexts>> = {
     },
   },
 };
-
-export const LANG_LABELS: Readonly<Record<TourLang, string>> = { es: "ES", en: "EN" };

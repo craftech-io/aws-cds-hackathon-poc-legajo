@@ -71,7 +71,8 @@ Estándar de Craftech: skill `poc-landing` del workspace (`../.claude/skills/poc
 |---|---|
 | Código, identificadores, comentarios, commits, README, materiales de la submission | Inglés |
 | `CLAUDE.md`, `CONTEXT.md`, `docs/`, ADRs, `tests/cases/`, agentes de `.claude/`, conversación con el operador | Español (Argentina) |
-| Consola, textos y plantillas al importador | Español rioplatense, en `packages/bff/src/copy/es-AR.ts` |
+| Consola autenticada (`/app`) | Español rioplatense **e inglés**, con selector en "Mi cuenta"; el valor inicial es el idioma del navegador (español si alguno de `navigator.languages` es `es*`, inglés si no) y la elección se guarda por usuario en `Runtime/ACCOUNT#<sub>` (`account.preferences` / `account.setLanguage`, ADR-0020). Los textos viven en `copy/` y en `views/<vista>/copy*.ts` como diccionarios `es` y `en` con la misma forma (`satisfies`) compuestos con `localized({ es, en })`; el copy de la consola lo escribe siempre en los dos idiomas. Lo que viene de los datos o del agente no se traduce |
+| Textos y plantillas al importador | Español rioplatense, en `packages/bff/src/copy/es-AR.ts` |
 | Emails al proveedor | Inglés, en `packages/bff/src/copy/en.ts` |
 
 ---
@@ -103,7 +104,7 @@ Estándar de Craftech: skill `poc-landing` del workspace (`../.claude/skills/poc
 - Antes de escribir UI se revisa `packages/web/src/components/` (`Table`, `DataTable`, `SelectField`, `FilterPills`, `Drawer`, `Button`, `EmptyState`, `ApiErrorNotice`, `RemoteBlock`, `PageHeader`, `Section`, `StatTile`, `Badge`, `Callout`; `ScopeBar`, `ClockBanner` y `RuleChip(s)` llegan con WP-12, `docs/reuse-map.md`). Segunda aparición de un patrón = extracción a `components/`.
 - Un cliente por servicio externo (Harness, SES, EUM Social, lector, plataforma, Scheduler) con timeouts, reintentos y mapeo de errores en un solo módulo.
 - Toda tool pasa por `createToolHandler`; todo procedimiento tRPC por `firmProcedure` (y `brokerProcedure` / `recentLoginProcedure` donde corresponde).
-- Un texto tiene una sola fuente en `copy/`; el seed y los tests importan de ahí.
+- Un texto tiene una sola fuente en `copy/`; el seed y los tests importan de ahí. Un texto nuevo de la consola se escribe en español y en inglés a la vez (`localized`, sin constantes de módulo que copien el string: se lee dentro del render) y el inglés pasa `lint:neutral-surfaces`.
 - Sin código muerto. Antes del PR: `npm run lint` y `npm run lint:duplicates`.
 
 ## PRIORIDADES DE CALIDAD

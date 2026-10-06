@@ -99,6 +99,19 @@ describe("[FL-105] [FL-109] TTL and the next sign-in", () => {
     expect(again).toMatchObject({ answer: { state: "CREATING" }, outcome: "READY", lease: { state: "READY" } });
   });
 
+  it("[FL-133] the account's language lives outside the world: it survives the sweep, a destruction and the next world", async () => {
+    const h = worldsHarness();
+    await signIn(h, "sub-l", { random: () => 0 });
+    await h.stores.connector.runtime.setAccountLanguage("sub-l", "en");
+    h.realNow = new Date(h.realNow.getTime() + 25 * HOUR);
+    expect(await sweepGuestWorlds(h.deps)).toEqual({ creationsFailed: 0, worldsDestroyed: 1 });
+    expect(await h.stores.client.get("Firms", brokerKey("firm-guest-31", "brk-guest-31"))).toBeUndefined();
+    expect(await h.stores.connector.runtime.getAccountPreferences("sub-l")).toMatchObject({ sub: "sub-l", language: "en" });
+    h.realNow = new Date(h.realNow.getTime() + 21 * 60_000);
+    expect(await signIn(h, "sub-l", { random: () => 0 })).toMatchObject({ outcome: "READY", lease: { state: "READY" } });
+    expect(await h.stores.connector.runtime.getAccountPreferences("sub-l")).toMatchObject({ language: "en" });
+  });
+
   it("destroys a public world 72 h after it was leased even when it is in use", async () => {
     const h = worldsHarness();
     await signIn(h, "sub-a", { random: () => 0 });

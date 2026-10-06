@@ -1,13 +1,13 @@
 // Connector ports of what moves around the dossier (docs/build-plan.md WP-07): conversations and
 // mailboxes, the decision log, the reference catalogs, per-turn runtime state, world state (clocks,
 // epochs, in-flight sets, pending mails and scans, leases, tombstones) and metrics.
-import type { AuditDecision, DispatchStatus, OperationEventType, WhatsAppTemplateName } from "@legajo/shared";
+import type { AuditDecision, DispatchStatus, Language, OperationEventType, WhatsAppTemplateName } from "@legajo/shared";
 import type { Decision } from "../domain/audit";
 import type { NewEntity } from "../domain/common";
 import type { MailboxMessage, Message, MessageEvent, TurnNote } from "../domain/conversations";
 import type { DossierKpi, KpiCounter } from "../domain/metrics";
 import type { DispatchGlossary, EvalTruth, Holiday, NameCheck, ObservationCodeLabel, RateCard, Template } from "../domain/reference";
-import type { Idempotency, MailProbe, Nonce, Probe, Session, Turn, TurnResult, UploadLink } from "../domain/runtime";
+import type { AccountPreferences, Idempotency, MailProbe, Nonce, Probe, Session, Turn, TurnResult, UploadLink } from "../domain/runtime";
 import type { Clock, Lease, LeaseKind, MailPending, OpState, ScanPending, Tombstone, WorldState } from "../domain/world-state";
 import type { TableName } from "../lib/resource";
 
@@ -105,6 +105,10 @@ export interface RuntimePort {
   /** Written by whoever closes a pending mail, discards included (`mail.outcome`). */
   putMailProbe(probe: NewEntity<typeof MailProbe>): Promise<MailProbe>;
   getMailProbe(mailId: string): Promise<MailProbe | undefined>;
+  /** The preferences of an account (`ACCOUNT#<sub>`), or `undefined` while it never chose anything. */
+  getAccountPreferences(sub: string): Promise<AccountPreferences | undefined>;
+  /** Creates or replaces the account's language; the row is never part of a world and has no TTL. */
+  setAccountLanguage(sub: string, language: Language): Promise<AccountPreferences>;
 }
 
 /** Optional fields of a clock a patch may clear with `null` (e.g. `runningUntilReal` when pausing). */

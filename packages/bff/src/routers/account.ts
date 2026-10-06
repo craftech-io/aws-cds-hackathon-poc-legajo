@@ -11,10 +11,15 @@
 //            it is gone (the world's state instead of a 403), and a public guest's `Leads.lastLoginAt`
 //   usage    a guest's quotas of its world and the global budget (`guestBootstrapProcedure`)
 //
+//   preferences / setLanguage   the account's own language (`Runtime/ACCOUNT#<sub>`), per Cognito `sub`,
+//            for staff and guests (`accountProcedure`); it lives outside every world, so a guest world that
+//            is reset, destroyed or recreated keeps it
+//
 // `ensureWorld` and `world` belong to routers/guest-world.ts (WP-31), mounted under `account` with these
 // (routers/index.ts), on the same leases.
-import { ConnectorError, type GuestKind, guestClockId } from "@legajo/shared";
+import { ConnectorError, type GuestKind, Language, guestClockId } from "@legajo/shared";
 import type { AccountWorldOutput, GuestWorldState } from "@legajo/shared/signup";
+import { z } from "zod";
 import type { GuestBootstrap, Principal } from "../auth/principal";
 import { guestFromClaims, guestOfPrincipal, isSignInFresh } from "../auth/principal";
 import type { Connector } from "../connector/index";
@@ -25,7 +30,7 @@ import { readUsage } from "../worlds/guest-quotas";
 import { isPublicGuestFirm, readSlot, worldStateOf } from "../worlds/guest-slots";
 import { liveAccountWorld } from "../worlds/guest-worlds";
 import { markGuestActivity, sessionIdOf } from "./guest-activity";
-import { type Context, type FirmContext, enterFirm, guestBootstrapProcedure, isGuestWorldGone, publicProcedure, router } from "./trpc";
+import { type Context, type FirmContext, accountProcedure, enterFirm, guestBootstrapProcedure, isGuestWorldGone, publicProcedure, router } from "./trpc";
 
 /** Another session within this many real milliseconds of its last action gets the notice. */
 export const OTHER_SESSION_WINDOW_MS = 2 * 60 * 60_000;
@@ -143,6 +148,9 @@ async function bootstrapSession(ctx: Context, guest: GuestBootstrap) {
   };
 }
 
+/** `setLanguage` input: only the two languages of the console, nothing else travels. */
+export const SetLanguageInput = z.object({ language: Language }).strict();
+
 export const accountRouter = router({
   session: publicProcedure.query(async ({ ctx, path }) => {
     const guest = ctx.claims !== null ? guestFromClaims(ctx.claims) : ctx.principal === null ? undefined : guestOfPrincipal(ctx.principal);
@@ -157,6 +165,18 @@ export const accountRouter = router({
     }
     await recordLogin(ctx, guest);
     return bootstrapSession(ctx, guest);
+  }),
+
+  /** The language the account chose, or `null` while it never did (the browser decides then). */
+  preferences: accountProcedure.query(async ({ ctx }) => {
+    const row = await ctx.deps.connector.runtime.getAccountPreferences(ctx.sub);
+    return { language: row?.language ?? null };
+  }),
+
+  setLanguage: accountProcedure.input(SetLanguageInput).mutation(async ({ ctx, input }) => {
+    const row = await ctx.deps.connector.runtime.setAccountLanguage(ctx.sub, input.language);
+    ctx.log.info("account.language_set", { language: row.language });
+    return { language: row.language };
   }),
 
   usage: guestBootstrapProcedure.query(async ({ ctx }) => {

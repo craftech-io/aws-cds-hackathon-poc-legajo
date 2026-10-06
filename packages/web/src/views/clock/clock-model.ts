@@ -101,7 +101,13 @@ export interface MilestoneOption {
   readonly label: string;
 }
 
-export const MILESTONE_OPTIONS: readonly MilestoneOption[] = MilestoneNames.options.map((value) => ({ value, label: MILESTONE_LABELS[value] }));
+// Labels are getters so the options follow the console's language after import.
+export const MILESTONE_OPTIONS: readonly MilestoneOption[] = MilestoneNames.options.map((value) => ({
+  value,
+  get label() {
+    return MILESTONE_LABELS[value];
+  },
+}));
 
 export interface DispatchChoice {
   readonly status: EmittedStatus;
@@ -116,5 +122,7 @@ export function dispatchChoice(value: EmittableDispatch): DispatchChoice {
 
 export const DISPATCH_OPTIONS: readonly { readonly value: EmittableDispatch; readonly label: string }[] = (Object.keys(DISPATCH_LABELS) as EmittableDispatch[]).map((value) => ({
   value,
-  label: DISPATCH_LABELS[value],
+  get label() {
+    return DISPATCH_LABELS[value];
+  },
 }));

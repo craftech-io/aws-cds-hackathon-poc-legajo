@@ -3,13 +3,20 @@
 // read out as "Packing list: con observación", never as a colour alone.
 import type { DocStatus, DocType } from "@legajo/shared";
 import { Badge } from "../../components/Badge";
+import { localized, type Widen } from "../../copy/localized";
 import { DOC_TYPE_ORDER, docStatusLabel, docStatusTone, docTypeLabel } from "./labels";
 
-const SHORT: Readonly<Record<DocType, string>> = {
+const SHORT_ES = {
   COMMERCIAL_INVOICE: "FC",
   PACKING_LIST: "PL",
   CERTIFICATE_OF_ORIGIN: "CO",
-};
+} satisfies Record<DocType, string>;
+
+/** The marks of the strip: initials of each document in the console's language. */
+const SHORT: Readonly<Record<DocType, string>> = localized({
+  es: SHORT_ES,
+  en: { COMMERCIAL_INVOICE: "CI", PACKING_LIST: "PL", CERTIFICATE_OF_ORIGIN: "CO" } satisfies Widen<typeof SHORT_ES>,
+});
 
 const MARK: Readonly<Record<DocStatus, string>> = {
   MISSING: "border-mist bg-white text-slate",

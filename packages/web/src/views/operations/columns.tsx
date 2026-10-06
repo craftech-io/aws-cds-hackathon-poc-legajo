@@ -78,7 +78,8 @@ function DossierCell({ row }: { readonly row: ListRow["row"] }) {
   );
 }
 
-export const OPERATION_COLUMNS: readonly Column<ListRow>[] = [
+/** Built when the table renders, so the headers follow the console's language. */
+export const operationColumns = (): readonly Column<ListRow>[] => [
   { id: "operation", header: operationsCopy.columns.operation, cell: (item) => <OperationCell item={item} /> },
   {
     id: "parties",

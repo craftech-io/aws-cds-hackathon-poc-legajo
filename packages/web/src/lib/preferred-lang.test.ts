@@ -30,4 +30,9 @@ describe("[FL-120] the browser's language", () => {
   it("[FL-120] keeps one storage key for the visitor's explicit choice", () => {
     expect(LANG_STORAGE_KEY).toBe("legajo.lang");
   });
+
+  it("[FL-133] does not take a language that only starts with the letters es", () => {
+    expect(browserLang(["est"])).toBe("en");
+    expect(browserLang(["esp-ES"])).toBe("en");
+  });
 });

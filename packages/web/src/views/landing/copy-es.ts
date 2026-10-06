@@ -298,7 +298,7 @@ export const es = {
   },
   labels: labelsEsAR,
   observation: (code: ObservationCode): string => OBSERVATION_LABELS[code].es,
-  kg: (value: number): string => `${formatNumber(value)} kg`,
+  kg: (value: number): string => `${formatNumber(value, 0, "es")} kg`,
 };
 
 export type LandingCopy = typeof es;

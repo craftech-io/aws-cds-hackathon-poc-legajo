@@ -10,12 +10,16 @@ import { type Page, expect, test } from "@playwright/test";
 import { findNeutralHits } from "../../../scripts/lint/neutral-words.ts";
 import { createVerifiedGuest, inLang, routeCognitoToServer, specLang, testMailbox, testViewerIp, useViewerIp } from "../../../tests/ui-server/auth/browser-helpers.ts";
 import { copy } from "../src/copy/console.ts";
+import { LANGUAGE_NAMES, setActiveLang } from "../src/lib/console-lang.ts";
 import { type RouteId } from "../src/routes.ts";
 import { AUTH_COPY } from "../src/views/auth/copy.ts";
 import { operationsCopy } from "../src/views/operations/copy.ts";
 import { TOUR_TEXTS } from "../src/views/tour/copy.ts";
 import { blockExternalRequests, expectView } from "./support/assertions";
+import { followProjectLanguage } from "./support/console-lang";
 import { UI_SERVER_URL } from "./support/env";
+
+followProjectLanguage();
 
 // Fixture password of the in-memory pool: it never leaves this machine.
 const PASSWORD = "Clave-de-Prueba-2026!";
@@ -57,6 +61,13 @@ function expectGuestSafe(text: string, where: string, email: string): void {
   for (const pattern of INTERNAL) expect(text, `${where}: an internal name`).not.toMatch(pattern);
 }
 
+/** The account menu's language choice; the copy this spec reads follows the page. */
+async function switchLanguage(page: Page, to: "es" | "en"): Promise<void> {
+  await page.getByRole("button", { name: copy.account.menu }).click();
+  await page.getByRole("group", { name: copy.account.language }).getByRole("button", { name: LANGUAGE_NAMES[to], exact: true }).click();
+  setActiveLang(to);
+}
+
 /** The tour panel, opened if the layout keeps it closed. */
 async function tourPanel(page: Page) {
   const panel = page.getByRole("complementary", { name: copy.tour.title });
@@ -87,12 +98,18 @@ test.describe("[FL-131] the console of a guest who signed up alone", () => {
     await expectView(page, "dossier");
     expectGuestSafe(await visibleText(page), "dossier", email);
 
+    // The tour reads in the console's language; the account menu switches both (FL-133).
+    const other = lang === "es" ? "en" : "es";
     const panel = await tourPanel(page);
-    await expect(panel).toContainText(TOUR_TEXTS.es.intro);
-    expectGuestSafe(await panel.innerText(), "tour (es)", email);
-    await panel.getByRole("button", { name: "EN", exact: true }).click();
-    await expect(panel).toContainText(TOUR_TEXTS.en.intro);
-    expectGuestSafe(await panel.innerText(), "tour (en)", email);
+    await expect(panel).toContainText(TOUR_TEXTS[lang].intro);
+    expectGuestSafe(await panel.innerText(), `tour (${lang})`, email);
+    await switchLanguage(page, other);
+    const switched = await tourPanel(page);
+    await expect(switched).toContainText(TOUR_TEXTS[other].intro);
+    expectGuestSafe(await switched.innerText(), `tour (${other})`, email);
+    expectGuestSafe(await visibleText(page), `operations (${other})`, email);
+    await switchLanguage(page, lang);
+    await expect(await tourPanel(page)).toContainText(TOUR_TEXTS[lang].intro);
 
     await page.getByRole("button", { name: copy.account.menu }).click();
     await expect(page.getByRole("button", { name: copy.account.changePassword })).toHaveCount(0);
@@ -114,7 +131,8 @@ test.describe("[FL-131] the console of a guest who signed up alone", () => {
     await routeCognitoToServer(second, UI_SERVER_URL);
     await useViewerIp(second, testViewerIp(info));
     await signIn(second, email, lang);
-    const notice = second.getByRole("alert").filter({ hasText: copy.session.otherSessionEn });
+    // The Spanish notice carries its fixed English line; the English one is the whole notice (FL-133).
+    const notice = second.getByRole("alert").filter({ hasText: lang === "es" ? copy.session.otherSessionEn : /use another guest account/ });
     await expect(notice).toBeVisible();
     expectGuestSafe(await notice.innerText(), "other-session notice", email);
     expect(secondBlocked, "requests of the second session that tried to leave the machine").toEqual([]);

@@ -62,6 +62,7 @@ export const EntityName = z.enum([
   "Tombstone",
   "Probe",
   "MailProbe",
+  "AccountPreferences",
   // LegajoMetrics
   "DossierKpi",
 ]);

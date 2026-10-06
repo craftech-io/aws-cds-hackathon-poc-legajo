@@ -20,3 +20,21 @@ function browserLanguages(): readonly string[] {
 export function browserLang(languages: readonly string[] = browserLanguages()): Language {
   return languages.some((tag) => /^es(-|_|$)/i.test(tag.trim())) ? "es" : "en";
 }
+
+/** The visitor's explicit choice kept in `localStorage`, if any and if storage is reachable. */
+function storedLang(): Language | undefined {
+  try {
+    const parsed = Language.safeParse(globalThis.localStorage?.getItem(LANG_STORAGE_KEY));
+    return parsed.success ? parsed.data : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * The console's language before the server answers: the choice made on the landing or the access
+ * screens, else the browser's. The account's own preference (lib/console-lang.ts, ADR-0020) replaces it.
+ */
+export function initialConsoleLang(): Language {
+  return storedLang() ?? browserLang();
+}

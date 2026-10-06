@@ -7,6 +7,7 @@ import { type ComponentType, type LazyExoticComponent, Suspense, lazy } from "re
 import { FullScreenMessage } from "./components/FullScreenMessage";
 import { LoadingBlock } from "./components/RemoteBlock";
 import { AppShell } from "./components/layout/AppShell";
+import { ConsoleLangProvider } from "./context/ConsoleLangContext";
 import { FirmProvider } from "./context/FirmContext";
 import { usePrincipal, useSession } from "./context/SessionContext";
 import { WorldClockProvider } from "./context/WorldClockContext";
@@ -64,7 +65,16 @@ function NoAccess({ onSignOut }: { readonly onSignOut: () => void }) {
   );
 }
 
+/** The console in the language of the account (ADR-0020): its tree is remounted when the language changes. */
 export default function ConsoleRoutes() {
+  return (
+    <ConsoleLangProvider>
+      <ConsoleScreens />
+    </ConsoleLangProvider>
+  );
+}
+
+function ConsoleScreens() {
   // The console is never indexed (robots.txt disallows /app/ as well; ADR-0016 §1).
   useNoIndex();
   const { path } = useRouter();

@@ -62,6 +62,15 @@ describe("[FL-118] deleting a lead on request", () => {
     expect(await stores.client.get(RUNTIME_TABLE, accountWorldKey(user?.sub ?? ""))).toBeUndefined();
   });
 
+  it("[FL-133] deletes the account's language preference with the account", async () => {
+    const user = [...access.cognito.users.values()].find((entry) => entry.email === EMAIL);
+    await stores.connector.runtime.setAccountLanguage(user?.sub ?? "", "en");
+    expect(await stores.connector.runtime.getAccountPreferences(user?.sub ?? "")).toMatchObject({ language: "en" });
+    await deleteLead(deps(), EMAIL, "REQUEST");
+    expect(await stores.connector.runtime.getAccountPreferences(user?.sub ?? "")).toBeUndefined();
+    expect(stores.client.dump(RUNTIME_TABLE).filter((row) => row.PK.startsWith("ACCOUNT#"))).toEqual([]);
+  });
+
   it("a lease that failed (no world) is deleted with the account; a second run finds nothing", async () => {
     const user = [...access.cognito.users.values()].find((entry) => entry.email === EMAIL);
     await leaseAccountWorld(stores.client, user?.sub ?? "", "lease-1", NOW);
