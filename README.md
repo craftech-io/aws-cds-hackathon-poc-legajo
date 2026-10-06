@@ -195,6 +195,11 @@ controller; the privacy policy explains retention and how to opt out or request 
 never reach logs, audit trails or demo exports. Everything written or uploaded inside a demo world,
 PDFs included, is deleted with the world when it expires or when deletion is requested.
 
+## License
+
+Copyright © 2026 Craftech. All rights reserved. The source is published so it can be read and
+evaluated; it is not open source, and no license to use, copy, modify or distribute it is granted.
+
 ## Submission notes
 
 This repository is Craftech's entry to the AWS CDS Agentic AI Partner Hackathon. Nothing in the
