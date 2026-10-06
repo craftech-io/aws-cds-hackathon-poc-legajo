@@ -7,7 +7,7 @@ Solo lo que depende de alguien fuera del equipo de agentes (el CTO, Meta, AWS Pa
 | P-01 | Conectar WhatsApp: cuenta de WhatsApp Business, número y plantillas aprobadas | CTO (Meta); `devops` ejecuta los scripts; `qa` prueba en vivo | Cerrado el 2026-10-05 por el CTO para el modo vivo: portfolio y WABA \"Craftech\", número +1 817 768 1029 (Connect, `infra/phone.ts`), destino de eventos, secretos y teléfono de demo del CTO en `SeedOverrides`; las 8 plantillas siguen en revisión de Meta (paso 7) y la prueba viva SC-23 queda para `qa` | §1 |
 | P-02 | Oportunidad ACE de la submission | CTO | Abierto | §2 |
 | P-03 | Video de 3 minutos | CTO | Abierto | §3 |
-| P-04 | Decisión de marca pública | CTO | Abierto | §4 |
+| P-04 | Decisión de marca pública | CTO | Cerrado el 2026-10-04 por el CTO: co-brand "SIDOM Legajo listo · Powered by Craftech", aprobado por SIDOM por escrito; display name de WhatsApp "Craftech" | §4 |
 | P-05 | Credenciales de las cuentas reservadas `guest-NN` en las instrucciones privadas de prueba de la submission | CTO con el operador | Abierto | §5 |
 | P-06 | Datos del responsable para la política de privacidad, casilla de privacidad, destinatario del aviso de lead e inscripción de la base en la AAIP | CTO | Cerrado el 2026-10-04 (CTO: Craftech, CABA, sales@craftech.io; aviso a janu@craftech.io) | §6 |
 | P-07 | Ola de superficies públicas: costos y límites a aceptar, secretos y bootstrap, supuesto de `CustomMessage`, alta de aceptación A-01 registrada como lead | CTO; el operador ejecuta | Abierto | §7 |
@@ -55,6 +55,8 @@ Decisiones del CTO:
 3. Confirmar el uso de "Powered by Craftech" en la landing, las plantillas y los emails.
 
 Dueño: CTO. Bloquea el paso 1 de P-01.
+
+**Resuelto el 2026-10-04.** SIDOM aprobó por escrito el co-brand: el producto se presenta como "SIDOM Legajo listo · Powered by Craftech" (logo de SIDOM en `public/brand/`), y SIDOM salió de la lista de términos prohibidos. El display name de WhatsApp es "Craftech". El consentimiento escrito lo guarda el CTO, fuera del repo.
 
 ## 5. Credenciales de las cuentas reservadas (P-05)
 

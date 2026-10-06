@@ -1,13 +1,15 @@
-# Legajo listo · Powered by Craftech
+# SIDOM Legajo listo · Powered by Craftech
 
 **An AI coordination agent that gets every import file ready before the vessel arrives.**
+
+![AWS architecture of SIDOM Legajo listo](docs/assets/architecture.png)
 
 Before a shipment reaches port, a customs brokerage firm (*estudio de despachantes de aduana*) needs
 a complete import file (*legajo*) for it: commercial invoice, packing list and certificate of origin.
 Today a broker's team chases those documents by hand: the importer on WhatsApp, the foreign supplier
 by email in another language and another time zone, and every PDF checked by eye against the others.
-Legajo listo does the chasing, keeps every party on the rules the firm defines, and leaves the file
-ready for a human broker to approve.
+Legajo listo does the chasing over **WhatsApp and email**, keeps every party within the rules the
+firm defines, and leaves the file ready for a human broker to approve.
 
 ## Who it is for
 
@@ -15,42 +17,75 @@ ready for a human broker to approve.
   and demurrage days to missing or inconsistent documents.
 - **Brokers and analysts** inside those firms, who keep control: the agent proposes and coordinates,
   a person approves.
-- **Importers**, who get clear requests in their own language on the channel they already use, and
-  **foreign suppliers**, who get precise requests in English with the exact correction needed.
+- **Importers**, who get clear requests in Spanish on WhatsApp, the channel they already use, and can
+  simply chat with the agent; and **foreign suppliers**, who get precise requests in English by email
+  with the exact correction needed.
 
 ## How it works
 
-1. **The importer is asked for the documents** on WhatsApp, with a template and quick-reply buttons,
-   when a milestone before the ETA fires.
-2. **The importer can hand the request over to the supplier.** The agent writes to the supplier by
+1. **The importer is asked for the documents** on WhatsApp, with an approved template and
+   quick-reply buttons, when a milestone before the ETA fires.
+2. **The importer can chat.** Free text such as "hola", "what is missing?" or "how is the other
+   shipment going?" gets an answer grounded in the operation's data. The agent remembers each
+   importer's conversation, even across several operations, and moves a message to the operation it
+   is about.
+3. **The importer can hand the request over to the supplier.** The agent writes to the supplier by
    email in English, from an address that belongs to that operation, and defers the email to the
    supplier's business hours when the contact policy says so.
-3. **Every PDF goes through a document reader** behind an OpenAPI contract. Legajo listo never reads
+4. **Every PDF goes through a document reader** behind an OpenAPI contract. Legajo listo never reads
    documents itself: it acts on the reader's findings (for example, a gross weight on the packing
    list that does not match the invoice).
-4. **The agent decides who must correct each finding** (importer or supplier), asks for it in the same
+5. **The agent decides who must correct each finding** (importer or supplier), asks for it in the same
    thread and tracks the new version until the file is consistent.
-5. **Deadlines move with the ETA.** When the vessel is expected earlier or later, milestones and
+6. **Deadlines move with the ETA.** When the vessel is expected earlier or later, milestones and
    follow-ups are rescheduled, and anything at risk is escalated to the firm.
-6. **A human approves.** No tool can approve a file: approval happens in the console, by a broker
+7. **A human approves.** No tool can approve a file: approval happens in the console, by a broker
    with a recent sign-in.
-7. **Customs dispatch statuses** (declaration made official, channel assigned, released) reach the
+8. **Customs dispatch statuses** (declaration made official, channel assigned, released) reach the
    importer with a plain explanation.
 
 Guarantees enforced in code, not in the prompt: a contact policy (business hours, one reminder per
 day, the 24-hour WhatsApp window, consent) decides every outgoing message; recipient fences stop any
 message to an address outside the operation; every incoming message is treated as hostile (masked,
-delimited and filtered by guardrails before the model sees it); every decision is audited.
+delimited and filtered by guardrails before the model sees it); every outgoing text is checked by a
+grounding guardrail against the data the agent read; every decision is audited.
+
+## How it uses AWS Communication Developer Services
+
+| Service | What Legajo listo does with it |
+|---|---|
+| **AWS End User Messaging Social** (WhatsApp) | The firm's WhatsApp Business account and number. `SendWhatsAppMessage` sends approved templates with quick-reply buttons, free-text replies inside the 24-hour window, and list messages. Every inbound message marks the importer's message as read and shows WhatsApp's typing indicator while the agent works. Inbound messages, media (`GetWhatsAppMessageMedia`, scanned by GuardDuty before reading) and delivery statuses arrive through an Amazon SNS topic. Live today for the registered demo phones; every other world uses a phone simulator that enters through the same adapter. |
+| **Amazon SES v2** | Sends every supplier email from an address that belongs to the operation, so replies thread back to it; receives the supplier's replies and PDFs through receipt rules (spam and virus scan, TLS required) into S3 and a Lambda that verifies the sender (DMARC `p=reject`, registered contact). Configuration-set events (delivery, bounce, complaint) flow through Amazon EventBridge into message statuses and the contact policy (a complaint stops all email to that contact). Cognito's sign-up and recovery emails also go through SES. |
+| **Amazon Connect** (+ Amazon Transcribe) | The WhatsApp number is an Amazon Connect phone number declared in code. Meta verifies a number with a phone call; a Connect contact flow records it, Amazon Transcribe reads the six-digit code, and the operator gets it by email, after three failed calls a person takes over. Nobody needs a SIM card. |
+
+## The agent
+
+- **Amazon Bedrock AgentCore Harness** with **Claude Sonnet 5.5** (through a tagged application
+  inference profile), one turn per event of an operation, invoked by a worker that reads an SQS FIFO
+  queue per operation.
+- **AgentCore Gateway** (MCP, IAM auth) with five AWS Lambda tool targets and 16 tools. Every id a tool
+  uses comes from a signed, short-lived session token, never from the model.
+- **AgentCore Policy** (Cedar) checks every tool call; **AgentCore Memory** keeps one conversation per
+  importer across operations, plus long-term preferences and facts.
+- **Amazon Bedrock Guardrails**: G1 on input (denied topics such as tariff classification or legal
+  advice, prompt attacks, masking of tax and bank ids) and G2 on every outgoing text (contextual
+  grounding on the turn's tool results, and relevance to the importer's question).
+- **Fast turns**: before invoking the model, the worker runs the reads every turn needs (the
+  operation, the file, the importer's last ten operations, the checklist), so a reply takes two model
+  calls instead of five.
+- The agent speaks only through `send_whatsapp` and `send_email`; both go through one outbound
+  pipeline (contact policy, output guardrail, deterministic checks, recipient fence, transport).
 
 ## Try it
 
-Open **https://legajo.demo.craftech.io**, choose **Try the demo**, and create an account with your
+Open **https://legajo.demo.craftech.io**, choose **Try Legajo listo**, and create an account with your
 email (you will receive a verification code). Your account gets its own isolated world of synthetic
 data: a fictitious brokerage firm, its importers, suppliers and operations, with a simulated clock
-paused at 14/10 10:30 that only moves with the console's controls. The console's **Guided tour**
-panel walks you through the main story (operation 4471) one button at a time; the table below is
-generated from the same source (`packages/web/src/views/tour/steps.ts`) and `npm run tour:check`
-fails if they differ.
+paused at 14/10 10:30 that only moves with the console's controls. The importer's side of WhatsApp is
+played by the console's phone simulator; the supplier's email is real, through SES, to simulated
+mailboxes you can read in the console. The console's **Guided tour** panel walks you through the main
+story (operation 4471) one button at a time; the table below is generated from the same source
+(`packages/web/src/views/tour/steps.ts`) and `npm run tour:check` fails if they differ.
 
 A demo world is for trying the product, not for real work: it only accepts synthetic contacts, it
 has daily usage limits, and it is reset after 24 hours without activity (your account stays; the
@@ -58,11 +93,6 @@ next sign-in creates a fresh world). If every demo world is taken when you first
 account is kept and the console says the demo is full right now; try again later or choose
 **Let's talk**. Terms and privacy policy:
 `https://legajo.demo.craftech.io/legal/terms.html` and `/legal/privacy.html`.
-
-**Status**: the product is being built in waves (`docs/build-plan.md`, section 5 lists what is
-missing). Public sign-up, demo worlds and some scripts named below arrive with those waves. The stage
-is deployed for the first time only once the whole product is built and its checks pass, so **Try the
-demo** works from that first deploy (`docs/adr/0015-alta-publica-de-invitados-y-leads.md` §1.4).
 
 <!-- TOUR:START -->
 | # | Step | Button / action | What to look at | Expected wait |
@@ -81,12 +111,12 @@ demo** works from that first deploy (`docs/adr/0015-alta-publica-de-invitados-y-
 
 ## What is real and what is simulated
 
-| Piece | In this demo |
+| Piece | In this proof of concept |
 |---|---|
-| Companies, people, operations, documents | **Synthetic.** Every name is fictitious and every PDF is generated. No real importer, supplier or firm appears anywhere. |
+| Companies, people, operations, documents | **Synthetic.** Every name is fictitious and every PDF is generated. No real importer, supplier or brokerage firm appears anywhere. |
 | AI agent | **Real.** Amazon Bedrock AgentCore (Harness, Gateway with five tool targets, Memory, Policy) with Bedrock Guardrails on input and output. |
 | Supplier email | **Real end to end.** Amazon SES sends and receives every email; suppliers are simulated mailboxes on a domain of the demo, answered by a supplier simulator. |
-| Importer WhatsApp | **Adapter implemented, simulated transport.** AWS End User Messaging Social is the target channel; until the WhatsApp Business Account is connected, a phone simulator in the console plays the importer. In a demo world it is always simulated. |
+| Importer WhatsApp | **Real** for the registered demo phones: the firm's WhatsApp Business account on AWS End User Messaging Social, with a number from Amazon Connect. **Simulated** in public demo worlds: a phone simulator in the console enters through the same adapter, so the agent, the policy and the guardrails are the same. |
 | Document reader | **Mock behind a real contract.** An OpenAPI contract (`packages/reader-contract`) with a mock implementation; a real reader plugs in behind the same contract. |
 | Customs management platform | **Mock** of the dispatch statuses (`packages/platform-mock`). |
 | Clock | **Simulated per world**, paused by default; every timer is an EventBridge Scheduler schedule that the clock knows how to advance. |
@@ -95,30 +125,19 @@ demo** works from that first deploy (`docs/adr/0015-alta-publica-de-invitados-y-
 
 ## Architecture
 
-```
- Importer (WhatsApp)          Supplier (email)                Broker / analyst (console)
-        │                           │                                   │
- End User Messaging Social     Amazon SES (in/out)          CloudFront + WAF → React console
-        │                           │                                   │
-        └──────────► inbound Lambdas ◄──────────┘                 tRPC BFF (Lambda) + Cognito
-                           │                                              │
-                   SQS FIFO per operation ──► worker ──► Bedrock AgentCore Harness
-                           ▲                    │            │ Gateway (MCP, IAM) → tool Lambdas
-             EventBridge Scheduler (timers)     │            │ Memory · Policy (Cedar) · Guardrails
-                                                ▼
-                         outbound pipeline: contact policy → guardrail → checks → recipient fence → channel
-                                                │
-                   DynamoDB (one table per aggregate) · S3 (documents, mail) · document reader (OpenAPI)
-```
+The diagram at the top is generated from `docs/assets/architecture/architecture.html`
+(`npx tsx scripts/diagram/render-architecture.ts`).
 
 - **Serverless only**, infrastructure as code with SST v4 on AWS (`us-east-1`), a single stage
-  (`poc`) deployed only by CI.
-- The agent speaks only through `send_whatsapp` and `send_email`; both go through one outbound
-  pipeline (contact policy, output guardrail, deterministic checks, recipient fence, transport).
-- Identity never comes from the model: every tool resolves the operation, firm and parties from a
-  server-side session token.
-- Each account's world is isolated by firm and clock; public demo worlds are capped, expire and have
-  per-world usage limits.
+  (`poc`) deployed only by CI. The WhatsApp number, the Connect instance and the inference profile
+  are declared in code too.
+- **Identity never comes from the model**: the importer is identified by the phone number registered
+  for the operation, the supplier by the operation's address plus DMARC and its registered contact.
+- **Each account's world is isolated** by firm and clock; public demo worlds are capped, expire and
+  have per-world usage limits.
+- **Observability**: JSON logs with a correlation id and no personal data, kept 30 days; CloudWatch
+  metrics and alarms for policy violations, turn errors and dead letters; the agent's traces in
+  CloudWatch; a monthly budget filtered by the project's cost allocation tag.
 
 Design documents (in Spanish): `docs/design-brief.md`, `docs/architecture.md`,
 `docs/architecture-integrations.md`, `docs/adr/`, `docs/flows-catalog.md`, `docs/test-plan.md`;
@@ -154,7 +173,8 @@ FORBIDDEN_TERMS="…" npm run lint:forbidden  # the operator's list lives outsid
 ```
 
 - There is no local stage: everything is tested locally with unit, local-flow and UI tests, and in
-  `poc` by CI.
+  `poc` by CI. Agent behavior is tested locally against a local model (`tests/agent`, run with the
+  `agent-test` CLI and Qwen on Ollama, at no token cost) before it reaches Bedrock.
 - **Deploy**: only by CI (`.github/workflows/deploy.yml`) on a push to `main`, with OIDC roles created
   once by `infra/bootstrap/ci-role.yaml` (see its README). Never `sst dev` or a local `sst deploy`.
 - **Scenarios in the deployed stage**: `.github/workflows/scenarios.yml` runs the scenario suite
@@ -176,7 +196,13 @@ PDFs included, is deleted with the world when it expires or when deletion is req
 ## Submission notes
 
 This repository is Craftech's entry to the AWS CDS Agentic AI Partner Hackathon. Nothing in the
-published product mentions the contest: it is presented as a product for a future customer.
+published product mentions the contest: it is presented as a product for a customer.
+
+- **Customer**: SIDOM, a customs software company in Argentina, approved in writing the co-branded
+  name "SIDOM Legajo listo" for this proof of concept. All data in the product is synthetic.
+- **AWS Communication Developer Services used at runtime**: Amazon SES (sending and receiving) and
+  AWS End User Messaging Social (WhatsApp), plus Amazon Connect for the WhatsApp number (see
+  [How it uses AWS Communication Developer Services](#how-it-uses-aws-communication-developer-services)).
 
 - **Access for testing**: anyone can create an account at
   `https://legajo.demo.craftech.io/signup`. Reserved guest accounts, with their own worlds and without the public limits on world capacity,
