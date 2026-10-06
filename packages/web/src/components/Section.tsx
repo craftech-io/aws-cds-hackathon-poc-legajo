@@ -29,7 +29,7 @@ export function SectionShell({ id, eyebrow, title, lead, tone, wide = false, chi
     <section id={id} aria-labelledby={`${id}-title`} data-tone={tone === "dark" ? "dark" : "light"} className={`px-gutter py-section ${colors.band}`}>
       <div className={`mx-auto ${wide ? "max-w-tour" : "max-w-content"}`}>
         <div data-reveal="" className="max-w-prose">
-          <p className={`font-display text-eyebrow font-semibold uppercase ${colors.eyebrow}`}>{eyebrow}</p>
+          <p className={`text-balance font-display text-eyebrow font-semibold uppercase ${colors.eyebrow}`}>{eyebrow}</p>
           <h2 id={`${id}-title`} className={`mt-3 font-display text-h2 font-semibold ${colors.title}`}>
             {title}
           </h2>

@@ -18,7 +18,7 @@ export function StepText({ step, index, headingId, active = true }: { readonly s
   const text = tour.steps[step.id];
   return (
     <div className="flex flex-col gap-3">
-      <p className={`font-display text-eyebrow font-semibold uppercase transition-colors duration-500 ${active ? "text-signal" : "text-foam-muted"}`}>
+      <p className={`text-balance font-display text-eyebrow font-semibold uppercase transition-colors duration-500 ${active ? "text-signal" : "text-foam-muted"}`}>
         {tour.stepLabel(index + 1, TOUR_STEPS.length)} · {text.channel}
       </p>
       <h3 id={headingId} className={`font-display text-h3 font-semibold transition-colors duration-500 ${active ? "text-foam" : "text-foam-muted"}`}>

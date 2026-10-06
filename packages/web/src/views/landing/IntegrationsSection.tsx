@@ -5,9 +5,11 @@
 // a phone and a screen reader reads it in order.
 import { buttonClass } from "../../components/Button";
 import { SectionShell } from "../../components/Section";
+import type { NodeVisual } from "./architecture";
 import { Icon, type IconName } from "./icons";
 import { useLandingCopy } from "./lang";
 import { EXTERNAL_LINK, contactHref } from "./links";
+import { NodeIcon } from "./NodeIcon";
 
 type NodeKey = "whatsapp" | "email" | "upload" | "agentcore" | "guardrails" | "scheduler" | "reader" | "platform";
 type LaneKey = "channels" | "agent" | "time" | "systems";
@@ -19,13 +21,29 @@ const LANES: ReadonlyArray<{ readonly key: LaneKey; readonly icon: IconName; rea
   { key: "systems", icon: "reader", nodes: ["reader", "platform"] },
 ];
 
+/** The icon of each node: the service's official architecture icon, or the landing's own for what is not a service. */
+const aws = (file: string): NodeVisual => ({ aws: `/landing/aws/${file}.svg` });
+const NODE_VISUALS: Readonly<Record<NodeKey, NodeVisual>> = {
+  whatsapp: aws("AWSEndUserMessaging"),
+  email: aws("AmazonSimpleEmailService"),
+  upload: aws("AmazonSimpleStorageService"),
+  agentcore: aws("AmazonBedrockAgentCore"),
+  guardrails: { icon: "shield" },
+  scheduler: aws("AmazonEventBridge"),
+  reader: { icon: "reader" },
+  platform: { icon: "documents" },
+};
+
 /** "Amazon SES · envío y recepción…": the service, then what it does here. */
-function Node({ text }: { readonly text: string }) {
+function Node({ node, text }: { readonly node: NodeKey; readonly text: string }) {
   const [name = text, ...rest] = text.split(" · ");
   return (
-    <li className="rounded-card border border-rule bg-manifest px-3 py-2.5">
-      <p className="text-sm font-semibold text-ink">{name}</p>
-      {rest.length > 0 ? <p className="mt-0.5 text-sm text-ink-muted">{rest.join(" · ")}</p> : null}
+    <li className="flex items-start gap-3 rounded-card border border-rule bg-manifest px-3 py-2.5">
+      <NodeIcon visual={NODE_VISUALS[node]} size="sm" tone="paper" />
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-ink">{name}</p>
+        {rest.length > 0 ? <p className="mt-0.5 text-sm text-ink-muted">{rest.join(" · ")}</p> : null}
+      </div>
     </li>
   );
 }
@@ -36,21 +54,21 @@ export function IntegrationsSection() {
     <SectionShell id="integrations" eyebrow={integrations.eyebrow} title={integrations.title} lead={integrations.lead} tone="light">
       <figure>
         <figcaption className="sr-only">{integrations.diagramAlt}</figcaption>
-        <ol className="grid gap-3 lg:grid-cols-4 lg:gap-6">
+        <ol className="grid gap-3 xl:grid-cols-4 xl:gap-6">
           {LANES.map((lane, index) => (
             <li key={lane.key} data-reveal="" className="relative flex flex-col rounded-panel border border-rule bg-white p-4 shadow-card">
               <p className="flex items-center gap-2 font-display text-eyebrow font-semibold uppercase text-signal-ink">
                 <Icon name={lane.icon} className="h-4 w-4" />
                 {index + 1} · {integrations.lanes[lane.key]}
               </p>
-              <ul className="mt-3 flex flex-1 flex-col gap-2">
+              <ul className="mt-3 grid flex-1 content-start gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-1">
                 {lane.nodes.map((node) => (
-                  <Node key={node} text={integrations.nodes[node]} />
+                  <Node key={node} node={node} text={integrations.nodes[node]} />
                 ))}
               </ul>
               {index < LANES.length - 1 ? (
-                <span aria-hidden="true" className="absolute -bottom-3 left-1/2 z-10 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full bg-harbor-950 text-foam lg:-right-5 lg:bottom-auto lg:left-auto lg:top-1/2 lg:-translate-y-1/2 lg:translate-x-0">
-                  <Icon name="arrowDown" className="h-3.5 w-3.5 lg:-rotate-90" />
+                <span aria-hidden="true" className="absolute -bottom-3 left-1/2 z-10 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full bg-harbor-950 text-foam xl:-right-5 xl:bottom-auto xl:left-auto xl:top-1/2 xl:-translate-y-1/2 xl:translate-x-0">
+                  <Icon name="arrowDown" className="h-3.5 w-3.5 xl:-rotate-90" />
                 </span>
               ) : null}
             </li>

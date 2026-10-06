@@ -66,7 +66,7 @@ export function Hero() {
     <section id="top" data-tone="dark" aria-labelledby="hero-title" className="harbor-grid relative overflow-hidden bg-harbor-950 px-gutter pb-section pt-12 text-foam sm:pt-16">
       <div className="relative mx-auto grid max-w-content items-center gap-12 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <p className="font-display text-eyebrow font-semibold uppercase text-signal">{hero.eyebrow}</p>
+          <p className="text-balance font-display text-eyebrow font-semibold uppercase text-signal">{hero.eyebrow}</p>
           <h1 id="hero-title" className="mt-4 font-display text-display font-semibold text-foam">
             {hero.title}
           </h1>

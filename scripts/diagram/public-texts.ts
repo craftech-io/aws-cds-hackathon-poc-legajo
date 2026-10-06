@@ -1,0 +1,110 @@
+// The texts of the public architecture diagram (render-architecture-public.ts): each text of the README's
+// diagram source, what the English landing shows (`en`, the source's own text when it is not given) and
+// the Spanish one. The public voice drops the submission's labels, the model's and runtime's names and the words that
+// say a part is a mock.
+export type DiagramLang = "es" | "en";
+
+export interface DiagramText {
+  /** The text of the source (whitespace collapsed), or its start when `prefix` is set. */
+  readonly from: string;
+  readonly prefix?: boolean;
+  readonly en?: string;
+  readonly es: string;
+}
+
+export const DIAGRAM_TEXTS: readonly DiagramText[] = [
+  { from: "SIDOM Legajo listo · AWS architecture", es: "SIDOM Legajo listo · Arquitectura en AWS" },
+  {
+    from: "Serverless on AWS (us-east-1), all infrastructure as code with SST v4 · one ordered queue per import operation · the agent decides, code enforces the rules",
+    en: "Serverless on AWS, all infrastructure as code · one ordered queue per import operation · the agent decides, code enforces the rules",
+    es: "Serverless en AWS, toda la infraestructura como código · una cola ordenada por operación de importación · el agente decide, el código hace cumplir las reglas",
+  },
+  { from: "Importer", es: "Importador" },
+  { from: "Messaging, in Spanish", es: "Mensajería, en español" },
+  { from: "Foreign supplier", es: "Proveedor extranjero" },
+  { from: "Email, in English", es: "Email, en inglés" },
+  { from: "Customs broker", es: "Despachante" },
+  { from: "Reviews and approves", es: "Revisa y aprueba" },
+  { from: "Web console", es: "Consola web" },
+  { from: "CloudFront, AWS WAF, Amazon Cognito; tRPC BFF on Lambda", es: "CloudFront, AWS WAF, Amazon Cognito; BFF tRPC en Lambda" },
+  { from: "Channels ·", prefix: true, en: "Channels · Amazon Connect", es: "Canales · Amazon Connect" },
+  { from: "AWS End User Messaging Social", es: "AWS End User Messaging Social" },
+  {
+    from: "WhatsApp Business account: templates with buttons, free text, media, read receipt and typing indicator; events → Amazon SNS",
+    es: "Cuenta de WhatsApp Business: plantillas con botones, texto libre, medios, acuse de lectura e indicador de escritura; eventos → Amazon SNS",
+  },
+  { from: "Amazon Connect + Transcribe", es: "Amazon Connect + Transcribe" },
+  { from: "The business number, in code; Meta's verification call read automatically", es: "El número del negocio, en código; la llamada de verificación de Meta se lee sola" },
+  { from: "Amazon SES v2", es: "Amazon SES v2" },
+  {
+    from: "SendEmail from one address per operation; receipt rules → S3 (DKIM, DMARC p=reject); delivery, bounce and complaint events → EventBridge",
+    es: "SendEmail desde una dirección por operación; reglas de recepción → S3 (DKIM, DMARC p=reject); eventos de entrega, rebote y queja → EventBridge",
+  },
+  { from: "number", es: "número" },
+  { from: "Orchestration", es: "Orquestación" },
+  { from: "Inbound Lambdas", es: "Lambdas de entrada" },
+  { from: "One per channel and for timers.", es: "Una por canal y otra para los temporizadores." },
+  {
+    from: "Identity checked in code (registered phone; operation address + DMARC + registered contact).",
+    es: "Identidad verificada en código (teléfono registrado; dirección de la operación + DMARC + contacto registrado).",
+  },
+  { from: "Sensitive data masked; hostile text delimited.", es: "Datos sensibles enmascarados; texto hostil delimitado." },
+  { from: "EventBridge Scheduler", es: "EventBridge Scheduler" },
+  { from: "Milestones on the ETA", es: "Hitos relativos a la ETA" },
+  { from: "Amazon SQS FIFO", es: "Amazon SQS FIFO" },
+  { from: "One message group per operation", es: "Un grupo de mensajes por operación" },
+  { from: "Operation worker", es: "Worker de la operación" },
+  { from: "Control, quotas, G1 pre-filter; preloads the operation and the file", es: "Control, cuotas, pre-filtro G1; precarga la operación y el legajo" },
+  { from: "Amazon Bedrock AgentCore", en: "Agent runtime", es: "Runtime del agente" },
+  { from: "Memory", es: "Memoria" },
+  { from: "One chat per importer, across operations", es: "Un chat por importador, entre operaciones" },
+  { from: "Guardrails", es: "Guardrails" },
+  { from: "G1 input: denied topics, prompt attacks, PII", es: "Entrada G1: temas denegados, ataques de prompt, datos personales" },
+  { from: "Harness", es: "Harness" },
+  {
+    from: "Claude Sonnet 5.5 on Amazon Bedrock (tagged inference profile); one turn per event",
+    en: "Foundation model (tagged inference profile); one turn per event",
+    es: "Modelo de lenguaje (perfil de inferencia etiquetado); un turno por evento",
+  },
+  { from: "Gateway + tools", es: "Gateway + herramientas" },
+  { from: "MCP with IAM; 16 tools on 5 Lambda targets; ids from a signed session token", es: "MCP con IAM; 16 herramientas en 5 destinos Lambda; ids del token de sesión firmado" },
+  { from: "Policy", es: "Política" },
+  { from: "Cedar on every tool call", es: "Cedar en cada llamada a una herramienta" },
+  { from: "send_whatsapp · send_email", es: "send_whatsapp · send_email" },
+  { from: "Outbound pipeline (code)", es: "Pipeline de salida (código)" },
+  { from: "Step 1", es: "Paso 1" },
+  { from: "Step 2", es: "Paso 2" },
+  { from: "Step 3", es: "Paso 3" },
+  { from: "Step 4", es: "Paso 4" },
+  { from: "Step 5", es: "Paso 5" },
+  { from: "Contact policy", es: "Política de contacto" },
+  { from: "Consent, business hours, 24-hour window, one reminder a day", es: "Consentimiento, horarios, ventana de 24 h, un recordatorio por día" },
+  { from: "Guardrail G2", es: "Guardrail G2" },
+  { from: "Grounded in this turn's tool results; relevant to the question", es: "Basado en los resultados de las herramientas del turno; pertinente a la consulta" },
+  { from: "Deterministic checks", es: "Controles deterministas" },
+  { from: "Figures copied from tools, no foreign links, sent once", es: "Cifras copiadas de las herramientas, sin enlaces ajenos, un solo envío" },
+  { from: "Recipient fence", es: "Cerco de destinatarios" },
+  { from: "Only the operation's registered parties", es: "Solo las partes registradas de la operación" },
+  { from: "Send and audit", es: "Envío y auditoría" },
+  { from: "Through SES or End User Messaging Social; every decision audited", es: "Por SES o End User Messaging Social; cada decisión auditada" },
+  { from: "out through the same channels", es: "sale por los mismos canales" },
+  { from: "Data, the firm's systems and operations", es: "Datos, sistemas del estudio y operación" },
+  { from: "Amazon DynamoDB", es: "Amazon DynamoDB" },
+  { from: "A table per aggregate; audit log", es: "Una tabla por agregado; bitácora de auditoría" },
+  { from: "Amazon S3", es: "Amazon S3" },
+  { from: "Documents, inbound mail, media", es: "Documentos, correo entrante, medios" },
+  { from: "Amazon GuardDuty", es: "Amazon GuardDuty" },
+  { from: "Malware scan of every file", es: "Escaneo de malware de cada archivo" },
+  { from: "Amazon CloudWatch", es: "Amazon CloudWatch" },
+  { from: "Logs (30 days), metrics, alarms, traces", es: "Logs (30 días), métricas, alarmas, trazas" },
+  { from: "Document reader", es: "Lector documental" },
+  { from: "OpenAPI contract (mock in the demo)", en: "OpenAPI contract: the reader your firm chooses", es: "Contrato OpenAPI: el lector que elija tu estudio" },
+  { from: "Management platform", es: "Sistema de gestión" },
+  { from: "Customs statuses by contract (mock)", en: "Customs statuses by contract", es: "Estados aduaneros por contrato" },
+  { from: "Importer on WhatsApp, supplier by email, broker in the console.", es: "El importador por WhatsApp, el proveedor por email, el despachante en la consola." },
+  { from: "Inbound Lambdas check identity in code, mask sensitive data and enqueue the event.", es: "Las Lambdas de entrada verifican identidad, enmascaran datos y encolan el evento." },
+  { from: "One FIFO message group per operation keeps its events in order.", es: "Un grupo FIFO por operación mantiene sus eventos en orden." },
+  { from: "The worker preloads the operation and the file, then invokes the AgentCore Harness.", en: "The worker preloads the operation and the file, then invokes the agent's Harness.", es: "El worker precarga la operación y el legajo e invoca el Harness del agente." },
+  { from: "The agent decides with tools behind Gateway and Cedar policies.", es: "El agente decide con herramientas detrás de Gateway y políticas Cedar." },
+  { from: "Every message passes the contact policy, G2 and the fence before it leaves.", es: "Todo mensaje pasa por la política de contacto, G2 y el cerco antes de salir." },
+];

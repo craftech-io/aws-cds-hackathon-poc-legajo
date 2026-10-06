@@ -27,10 +27,10 @@ export function RuleChip({ ruleId, compact = false, tone = "light", label = rule
   if (tone !== "light") {
     const dark = tone === "dark";
     return (
-      <span className={`inline-flex items-center gap-1.5 rounded-pill border px-2.5 py-1 text-xs font-semibold ${dark ? "border-harbor-700 bg-harbor-900 text-foam" : "border-rule bg-manifest text-ink"}`}>
-        <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${dark ? "bg-glass" : "bg-glass-ink"}`} />
-        {compact ? null : <span>{label}</span>}
-        <code className={`font-mono text-xs font-normal ${dark ? "text-foam-muted" : "text-ink-muted"}`} {...(compact ? { title: label, "aria-label": `${label} (${ruleId})` } : {})}>
+      <span className={`inline-flex max-w-full items-center gap-1.5 rounded-pill border px-2.5 py-1 text-xs font-semibold ${dark ? "border-harbor-700 bg-harbor-900 text-foam" : "border-rule bg-manifest text-ink"}`}>
+        <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${dark ? "bg-glass" : "bg-glass-ink"}`} />
+        {compact ? null : <span className="min-w-0">{label}</span>}
+        <code className={`shrink-0 whitespace-nowrap font-mono text-xs font-normal ${dark ? "text-foam-muted" : "text-ink-muted"}`} {...(compact ? { title: label, "aria-label": `${label} (${ruleId})` } : {})}>
           {ruleId}
         </code>
       </span>

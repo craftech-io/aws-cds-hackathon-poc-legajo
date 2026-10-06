@@ -44,7 +44,7 @@ export function ImpactSection() {
   const { impact } = useLandingCopy();
   return (
     <SectionShell id="impact" eyebrow={impact.eyebrow} title={impact.title} lead={impact.lead} tone="alt">
-      <ul className="grid grid-cols-1 gap-4 min-[24rem]:grid-cols-2 lg:grid-cols-4">
+      <ul className="grid grid-cols-1 gap-4 min-[24rem]:grid-cols-2 xl:grid-cols-4">
         {IMPACT_TILES.map((tile) => (
           <ImpactTile key={tile.id} tile={tile} />
         ))}

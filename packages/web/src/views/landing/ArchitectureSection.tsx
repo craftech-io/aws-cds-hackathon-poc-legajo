@@ -1,31 +1,27 @@
-// "Cómo funciona por dentro": the AWS architecture as six layers read top to bottom (architecture.ts),
-// each AWS service with its official architecture icon, then the four steps of one message through it.
-// Plain lists, so it reflows on a phone and a screen reader reads it in order; the figure carries a
-// text alternative for the whole diagram.
+// "Cómo funciona por dentro": first the connected diagram of the AWS architecture (ArchitectureDiagram,
+// with its link to open it full size), then the same architecture as six layers read top to bottom
+// (architecture.ts), each AWS service with its official architecture icon, then the four steps of one
+// message through it. Plain lists, so it reflows on a phone and a screen reader reads it in order; each
+// figure carries a text alternative for the whole diagram.
 import { SectionShell } from "../../components/Section";
-import { ARCHITECTURE, type NodeVisual } from "./architecture";
+import { ArchitectureDiagram } from "./ArchitectureDiagram";
+import { ARCHITECTURE } from "./architecture";
 import { Icon } from "./icons";
 import { useLandingCopy } from "./lang";
-
-function NodeIcon({ visual }: { readonly visual: NodeVisual }) {
-  if ("aws" in visual) return <img src={visual.aws} alt="" width={40} height={40} loading="lazy" decoding="async" className="h-10 w-10 shrink-0 rounded-md" />;
-  return (
-    <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-harbor-800 text-glass">
-      <Icon name={visual.icon} className="h-5 w-5" />
-    </span>
-  );
-}
+import { NodeIcon } from "./NodeIcon";
 
 export function ArchitectureSection() {
   const { architecture } = useLandingCopy();
   return (
     <SectionShell id="architecture" eyebrow={architecture.eyebrow} title={architecture.title} lead={architecture.lead} tone="dark">
-      <figure>
+      <ArchitectureDiagram />
+      <h3 className="mt-16 font-display text-h3 font-semibold text-foam">{architecture.diagram.layersTitle}</h3>
+      <figure className="mt-5">
         <figcaption className="sr-only">{architecture.alt}</figcaption>
         <ol className="flex flex-col gap-3">
           {ARCHITECTURE.map((layer, index) => (
             <li key={layer.id} data-reveal="" className="relative grid gap-3 rounded-panel border border-harbor-700 bg-harbor-900 p-4 lg:grid-cols-[11rem_1fr] lg:items-center">
-              <p className="font-display text-eyebrow font-semibold uppercase text-glass">
+              <p className="text-balance font-display text-eyebrow font-semibold uppercase text-glass">
                 {index + 1} · {architecture.layers[layer.id]}
               </p>
               <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
