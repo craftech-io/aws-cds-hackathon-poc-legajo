@@ -18,16 +18,19 @@ const LEAKS: ReadonlyArray<readonly [string, RegExp]> = [
 export const DEMO_EMAIL_DOMAINS = ["sim.legajo.demo.craftech.io", "legajo.demo.craftech.io"] as const;
 const EMAIL = /[\w.+*%-]+@([a-z0-9-]+(?:\.[a-z0-9-]+)+)/gi;
 
-function foreignEmail(line: string): boolean {
-  return [...line.matchAll(EMAIL)].some((match) => !(DEMO_EMAIL_DOMAINS as readonly string[]).includes((match[1] ?? "").toLowerCase()));
+function foreignEmail(line: string, allowed: readonly string[]): boolean {
+  return [...line.matchAll(EMAIL)].some((match) => !(DEMO_EMAIL_DOMAINS as readonly string[]).includes((match[1] ?? "").toLowerCase()) && !allowed.includes(match[0].toLowerCase()));
 }
 
-/** Problems of a frame's text: leaks by kind and line, forbidden terms by their position in the list, neutral words by name. */
-export function frameProblems(text: string, terms: readonly ForbiddenTerm[]): string[] {
+/**
+ * Problems of a frame's text: leaks by kind and line, forbidden terms by their position in the list, neutral words by name.
+ * `allowedEmails` are exact addresses a page must show, such as the privacy mailbox of the data controller.
+ */
+export function frameProblems(text: string, terms: readonly ForbiddenTerm[], allowedEmails: readonly string[] = []): string[] {
   const problems: string[] = [];
   text.split("\n").forEach((line, index) => {
     for (const [what, pattern] of LEAKS) if (pattern.test(line)) problems.push(`${what} on line ${index + 1}`);
-    if (foreignEmail(line)) problems.push(`an email address outside the demo's domains on line ${index + 1}`);
+    if (foreignEmail(line, allowedEmails)) problems.push(`an email address outside the demo's domains on line ${index + 1}`);
   });
   for (const finding of findTerms("frame", text, terms)) problems.push(`term #${finding.term} of the forbidden list on line ${finding.line}`);
   for (const hit of findNeutralHits(text)) problems.push(`the neutral word "${hit.word}" on line ${hit.line}`);

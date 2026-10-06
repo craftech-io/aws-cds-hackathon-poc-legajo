@@ -91,7 +91,7 @@ function MenuPanel({ id, onClose }: { readonly id: string; readonly onClose: () 
         </ul>
       </nav>
       <div className="flex flex-wrap items-center gap-3 border-t border-harbor-800 pt-4">
-        <LangSwitch className="md:hidden" />
+        <LangSwitch className="inline-flex md:hidden" />
         <SignInLink className="inline-flex min-h-11 items-center px-1 text-base font-semibold text-foam underline-offset-4 hover:underline md:hidden" />
         <PauseButton withText />
         <a href={contactHref("header")} {...EXTERNAL_LINK} title={cta.talkHint} className="inline-flex min-h-11 items-center gap-1.5 px-1 text-base font-semibold text-foam underline-offset-4 hover:underline">
@@ -133,7 +133,13 @@ export function Header() {
       </a>
       <div className="mx-auto flex h-16 max-w-content items-center gap-3 px-gutter">
         <a href="#top" className="mr-auto inline-flex min-h-11 shrink-0 items-center" aria-label="SIDOM Legajo listo">
-          <LegajoWordmark tone="dark" size="lg" />
+          {/* A phone fits the brand, "Probar" and the menu only with the small wordmark. */}
+          <span className="sm:hidden">
+            <LegajoWordmark tone="dark" size="sm" />
+          </span>
+          <span className="hidden sm:inline-flex">
+            <LegajoWordmark tone="dark" size="lg" />
+          </span>
         </a>
         <nav aria-label={nav.label} className="hidden xl:block">
           <ul className="flex items-center gap-1">

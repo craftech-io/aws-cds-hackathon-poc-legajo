@@ -47,3 +47,11 @@ describe("landing frame check", () => {
     expect(termsFor(true, { FORBIDDEN_TERMS: "omegasoft" })).toHaveLength(1);
   });
 });
+
+describe("addresses a page must show", () => {
+  it("only the exact allowed address passes; any other address of its domain is still a leak", () => {
+    const text = "Casilla de privacidad: sales@craftech.io\nEscribí a otra@craftech.io";
+    expect(frameProblems(text, [], ["sales@craftech.io"])).toEqual(["an email address outside the demo's domains on line 2"]);
+    expect(frameProblems(text, [])).toHaveLength(2);
+  });
+});

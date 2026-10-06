@@ -66,7 +66,8 @@ export function useRuleLabel(rule: LandingRuleId): string | undefined {
   return copy.meta.code === "en" ? copy.guarantees.rules[rule] : undefined;
 }
 
-export function LangSwitch({ className = "" }: { readonly className?: string }) {
+/** `className` carries the display (`inline-flex` by default): two display utilities on one element have no reliable winner. */
+export function LangSwitch({ className = "inline-flex" }: { readonly className?: string }) {
   const value = useLandingLang();
   if (!value) return null;
   const next: LandingLang = value.lang === "es" ? "en" : "es";
@@ -76,7 +77,7 @@ export function LangSwitch({ className = "" }: { readonly className?: string }) 
       lang={LANDING_COPY[next].meta.code}
       aria-label={value.copy.lang.switchLabel}
       onClick={() => value.setLang(next)}
-      className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-pill border border-harbor-700 px-3 text-sm font-semibold text-foam hover:border-foam-muted ${className}`}
+      className={`min-h-11 min-w-11 items-center justify-center rounded-pill border border-harbor-700 px-3 text-sm font-semibold text-foam hover:border-foam-muted ${className}`}
     >
       {value.copy.lang.switchTo}
     </button>

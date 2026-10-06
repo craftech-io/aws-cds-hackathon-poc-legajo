@@ -10,6 +10,7 @@ import { frameProblems, termsFor } from "../../../scripts/landing/frame-check";
 import { findNeutralHits } from "../../../scripts/lint/neutral-words";
 import { CONSENT_KINDS, SIGNUP_CONSENT_TEXTS, consentPlainText, legalPageHref } from "../../shared/src/consent-texts.ts";
 import { LEGAL_PAGE_PATHS, LEGAL_VERSIONS, type LegalPage } from "../../shared/src/legal-versions.ts";
+import { SALES_EMAIL } from "../src/views/landing/links";
 import { blockExternalRequests } from "./support/assertions";
 
 const PAGES: readonly LegalPage[] = ["privacy", "terms"];
@@ -99,7 +100,8 @@ test.describe("[FL-089] [FL-119] páginas legales con su versión", () => {
       }
 
       const text = await page.locator("body").innerText();
-      expect(frameProblems(text, termsFor(false))).toEqual([]);
+      // The privacy policy must name the data controller's mailbox (Ley 25.326); nothing else outside the demo.
+      expect(frameProblems(text, termsFor(false), [SALES_EMAIL])).toEqual([]);
       await expect(page.getByRole("link", { name: /Powered by/ })).toHaveAttribute("href", "https://craftech.io");
     });
 
