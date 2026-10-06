@@ -5,7 +5,7 @@
 import { ApplyGuardrailCommand, type ApplyGuardrailCommandOutput } from "@aws-sdk/client-bedrock-runtime";
 import { describe, expect, it } from "vitest";
 import { MessageKind } from "@legajo/shared";
-import { type G2Config, GuardrailUnavailableError, contentBlocks, createBedrockG2, groundingSourceOf, queryOf, verdictOf } from "./grounding";
+import { type G2Config, GuardrailUnavailableError, STATUS_QUERY, asksSomething, contentBlocks, createBedrockG2, groundingSourceOf, queryOf, verdictOf } from "./grounding";
 
 const CONFIG: G2Config = { id: "g2-id", version: "3", groundingThreshold: 0.8, relevanceThreshold: 0.7, queryMaxChars: 40, groundingSourceMaxChars: 120, contentMaxChars: 200 };
 
@@ -24,6 +24,14 @@ describe("[FL-045] what G2 reads", () => {
     expect(queryOf("DOCS_REQUEST", "ignored", 1000)).toBe("Which documents of this import operation are missing and who has to send them?");
     for (const kind of MessageKind.options) expect(queryOf(kind, undefined, 1000).length).toBeGreaterThan(10);
     expect(queryOf("REPLY", "x".repeat(500), 40)).toHaveLength(40);
+  });
+
+  it("a REPLY to small talk is scored against the status of the operation (ADR-0019)", () => {
+    for (const greeting of ["hola", "  Hola!  ", "ok gracias", "buen día che"]) expect(queryOf("REPLY", greeting, 1000)).toBe(STATUS_QUERY);
+    expect(queryOf("REPLY", "¿llegó?", 1000)).toBe("¿llegó?");
+    expect(queryOf("REPLY", "cuando llega el barco al puerto", 1000)).toBe("cuando llega el barco al puerto");
+    expect(asksSomething("hola")).toBe(false);
+    expect(asksSomething("qué falta?")).toBe(true);
   });
 
   it("the grounding source keeps the newest results whole and clips from the oldest side", () => {

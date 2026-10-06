@@ -8,6 +8,7 @@
 //     …normalized, masked text with < > & " ' escaped…
 //   </inbound-7f3a9c>
 //   <attachment docVersion="dv-4471-PL-1" readingStatus="RECOGNIZED" docType="PACKING_LIST" observations="1"/>
+//   <tool-result tool="get_dossier">{…}</tool-result>         a read the worker already ran in this turn (ADR-0019)
 //
 // Every value that is not a fixed word of this module is escaped, the untrusted text sits inside the
 // turn's random delimiter (channels/normalizer.ts `untrustedBlock`), so an importer or a supplier can
@@ -64,6 +65,13 @@ export interface EnvelopeInput {
   readonly facts: readonly FactLine[];
   readonly inbound?: InboundBlock;
   readonly attachments?: readonly AttachmentLine[];
+  readonly preloaded?: readonly PreloadedResult[];
+}
+
+/** A read tool the worker ran with the turn's token before the Harness (ADR-0019): the tool's own answer. */
+export interface PreloadedResult {
+  readonly tool: string;
+  readonly output: unknown;
 }
 
 /** At most this many attachment lines (one turn answers one inbound or one upload link). */
@@ -119,6 +127,18 @@ function inboundBlock(inbound: InboundBlock): string {
   });
 }
 
+const TOOL_NAME = /^[a-z][a-z_]{0,40}$/;
+
+/**
+ * The tool's JSON with `<`, `>` and `&` as JSON escapes: still the same JSON to read, and no value the
+ * tool returned (a reading from a PDF, a name) can close the element or open another one.
+ */
+function preloadedLine(result: PreloadedResult): string {
+  if (!TOOL_NAME.test(result.tool)) throw new RangeError(`invalid preloaded tool "${result.tool}"`);
+  const json = JSON.stringify(result.output).replace(/</g, "\\u003c").replace(/>/g, "\\u003e").replace(/&/g, "\\u0026");
+  return `<tool-result tool="${result.tool}">${json}</tool-result>`;
+}
+
 /** The envelope text of a turn. Throws on a malformed fixed part: a bug, never a message. */
 export function renderEnvelope(input: EnvelopeInput): string {
   const attachments = input.attachments ?? [];
@@ -129,5 +149,6 @@ export function renderEnvelope(input: EnvelopeInput): string {
     factsBlock(input.facts),
     ...(input.inbound === undefined ? [] : [inboundBlock(input.inbound)]),
     ...attachments.map(attachmentLine),
+    ...(input.preloaded ?? []).map(preloadedLine),
   ].join("\n");
 }

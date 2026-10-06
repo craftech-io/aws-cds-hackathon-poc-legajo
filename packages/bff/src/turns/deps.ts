@@ -9,6 +9,7 @@ import type { SecretKey } from "../lib/crypto";
 import type { Logger } from "../lib/log";
 import type { EscalationPort, EventHandlers, TurnFailureCause } from "../worker/ports";
 import type { G1Prefilter } from "./prefilter";
+import type { TurnReads } from "./preload";
 
 export interface TurnDeps {
   readonly data: Connector;
@@ -25,6 +26,8 @@ export interface TurnDeps {
   readonly runtimeSessionKey: () => SecretKey;
   /** `REAL` in the stage, `SCRIPTED` in the local flows (`LegajoMetrics.agentMode`). */
   readonly agentMode: AgentMode;
+  /** The operations target in process: the reads the worker runs before the Harness (turns/preload.ts). */
+  readonly reads?: TurnReads;
   /** Injected for tests: turn delimiters and ids. */
   readonly random?: (size: number) => Uint8Array;
 }

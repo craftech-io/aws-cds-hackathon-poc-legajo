@@ -6,6 +6,7 @@
 import { BedrockAgentCoreClient, InvokeHarnessCommand } from "@aws-sdk/client-bedrock-agentcore";
 import { ApplyGuardrailCommand, BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
 import { createHandoffTarget } from "@legajo/bff/agent-tools/handoff/index";
+import { createOperationsTarget } from "@legajo/bff/agent-tools/operations/index";
 import { handoffImplementations } from "@legajo/bff/agent-tools/handoff/handler";
 import { createHarnessClient } from "@legajo/bff/agent/harness-client";
 import type { IntakeDocumentEvent } from "@legajo/bff/channels/adapter";
@@ -111,6 +112,7 @@ export function createStageWorker(stage: StageContext): StageWorker {
       sessionKey: () => stage.key("session"),
       runtimeSessionKey: () => stage.key("runtime-session"),
       agentMode: "SCRIPTED",
+      reads: createOperationsTarget(stage.toolDeps),
     },
     handlers,
     escalation: handoffEscalation(createHandoffTarget(stage.toolDeps, handoffImplementations({ send: stage.send, agentMode: "SCRIPTED" }))),

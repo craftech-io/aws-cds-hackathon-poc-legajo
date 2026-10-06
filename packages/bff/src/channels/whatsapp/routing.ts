@@ -23,12 +23,30 @@ import { appendInbound, derivedMessageId, importerTurn } from "./records";
 
 const approvedLast = (operation: Pick<Operation, "dossierStatus">): number => (operation.dossierStatus === "APPROVED" ? 1 : 0);
 
-/** Operations of the importer in its world that are not closed (a released dispatch closes one), anchor first. */
-export async function openOperationsOf(data: Pick<Connector, "operations">, importer: Pick<Importer, "firmId" | "importerId" | "clockId">): Promise<Operation[]> {
+/** A released dispatch closes an operation. */
+export const isOpenOperation = (operation: Pick<Operation, "dispatch">): boolean => operation.dispatch.status !== "LIBERADO";
+
+async function importerOperations(data: Pick<Connector, "operations">, importer: Pick<Importer, "firmId" | "importerId" | "clockId">): Promise<Operation[]> {
   const operations = await data.operations.listOperations(importer.firmId, { importerId: importer.importerId, clockId: importer.clockId });
-  return operations
-    .filter((operation) => operation.importerId === importer.importerId && operation.clockId === importer.clockId && operation.dispatch.status !== "LIBERADO")
-    .sort((a, b) => approvedLast(a) - approvedLast(b) || Date.parse(a.eta) - Date.parse(b.eta) || a.operationNumber.localeCompare(b.operationNumber));
+  return operations.filter((operation) => operation.importerId === importer.importerId && operation.clockId === importer.clockId);
+}
+
+const anchorOrder = (a: Operation, b: Operation): number => approvedLast(a) - approvedLast(b) || Date.parse(a.eta) - Date.parse(b.eta) || a.operationNumber.localeCompare(b.operationNumber);
+
+/** Operations of the importer in its world that are not closed, anchor first. */
+export async function openOperationsOf(data: Pick<Connector, "operations">, importer: Pick<Importer, "firmId" | "importerId" | "clockId">): Promise<Operation[]> {
+  return (await importerOperations(data, importer)).filter(isOpenOperation).sort(anchorOrder);
+}
+
+/** How many of the importer's operations a turn sees (ADR-0019). */
+export const RECENT_OPERATIONS = 10;
+
+/** The importer's last operations: the open ones (anchor first), then the closed ones, latest ETA first. */
+export async function recentOperationsOf(data: Pick<Connector, "operations">, importer: Pick<Importer, "firmId" | "importerId" | "clockId">): Promise<Operation[]> {
+  const operations = await importerOperations(data, importer);
+  const open = operations.filter(isOpenOperation).sort(anchorOrder);
+  const closed = operations.filter((operation) => !isOpenOperation(operation)).sort((a, b) => Date.parse(b.eta) - Date.parse(a.eta));
+  return [...open, ...closed].slice(0, RECENT_OPERATIONS);
 }
 
 /** Hours a chat keeps its operation: Meta's customer service window. */

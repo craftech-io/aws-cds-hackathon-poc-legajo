@@ -220,7 +220,7 @@ export const es = {
     } satisfies Readonly<Record<ArchitectureNodeId, { readonly name: string; readonly role: string }>>,
     steps: list<{ readonly title: string; readonly text: string }>([
       { title: "Entra un mensaje", text: "Un WhatsApp, un email o un PDF por el link de carga llega a la cola de su operación, en orden." },
-      { title: "El agente decide", text: "Recuerda la conversación de cada importador aunque hable de varias operaciones, lee el legajo con sus herramientas y elige el próximo paso; lo que no se negocia está en el código." },
+      { title: "El agente decide", text: "El código ya le trae la operación, el legajo y las últimas operaciones del importador; el agente recuerda la conversación de cada importador aunque hable de varias, y responde en un solo paso. Lo que no se negocia está en el código." },
       { title: "Sale por la política de contacto", text: "Cada envío pasa por opt-in, horarios, ventana de 24 horas y cerco de destinatarios antes de salir." },
       { title: "El tiempo trabaja solo", text: "Los hitos se reprograman cuando se mueve la ETA, y el despachante aprueba desde la consola." },
     ]),

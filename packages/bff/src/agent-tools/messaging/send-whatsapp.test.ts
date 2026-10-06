@@ -45,3 +45,19 @@ describe("[FL-009] the acknowledgement of an upload by link", () => {
     expect(notice).toMatchObject({ ok: true, status: "SENT", templateUsed: "legajo_observacion_proveedor" });
   });
 });
+
+describe("[FL-020] the same WhatsApp asked twice in one turn (ADR-0019)", () => {
+  it("goes out once: the second request is answered from the first message", async () => {
+    await world.inbound("hola", "2026-10-15T08:00:00-03:00");
+    const { token } = await world.open("IMPORTER_MESSAGE", THU_10_AR, RESULTS);
+    const send = { sessionToken: token, recipientRole: "IMPORTER", kind: "REPLY", text: ACK };
+    const first = await world.gateway("send_whatsapp", send);
+    const second = await world.gateway("send_whatsapp", send);
+    expect(first).toMatchObject({ ok: true, status: "SENT" });
+    expect(second).toMatchObject({ ok: true, status: "SENT", messageId: first.ok ? first["messageId"] : "none" });
+    expect(await outboundWhatsApps()).toBe(1);
+    const other = await world.gateway("send_whatsapp", { ...send, text: `${ACK} Gracias.` });
+    expect(other).toMatchObject({ ok: true, status: "SENT" });
+    expect(await outboundWhatsApps()).toBe(2);
+  });
+});

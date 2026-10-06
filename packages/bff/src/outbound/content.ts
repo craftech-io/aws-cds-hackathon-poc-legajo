@@ -15,7 +15,14 @@ import { outputsOf, requiredSupplierContent, type VerifyFailure, verifyContent }
 
 export type ContentOutcome =
   | { readonly ok: true; readonly guardrail?: Guardrail }
-  | { readonly ok: false; readonly unavailable?: true; readonly guardrail?: Guardrail; readonly g2: boolean; readonly failures: readonly VerifyFailure[] };
+  | { readonly ok: false; readonly unavailable?: true; readonly guardrail?: Guardrail; readonly g2: boolean; readonly failures: readonly VerifyFailure[]; readonly g2Verdict?: G2Scores };
+
+/** Why G2 refused, with its scores: for the log and the audit, never for the model. */
+export interface G2Scores {
+  readonly failure: string;
+  readonly groundingScore?: number;
+  readonly relevanceScore?: number;
+}
 
 /** The free text and the template parameters of a send: what the content rules and the link check read. */
 export function textsOf(request: OutboundRequest): string[] {
@@ -69,12 +76,14 @@ async function g2Source(deps: OutboundDeps, context: SendContext): Promise<strin
   return groundingSourceOf(sources, deps.g2Limits().groundingSourceMaxChars);
 }
 
-async function runG2(deps: OutboundDeps, request: OutboundRequest, context: SendContext, text: string): Promise<{ readonly guardrail?: Guardrail; readonly failure?: string; readonly unavailable?: true }> {
+async function runG2(deps: OutboundDeps, request: OutboundRequest, context: SendContext, text: string): Promise<{ readonly guardrail?: Guardrail; readonly failure?: string; readonly scores?: G2Scores; readonly unavailable?: true }> {
   try {
     const limits = deps.g2Limits();
     const verdict = await deps.guardrail.check({ kind: request.kind, text, groundingSource: await g2Source(deps, context), query: queryOf(request.kind, questionOf(request, context.history), limits.queryMaxChars) });
     const guardrail: Guardrail = { action: verdict.action, ...(verdict.groundingScore === undefined ? {} : { groundingScore: verdict.groundingScore }) };
-    return verdict.failure === undefined ? { guardrail } : { guardrail, failure: verdict.failure };
+    if (verdict.failure === undefined) return { guardrail };
+    const scores: G2Scores = { failure: verdict.failure, ...(verdict.groundingScore === undefined ? {} : { groundingScore: verdict.groundingScore }), ...(verdict.relevanceScore === undefined ? {} : { relevanceScore: verdict.relevanceScore }) };
+    return { guardrail, failure: verdict.failure, scores };
   } catch (error) {
     if (error instanceof GuardrailUnavailableError) return { unavailable: true };
     throw error;
@@ -95,7 +104,9 @@ export async function checkContent(deps: OutboundDeps, request: OutboundRequest,
     const g2 = await runG2(deps, request, context, text);
     if (g2.unavailable === true) return { ok: false, unavailable: true, g2: true, failures: [] };
     guardrail = g2.guardrail;
-    if (g2.failure !== undefined) return { ok: false, g2: true, failures: [{ check: "FACTS", detail: G2_DETAIL[g2.failure] ?? "G2 refused the text" }], ...(guardrail === undefined ? {} : { guardrail }) };
+    if (g2.failure !== undefined) {
+      return { ok: false, g2: true, failures: [{ check: "FACTS", detail: G2_DETAIL[g2.failure] ?? "G2 refused the text" }], ...(guardrail === undefined ? {} : { guardrail }), ...(g2.scores === undefined ? {} : { g2Verdict: g2.scores }) };
+    }
   }
   const required = request.channel === "EMAIL" && request.counterpart === "SUPPLIER" && request.textSource === "MODEL" ? requiredSupplierContent(request.kind, context.operation.invoiceNumber, context.results) : [];
   const failures = verifyContent({

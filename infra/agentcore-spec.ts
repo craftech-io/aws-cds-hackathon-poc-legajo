@@ -282,7 +282,7 @@ export function runtimeLogGroupName(agentRuntimeId: string, endpointName: string
   return `${RUNTIME_LOG_GROUP_PREFIX}${agentRuntimeId}-${endpointName}`;
 }
 
-/** Endpoints whose log group the IaC creates before the endpoint: `live` only, never DEFAULT. */
+/** Endpoints whose log group the IaC creates before the endpoint: `live` only. DEFAULT is AgentCore's; its 30-day retention is declared manual configuration (docs/architecture.md §17 item 11). */
 export function runtimeLogGroupEndpoints(endpointName: string = HARNESS_ENDPOINT_NAME): string[] {
   if (endpointName === RUNTIME_DEFAULT_ENDPOINT) throw new Error("The Harness endpoint cannot be DEFAULT: AgentCore owns that log group.");
   return [endpointName];

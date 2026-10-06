@@ -197,7 +197,7 @@ export const en: LandingCopy = {
     },
     steps: [
       { title: "A message comes in", text: "A WhatsApp message, an email or a PDF through the upload link reaches its operation's queue, in order." },
-      { title: "The agent decides", text: "It remembers each importer's conversation even across several operations, reads the file with its tools and picks the next step; what is not negotiable lives in code." },
+      { title: "The agent decides", text: "Code hands it the operation, the file and the importer's latest operations up front; the agent remembers each importer's conversation even across several operations, and answers in a single step. What is not negotiable lives in code." },
       { title: "It leaves through the contact policy", text: "Every send goes through opt-in, business hours, the 24-hour window and the recipient fence before it leaves." },
       { title: "Time works by itself", text: "Milestones reschedule themselves when the ETA moves, and the broker approves from the console." },
     ],

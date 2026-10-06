@@ -85,9 +85,24 @@ const KIND_QUERIES: Readonly<Record<MessageKind, string>> = {
   OPERATION_CHOICE: "Which operation is the message about?",
 };
 
-/** The importer's question for a `REPLY` (clipped), the kind's description otherwise. */
+/**
+ * What a reply to a message that asks nothing is scored against (ADR-0019): to a greeting, an "ok" or a
+ * "gracias" the useful answer is where the operation stands, and relevance against "hola" is a coin toss
+ * around the threshold that refused every reply to it.
+ */
+export const STATUS_QUERY = "What is the status of my import operation and what is still pending?";
+
+/** Up to this many words without a question mark is small talk, not a question. */
+const SMALL_TALK_MAX_WORDS = 3;
+
+export function asksSomething(text: string): boolean {
+  return text.includes("?") || text.split(/\s+/).filter((word) => word !== "").length > SMALL_TALK_MAX_WORDS;
+}
+
+/** The importer's question for a `REPLY` (clipped), the status query for small talk, the kind's description otherwise. */
 export function queryOf(kind: MessageKind, question: string | undefined, maxChars: number): string {
-  const query = kind === "REPLY" && question !== undefined && question.trim() !== "" ? question.trim() : KIND_QUERIES[kind];
+  const asked = kind === "REPLY" && question !== undefined ? question.trim() : "";
+  const query = asked === "" ? KIND_QUERIES[kind] : asksSomething(asked) ? asked : STATUS_QUERY;
   return query.slice(0, maxChars);
 }
 

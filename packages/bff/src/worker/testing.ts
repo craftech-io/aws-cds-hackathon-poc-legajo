@@ -3,6 +3,7 @@
 // queue sink over a recording `SendMessage`, a scripted Harness and a scripted G1, escalations opened
 // through the connector, recorded handlers of the other modules and a logger whose metric lines can be
 // read back. Real time is fixed unless a test moves it.
+import { createOperationsTarget } from "../agent-tools/operations/index";
 import type { SQSEvent, SQSRecord } from "aws-lambda";
 import type { SendMessageCommandInput } from "@aws-sdk/client-sqs";
 import type { TurnTrigger } from "@legajo/shared";
@@ -121,6 +122,8 @@ export interface WorkerWorldOptions {
   readonly fail?: Partial<Record<keyof EventHandlers, Error>>;
   readonly guestWorld?: boolean;
   readonly readerOk?: boolean;
+  /** Runs the operations target in process before the Harness, as the stage does (turns/preload.ts). */
+  readonly reads?: boolean;
 }
 
 function escalationPort(stores: MemoryStores, requests: EscalationRequest[]): EscalationPort {
@@ -175,6 +178,7 @@ export async function workerWorld(options: WorkerWorldOptions = {}): Promise<Wor
       sessionKey: () => deriveSubkey(MASTER_KEY, "session"),
       runtimeSessionKey: () => deriveSubkey(MASTER_KEY, "runtime-session"),
       agentMode: "SCRIPTED",
+      ...(options.reads === true ? { reads: createOperationsTarget({ connector: stores.connector, sessionKey: () => deriveSubkey(MASTER_KEY, "session"), wallClock: now, loggerFor: () => log }) } : {}),
     },
     handlers,
     escalation: escalationPort(stores, escalations),

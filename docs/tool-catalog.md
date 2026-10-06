@@ -55,8 +55,10 @@ Determinista · lee `Operations`, `Parties`, `Firms` · invocan: `harness`, `wor
 
 ```json
 {"input": {"type": "object", "properties": {"sessionToken": {"type": "string"}}, "required": ["sessionToken"]},
- "output": {"ok": "boolean", "operation": {"operationNumber": "string", "firmName": "string", "importer": {"name": "string", "contactFirstName": "string"}, "supplier": {"name": "string", "country": "string", "timezone": "string", "language": "string"}, "vessel": "string", "carrier": "string", "regime": "string", "portOfLoading": "string", "eta": "string", "etaText": "string", "invoiceNumber": "string", "incoterm": "string", "dossierStatus": "DossierStatus", "control": "AGENT | BROKER", "dispatch": {"status": "string", "channel": "string"}}, "nowSim": "string", "nowSimText": "string", "error": "Error"}}
+ "output": {"ok": "boolean", "operation": {"operationNumber": "string", "firmName": "string", "importer": {"name": "string", "contactFirstName": "string"}, "supplier": {"name": "string", "country": "string", "timezone": "string", "language": "string"}, "vessel": "string", "carrier": "string", "regime": "string", "portOfLoading": "string", "eta": "string", "etaText": "string", "invoiceNumber": "string", "incoterm": "string", "dossierStatus": "DossierStatus", "control": "AGENT | BROKER", "dispatch": {"status": "string", "channel": "string"}}, "nowSim": "string", "nowSimText": "string", "otherOperations": [{"operationNumber": "string", "open": "boolean", "etaText": "string", "dossierStatus": "DossierStatus", "dispatchStatus": "string", "documentsValid": "integer", "missing": ["DocType"]}], "error": "Error"}}
 ```
+
+`otherOperations` (ADR-0017, ADR-0019): las otras operaciones del importador, las abiertas primero y después las últimas cerradas, hasta diez en total. Solo a una abierta se puede mover un mensaje (`route_to_operation`). El worker corre esta lectura y `get_dossier` antes de cada turno y las pone en el sobre (ADR-0019).
 
 ### `get_dossier`
 Determinista · lee `Operations` · invocan: `harness`, `worker`, `console`. Estado del legajo, plazos ya calculados y próximo hito.

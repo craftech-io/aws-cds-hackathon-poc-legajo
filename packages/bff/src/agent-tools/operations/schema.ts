@@ -11,7 +11,7 @@ export const OPERATIONS_TOOLS = {
   get_operation: defineTool({
     name: "get_operation",
     description:
-      "Reads the operation of this turn: number, the firm's name, importer and supplier, vessel, carrier, regime, port of loading, ETA (etaText), invoice number, incoterm, dossier status, who is in control (AGENT or BROKER), the dispatch status and the simulated now (nowSimText). Read it at the start of every turn and copy dates and numbers from it; never compute them.",
+      "Reads the operation of this turn: number, the firm's name, importer and supplier, vessel, carrier, regime, port of loading, ETA (etaText), invoice number, incoterm, dossier status, who is in control (AGENT or BROKER), the dispatch status, the simulated now (nowSimText) and otherOperations, the importer's other recent operations (up to ten: the open ones, then the last closed). Read it at the start of every turn and copy dates and numbers from it; never compute them.",
     fields: {},
     callers: ["WORKER", ...CONSOLE_CALLERS],
   }),

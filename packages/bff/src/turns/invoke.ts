@@ -21,6 +21,7 @@ import type { TurnDeps, TurnOutcome } from "./deps";
 import { type TurnInbound, envelopeAttachments, envelopeEvent, envelopeFacts } from "./envelope";
 import { takeForcedFailure } from "./forced-failure";
 import { harnessIdentity } from "./identity";
+import { preloadReads } from "./preload";
 import { followRoute } from "./routed";
 import { FIXED_NOTES, type TurnRecordDeps, logTurnError, logTurnLatency, recordFirstResponse, recordUsage, writeTurnNote } from "./record";
 import { type OpenedTurn, closeTurnSession, openTurnSession } from "./session";
@@ -37,21 +38,26 @@ function recordDeps(deps: TurnDeps, ctx: WorkerContext): TurnRecordDeps {
   return { data: deps.data, agentMode: deps.agentMode, now: ctx.now, log: ctx.log };
 }
 
-async function envelopeOf(deps: TurnDeps, input: InvokeInput, session: OpenedTurn, delimiter: string): Promise<string> {
+async function envelopeOf(deps: TurnDeps, ctx: WorkerContext, input: InvokeInput, session: OpenedTurn, delimiter: string): Promise<string> {
   const { operation, event, inbound } = input;
-  const [facts, attachments] = await Promise.all([envelopeFacts(deps.data, operation, event), envelopeAttachments(deps.data, operation, event, inbound)]);
+  const [facts, attachments, preloaded] = await Promise.all([
+    envelopeFacts(deps.data, operation, event),
+    envelopeAttachments(deps.data, operation, event, inbound),
+    deps.reads === undefined ? [] : preloadReads(deps.reads, session.token, event.trigger, ctx.log),
+  ]);
   return renderEnvelope({
     sessionToken: session.token,
     event: envelopeEvent(event, operation),
     facts,
     ...(inbound === undefined ? {} : { inbound: { delimiter, text: inbound.text, channel: inbound.channel, fromRole: inbound.fromRole, trusted: inbound.trusted, truncated: inbound.truncated } }),
     attachments,
+    preloaded,
   });
 }
 
 async function invokeHarness(deps: TurnDeps, ctx: WorkerContext & { readonly deadlineMs: number }, input: InvokeInput, session: OpenedTurn): Promise<Invocation> {
   const delimiter = newTurnDelimiter(deps.random);
-  const envelope = await envelopeOf(deps, input, session, delimiter);
+  const envelope = await envelopeOf(deps, ctx, input, session, delimiter);
   const forced = await takeForcedFailure(deps.data.runtime, { operationId: input.operation.operationId, clockId: input.operation.clockId, turnId: session.turnId, atReal: ctx.now().toISOString() });
   if (forced) return { ran: false, cause: "TIMEOUT" };
   const identity = harnessIdentity(deps.runtimeSessionKey(), input.operation, input.event.trigger);

@@ -28,6 +28,7 @@
 import type { IntakeDocumentEvent } from "../channels/adapter";
 import { connector, tableClient, type Connector } from "../connector/index";
 import { createHandoffTarget } from "../agent-tools/handoff/index";
+import { createOperationsTarget } from "../agent-tools/operations/index";
 import { productionToolDeps } from "../agent-tools/common/deps";
 import { linkedHarnessClient } from "../agent/harness-client";
 import type { OutboundSender } from "../escalations/ports";
@@ -144,6 +145,7 @@ export function productionWorkerDeps(): WorkerDeps {
       sessionKey: () => subkey("session"),
       runtimeSessionKey: () => subkey("runtime-session"),
       agentMode: "REAL",
+      reads: createOperationsTarget(productionToolDeps()),
     },
     handlers,
     escalation: handoffEscalation(createHandoffTarget(productionToolDeps())),

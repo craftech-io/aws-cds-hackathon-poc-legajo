@@ -38,7 +38,7 @@
 //   aws --profile craftech-demos bedrock-agentcore-control list-gateway-targets --gateway-identifier <id>  → 5 READY
 //   aws --profile craftech-demos bedrock-agentcore-control get-memory --memory-id <id>                     → ACTIVE, 3 strategies
 //   aws --profile craftech-demos logs describe-log-groups --log-group-name-prefix /aws/bedrock-agentcore/runtimes/harness_aws_cds_hackathon_poc_legajo_poc
-//     → <runtimeId>-live with retentionInDays 30 (-DEFAULT: AgentCore's, empty)
+//     → <runtimeId>-live with retentionInDays 30 (-DEFAULT: AgentCore's, 30 days by §17 item 11)
 
 import { DEFAULT_SYSTEM_PROMPT } from "../packages/bff/src/agent/system-prompt";
 import { ToolTarget } from "../packages/shared/src/tools";

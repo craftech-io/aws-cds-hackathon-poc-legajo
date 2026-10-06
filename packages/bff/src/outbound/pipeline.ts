@@ -2,7 +2,8 @@
 // ADR-0011 and ADR-0012): the one path every message takes out of the system. In order:
 //
 //   0. shape      a WhatsApp is a text or a template with its own buttons (render/whatsapp.ts); a
-//                 redelivered request whose message already exists is answered from it, never sent twice
+//                 redelivered request whose message already exists is answered from it, never sent twice,
+//                 and so is the same WhatsApp asked twice in one turn (repeat.ts, after the context)
 //   1. context    the operation and the recipient from the registry (`LAM-RECIPIENT`), the dated facts
 //                 the policy rebuilds, the counterpart's recent messages and the turn's tool results
 //   2. verdicts   the recipient fence of the SYSTEM profile (recipient-fence.ts, the SES client's own
@@ -37,6 +38,7 @@ import { type LinkAllowance, foreignLinksVerdict } from "./links";
 import { actionOf, recordDecision } from "./persist";
 import { type Prepared, prepareContent } from "./prepare";
 import { emailFence, isGuestWorld, whatsappFence } from "./recipient-fence";
+import { repeatedInTurn } from "./repeat";
 import { checkWhatsAppShape } from "./render/whatsapp";
 import { OUTBOUND_REASON, type OutboundCall, type OutboundRefused, type OutboundRequest, type OutboundResult } from "./types";
 
@@ -119,7 +121,9 @@ async function refuseContent(deps: OutboundDeps, call: OutboundCall, request: Ou
   }
   const message = `the text cannot go out: ${outcome.failures.map((failure) => failure.detail).join("; ")}. Use only values a tool returned in this turn, or escalate.`;
   const ruleIds: RuleId[] = outcome.g2 ? ["G2"] : [];
-  return refuse(deps, call, request, context, { failure: fail("GROUNDING_FAIL", message.slice(0, 900), OUTBOUND_REASON.GROUNDING_FAIL), ruleIds, decision, ...guardrail }, { checks: outcome.failures.map((failure) => failure.check) });
+  if (outcome.g2Verdict !== undefined) call.log.warn("outbound.g2_refused", { kind: request.kind, ...outcome.g2Verdict });
+  const detail = { checks: outcome.failures.map((failure) => failure.check), ...(outcome.g2Verdict === undefined ? {} : { g2: outcome.g2Verdict }) };
+  return refuse(deps, call, request, context, { failure: fail("GROUNDING_FAIL", message.slice(0, 900), OUTBOUND_REASON.GROUNDING_FAIL), ruleIds, decision, ...guardrail }, detail);
 }
 
 /**
@@ -172,6 +176,11 @@ export async function sendOutbound(deps: OutboundDeps, asked: OutboundRequest, c
   }
   const messageId = request.messageId ?? `msg-${deps.newId()}`;
   const { context, decision, allowance } = await decide(deps, scoped, request, messageId);
+  const repeated = repeatedInTurn(request, context.history);
+  if (repeated !== undefined) {
+    log.warn("outbound.repeated_in_turn", { messageId: repeated.messageId });
+    return replayOf(repeated);
+  }
   if (decision.outcome === "DENY") return refusePolicy(deps, scoped, request, context, decision);
   const prepared = await prepareContent(deps, request, context, messageId);
   if (!prepared.content.ok) return refuseContent(deps, scoped, request, context, decision, prepared);

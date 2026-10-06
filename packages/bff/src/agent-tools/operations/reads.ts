@@ -3,7 +3,7 @@
 // comes from the scope the wrapper derived from the session (never from the model), every business
 // date is the world's (`scope.nowSim`, ADR-0007) and goes out with its `…Text` already formatted.
 import { DocType, MilestoneName, ok } from "@legajo/shared";
-import { openOperationsOf } from "../../channels/whatsapp/routing";
+import { isOpenOperation, recentOperationsOf } from "../../channels/whatsapp/routing";
 import { labelsEsAR } from "../../copy/es-AR";
 import { DISPATCH_GLOSSARY, dispatchGlossaryKey } from "../../copy/dispatch-glossary";
 import { OBSERVATION_LABELS } from "../../copy/observation-labels";
@@ -30,19 +30,22 @@ export const CHECKLIST_COVERAGE_NOTE =
   "Answer the importer only with these items. Anything they do not cover is not answered: escalate it with escalate_to_broker (OUT_OF_CHECKLIST).";
 
 /**
- * The importer's other open operations (ADR-0017): number, ETA, dossier and documents, so an answer
- * across operations is grounded on a tool result of the turn, like every number the agent writes.
+ * The importer's other recent operations (ADR-0017, ADR-0019): the open ones, then the last closed, up to
+ * ten in all, with number, ETA, dossier and documents, so an answer across operations is grounded on a
+ * tool result of the turn, like every number the agent writes. Only an open one can be routed to.
  */
 async function otherOperationsOf(connector: Pick<Connector, "operations" | "documents">, scope: Pick<ToolScope, "operationId" | "firmId" | "importerId" | "clockId">) {
-  const operations = await openOperationsOf(connector, scope);
+  const operations = await recentOperationsOf(connector, scope);
   const others = operations.filter((operation) => operation.operationId !== scope.operationId);
   return Promise.all(
     others.map(async (operation) => {
       const documents = await connector.documents.listDocuments(operation.operationId);
       return {
         operationNumber: operation.operationNumber,
+        open: isOpenOperation(operation),
         etaText: textAr(operation.eta),
         dossierStatus: operation.dossierStatus,
+        dispatchStatus: operation.dispatch.status,
         documentsValid: documents.filter((document) => document.status === "VALID").length,
         missing: DocType.options.filter((docType) => !documents.some((document) => document.docType === docType && document.status !== "MISSING")),
       };
