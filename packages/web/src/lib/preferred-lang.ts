@@ -24,7 +24,7 @@ export function browserLang(languages: readonly string[] = browserLanguages()): 
 /** The visitor's explicit choice kept in `localStorage`, if any and if storage is reachable. */
 function storedLang(): Language | undefined {
   try {
-    const parsed = Language.safeParse(globalThis.localStorage?.getItem(LANG_STORAGE_KEY));
+    const parsed = Language.safeParse((typeof window === "undefined" ? undefined : window.localStorage)?.getItem(LANG_STORAGE_KEY));
     return parsed.success ? parsed.data : undefined;
   } catch {
     return undefined;

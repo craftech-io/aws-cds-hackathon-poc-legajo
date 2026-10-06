@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { copy } from "../copy/console";
-import { LANG_STORAGE_KEY } from "../views/auth/lang";
 import { activeLang, inLang, setActiveLang } from "./console-lang";
-import { initialConsoleLang } from "./preferred-lang";
+import { LANG_STORAGE_KEY, initialConsoleLang } from "./preferred-lang";
 import { formatDateTime, formatDayMonth, formatNumber, formatReaderValue, formatSimDateTime } from "./format";
 
 const navigatorBefore = Object.getOwnPropertyDescriptor(globalThis, "navigator");

@@ -12,7 +12,7 @@ import { createVerifiedGuest, expireWorld, inLang, routeCognitoToServer, testMai
 import { copy } from "../src/copy/console.ts";
 import { inLang as readIn } from "../src/lib/console-lang.ts";
 import { AUTH_COPY } from "../src/views/auth/copy.ts";
-import { LANG_STORAGE_KEY } from "../src/views/auth/lang.ts";
+import { LANG_STORAGE_KEY } from "../src/lib/preferred-lang.ts";
 import { operationsCopy } from "../src/views/operations/copy.ts";
 import { blockExternalRequests } from "./support/assertions";
 import { UI_SERVER_URL } from "./support/env";

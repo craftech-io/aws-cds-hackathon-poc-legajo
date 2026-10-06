@@ -61,13 +61,18 @@ export default function Lightbox({ items, index, onIndex, onClose }: LightboxPro
 
   useEffect(() => {
     const element = dialog.current;
-    if (element && !element.open) element.showModal();
     // The page underneath does not scroll; its scrollbar's room stays, so nothing reflows or jumps.
+    // Opening the modal (its focus) and closing it can move a phone's viewport, so the page is held
+    // where it was while the dialog is open and goes back there when it closes.
+    const top = window.scrollY;
+    if (element && !element.open) element.showModal();
     const root = document.documentElement;
     root.classList.add(...SCROLL_LOCK);
+    window.scrollTo({ top, behavior: "instant" });
     return () => {
-      root.classList.remove(...SCROLL_LOCK);
       if (element?.open) element.close();
+      root.classList.remove(...SCROLL_LOCK);
+      window.scrollTo({ top, behavior: "instant" });
     };
   }, []);
 
