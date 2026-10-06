@@ -36,7 +36,7 @@ export function ResetSection({ detail }: { readonly detail: ClockDetail }) {
             title={copy.confirmTitle}
             action={
               <>
-                <Button variant="danger" disabled={running} onClick={() => void reset()}>
+                <Button variant="danger" busy={running} onClick={() => void reset()}>
                   {copy.confirm}
                 </Button>
                 <Button variant="secondary" disabled={running} onClick={() => setConfirming(false)}>

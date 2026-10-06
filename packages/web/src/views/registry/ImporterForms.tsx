@@ -132,7 +132,7 @@ export function AuthorizationForm({ importer, suppliers, onSaved }: Omit<FormPro
             </div>
             <Button
               variant={view.authorized ? "secondary" : "primary"}
-              disabled={change.state.status === "running"}
+              busy={change.state.status === "running"}
               title={view.authorized ? copy.revoke(view.supplierName) : copy.grant(view.supplierName)}
               onClick={() => void change.run({ kind: "setAuthorization", input: { importerId: importer.importerId, supplierId: view.supplierId, authorized: !view.authorized } })}
             >

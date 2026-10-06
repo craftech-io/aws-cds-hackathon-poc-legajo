@@ -4,6 +4,7 @@
 
 export const dataCopy = {
   loading: "Cargando…",
+  updating: "Actualizando…",
   retry: "Reintentar",
   reference: "Código de referencia",
   recentLogin: {

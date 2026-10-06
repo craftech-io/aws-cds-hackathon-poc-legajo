@@ -10,6 +10,7 @@ import { formatSimDateTime, formatTime } from "../lib/format";
 import { type ClockSnapshot, MINUTES_PER_DAY, MINUTES_PER_HOUR, canForce, isBusy, waitText } from "../lib/world-clock";
 import { describeApiError } from "./ApiErrorNotice";
 import { Button } from "./Button";
+import { Spinner } from "./Spinner";
 
 function modeText(snapshot: ClockSnapshot): string {
   if (snapshot.mode === "PAUSED") return copy.clock.paused;
@@ -22,7 +23,7 @@ function Controls({ snapshot, describedBy }: { readonly snapshot: ClockSnapshot;
   const common = { disabled, ...(describedBy !== undefined ? { "aria-describedby": describedBy } : {}) };
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button {...common} onClick={() => void move({ kind: "next" })}>
+      <Button {...common} busy={moving} onClick={() => void move({ kind: "next" })}>
         {copy.clock.next}
       </Button>
       <Button variant="secondary" title={copy.clock.plusHourLabel} {...common} onClick={() => void move({ kind: "by", minutes: MINUTES_PER_HOUR })}>
@@ -40,7 +41,7 @@ function ForceRow() {
   return (
     <div role="alert" className="mt-2 flex flex-wrap items-center gap-3 rounded-md bg-warning-soft px-3 py-2 text-sm text-warning">
       <span>{copy.clock.forceWarning}</span>
-      <Button variant="danger" disabled={moving} onClick={() => void move({ kind: "next" }, true)}>
+      <Button variant="danger" busy={moving} onClick={() => void move({ kind: "next" }, true)}>
         {copy.clock.force}
       </Button>
     </div>
@@ -61,7 +62,10 @@ export function ClockBanner() {
         </button>
       </p>
     ) : (
-      <p className="text-sm text-mist">{copy.clock.loading}</p>
+      <p className="flex items-center gap-2 text-sm text-mist">
+        <Spinner />
+        {copy.clock.loading}
+      </p>
     );
   } else {
     const waiting = waitText(snapshot);
@@ -71,7 +75,8 @@ export function ClockBanner() {
           <p className="text-sm">
             <span className="font-semibold">{copy.clock.label}</span> · <time dateTime={snapshot.simNow}>{formatSimDateTime(snapshot.simNow)}</time> · {modeText(snapshot)}
           </p>
-          <p id={statusId} role="status" className="text-sm text-cyan-soft">
+          <p id={statusId} role="status" className="flex items-center gap-2 text-sm text-cyan-soft">
+            {waiting ? <Spinner /> : null}
             {waiting ?? ""}
           </p>
           <div className="md:ml-auto">

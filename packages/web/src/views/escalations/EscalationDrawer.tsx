@@ -67,7 +67,7 @@ export function EscalationDrawer({ escalation, onClose, onResolved }: Escalation
           <p className="text-slate">{text.opened(formatSimDateTime(escalation.openedAtSim), actorLabel(escalation.openedBy))}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Button variant="secondary" disabled={take.state.status === "running"} onClick={() => void onTake()}>
+          <Button variant="secondary" busy={take.state.status === "running"} onClick={() => void onTake()}>
             {take.state.status === "running" ? text.taking : text.take}
           </Button>
           <Link to={target} className="text-sm font-semibold text-cyan-deep underline">

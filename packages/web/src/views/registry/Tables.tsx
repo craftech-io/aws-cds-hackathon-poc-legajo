@@ -96,7 +96,7 @@ function Contacts({ supplier, confirm }: { readonly supplier: SupplierRow; reado
             <Button
               variant="secondary"
               title={copy.confirmLabel(contact.emailMasked)}
-              disabled={confirm.state.status === "running"}
+              busy={confirm.state.status === "running"}
               onClick={() => void confirm.run({ kind: "confirmContact", input: { contactId: contact.contactId } })}
             >
               {copy.confirm}

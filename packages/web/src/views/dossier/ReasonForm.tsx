@@ -52,7 +52,7 @@ export function ReasonForm({ label, hint, submit, working, running, error, requi
         {missing ? <span className={ERROR_CLASS}>{requiredText}</span> : null}
       </label>
       {error ? <ApiErrorNotice error={error} /> : null}
-      <Button type="submit" disabled={running}>
+      <Button type="submit" busy={running}>
         {running ? working : submit}
       </Button>
     </form>

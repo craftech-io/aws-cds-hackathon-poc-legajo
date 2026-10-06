@@ -69,7 +69,7 @@ export function ComposerDrawer({ operationId, mode, onClose, onDone }: ComposerD
         )}
         {action.state.status === "error" ? <ApiErrorNotice error={action.state.error} /> : null}
         {action.state.status === "done" ? <Callout tone="success">{text.sent}</Callout> : null}
-        <Button type="submit" disabled={running}>
+        <Button type="submit" busy={running}>
           {running ? text.sending : text.send}
         </Button>
       </form>

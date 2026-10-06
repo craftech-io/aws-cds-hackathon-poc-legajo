@@ -46,7 +46,7 @@ export function MoveSection({ detail, gate }: { readonly detail: ClockDetail; re
         </div>
         {target !== "" && !valid && !busy ? <p className="text-xs text-danger">{copy.invalidTarget}</p> : null}
         <div className="flex flex-wrap items-center gap-3 border-t border-mist pt-4">
-          <Button variant="secondary" disabled={command.state.status === "running"} onClick={toggleLive}>
+          <Button variant="secondary" busy={command.state.status === "running"} onClick={toggleLive}>
             {running ? copy.pause : copy.live}
           </Button>
           <span className="text-xs text-slate">{copy.liveHint}</span>

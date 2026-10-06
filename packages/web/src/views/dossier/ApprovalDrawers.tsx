@@ -85,7 +85,7 @@ export function ApproveDrawer({ dossier, onClose, onDone, onStaleLogin }: Decisi
         <p className="text-sm text-slate">{text.lead}</p>
         <Review dossier={dossier} />
         {error && error.kind !== "recentLogin" ? <ApiErrorNotice error={error} /> : null}
-        <Button disabled={action.state.status === "running"} onClick={() => void approve()}>
+        <Button busy={action.state.status === "running"} onClick={() => void approve()}>
           {action.state.status === "running" ? text.working : text.submit}
         </Button>
       </div>

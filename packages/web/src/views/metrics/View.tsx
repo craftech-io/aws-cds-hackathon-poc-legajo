@@ -108,7 +108,7 @@ export default function View() {
         title={view.title}
         description={view.description}
         actions={
-          <Button variant="secondary" disabled={exporter.state.status === "running"} onClick={() => void exporter.run(tab)}>
+          <Button variant="secondary" busy={exporter.state.status === "running"} onClick={() => void exporter.run(tab)}>
             {metricsCopy.export.button}
           </Button>
         }

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { dataCopy } from "../copy/console-data";
 import type { RemoteState } from "../lib/use-remote";
 import { ApiErrorNotice } from "./ApiErrorNotice";
+import { Spinner } from "./Spinner";
 
 interface RemoteBlockProps<T> {
   readonly state: RemoteState<T>;
@@ -15,7 +16,10 @@ interface RemoteBlockProps<T> {
 
 export function LoadingBlock({ label = dataCopy.loading }: { readonly label?: string }) {
   return (
-    <div role="status" className="rounded-card border border-mist bg-white px-6 py-8 text-center text-sm text-slate shadow-card">
+    <div role="status" className="flex items-center justify-center gap-3 rounded-card border border-mist bg-white px-6 py-8 text-sm text-slate shadow-card">
+      <span className="text-cyan-deep">
+        <Spinner size="md" />
+      </span>
       {label}
     </div>
   );
@@ -25,8 +29,16 @@ export function LoadingBlock({ label = dataCopy.loading }: { readonly label?: st
 // view shows (a form keeps what was typed and the outcome of its last action).
 function DataFrame({ busy, children }: { readonly busy: boolean; readonly children: ReactNode }) {
   return (
-    <div aria-busy={busy} className={`transition-opacity ${busy ? "opacity-60" : ""}`}>
-      {children}
+    <div aria-busy={busy} className="relative">
+      {busy ? (
+        <span role="status" className="absolute top-2 right-2 z-10 inline-flex items-center gap-2 rounded-pill border border-mist bg-white px-3 py-1 text-xs text-slate shadow-card">
+          <span className="text-cyan-deep">
+            <Spinner />
+          </span>
+          {dataCopy.updating}
+        </span>
+      ) : null}
+      <div className={`transition-opacity ${busy ? "opacity-60" : ""}`}>{children}</div>
     </div>
   );
 }

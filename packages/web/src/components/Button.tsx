@@ -2,11 +2,14 @@
 // on dark, the foam ghost on dark and the plain link. A call to action that navigates is an `<a>`
 // (the sign-up must be a full page load, ADR-0015 §3.3), so `buttonClass` gives a link the same look.
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { Spinner } from "./Spinner";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "primary-signal" | "ghost-foam" | "secondary-ink" | "link";
 
 interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className"> {
   readonly variant?: ButtonVariant;
+  /** The action it started is running: shows a spinner, sets `aria-busy` and disables the button. */
+  readonly busy?: boolean;
   readonly children: ReactNode;
 }
 
@@ -30,9 +33,10 @@ export function buttonClass(variant: ButtonVariant): string {
   return `inline-flex items-center justify-center gap-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${VARIANTS[variant]}`;
 }
 
-export function Button({ variant = "primary", type = "button", children, ...rest }: ButtonProps) {
+export function Button({ variant = "primary", type = "button", busy = false, disabled, children, ...rest }: ButtonProps) {
   return (
-    <button type={type} className={buttonClass(variant)} {...rest}>
+    <button type={type} className={buttonClass(variant)} disabled={busy || disabled} aria-busy={busy || undefined} {...rest}>
+      {busy ? <Spinner /> : null}
       {children}
     </button>
   );

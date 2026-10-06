@@ -64,7 +64,7 @@ export function NewOperationDrawer({ open, onClose }: NewOperationDrawerProps) {
           {touched && !valid ? <span className={ERROR_CLASS}>{text.invalid}</span> : null}
         </label>
         {known ? <Callout tone="warning">{known}</Callout> : error ? <ApiErrorNotice error={error} /> : null}
-        <Button type="submit" disabled={action.state.status === "running"}>
+        <Button type="submit" busy={action.state.status === "running"}>
           {action.state.status === "running" ? text.working : text.submit}
         </Button>
       </form>
