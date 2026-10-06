@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { BedrockAgentCoreClient, ListEventsCommand, ListMemoryRecordsCommand } from "@aws-sdk/client-bedrock-agentcore";
 import { ApplyGuardrailCommand, BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
 import { CloudWatchClient, DescribeAlarmHistoryCommand } from "@aws-sdk/client-cloudwatch";
@@ -100,10 +101,10 @@ describe("the platform mock with the driver's role", () => {
 });
 
 describe("upload.presign and upload.done act as the browser", () => {
-  it("presigns a template PDF, posts it to storage and confirms with its key", async () => {
-    const calls: Array<{ url: string; body: unknown }> = [];
+  it("[FL-009] presigns a template PDF, posts it to storage and confirms with its key, signing each body for OAC as the page does", async () => {
+    const calls: Array<{ url: string; body: unknown; headers: Record<string, string> | undefined }> = [];
     const doFetch = (async (url: string, init: RequestInit) => {
-      calls.push({ url, body: init.body });
+      calls.push({ url, body: init.body, headers: init.headers as Record<string, string> | undefined });
       if (url.endsWith("/presign")) return new Response(JSON.stringify({ ok: true, url: "https://uploads.s3.amazonaws.com/", fields: { key: "uploads/t/CERTIFICATE_OF_ORIGIN/u.pdf", policy: "p" }, key: "uploads/t/CERTIFICATE_OF_ORIGIN/u.pdf", expiresInSeconds: 300 }), { status: 200 });
       if (url.endsWith("/done")) return new Response(JSON.stringify({ ok: true }), { status: 200 });
       return new Response(null, { status: 204 });
@@ -114,6 +115,7 @@ describe("upload.presign and upload.done act as the browser", () => {
     expect(JSON.parse(String(calls[0]?.body))).toEqual({ docType: "CERTIFICATE_OF_ORIGIN", contentType: "application/pdf", size: 13 });
     expect(calls[1]?.body).toBeInstanceOf(FormData);
     expect(await upload.done(token, ["uploads/t/CERTIFICATE_OF_ORIGIN/u.pdf"])).toEqual({ status: 200 });
+    for (const call of [calls[0], calls[2]]) expect(call?.headers?.["x-amz-content-sha256"]).toBe(createHash("sha256").update(String(call?.body)).digest("hex"));
   });
 
   it("declares what a browser would for a file that is not a PDF, and reports the page's refusal", async () => {

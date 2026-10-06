@@ -3,7 +3,8 @@
 // step is the first with a move still to do; each button calls the console's own procedures, the
 // buttons that change the world wait for a quiet one (the shell's poll of `clock.get` says when), and
 // the hours of "Qué mirar" come from the pending timers of 4471 that `tour.steps` answers. Progress is kept per world
-// and epoch in sessionStorage, so "Reiniciar demo" starts the tour again.
+// and epoch in sessionStorage, so "Reiniciar demo" starts the tour again; until `clock.get` names the world no button
+// is open (a move taken before it would be kept under no key and lost when the world's arrives).
 import { useCallback, useEffect, useState } from "react";
 import { ApiErrorNotice } from "../../components/ApiErrorNotice";
 import { Callout } from "../../components/Callout";
@@ -146,6 +147,7 @@ export default function View() {
         clock={detail}
         times={dataOf(tour.state)}
         progress={progress}
+        ready={detail !== undefined}
         busy={snapshot === undefined || isBusy(snapshot)}
         running={action.state.status === "running"}
         gloss={glossFor(dataOf(threads.state)?.threads, step.glossOf)}

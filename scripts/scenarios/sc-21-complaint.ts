@@ -5,7 +5,7 @@
 import { SENT_STATUSES, allValid, decisions, openEscalations, outbound } from "./lib/asserts";
 import { WAITS } from "./lib/eventually";
 import { expectTemplateRequest, delegateToSupplier, emailOutWhenAllowed, supplierReplies } from "./lib/flows";
-import { defineScenario } from "./lib/steps";
+import { defineScenario, ensure } from "./lib/steps";
 import { advanceTo, advanceToTimer, awaitState, createWorld, opOf } from "./lib/world";
 
 const START = "2026-10-15T09:58:00-03:00";
@@ -48,7 +48,12 @@ export const sc21 = defineScenario({
         const { operationId } = opOf(ctx, "a");
         await awaitState(ctx, operationId, "NO_VALID_CONTACT escalation", (snapshot) => openEscalations(snapshot, "NO_VALID_CONTACT").length === 1);
         const settled = await ctx.settled(operationId);
-        ctx.exactly(settled, 1, "emails to the complaining contact", outbound(settled, { channel: "EMAIL" }));
+        // The escalation also mails the firm's own mailbox (counterpart FIRM): only the supplier's
+        // contact that complained is counted.
+        const complained = settled.parties.contacts.find((contact) => contact.status === "COMPLAINED");
+        ensure(complained !== undefined, "step 1 left the contact COMPLAINED");
+        const toContact = outbound(settled, { channel: "EMAIL", counterpart: "SUPPLIER" }).filter((message) => message.contactId === complained.contactId);
+        ctx.exactly(settled, 1, "emails to the complaining contact", toContact);
       },
     },
     {

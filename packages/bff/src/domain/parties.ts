@@ -59,8 +59,8 @@ export const Consent = defineEntity({
 export type Consent = z.output<typeof Consent>;
 
 /** Whether the opt-in was in force at a simulated instant, rebuilt from its history. */
-export function consentActiveAt(consent: Pick<Consent, "history"> | undefined, atSim: string): boolean {
-  return consent !== undefined && entryAt(consent.history, atSim)?.action === "GRANTED";
+export function consentActiveAt(consent: Pick<Consent, "history"> | undefined, atSim: string, atReal?: string): boolean {
+  return consent !== undefined && entryAt(consent.history, atSim, atReal)?.action === "GRANTED";
 }
 
 export const AuthorizationEvent = HistoryStamp.extend({ action: z.enum(["AUTHORIZED", "REVOKED"]) });
@@ -81,8 +81,8 @@ export const SupplierAuthorization = defineEntity({
 });
 export type SupplierAuthorization = z.output<typeof SupplierAuthorization>;
 
-export function authorizationActiveAt(authorization: Pick<SupplierAuthorization, "history"> | undefined, atSim: string): boolean {
-  return authorization !== undefined && entryAt(authorization.history, atSim)?.action === "AUTHORIZED";
+export function authorizationActiveAt(authorization: Pick<SupplierAuthorization, "history"> | undefined, atSim: string, atReal?: string): boolean {
+  return authorization !== undefined && entryAt(authorization.history, atSim, atReal)?.action === "AUTHORIZED";
 }
 
 /** Parameters of the supplier simulator's behaviour (docs/seed-spec.md §6). */
@@ -136,8 +136,8 @@ export const SupplierContact = defineEntity({
 });
 export type SupplierContact = z.output<typeof SupplierContact>;
 
-export function contactStatusAt(contact: Pick<SupplierContact, "statusHistory">, atSim: string): SupplierContactStatus | undefined {
-  return entryAt(contact.statusHistory, atSim)?.status;
+export function contactStatusAt(contact: Pick<SupplierContact, "statusHistory">, atSim: string, atReal?: string): SupplierContactStatus | undefined {
+  return entryAt(contact.statusHistory, atSim, atReal)?.status;
 }
 
 /** Transitions a contact may take; BOUNCED and COMPLAINED are final (never used again). */

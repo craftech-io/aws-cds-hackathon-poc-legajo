@@ -148,11 +148,26 @@ export const HistoryStamp = z.object({
 });
 export type HistoryStamp = z.infer<typeof HistoryStamp>;
 
-/** The last entry at or before `atSim` (histories are appended in simulated order). */
-export function entryAt<T extends { readonly atSim: string }>(history: readonly T[], atSim: string): T | undefined {
+/**
+ * Whether a dated step was already in force at an instant: before it in simulated time or, at the
+ * very same simulated instant, recorded no later than `atReal` when both sides know their real time.
+ * A paused world dates every step of a run alike, so only real time tells a takeover, a complaint or
+ * a revocation that came after a send from one that came before it.
+ */
+export function inForceAt(entry: { readonly atSim: string; readonly atReal?: string }, atSim: string, atReal?: string): boolean {
+  const entrySim = Date.parse(entry.atSim);
   const at = Date.parse(atSim);
+  if (entrySim !== at) return entrySim < at;
+  return atReal === undefined || entry.atReal === undefined || Date.parse(entry.atReal) <= Date.parse(atReal);
+}
+
+/**
+ * The last entry in force at `atSim` (histories are appended in simulated order); `atReal` breaks the
+ * ties of the same simulated instant (`inForceAt`), as `PolicyAudit` needs for a past send.
+ */
+export function entryAt<T extends { readonly atSim: string; readonly atReal?: string }>(history: readonly T[], atSim: string, atReal?: string): T | undefined {
   let found: T | undefined;
-  for (const entry of history) if (Date.parse(entry.atSim) <= at) found = entry;
+  for (const entry of history) if (inForceAt(entry, atSim, atReal)) found = entry;
   return found;
 }
 

@@ -65,6 +65,20 @@ describe("the policy at the instant a message went out", () => {
     expect(evaluateAsOf(email({ contact: undefined })).ruleIds).toEqual(["CP-SUPPLIER-AUTH"]);
   });
 
+  it("[FL-060] [FL-031] in a paused world a takeover or a complaint dated at the send's own simulated instant counts only if it was recorded before the send", () => {
+    const later = new Date(Date.parse(REAL_NOW) + 20_000).toISOString();
+    const earlier = new Date(Date.parse(REAL_NOW) - 20_000).toISOString();
+    const takenAt = (atReal: string) => ({ ...OPERATION_4471, controlHistory: [...OPERATION_4471.controlHistory, { control: "BROKER" as const, atSim: SENT_AT, atReal, by: "BROKER:brk-delta-martina" as const }] });
+    expect(evaluateAsOf(whatsapp({ operation: takenAt(later) })).outcome).toBe("ALLOW");
+    expect(evaluateAsOf(whatsapp({ operation: takenAt(earlier) })).ruleIds).toEqual(["CP-CONTROL-BROKER"]);
+    const sentAtSim = "2026-10-15T00:00:00-03:00";
+    const complainedAt = (atReal: string) => ({ ...QINGDAO_CONTACT, statusHistory: [...QINGDAO_CONTACT.statusHistory, { status: "COMPLAINED" as const, atSim: sentAtSim, atReal, by: "SYSTEM" as const }] });
+    expect(evaluateAsOf(email({ contact: complainedAt(later) })).outcome).toBe("ALLOW");
+    expect(evaluateAsOf(email({ contact: complainedAt(earlier) })).ruleIds).toEqual(["CP-BOUNCED-CONTACT"]);
+    // A step without its real instant (the seed's) still counts at its own simulated instant.
+    expect(evaluateAsOf(whatsapp({ operation: controlTakenAt(SENT_AT) })).ruleIds).toEqual(["CP-CONTROL-BROKER"]);
+  });
+
   it("checks the hours at the send's own instant: the seeded holiday send of 4478 went out at 09:00 of the 13th", () => {
     // docs/seed-spec.md §3: the milestone of Monday 12/10 (holiday) was deferred to Tuesday 13/10 09:00.
     expect(evaluateAsOf(whatsapp({}, { sentAtSim: "2026-10-13T09:00:00-03:00" })).outcome).toBe("ALLOW");

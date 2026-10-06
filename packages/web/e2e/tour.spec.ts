@@ -154,6 +154,20 @@ async function scripted(page: Page, world: Record<string, unknown>, overrides: P
 const inputOf = (calls: readonly ApiCall[], path: string) => calls.find((call) => call.path === path)?.input;
 
 test.describe("the tour's buttons (scripted answers)", () => {
+  // The progress is kept per world and epoch: a move taken before `clock.get` names the world would be
+  // kept under no key and dropped when the world's key arrives, sending the panel back to step 1.
+  test("[FL-079] opens no button before the world is known, so the first move is kept once it is", async ({ page }) => {
+    await scripted(page, GUEST_CLOCK, { "clock.get": { data: GUEST_CLOCK, delayMs: 2_000 } });
+    const open = moveButton(page, "sign-in");
+    await expect(open).toBeDisabled();
+    await expect(open).toBeEnabled({ timeout: 10_000 });
+    await open.click();
+    await expect(panel(page).getByRole("heading", { name: stepById("first-request").title.es })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem("legajo.tour.GUEST#firm-guest-01#1"))).toContain("sign-in#0");
+    await page.reload();
+    await expect(panel(page).getByRole("heading", { name: stepById("first-request").title.es })).toBeVisible({ timeout: 10_000 });
+  });
+
   test("a button that changes the world waits for a quiet one, then goes to the 4471 request at 15/10 10:00", async ({ page }) => {
     await startAt(page, "first-request");
     const calls = await scripted(page, { ...GUEST_CLOCK, busy: true, pending: [{ kind: "EVENT", operationNumber: "4471", sinceReal: new Date().toISOString() }] });

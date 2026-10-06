@@ -1,6 +1,9 @@
 // `upload.presign` and `upload.done` (docs/tool-catalog.md): the driver acts as the importer's browser
 // on `/u/<token>` of the public site, through CloudFront like any browser (no shortcut into
-// `PublicWeb`), with the token of the last message that carried a link. A PDF is one of the model
+// `PublicWeb`), with the token of the last message that carried a link. Like the page's own script
+// (public-web/page-script.ts), every POST carries `x-amz-content-sha256` with the SHA-256 of its body:
+// CloudFront signs the origin request with OAC and the Function URL refuses an unsigned body (403,
+// ADR-0015 §3.1). A PDF is one of the model
 // operation's template PDFs of the `Seed` bucket; the negative files declare what a browser would
 // (`contentType`, `size`) so the page refuses them and audits `DENY UPLOAD_*` (FL-010).
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -8,6 +11,7 @@ import { z } from "zod";
 import { type DocType, ToolError, seedKeys } from "@legajo/shared";
 import { MAX_DOCUMENT_BYTES } from "../domain/documents";
 import { awsClientConfig } from "../lib/clients";
+import { sha256Hex } from "../lib/crypto";
 import { bucketName } from "../lib/resource";
 import { withRetry } from "../lib/retry";
 import { APP_ORIGIN } from "../public-web/deps";
@@ -50,7 +54,9 @@ export interface UploadOutcome {
 }
 
 async function postJson(doFetch: typeof fetch, url: string, body: unknown): Promise<{ status: number; json: unknown }> {
-  const response = await doFetch(url, { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(TIMEOUT_MS) });
+  const payload = JSON.stringify(body);
+  const headers = { "content-type": "application/json", accept: "application/json", "x-amz-content-sha256": sha256Hex(payload) };
+  const response = await doFetch(url, { method: "POST", headers, body: payload, signal: AbortSignal.timeout(TIMEOUT_MS) });
   return { status: response.status, json: await response.json().catch(() => ({})) };
 }
 

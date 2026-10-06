@@ -55,7 +55,9 @@ export const sc07 = defineScenario({
       async run(ctx) {
         const { operationId } = opOf(ctx, "a");
         const upload = await presign(ctx, operationId, { kind: "pdf", docType: "CERTIFICATE_OF_ORIGIN" });
-        ctx.check(upload.status === 200 && upload.storageStatus !== undefined && upload.storageStatus < 300, `the presigned POST was accepted (${upload.storageStatus ?? upload.status}${upload.storageError ? `: ${upload.storageError}` : ""})`);
+        // Who refused: the page (`/u/<token>/presign`, with its reason) or storage (S3's code and message).
+        const refusedBy = upload.storageStatus === undefined ? `page ${upload.status} ${upload.refusal ?? ""}` : `storage ${upload.storageStatus} ${upload.storageError ?? ""}`;
+        ctx.check(upload.status === 200 && upload.storageStatus !== undefined && upload.storageStatus < 300, `the presigned POST was accepted (${refusedBy.trim()})`);
         ensure(upload.key !== undefined, "the page issued an object key");
         const done = (await ctx.qa("upload.done", { operationId, keys: [upload.key] })) as Upload;
         ctx.check(done.status === 200, `"Listo" answered ${done.status}`);

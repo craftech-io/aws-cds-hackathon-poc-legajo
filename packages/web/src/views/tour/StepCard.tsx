@@ -14,6 +14,8 @@ interface StepCardProps {
   /** `tour.steps`: every pending timer of 4471, the hours of "Qué mirar". */
   readonly times: TourClock | undefined;
   readonly progress: TourProgress;
+  /** The world is known: the progress is kept per world and epoch, so no move is taken before it. */
+  readonly ready: boolean;
   readonly busy: boolean;
   readonly running: boolean;
   readonly gloss: string | undefined;
@@ -21,7 +23,7 @@ interface StepCardProps {
   readonly onGoTo: (step: TourStep) => void;
 }
 
-export function StepCard({ step, lang, clock, times, progress, busy, running, gloss, onMove, onGoTo }: StepCardProps) {
+export function StepCard({ step, lang, clock, times, progress, ready, busy, running, gloss, onMove, onGoTo }: StepCardProps) {
   const texts = TOUR_TEXTS[lang];
   const next = nextEventAt(clock);
   const blockedByBusy = step.moves.some((_, index) => moveGate(step, index, progress, busy) === "busy");
@@ -36,7 +38,7 @@ export function StepCard({ step, lang, clock, times, progress, busy, running, gl
           const gate = moveGate(step, index, progress, busy);
           return (
             <div key={`${step.id}-${index}`} className="flex flex-wrap items-center gap-2">
-              <Button variant={gate === "done" ? "secondary" : "primary"} disabled={running || gate === "busy" || gate === "blocked"} onClick={() => onMove(step, index, move)}>
+              <Button variant={gate === "done" ? "secondary" : "primary"} disabled={!ready || running || gate === "busy" || gate === "blocked"} onClick={() => onMove(step, index, move)}>
                 {move.label[lang]}
               </Button>
               {gate === "done" ? <span className="text-xs font-semibold text-success">{texts.done}</span> : null}

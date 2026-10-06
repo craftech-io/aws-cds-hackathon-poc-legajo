@@ -154,7 +154,11 @@ export const sc26 = defineScenario({
         const t = copyOf("mobile-es");
         const first = ctx.state.code as string;
         await enterCode(page, t, first === "000000" ? "999999" : "000000", run.password);
-        await expect(page.getByRole("alert")).toContainText(t.verify.errors.attemptsLeft(4));
+        // docs/landing-spec.md §8.3: the screen says only that the code is not valid; the attempts left
+        // join it from 2 down (verify-model.ts `ATTEMPTS_WARNING_AT`), so with 4 left there is no count.
+        const alert = page.getByRole("alert");
+        await expect(alert).toContainText(t.verify.errors.invalid);
+        await expect(alert).not.toContainText(t.verify.errors.attemptsLeft(4));
         const resend = page.getByRole("button", { name: t.verify.resend });
         await expect(resend).toBeDisabled();
         await expect(resend).toBeEnabled({ timeout: 75_000 });
