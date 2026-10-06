@@ -5,7 +5,7 @@ Solo lo que depende de alguien fuera del equipo de agentes (el CTO, Meta, AWS Pa
 | # | Pendiente | Dueño | Estado | Qué falta |
 |---|---|---|---|---|
 | P-01 | Conectar WhatsApp: cuenta de WhatsApp Business, número y plantillas aprobadas | CTO (Meta); `devops` ejecuta los scripts; `qa` prueba en vivo | Cerrado el 2026-10-05 por el CTO para el modo vivo: portfolio y WABA \"Craftech\", número +1 817 768 1029 (Connect, `infra/phone.ts`), destino de eventos, secretos y teléfono de demo del CTO en `SeedOverrides`; las 8 plantillas siguen en revisión de Meta (paso 7) y la prueba viva SC-23 queda para `qa` | §1 |
-| P-02 | Oportunidad ACE de la submission | CTO | Abierto | §2 |
+| P-02 | Oportunidad ACE de la submission | CTO | Cerrado el 2026-10-06 por el operador: O28913309 enviada a AWS (Co-Sell, visibilidad completa, campaña de la hackathon); proyecto enviado en Devpost el mismo día con el repositorio público bajo Apache-2.0 | §2 |
 | P-03 | Video de 3 minutos | CTO | Cerrado el 2026-10-06 por el CTO: publicado en YouTube (https://youtu.be/tVyJvKUWe54, 2:20, público, subtítulos en inglés) y en la landing (`#video`) | §3 |
 | P-04 | Decisión de marca pública | CTO | Cerrado el 2026-10-04 por el CTO: co-brand "SIDOM Legajo listo · Powered by Craftech", aprobado por SIDOM por escrito; display name de WhatsApp "Craftech" | §4 |
 | P-05 | Credenciales de las cuentas reservadas `guest-NN` en las instrucciones privadas de prueba de la submission | CTO con el operador | Cuentas `guest-01` a `guest-15` creadas el 2026-10-06 por el operador (`console:invite`, grupo `GUEST`); las credenciales están fuera del repo, en el archivo privado del operador; falta pegarlas en el campo privado del formulario | §5 |
