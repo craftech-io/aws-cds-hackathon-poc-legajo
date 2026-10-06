@@ -9,8 +9,7 @@ export const AUTH_ES = {
   lang: {
     /** `<html lang>` of the page. */
     code: "es-AR",
-    switchTo: "English",
-    switchLabel: "Ver la página en inglés",
+    label: "Idioma",
   },
   layout: {
     tagline: "Agente de coordinación para estudios de despachantes de aduana",

@@ -1,16 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { LANG_STORAGE_KEY, hrefWithLang, readStoredLang, resolveLang, storeLang } from "./lang";
+import { LANG_STORAGE_KEY } from "../../lib/preferred-lang";
+import { hrefWithLang, readStoredLang, resolveLang, storeLang } from "./lang";
 
 afterEach(() => vi.unstubAllGlobals());
 
 describe("[FL-120] language of the public pages (D-02)", () => {
   it("[FL-120] lets the address win, then the remembered choice, then the browser", () => {
-    expect(resolveLang(new URLSearchParams("lang=en"), "es", "es-AR")).toBe("en");
-    expect(resolveLang(new URLSearchParams("lang=es"), "en", "en-US")).toBe("es");
-    expect(resolveLang(new URLSearchParams("lang=fr"), "en", "es-AR")).toBe("en");
-    expect(resolveLang(new URLSearchParams(""), undefined, "en-GB")).toBe("en");
-    expect(resolveLang(new URLSearchParams(""), undefined, "pt-BR")).toBe("es");
-    expect(resolveLang(new URLSearchParams(""), undefined, undefined)).toBe("es");
+    expect(resolveLang(new URLSearchParams("lang=en"), "es", "es")).toBe("en");
+    expect(resolveLang(new URLSearchParams("lang=es"), "en", "en")).toBe("es");
+    expect(resolveLang(new URLSearchParams("lang=fr"), "en", "es")).toBe("en");
+    expect(resolveLang(new URLSearchParams(""), "es", "en")).toBe("es");
+    expect(resolveLang(new URLSearchParams(""), undefined, "en")).toBe("en");
+    expect(resolveLang(new URLSearchParams(""), undefined, "es")).toBe("es");
   });
 
   it("[FL-120] remembers the choice, and survives a browser that blocks storage", () => {

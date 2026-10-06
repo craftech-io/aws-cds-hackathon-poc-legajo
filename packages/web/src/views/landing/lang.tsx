@@ -4,6 +4,7 @@
 // change is announced by the new title; the switch keeps the address in step (`?lang=en`, the other
 // parameters and the anchor kept). React context, no state library.
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { LangToggle } from "../../components/LangToggle";
 import { useRouter } from "../../lib/router";
 import { currentLang, hrefWithLang, storeLang } from "../auth/lang";
 import { LANDING_COPY, type LandingCopy, type LandingLang } from "./copy";
@@ -66,20 +67,9 @@ export function useRuleLabel(rule: LandingRuleId): string | undefined {
   return copy.meta.code === "en" ? copy.guarantees.rules[rule] : undefined;
 }
 
-/** `className` carries the display (`inline-flex` by default): two display utilities on one element have no reliable winner. */
-export function LangSwitch({ className = "inline-flex" }: { readonly className?: string }) {
+/** The header's "ES | EN" selector; `className` carries the display (see LangToggle). */
+export function LangSwitch({ className }: { readonly className?: string }) {
   const value = useLandingLang();
   if (!value) return null;
-  const next: LandingLang = value.lang === "es" ? "en" : "es";
-  return (
-    <button
-      type="button"
-      lang={LANDING_COPY[next].meta.code}
-      aria-label={value.copy.lang.switchLabel}
-      onClick={() => value.setLang(next)}
-      className={`min-h-11 min-w-11 items-center justify-center rounded-pill border border-harbor-700 px-3 text-sm font-semibold text-foam hover:border-foam-muted ${className}`}
-    >
-      {value.copy.lang.switchTo}
-    </button>
-  );
+  return <LangToggle lang={value.lang} label={value.copy.lang.label} onChange={value.setLang} tone="dark" {...(className ? { className } : {})} />;
 }

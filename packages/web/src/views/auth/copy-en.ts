@@ -5,8 +5,7 @@ import type { AuthCopy } from "./copy";
 export const AUTH_EN: AuthCopy = {
   lang: {
     code: "en",
-    switchTo: "Español",
-    switchLabel: "Ver la página en español",
+    label: "Language",
   },
   layout: {
     tagline: "Coordination agent for customs brokerage firms",

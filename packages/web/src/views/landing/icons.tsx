@@ -99,12 +99,6 @@ const PATHS = {
   chevronLeft: <path d="M15 5l-7 7 7 7" />,
   chevronRight: <path d="M9 5l7 7-7 7" />,
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
-  language: (
-    <>
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M3.5 12h17M12 3.5c2.2 2.4 3.3 5.2 3.3 8.5s-1.1 6.1-3.3 8.5c-2.2-2.4-3.3-5.2-3.3-8.5s1.1-6.1 3.3-8.5z" />
-    </>
-  ),
   external: <path d="M14 4.5h5.5V10M19.5 4.5L11 13M17 14v5.5H4.5V7H10" />,
   pause: <path d="M9 6v12M15 6v12" />,
   play: <path d="M8 5.5v13l10-6.5z" />,

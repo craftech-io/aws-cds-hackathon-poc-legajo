@@ -1,9 +1,10 @@
 // Language of the public pages (docs/landing-spec.md D-02): `?lang=es` or `?lang=en` wins; else the
-// visitor's last choice (localStorage, which may throw); else the browser's language (`en*` → en,
-// anything else → es). The landing and the access screens share the same remembered choice.
+// visitor's last choice (localStorage, which may throw); else the browser's language (any `es*` in
+// `navigator.languages` → es, anything else → en; lib/preferred-lang.ts). The landing and the access
+// screens share the same remembered choice.
 import { Language } from "@legajo/shared";
+import { LANG_STORAGE_KEY, browserLang } from "../../lib/preferred-lang";
 
-export const LANG_STORAGE_KEY = "legajo.lang";
 export const LANG_PARAM = "lang";
 
 function localStore(): Storage | undefined {
@@ -32,17 +33,15 @@ export function storeLang(lang: Language): void {
 }
 
 /** D-02 in order: the query, the remembered choice, the browser. */
-export function resolveLang(search: URLSearchParams, stored: Language | undefined, browserLanguage: string | undefined): Language {
+export function resolveLang(search: URLSearchParams, stored: Language | undefined, browser: Language): Language {
   const asked = Language.safeParse(search.get(LANG_PARAM));
   if (asked.success) return asked.data;
-  if (stored) return stored;
-  return browserLanguage?.toLowerCase().startsWith("en") ? "en" : "es";
+  return stored ?? browser;
 }
 
 /** The page's language right now, from the address, storage and the browser. */
 export function currentLang(search: URLSearchParams): Language {
-  const browser = typeof navigator === "undefined" ? undefined : navigator.language;
-  return resolveLang(search, readStoredLang(), browser);
+  return resolveLang(search, readStoredLang(), browserLang());
 }
 
 /** `path` with `?lang=en` kept (Spanish needs no parameter), plus any other query of `extra`. */

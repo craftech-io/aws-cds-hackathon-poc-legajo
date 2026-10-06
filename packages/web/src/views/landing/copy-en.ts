@@ -14,7 +14,7 @@ export const en: LandingCopy = {
     title: "SIDOM Legajo listo · Coordination agent for customs brokers",
     description: "Every import file complete before the vessel arrives: an agent that chases the commercial invoice, the packing list and the certificate of origin of every import.",
   },
-  lang: { switchTo: "Español", switchLabel: "Ver la página en español" },
+  lang: { label: "Language" },
   nav: { label: "Page sections", tour: "How it works", guarantees: "Guarantees", integrations: "Integration", architecture: "Architecture", faq: "Questions", menu: "Menu", skip: "Skip to content" },
   cta: {
     try: "Try Legajo listo",
@@ -182,6 +182,14 @@ export const en: LandingCopy = {
     title: "How it works inside",
     lead: "Everything runs serverless on AWS. Each party comes in through its own channel, one queue per operation keeps events in order, the agent decides with tools and rules written in code, and your systems connect by contract.",
     alt: "AWS architecture diagram: the importer, the supplier and the broker come in through AWS End User Messaging Social, Amazon SES and Amazon CloudFront with Amazon Cognito; one Amazon SQS queue per operation feeds AWS Lambda; Amazon EventBridge Scheduler schedules the milestones; the coordination agent uses tools on AWS Lambda; data lives in Amazon DynamoDB and Amazon S3, scanned by Amazon GuardDuty; the document reader and the management system connect by contract.",
+    diagram: {
+      title: "The full diagram, with its connections",
+      caption: "Every arrow is a real connection between services; the numbers follow one message end to end.",
+      open: "Open full size",
+      scrollHint: "Swipe to move around the diagram",
+      alt: "Legajo listo architecture diagram on AWS with its connections. The importer (WhatsApp) and the supplier (email) talk to AWS End User Messaging Social and Amazon SES, which send events to the inbound Lambdas. These check identity and enqueue on Amazon SQS FIFO, one group per operation; EventBridge Scheduler adds the timers. The operation worker invokes the agent's Harness, which uses Memory, Guardrails and Gateway with Cedar policies. Every outgoing message goes through a five-step pipeline, from the contact policy to sending and audit, and leaves through the same channels. At the bottom, the data (DynamoDB, S3, GuardDuty, CloudWatch) and the firm's systems: document reader and management system.",
+      layersTitle: "The same path, by layer",
+    },
     layers: { parties: "The parties", edge: "Channels and access", flow: "Orchestration", agent: "Agent", data: "Data", systems: "Your systems" },
     nodes: {
       importer: { name: "Importer", role: "WhatsApp, in Spanish" },

@@ -5,6 +5,7 @@
 import { legalPageHref } from "@legajo/shared/consent-texts";
 import type { ReactNode } from "react";
 import { LegajoWordmark, PoweredByCraftech } from "../../components/brand/Brand";
+import { LangToggle } from "../../components/LangToggle";
 import { Link } from "../../lib/router";
 import { LANDING_PATH } from "../../routes";
 import { useAuthLang } from "./AuthLang";
@@ -39,18 +40,7 @@ function BrandPanel() {
 
 function LangSwitch() {
   const { lang, copy, setLang } = useAuthLang();
-  const next = lang === "es" ? "en" : "es";
-  return (
-    <button
-      type="button"
-      lang={next === "en" ? "en" : "es-AR"}
-      aria-label={copy.lang.switchLabel}
-      onClick={() => setLang(next)}
-      className="min-h-11 rounded-pill border border-rule px-4 text-sm font-semibold text-ink hover:border-ink-muted"
-    >
-      {copy.lang.switchTo}
-    </button>
-  );
+  return <LangToggle lang={lang} label={copy.lang.label} onChange={setLang} tone="light" />;
 }
 
 export function AuthLayout({ children }: { readonly children: ReactNode }) {
