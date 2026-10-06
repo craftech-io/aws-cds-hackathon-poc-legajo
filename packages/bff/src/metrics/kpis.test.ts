@@ -102,7 +102,7 @@ describe("[FL-085] metrics with labels", () => {
     const unverified = summarize(input({ tab: "WORLD", rows: [priced] }));
     expect(kpi(unverified.kpis, "costPerDossierUsd")).toMatchObject({ value: null, gap: "UNVERIFIED_RATES" });
 
-    const rates = [rate("bedrock:global.anthropic.claude-haiku-4-5-20251001-v1-0:input", 5, "PER_1M_TOKENS"), rate("ses:outbound", 0.1, "PER_1K_MESSAGES")];
+    const rates = [rate("bedrock:global.anthropic.claude-sonnet-5-5:input", 5, "PER_1M_TOKENS"), rate("ses:outbound", 0.1, "PER_1K_MESSAGES")];
     const verified = summarize(input({ tab: "WORLD", rows: [priced], rateCard: rates }));
     expect(kpi(verified.kpis, "costPerDossierUsd")).toMatchObject({ value: 5.1, n: 1 });
   });

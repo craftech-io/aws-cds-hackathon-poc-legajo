@@ -9,6 +9,7 @@ describe("the system prompt covers docs/design-brief.md §5.9", () => {
   it("has one rule per line of the summary, in its order", () => {
     expect(SYSTEM_PROMPT_RULES.map((rule) => rule.id)).toEqual([
       "FIRM_VOICE",
+      "ALWAYS_ANSWER",
       "ONE_MESSAGE_ONE_ACTION",
       "LANGUAGE",
       "FACTS_FROM_TOOLS",

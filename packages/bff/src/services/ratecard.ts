@@ -8,7 +8,7 @@ import { z } from "zod";
 import { CalendarDate } from "@legajo/shared";
 
 /** Model of the Harness (docs/architecture.md §1); its token rows are keyed by this id. */
-export const HARNESS_MODEL_ID = "global.anthropic.claude-haiku-4-5-20251001-v1:0";
+export const HARNESS_MODEL_ID = "global.anthropic.claude-sonnet-5-5";
 
 export const TokenKind = z.enum(["input", "output", "cacheRead", "cacheWrite"]);
 export type TokenKind = z.infer<typeof TokenKind>;
