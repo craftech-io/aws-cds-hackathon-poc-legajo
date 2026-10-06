@@ -60,10 +60,10 @@ function deps(overrides: Partial<HandlerDeps> = {}, ports: QaPorts = refusingPor
 async function setup(overrides: Partial<HandlerDeps> = {}, ports?: QaPorts) {
   const stores = await qaDriverStores();
   // The console's mutations over the same stores (routers/console-testing.ts): real handlers, recorded AWS edges.
-  const { services } = await consoleServiceWorld({ stores });
+  const { services, events } = await consoleServiceWorld({ stores });
   const base = deps({ table: stores.client, ...overrides }, ports);
   const handlers = buildHandlers({ ...base, console: { ...base.console, services } });
-  return driverUnderTest(handlers, stores);
+  return { ...(await driverUnderTest(handlers, stores)), events };
 }
 
 describe("QaDriver actions over stored state", () => {
@@ -111,6 +111,15 @@ describe("QaDriver actions over stored state", () => {
     expect(await driver({ action: "console", idempotencyKey: key(5, "c"), input: { procedure: "operations.get", input: { operationId: "op-4471" } } })).toMatchObject({ ok: false, error: { code: "FORBIDDEN", reason: "CROSS_FIRM" } });
     expect(await driver({ action: "console", idempotencyKey: key(5, "d"), input: { procedure: "dossier.approve", input: { operationId: "op-7001" } } })).toMatchObject({ ok: false, error: { code: "CONFLICT", reason: "NOT_READY_FOR_REVIEW" } });
     expect(await driver({ action: "metrics.get", idempotencyKey: key(5, "e"), input: { clockId: QA_CLOCK } })).toMatchObject({ ok: true, result: { usage: { dossiers: 0, turns: 0 } } });
+  });
+
+  it("[FL-067] [FL-068] signs what the console does as brk-qa-runner, the broker its principal stands for", async () => {
+    const { driver, stores, events } = await setup();
+    await stores.connector.conversations.appendMessage(toImporter);
+    expect(await driver({ action: "console", idempotencyKey: key(7), input: { procedure: "conversation.take", input: { operationId: "op-7001" } } })).toMatchObject({ ok: true });
+    expect((await stores.connector.operations.getOperation("op-7001")).controlHistory.at(-1)).toMatchObject({ control: "BROKER", by: "BROKER:brk-qa-runner" });
+    expect(await driver({ action: "console", idempotencyKey: key(7, "b"), input: { procedure: "conversation.send", input: { operationId: "op-7001", text: "Te llamamos en un rato." } } })).toMatchObject({ ok: true });
+    expect(events.at(-1)).toMatchObject({ type: "OUTBOUND_SEND", kind: "BROKER_MESSAGE", author: "BROKER:brk-qa-runner" });
   });
 
   it("inspects the Memory actor and session of an operation", async () => {

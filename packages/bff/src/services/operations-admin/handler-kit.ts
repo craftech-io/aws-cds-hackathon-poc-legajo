@@ -104,7 +104,7 @@ export interface DirectContext<I> {
   readonly handler: DirectHandlerName;
   readonly input: I;
   readonly caller: Caller;
-  /** The broker for the console, `QA` for the `QaDriver`, the deterministic code for everyone else. */
+  /** The broker of a console or `QaDriver` console call (`actorOfCaller`), the deterministic code for everyone else. */
   readonly actor: Actor;
   readonly correlationId: string;
   readonly log: Logger;
@@ -140,10 +140,15 @@ export interface DirectSpec<S extends z.ZodType, R extends object> {
 /** Callers that act for a firm the server put in the principal (docs/tool-catalog.md, "Invocación directa"). */
 const FIRM_BOUND: ReadonlySet<CallerKind> = new Set<CallerKind>(["CONSOLE", "QA"]);
 
+/**
+ * Who signs an action: the broker of a console call, and of a `QaDriver` console call too (its
+ * server-built principal is the firm-qa user `brk-qa-runner` or `brk-qa-analyst`, docs/tool-catalog.md
+ * `console.*`, so what it does reads exactly as a person's: `BROKER:<id>`); `QA` for a QA call
+ * without a broker, the deterministic code otherwise.
+ */
 export function actorOfCaller(caller: Caller): Actor {
-  if (caller.kind === "QA") return "QA";
-  if (caller.kind === "CONSOLE" && caller.brokerId !== undefined) return brokerActor(caller.brokerId);
-  return "SYSTEM";
+  if ((caller.kind === "CONSOLE" || caller.kind === "QA") && caller.brokerId !== undefined) return brokerActor(caller.brokerId);
+  return caller.kind === "QA" ? "QA" : "SYSTEM";
 }
 
 /** The broker a console or QA action is signed by (`approvedBy`, `author BROKER:<id>`). */
