@@ -1,6 +1,7 @@
 // `simulator` router (docs/tool-catalog.md, docs/architecture-integrations.md §4.2, FL-083): the phone
-// simulator of the console. It answers only while `ChannelModes.whatsapp` is `simulated` (`WHATSAPP_LIVE`
-// otherwise) and only for importers of the principal's firm. The console never sends a phone, a nonce or
+// simulator of the console. It answers while `ChannelModes.whatsapp` is `simulated` and, in a `live`
+// stage, in guest worlds, whose sends always take the simulator (outbound/routes.ts); any other world of
+// a live stage gets `WHATSAPP_LIVE`. Only importers of the principal's firm. The console never sends a phone, a nonce or
 // a `wamid`: the BFF builds the same signed SNS envelope a real WhatsApp event has from the importer's
 // registered phone and hands it to `InboundWhatsApp` (channels/whatsapp/simulator.ts), so the message
 // goes through the same gate, adapter and worker as a live one.
@@ -22,6 +23,7 @@ import { importerCounterpartKey } from "../connector/keys";
 import { MAX_DOCUMENT_BYTES } from "../domain/documents";
 import type { Importer } from "../domain/parties";
 import { documentsPrefixOf } from "../intake/keys";
+import { isGuestWorld } from "../outbound/recipient-fence";
 import { ulid } from "../lib/crypto";
 import { consoleServicesOf, consumeConsoleQuota } from "./console-services";
 import { simulatorThreads } from "./simulator-threads";
@@ -44,15 +46,15 @@ const MarkReadInput = z.object({ importerId: ImporterId }).strict();
 /** The template PDFs of a model operation start at version 1 (docs/seed-spec.md). */
 const SYNTHETIC_VERSION = 1;
 
-function assertSimulated(ctx: FirmContext): void {
-  if (ctx.deps.whatsappMode() !== "simulated") throw new ToolError("CONFLICT", "the phone simulator is off while WhatsApp runs live", LIVE_MODE_REASON);
+function assertSimulated(ctx: FirmContext, clockId: string): void {
+  if (ctx.deps.whatsappMode() !== "simulated" && !isGuestWorld(clockId)) throw new ToolError("CONFLICT", "the phone simulator is off while WhatsApp runs live", LIVE_MODE_REASON);
 }
 
-/** The importer the phone belongs to: of the principal's firm, simulated mode only. */
+/** The importer the phone belongs to: of the principal's firm, in a world the simulator serves. */
 async function phoneOf(ctx: FirmContext, importerId: string): Promise<Importer> {
-  assertSimulated(ctx);
   const importer = await ctx.deps.connector.parties.getImporter(importerId);
   await ctx.firmScope.assertFirm(importer.firmId);
+  assertSimulated(ctx, importer.clockId);
   return importer;
 }
 
@@ -85,8 +87,8 @@ async function send(ctx: FirmContext, importer: Importer, action: Omit<Parameter
 
 export const simulatorRouter = router({
   threads: firmProcedure.input(WorldInput).query(async ({ ctx, input }) => {
-    assertSimulated(ctx);
     const clockId = await worldOf(ctx, input.clockId);
+    assertSimulated(ctx, clockId);
     return { clockId, threads: await simulatorThreads(ctx.deps.connector, ctx.principal.firmId, clockId) };
   }),
 

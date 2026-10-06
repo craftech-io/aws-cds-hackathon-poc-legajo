@@ -599,7 +599,7 @@ Convenciones:
 - Actores: invitado, analista · Canal: consola (WhatsApp simulado) · Disparador: `/app/simulator`.
 - Pasos: el simulador abre el hilo de Norpampa (4471) o el del paso actual del recorrido y resalta los hilos con salientes sin leer; ver plantillas y botones como en WhatsApp (con glosa "EN"), tocar un botón, escribir, adjuntar un PDF sintético o propio; marcar leído; "El agente está escribiendo…" durante un turno.
 - Estado esperado: los eventos entran por `InboundWhatsApp` con el sobre SNS; los salientes se ven con estado ✓/✓✓/leído.
-- Reglas: solo importadores del estudio; rechazado si `whatsapp = live`.
+- Reglas: solo importadores del estudio; con `whatsapp = live` sigue activo en los mundos de invitado (sus envíos nunca salen del simulador, `outbound/routes.ts`) y se rechaza en los demás mundos (`WHATSAPP_LIVE`).
 - Prueba: U `routers/simulator.test.ts`, `channels/whatsapp/simulated.test.ts` · UI `simulator.spec.ts` · SR `SC-01/3`, `SC-08/1`, `SC-24/3`. Notas: `wa.inbound` usa el camino del simulador.
 
 ### FL-084 · Buzón de demo

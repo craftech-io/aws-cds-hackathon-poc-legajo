@@ -122,13 +122,21 @@ describe("simulator router [FL-083]", () => {
     expect((await world.caller(MARTINA).simulator.threads({})).threads[0]).toMatchObject({ unread: 0, messages: [{ status: "READ" }] });
   });
 
-  it("[FL-083] answers only in simulated mode, and only for importers of the firm", async () => {
+  it("[FL-083] answers only in simulated mode outside guest worlds, and only for importers of the firm", async () => {
     const live = await consoleServiceWorld({ whatsappMode: "live" });
     await expect(live.caller(DIEGO).simulator.threads({})).rejects.toMatchObject({ code: "CONFLICT", cause: { reason: LIVE_MODE_REASON } });
     await expect(live.caller(DIEGO).simulator.sendText({ importerId: "imp-norpampa", text: "Hola" })).rejects.toMatchObject({ cause: { reason: LIVE_MODE_REASON } });
     const world = await consoleServiceWorld();
     await expect(world.caller(PABLO).simulator.sendText({ importerId: "imp-norpampa", text: "Hola" })).rejects.toMatchObject({ code: "FORBIDDEN" });
     expect(world.envelopes).toEqual([]);
+  });
+
+  it("[FL-083] a guest world keeps the simulator while WhatsApp runs live: its sends never leave the simulator", async () => {
+    const world = await consoleServiceWorld({ guestWorld: true, whatsappMode: "live" });
+    const { importerId } = await guestOperation(world);
+    expect((await world.caller(GUEST).simulator.threads({})).threads.length).toBeGreaterThan(0);
+    await world.caller(GUEST).simulator.sendText({ importerId, text: "Hola" });
+    expect(world.envelopes).toHaveLength(1);
   });
 
   it("[FL-111] a guest world's SIMULATOR_MESSAGES and PDF_UPLOADS refuse the phone with QUOTA_EXCEEDED; its keys live under the world's prefix", async () => {
