@@ -13,7 +13,7 @@ const OUTPUT = resolve("docs/assets/architecture.png");
 async function main(): Promise<void> {
   const browser = await chromium.launch();
   try {
-    const page = await browser.newPage({ viewport: { width: 1820, height: 1180 }, deviceScaleFactor: 2 });
+    const page = await browser.newPage({ viewport: { width: 1920, height: 1380 }, deviceScaleFactor: 2 });
     await page.goto(pathToFileURL(SOURCE).href, { waitUntil: "networkidle" });
     await page.locator("#canvas").screenshot({ path: OUTPUT });
     console.log(`render-architecture: wrote ${OUTPUT}`);
