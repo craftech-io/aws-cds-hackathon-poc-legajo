@@ -37,7 +37,7 @@ Idioma de este doc: español (Argentina). Los textos visibles van en §2 y §8, 
 | # | Decisión | Por qué |
 |---|---|---|
 | D-01 | Rutas públicas: `/` landing, `/signup`, `/signup/verify`, `/login`, `/forgot`, `/forgot/reset`, `/welcome` (preparando tu mundo), `/legal/privacy.html`, `/legal/terms.html`. La consola sigue en `/app/*` | Una URL por pantalla: se pueden compartir, capturar y probar con Playwright |
-| D-02 | Idioma: `?lang=es` o `?lang=en` gana; si no, la última elección del visitante (`localStorage`, con `try/catch`); si no, `navigator.language` (`en*` → en; el resto → es). `<html lang>` = `es-AR` o `en`. El toggle vive en el header de la landing y de las pantallas de acceso | Visitantes de LatAm y de habla inglesa; el idioma elegido viaja al lead (§8.2) |
+| D-02 | Idioma: `?lang=es` o `?lang=en` gana; si no, la última elección del visitante (`localStorage`, con `try/catch`); si no, el idioma del navegador: español si `navigator.languages` trae cualquier `es*`, inglés en cualquier otro caso (`browserLang()` en `packages/web/src/lib/preferred-lang.ts`, fuente única junto con la clave `legajo.lang`; la usan la landing, el acceso y la consola). `<html lang>` = `es-AR` o `en`. El selector `ES \| EN` (`components/LangToggle.tsx`) vive en el header de la landing y de las pantallas de acceso: muestra el idioma **actual** relleno, cada opción es un botón con `aria-pressed` y `aria-current`, de 44 px, dentro de un grupo rotulado (`lang.label`). Bajo 768 px va dentro del menú | Visitantes de LatAm y de habla inglesa; el idioma elegido viaja al lead (§8.2) |
 | D-03 | La landing es parte del bundle de la web, pero **cargada aparte**: `LandingView` y las pantallas de acceso en un chunk; la consola en otro (`React.lazy`), así el LCP de `/` no paga la consola | Presupuesto de performance (§5.5) |
 | D-04 | "WhatsApp" se nombra solo como el **canal** (uso nominativo, igual que la documentación de AWS End User Messaging Social); sin logo ni colores de marca de terceros; el teléfono se dibuja con un estilo propio, marcado "simulador" | La skill pide marca neutra; el canal es parte de la propuesta de valor y no puede omitirse |
 | D-05 | Servicios de AWS se nombran por su nombre oficial en la sección de integración, sin logos de AWS en la landing | Sección técnica honesta sin sugerir un aval |
@@ -79,9 +79,11 @@ Idioma de este doc: español (Argentina). Los textos visibles van en §2 y §8, 
 | 10 | Galería | `#gallery` | ¿Cómo se ve la consola? | Grilla de capturas reales con zoom (§6) |
 | 11 | CTA final | `#start` | ¿Cómo lo pruebo? | "Probar la demo", "Ingresar", "Hablemos" y "Powered by Craftech" |
 
-El header fijo muestra: wordmark "Legajo listo", enlaces a `#tour`, `#guarantees`, `#integrations`, `#demo`, `#faq`
-(≥ 1280 px), toggle es/en, "Ingresar" (enlace) y el CTA primario (botón "Probar la demo"). En < 1280 px los enlaces van a un menú (`<details>` o botón con `aria-expanded`), y el CTA primario sigue
-visible.
+El header fijo muestra: wordmark "Legajo listo", enlaces a `#tour`, `#guarantees`, `#integrations`, `#architecture`, `#faq`
+(≥ 1280 px), selector `ES | EN`, "Ingresar" (enlace) y el CTA primario (botón "Probar la demo"). En < 1280 px los enlaces van a un menú (`<details>` o botón con `aria-expanded`), y el CTA primario sigue
+visible. **Scroll-spy**: el enlace de la sección que cruza una banda delgada a un tercio de la pantalla (un
+`IntersectionObserver`, sin librería, `views/landing/scroll-spy.ts`) lleva `aria-current="location"` y un relleno
+visible; mientras la banda está sobre una sección sin enlace (hero, problema, video…) ninguno lo lleva.
 
 ### 1.3 Los 3 dolores
 
@@ -182,6 +184,18 @@ que existe:
 
 No promete marca blanca, SDK ni embebido: nada de eso está diseñado.
 
+### 1.8.1 Cómo funciona por dentro (`#architecture`)
+
+Primero el **diagrama conectado** (`ArchitectureDiagram`, `#architecture-diagram`) y debajo la misma arquitectura por
+capas (seis tarjetas con los íconos oficiales de AWS) y los cuatro pasos de un mensaje.
+
+| Pieza | Decisión |
+|---|---|
+| Fuente | El mismo `docs/assets/architecture/architecture.html` del README. `npx tsx scripts/diagram/render-architecture-public.ts` lo carga, reescribe los textos con la voz de producto y, en español, los traduce (`scripts/diagram/public-texts.ts`), y escribe `public/landing/architecture/architecture-{es,en}-{1920,3840}.webp`. Sin las etiquetas del concurso, sin el nombre del modelo ni del runtime del agente, sin "mock": un texto del HTML sin entrada en `public-texts.ts` corta el render, así que una caja nueva no sale sin traducir |
+| Imagen | `<img>` de 1920 × 1380 con `width` y `height` declarados (sin salto de layout), `loading="lazy"`, `srcset` 1920/3840 y `alt` en cada idioma (`architecture.diagram.alt`, sin las palabras de `neutral-words.ts`) |
+| Enlace | "Abrir en tamaño completo" / "Open full size": botón visible sobre la figura, abre el WebP de 3840 px en una pestaña nueva |
+| Teléfono | La figura mantiene 1024 px de ancho dentro de una región con scroll horizontal (con aviso "Deslizá…") en vez de encogerse hasta ser ilegible |
+
 ### 1.9 Qué es simulado en esta demo
 
 | Real | Implementado, en modo simulado | Sistemas simulados | Datos |
@@ -218,8 +232,7 @@ palabra completa y con cortes de camelCase; la lista literal vive solo en ADR-00
 
 | Clave | es-AR | en |
 |---|---|---|
-| `lang.switchTo` | English | Español |
-| `lang.switchLabel` | Ver la página en inglés | Ver la página en español (atributo `lang="es-AR"` en el botón) |
+| `lang.label` (nombre del grupo `ES \| EN`; cada botón se llama "Español" o "English", con su `lang`) | Idioma | Language |
 | `nav.label` | Secciones de la página | Page sections |
 | `nav.tour` | Cómo funciona | How it works |
 | `nav.guarantees` | Garantías | Guarantees |
@@ -638,6 +651,11 @@ Los `@keyframes` viven dentro de `@theme` como hoy (`scene-in`, `scene-progress`
 - Paso activo: `IntersectionObserver` con `rootMargin: "-45% 0px -45% 0px"` sobre cada paso (una sola instancia). El paso
   activo queda con el color pleno del texto y los demás se atenúan por color (`foam-muted`, contraste AA), nunca por
   opacidad (el texto con opacidad 0,45 no pasa AA en axe); su índice se refleja en `aria-current="step"`.
+- **Números de paso fijos** (`TourPills`, desde 768 px): los botones `01…08` van en un `<nav>` `position: sticky` justo
+  debajo del header (`top: 4,0625 rem`, fondo del propio bloque para que los pasos pasen por debajo), con el paso activo
+  relleno y `aria-current="step"`; el navegador los suelta solos cuando termina el último paso (no hay script de
+  fijado). Bajo 768 px el carrusel conserva su propio contador "Paso 3 de 8". Solo cambian de color: con reduced motion
+  o pausa no se mueve nada.
 - Cambio de visual: `document.startViewTransition(() => setActive(i))` con `view-transition-name: tour-stage` en el
   escenario (crossfade + `translateY(12px)` en 480 ms `--ease-in-out-soft`). Sin soporte de View Transitions: el visual
   saliente hace `--animate-stage-out` y el entrante `--animate-stage-in`, superpuestos en una grilla de una celda.

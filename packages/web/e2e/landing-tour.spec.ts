@@ -63,6 +63,27 @@ test.describe("[FL-126] recorrido del producto y movimiento", () => {
     }
   });
 
+  test("[FL-126] from 768 px the step numbers stay stuck under the header while the steps go by, mark the current one, and are released after the last", async ({ page }, info) => {
+    test.skip(isMobile(info), "the step numbers stick from 768 px; a phone has the carousel's own counter");
+    const copy = await openLanding(page, info);
+    const pills = page.locator("[data-tour-pills]");
+    await expect(pills.getByRole("link")).toHaveCount(TOUR_STEPS.length);
+    const header = await page.getByRole("banner").boundingBox();
+    for (const [index, step] of TOUR_STEPS.entries()) {
+      await page.locator(`#${stepAnchor(step.id)}`).evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
+      const box = await pills.boundingBox();
+      expect(box, `step ${index + 1}: the numbers are in view`).toBeTruthy();
+      expect(box?.y ?? -1, `step ${index + 1}: stuck right under the header`).toBeGreaterThanOrEqual((header?.height ?? 0) - 1);
+      // The first step may still show them in their own place, below the section's lead.
+      if (index > 0) expect(box?.y ?? 999, `step ${index + 1}: stuck right under the header`).toBeLessThanOrEqual((header?.height ?? 0) + 2);
+      await expect(pills.getByRole("link", { name: copy.tour.stepLabel(index + 1, TOUR_STEPS.length) })).toHaveAttribute("aria-current", "step");
+      await expect(pills.locator("[aria-current=step]")).toHaveCount(1);
+    }
+    await page.locator("#capabilities").evaluate((element) => element.scrollIntoView({ block: "start", behavior: "instant" }));
+    const released = await pills.boundingBox();
+    expect((released?.y ?? 0) + (released?.height ?? 0), "after the last step the numbers are gone").toBeLessThanOrEqual(0);
+  });
+
   test("[FL-126] desktop: the swap animates the stage alone, never a copy of the page", async ({ page }, info) => {
     test.skip(isMobile(info) || isReduced(info), "the stage swaps with a View Transition from 1024 px, with motion");
     await openLanding(page, info);
