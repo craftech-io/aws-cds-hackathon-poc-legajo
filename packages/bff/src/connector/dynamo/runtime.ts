@@ -5,10 +5,11 @@
 import type { z } from "zod";
 import { ConnectorError } from "@legajo/shared";
 import type { EntityName } from "../../domain/common";
-import { Counter, Idempotency, MAX_PRESIGNS_PER_LINK, MailProbe, Nonce, Probe, RUNTIME_TTL_SECONDS, RateCounter, Session, Turn, TurnCap, TurnResult, UploadLink } from "../../domain/runtime";
+import { AccountPreferences, Counter, Idempotency, MAX_PRESIGNS_PER_LINK, MailProbe, Nonce, Probe, RUNTIME_TTL_SECONDS, RateCounter, Session, Turn, TurnCap, TurnResult, UploadLink } from "../../domain/runtime";
 import type { TableName } from "../../lib/resource";
 import {
   RESULT_PREFIX,
+  accountPreferencesKey,
   counterKey,
   idempotencyKey,
   mailProbeKey,
@@ -153,6 +154,16 @@ export function runtimeRepo(ctx: RepoContext): RuntimePort {
 
     async getMailProbe(mailId) {
       return optionalEntity(MailProbe, "MailProbe", await client.get(TABLE, mailProbeKey(mailId)), TABLE);
+    },
+
+    async getAccountPreferences(sub) {
+      return optionalEntity(AccountPreferences, "AccountPreferences", await client.get(TABLE, accountPreferencesKey(sub)), TABLE);
+    },
+
+    // An upsert of one attribute: the row has no TTL and carries no world stamp (nothing resets it).
+    async setAccountLanguage(sub, language) {
+      const row = await client.update(TABLE, accountPreferencesKey(sub), { set: { language }, setIfAbsent: creationDefaults(ctx, "AccountPreferences", { sub }) }, nowIso(ctx), { upsert: true });
+      return parseEntity(AccountPreferences, "AccountPreferences", row, TABLE);
     },
   };
 }

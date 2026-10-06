@@ -6,6 +6,10 @@
 //                            `batch`, with the viewer IP of `CloudFront-Viewer-Address`
 //   guestBootstrapProcedure  a verified token of a GUEST, with or without a firm yet (`account.*` of the
 //                            first sign-in: the world may not exist)
+//   accountProcedure         what is about the account itself and not about a world (its preferences): a
+//                            guest with or without a world (a verified token is enough, like
+//                            guestBootstrapProcedure), or staff through the firm gate of `firmProcedure`;
+//                            `ctx.sub` is the Cognito `sub` of the token
 //   firmProcedure            verified id token with firm and role; an inactive broker is refused; a guest
 //                            fails closed unless its broker row exists, is active and carries the token's
 //                            firm and world lease (403 `GUEST_WORLD_GONE`); every id of the input is
@@ -32,7 +36,7 @@ import { QuotaExceededError } from "@legajo/shared/errors";
 import { type AuditedRefusal, denialDecision } from "../auth/denials";
 import { AUTH_REASON, AUTH_REFUSAL, AuthError, type AuthRefusal, describeError } from "../auth/errors";
 import { type IdTokenClaims, bearerToken } from "../auth/jwt";
-import { type GuestBootstrap, type Principal, guestFromClaims, guestRowRefusal, isSignInFresh, principalFromClaims, withBrokerRow } from "../auth/principal";
+import { type GuestBootstrap, type Principal, guestFromClaims, guestOfPrincipal, guestRowRefusal, isSignInFresh, principalFromClaims, withBrokerRow } from "../auth/principal";
 import type { BrokerMatch } from "../auth/staff";
 import { type FencedId, type FirmOwnership, createFirmOwnership, crossFirmTarget, fencedIdOf, fencedIdsOf } from "../auth/scope";
 import { type Logger, correlationIdFrom } from "../lib/log";
@@ -330,6 +334,29 @@ export const recentLoginProcedure = brokerProcedure.use(({ ctx, next, path }) =>
     refuse(ctx.log, path, new AuthError(AUTH_REASON.LOGIN_NOT_RECENT, "enter your password again to continue"));
   }
   return next();
+});
+
+// ---- The account itself (preferences) ------------------------------------------------------------------
+
+export interface AccountContext extends Context {
+  /** Cognito `sub` of the verified token: the key of the account's own rows. */
+  readonly sub: string;
+}
+
+/**
+ * A procedure about the account, not about a world: it must work for a guest whose world does not exist
+ * yet or was destroyed (the preferences outlive it) and for staff, who go through the firm gate (an
+ * inactive broker is refused). The `sub` always comes from the token, never from the input.
+ */
+export const accountProcedure = baseProcedure.use(async ({ ctx, next, path, getRawInput }) => {
+  const guest = ctx.claims !== null ? guestFromClaims(ctx.claims) : ctx.principal === null ? undefined : guestOfPrincipal(ctx.principal);
+  if (guest !== undefined) {
+    const guestContext: AccountContext = { ...ctx, sub: guest.sub };
+    return next({ ctx: guestContext });
+  }
+  const firm = await enterFirm(ctx, path, getRawInput);
+  const accountContext: AccountContext & FirmContext = { ...firm, sub: firm.principal.sub };
+  return next({ ctx: accountContext });
 });
 
 // ---- Public sign-up and the guest's bootstrap (ADR-0015 §1, §3.1 and §4) ------------------------------

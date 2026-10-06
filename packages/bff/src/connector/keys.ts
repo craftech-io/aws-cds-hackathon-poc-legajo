@@ -111,6 +111,8 @@ export function glossarySortKey(status: string, channel?: string): string {
 
 // ---- Runtime -------------------------------------------------------------------------------------
 
+/** The console preferences of one Cognito account (its language): per user, outside every world, so a world reset keeps them. */
+export const accountPreferencesKey = (sub: string): Key => ({ PK: `ACCOUNT#${sub}`, SK: "PREFS" });
 export const sessionKey = (sessionId: string): Key => ({ PK: `SESSION#${sessionId}`, SK: META });
 export const turnPartition = (turnId: string): string => `TURN#${turnId}`;
 export const turnKey = (turnId: string): Key => ({ PK: turnPartition(turnId), SK: META });

@@ -8,6 +8,7 @@ import {
   DocType,
   FirmId,
   ImporterId,
+  Language,
   MessageId,
   OperationId,
   SupplierId,
@@ -202,3 +203,15 @@ export const MailProbe = defineEntity({
   expiresAt: EpochSeconds,
 });
 export type MailProbe = z.output<typeof MailProbe>;
+
+/**
+ * Console preferences of one account (`ACCOUNT#<sub>`/`PREFS`): the language it chose, per Cognito `sub`
+ * so it follows the user across devices. It belongs to the account, not to a world: it has no `clockId`,
+ * no TTL and a world reset or destroy never touches it (the lease `GUESTWORLD#<sub>` is the precedent).
+ * `leads:delete` removes it with the account. It carries no email or name.
+ */
+export const AccountPreferences = defineEntity({
+  sub: z.string().min(1).max(128),
+  language: Language,
+});
+export type AccountPreferences = z.output<typeof AccountPreferences>;
