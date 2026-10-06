@@ -22,7 +22,10 @@ import { RuleCountsTable } from "./RuleCounts";
 type DecisionFilter = AuditDecision | "ALL";
 const ALL = "ALL";
 
-const DECISION_OPTIONS = (["ALL", ...AuditDecision.options] as const).map((value) => ({ value, label: DECISION_FILTER_LABELS[value] }));
+/** Read while rendering, so the labels follow the console's language. */
+function decisionOptions() {
+  return (["ALL", ...AuditDecision.options] as const).map((value) => ({ value, label: DECISION_FILTER_LABELS[value] }));
+}
 
 function Counters() {
   const { trpc } = useSession();
@@ -86,7 +89,7 @@ function Decisions() {
         />
       </div>
       <div className="mb-4">
-        <FilterPills label={copy.decision} options={DECISION_OPTIONS} value={decision} onChange={setDecision} />
+        <FilterPills label={copy.decision} options={decisionOptions()} value={decision} onChange={setDecision} />
       </div>
       <RemoteBlock state={list.state} onRetry={list.reload}>
         {() => <DecisionTable rows={filterDecisions(rows, { ...(ruleId === ALL ? {} : { ruleId }), ...(actor === ALL ? {} : { actor }) })} />}

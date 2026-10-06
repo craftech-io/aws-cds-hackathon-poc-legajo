@@ -9,6 +9,7 @@
 import { type Page, expect, test } from "@playwright/test";
 import { copy } from "../src/copy/console.ts";
 import { dataCopy } from "../src/copy/console-data.ts";
+import { inLang } from "../src/lib/console-lang.ts";
 import { TOUR_TEXTS } from "../src/views/tour/copy.ts";
 import { TOUR_STEPS, type TourStep } from "../src/views/tour/steps.ts";
 import { type ApiCall, CLOCK_AT_START, routeApi, shellApi } from "./support/api-route";
@@ -42,24 +43,33 @@ function moveButton(page: Page, id: TourStep["id"], index = 0) {
 }
 
 test.describe("the guided tour against the real world of a guest", () => {
-  test("opens with step 1 and the hour of the world's start, in Spanish or English", async ({ page }) => {
+  test("opens with step 1 and the hour of the world's start, in the language of the console", async ({ page }) => {
     await plantSession(page, "guest");
     await page.goto("/app/operations");
     await expectView(page, "operations");
     await expect(panel(page).getByRole("heading", { name: stepById("sign-in").title.es })).toBeVisible();
     await expect(panel(page)).toContainText("en pausa el 14/10 10:30");
     await expect(panel(page)).toContainText(stepById("sign-in").wait.es);
-
-    await panel(page).getByRole("button", { name: "EN", exact: true }).click();
-    await expect(panel(page).getByRole("heading", { name: stepById("sign-in").title.en })).toBeVisible();
-    await expect(panel(page)).toContainText("paused at Oct 14 10:30");
-    await panel(page).getByRole("button", { name: "ES", exact: true }).click();
+    // The panel has no switch of its own: it reads in the console's language (FL-133).
+    await expect(panel(page).getByRole("button", { name: "EN", exact: true })).toHaveCount(0);
 
     await panel(page).getByRole("button", { name: stepById("sign-in").moves[0]?.label.es ?? "" }).click();
     await expect(panel(page).getByRole("heading", { name: stepById("first-request").title.es })).toBeVisible();
     await expect(moveButton(page, "first-request")).toBeEnabled();
     await expectAccessibleBasics(page);
     await expectNoRawCodes(page);
+  });
+
+  test("reads in English when the console does (the language the visitor picked before signing in)", async ({ page }) => {
+    // Remembered in the browser only: the account's own preference is not touched, so no other spec sees it.
+    await page.addInitScript(() => window.localStorage.setItem("legajo.lang", "en"));
+    await plantSession(page, "guest");
+    await page.goto("/app/operations");
+    const english = page.getByRole("complementary", { name: inLang("en", () => copy.tour.title) });
+    await expect(english.getByRole("heading", { name: stepById("sign-in").title.en })).toBeVisible();
+    await expect(english).toContainText("paused at Oct 14 10:30");
+    await expect(english).toContainText(stepById("sign-in").wait.en);
+    await expect(english).toContainText(TOUR_TEXTS.en.intro);
   });
 
   // The shell's first batch carries `clock.get` and `account.session` (twice under React's StrictMode):

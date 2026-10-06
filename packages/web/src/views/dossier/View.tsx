@@ -23,7 +23,8 @@ import { SummarySection } from "./SummarySection";
 import { mergeTimeline } from "./timeline-model";
 import { TimelineSection } from "./TimelineSection";
 
-const SECTION_LINKS = [
+/** Built when the view renders, so the labels follow the console's language. */
+const sectionLinks = () => [
   { id: "summary", label: dossierCopy.sections.summary },
   { id: "documents", label: dossierCopy.sections.documents },
   { id: "pending", label: dossierCopy.sections.pending },
@@ -48,7 +49,7 @@ function DossierBody({ bundle, onChanged }: { readonly bundle: DossierBundle; re
     <div className="space-y-6">
       <p className="text-base font-semibold text-navy">{dossierCopy.heading(operation.operationNumber, dossier.importer.name, dossier.supplier.name)}</p>
       <DossierActions dossier={dossier} entries={timeline.entries} simNow={simNow} onChanged={onChanged} />
-      <SectionNav label={dossierCopy.sections.nav} links={SECTION_LINKS} />
+      <SectionNav label={dossierCopy.sections.nav} links={sectionLinks()} />
       <SummarySection dossier={dossier} simNow={simNow} />
       <DocumentsSection dossier={dossier} onChanged={onChanged} />
       <PendingSection clockId={operation.clockId} operationNumber={operation.operationNumber} timers={timeline.pending} supplierZone={dossier.supplier.timezone} onChanged={onChanged} />

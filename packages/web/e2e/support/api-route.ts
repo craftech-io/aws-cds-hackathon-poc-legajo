@@ -37,6 +37,7 @@ export function shellApi(overrides: ApiScript = {}): ApiScript {
   return {
     "clock.get": { data: CLOCK_AT_START },
     "account.session": { data: { firm: { name: "Estudio Delta" }, otherSession: null } },
+    "account.preferences": { data: { language: null } },
     ...overrides,
   };
 }

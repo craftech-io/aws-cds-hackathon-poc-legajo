@@ -36,7 +36,7 @@ const NO_COGNITO_ENV = { VITE_COGNITO_USER_POOL_ID: "", VITE_COGNITO_CLIENT_ID: 
 const WITHOUT_PRIVATE_KEY = { [SIGNING_KEY_ENV]: "" };
 
 /** Specs of the public surfaces: they run in the six projects of docs/test-plan.md §3. */
-export const PUBLIC_SPECS = /(^|\/)(landing|landing-tour|landing-layout|landing-cta|gallery|a11y|auth|welcome|guest-isolation|guest-copy)\.spec\.ts$/;
+export const PUBLIC_SPECS = /(^|\/)(landing|landing-tour|landing-layout|landing-cta|gallery|a11y|auth|welcome|guest-isolation|guest-copy|language)\.spec\.ts$/;
 const SHELL_SPECS = /(^|\/)login\.spec\.ts$/;
 
 function viteServer(port: number, env: Record<string, string>) {

@@ -19,7 +19,7 @@ import { useRouter } from "../../lib/router";
 import { dossierPath } from "../../routes";
 import type { OperationsList } from "../dossier/types";
 import { fetchOperations } from "./api";
-import { OPERATION_COLUMNS } from "./columns";
+import { operationColumns } from "./columns";
 import { operationsCopy } from "./copy";
 import { NewOperationDrawer } from "./NewOperationDrawer";
 import {
@@ -88,7 +88,7 @@ function OperationsTable({ data, filters, onStatus, onRisk }: TableProps) {
       </div>
       <p className="text-xs text-slate">{operationsCopy.riskHint}</p>
       <DataTable<ListRow>
-        columns={OPERATION_COLUMNS}
+        columns={operationColumns()}
         rows={visible}
         keyOf={(row) => row.row.operationId}
         caption={operationsCopy.caption}

@@ -59,7 +59,13 @@ export function ImporterForm({ importer, onSaved, onClose }: FormProps & { reado
   );
 }
 
-const MEDIUM_OPTIONS = ConsentMedium.options.map((value) => ({ value, label: MEDIUM_LABELS[value] }));
+// The label is a getter so the options follow the console's language after import.
+const MEDIUM_OPTIONS = ConsentMedium.options.map((value) => ({
+  value,
+  get label() {
+    return MEDIUM_LABELS[value];
+  },
+}));
 const VERSION_OPTIONS = CONSENT_TEXT_VERSIONS.map((value) => ({ value, label: value }));
 
 export function ConsentForm({ importer, simNow, onSaved, onClose }: FormProps & { readonly importer: ImporterRow; readonly simNow: string }) {

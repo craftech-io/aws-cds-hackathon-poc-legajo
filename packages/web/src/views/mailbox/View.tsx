@@ -18,11 +18,36 @@ import { mailboxCopy } from "./copy";
 import { MailReader } from "./MailReader";
 import { ALL_MAILBOXES, type MailRow, type MailboxList, displayAddress, mailRows, mailboxLabel, selectedMail, threadOf } from "./mailbox-model";
 
+// Headers are getters so the columns follow the console's language after import.
 const COLUMNS: readonly Column<MailRow>[] = [
-  { id: "subject", header: mailboxCopy.reader.subject, cell: (row) => <span className="font-medium text-navy">{row.subject || mailboxCopy.list.noSubject}</span> },
-  { id: "from", header: mailboxCopy.reader.from, cell: (row) => displayAddress(row.from) },
-  { id: "thread", header: mailboxCopy.reader.thread, cell: (row) => threadOf(row) ?? "—" },
-  { id: "at", header: mailboxCopy.reader.receivedSim, cell: (row) => formatSimDateTime(row.sortAt) },
+  {
+    id: "subject",
+    get header() {
+      return mailboxCopy.reader.subject;
+    },
+    cell: (row) => <span className="font-medium text-navy">{row.subject || mailboxCopy.list.noSubject}</span>,
+  },
+  {
+    id: "from",
+    get header() {
+      return mailboxCopy.reader.from;
+    },
+    cell: (row) => displayAddress(row.from),
+  },
+  {
+    id: "thread",
+    get header() {
+      return mailboxCopy.reader.thread;
+    },
+    cell: (row) => threadOf(row) ?? "—",
+  },
+  {
+    id: "at",
+    get header() {
+      return mailboxCopy.reader.receivedSim;
+    },
+    cell: (row) => formatSimDateTime(row.sortAt),
+  },
 ];
 
 function Mailboxes({ list, supplierNames }: { readonly list: MailboxList; readonly supplierNames: ReadonlyMap<string, string> }) {

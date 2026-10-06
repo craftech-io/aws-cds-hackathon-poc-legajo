@@ -1,0 +1,179 @@
+// Texts of the registry (`/app/registry`, docs/design-brief.md §6; FL-001, FL-003, FL-004, FL-006,
+// FL-088): importers with their WhatsApp opt-in and supplier authorizations, suppliers with their
+// contacts, time zone, language and simulated behaviour. Phones and emails are shown masked. The
+// Spanish texts; copy-en.ts has the English with the same shape and copy.ts composes both.
+import type { ConsentMedium, DocType, SupplierBehaviour, SupplierContactStatus } from "@legajo/shared";
+import type { Widen } from "../../copy/localized";
+
+export const es = {
+  importers: {
+    title: "Importadores",
+    description: "Cada importador con su contacto de WhatsApp, el opt-in y a qué proveedores autorizó que el agente les escriba.",
+    add: "Nuevo importador",
+    empty: "El mundo no tiene importadores.",
+    name: "Importador",
+    phone: "Teléfono",
+    consent: "Opt-in de WhatsApp",
+    authorizations: "Autorización para escribir al proveedor",
+    actions: "Acciones",
+    edit: "Editar",
+    editLabel: (name: string) => `Editar el importador ${name}`,
+    consentAction: "Opt-in",
+    consentLabel: (name: string) => `Opt-in de WhatsApp de ${name}`,
+    authorize: "Autorizaciones",
+    authorizeLabel: (name: string) => `Autorizaciones de ${name}`,
+    noAuthorizations: "Sin autorizaciones",
+  },
+  consent: {
+    none: "Sin opt-in",
+    granted: (at: string, medium: string, version: string) => `Vigente desde ${at} · ${medium} · texto ${version}`,
+    revoked: (at: string) => `Revocado el ${at}`,
+    title: (name: string) => `Opt-in de WhatsApp · ${name}`,
+    lead: "Sin opt-in vigente no sale ningún WhatsApp a este importador. El registro guarda la fecha, el medio y la versión del texto que se le mostró.",
+    medium: "Medio",
+    grantedAt: "Fecha del consentimiento",
+    grantedAtHint: "Hora simulada de Argentina.",
+    textVersion: "Versión del texto mostrado",
+    record: "Registrar opt-in",
+    revokeTitle: "Revocar el opt-in",
+    revokeLead: "El siguiente WhatsApp que intente el agente se deniega por la baja (regla de baja de avisos).",
+    reason: "Motivo (opcional)",
+    revoke: "Revocar opt-in",
+    recorded: "Opt-in registrado.",
+    revoked_: "Opt-in revocado.",
+  },
+  authorization: {
+    title: (name: string) => `Autorizaciones · ${name}`,
+    lead: "Sin autorización del importador el agente no le escribe al proveedor (regla de autorización para escribir al proveedor).",
+    none: "El estudio no tiene proveedores cargados.",
+    authorized: "Autorizado",
+    notAuthorized: "Sin autorización",
+    authorizedSince: (at: string) => `Autorizado desde ${at}`,
+    grant: (supplier: string) => `Autorizar contacto con ${supplier}`,
+    revoke: (supplier: string) => `Quitar autorización de ${supplier}`,
+    grantShort: "Autorizar contacto",
+    revokeShort: "Quitar autorización",
+    saved: "Autorización actualizada.",
+  },
+  importerForm: {
+    newTitle: "Nuevo importador",
+    editTitle: (name: string) => `Editar · ${name}`,
+    name: "Razón social",
+    contactName: "Contacto (nombre y apellido)",
+    contactFirstName: "Nombre de pila del contacto",
+    phone: "Teléfono (formato internacional)",
+    phoneHint: "Con código de país, por ejemplo +5491155500101. Un teléfono pertenece a un solo contacto.",
+    phoneKeep: "Dejalo vacío para no cambiar el teléfono registrado.",
+    phoneInvalid: "Escribí el teléfono en formato internacional: + y entre 8 y 15 dígitos.",
+    submit: "Guardar importador",
+    saved: "Importador guardado.",
+  },
+  suppliers: {
+    title: "Proveedores",
+    description: "Cada proveedor con sus contactos de email, su zona horaria, su idioma y el comportamiento del proveedor simulado.",
+    add: "Nuevo proveedor",
+    empty: "El mundo no tiene proveedores.",
+    name: "Proveedor",
+    timezone: "Zona horaria",
+    language: "Idioma",
+    contacts: "Contactos",
+    behaviour: "Comportamiento simulado",
+    profile: "Perfil medido",
+    noProfile: "Sin mediciones todavía",
+    replies: (hours: string, count: number) => `Responde en ~${hours} h (${count === 1 ? "1 respuesta" : `${count} respuestas`})`,
+    bounces: (count: number) => (count === 1 ? "1 rebote" : `${count} rebotes`),
+    late: (documents: string) => `Suele demorar: ${documents}`,
+    actions: "Acciones",
+    edit: "Editar",
+    editLabel: (name: string) => `Editar el proveedor ${name}`,
+    addContact: "Agregar contacto",
+    addContactLabel: (name: string) => `Agregar un contacto a ${name}`,
+    setBehaviour: "Comportamiento",
+    setBehaviourLabel: (name: string) => `Comportamiento simulado de ${name}`,
+    confirm: "Confirmar",
+    confirmLabel: (email: string) => `Confirmar el contacto ${email}`,
+    noContacts: "Sin contactos",
+    confirmed: "Contacto confirmado.",
+  },
+  supplierForm: {
+    newTitle: "Nuevo proveedor",
+    editTitle: (name: string) => `Editar · ${name}`,
+    name: "Razón social",
+    country: "País (código de 2 letras)",
+    countryInvalid: "Usá el código de 2 letras del país, por ejemplo CN.",
+    timezone: "Zona horaria IANA",
+    timezoneHint: "Por ejemplo Asia/Shanghai: los emails al proveedor respetan su horario hábil.",
+    timezoneInvalid: "Esa zona horaria no existe.",
+    contacts: "Emails de contacto (uno por línea)",
+    contactsHint: "Un contacto cargado por el estudio queda activo. En la demo solo se aceptan buzones simulados del dominio de simulación o el simulador de rebotes de SES.",
+    emailInvalid: "Hay un email con formato inválido.",
+    submit: "Guardar proveedor",
+    saved: "Proveedor guardado.",
+  },
+  contactForm: {
+    title: (name: string) => `Nuevo contacto · ${name}`,
+    email: "Email",
+    hint: "Queda activo, cargado por el estudio. Tiene que pasar el cerco de destinatarios de la demo.",
+    submit: "Agregar contacto",
+    saved: "Contacto agregado.",
+  },
+  behaviourForm: {
+    title: (name: string) => `Comportamiento simulado · ${name}`,
+    lead: "Cómo responde el proveedor simulado a los emails del agente. Solo responde a correo nuestro verificado.",
+    behaviour: "Comportamiento",
+    scope: "Para",
+    allOperations: "Todas sus operaciones",
+    operation: (number: string) => `Solo la operación ${number}`,
+    submit: "Guardar comportamiento",
+    saved: "Comportamiento guardado.",
+  },
+  forms: {
+    close: "Cerrar",
+    cancel: "Cancelar",
+    required: "Completá este campo.",
+  },
+  reasons: {
+    RECIPIENT_NOT_ALLOWED: "Esa dirección no pasa el cerco de destinatarios de la demo: usá un buzón simulado del dominio de simulación o el simulador de rebotes de SES.",
+    CONFLICT: "Ese teléfono o email ya pertenece a otro contacto o a otro estudio.",
+    GUEST_SYNTHETIC_ONLY: "Tu mundo de prueba solo guarda datos ficticios: teléfonos del bloque de numeración de tu mundo (como los de los importadores que ya tiene) y buzones simulados del dominio de simulación.",
+  } as Readonly<Record<string, string>>,
+} as const;
+
+export type RegistryCopy = Widen<typeof es>;
+
+export const mediumEs = {
+  SIGNED_FORM: "Formulario firmado",
+  EMAIL: "Email",
+  IN_PERSON: "En persona",
+} satisfies Record<ConsentMedium, string>;
+
+export const contactStatusEs = {
+  PENDING_CONFIRMATION: "Pendiente de confirmación",
+  ACTIVE: "Activo",
+  BOUNCED: "Rebotado",
+  COMPLAINED: "Con queja",
+} satisfies Record<SupplierContactStatus, string>;
+
+export const behaviourEs = {
+  PROMPT: "Responde enseguida con los documentos correctos",
+  SEEDED_ERROR: "Primero con un error sembrado, después corregido",
+  SEEDED_ERROR_TWICE: "Dos veces con el mismo error, después corregido",
+  LATE: "Responde tarde",
+  NEVER: "No responde",
+  WRONG_DOC: "Manda otro documento en lugar del pedido",
+  UNKNOWN_DOC: "Manda un PDF que el lector no conoce",
+  PROMISE: "Promete mandarlo al día siguiente",
+  AUTO_REPLY: "Respuesta automática de ausencia, después responde",
+  INJECTION: "Intenta inyectar instrucciones",
+  BOUNCE: "Rebota (simulador de SES)",
+  COMPLAINT: "Queja del destinatario (simulador de SES)",
+} satisfies Record<SupplierBehaviour, string>;
+
+export const docTypeEs = {
+  COMMERCIAL_INVOICE: "factura comercial",
+  PACKING_LIST: "packing list",
+  CERTIFICATE_OF_ORIGIN: "certificado de origen",
+} satisfies Record<DocType, string>;
+
+/** The supplier's language as the registry shows it. */
+export const languageEs = { es: "Español", en: "Inglés" } satisfies Record<"es" | "en", string>;

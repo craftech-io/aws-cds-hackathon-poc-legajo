@@ -53,7 +53,7 @@ describe("catalog and matrix", () => {
 
   it("keeps the committed matrix of docs/test-plan.md in step with docs/flows-catalog.md", () => {
     const flows = parseCatalog(readFileSync(resolve(process.cwd(), CATALOG_FILE), "utf8"));
-    expect(flows).toHaveLength(132);
+    expect(flows).toHaveLength(133);
     expect(committedMatrix(readFileSync(resolve(process.cwd(), TEST_PLAN_FILE), "utf8"))).toBe(renderMatrix(flows));
   });
 });
@@ -64,6 +64,7 @@ describe("citations", () => {
     expect(resolveTestPath("U", "reader-mock/reader.test.ts")).toBe("packages/reader-mock/src/reader.test.ts");
     expect(resolveTestPath("U", "views/landing/landing.test.ts")).toBe("packages/web/src/views/landing/landing.test.ts");
     expect(resolveTestPath("U", "infra/policy-rules.test.ts")).toBe("infra/policy-rules.test.ts");
+    expect(resolveTestPath("U", "packages/web/src/lib/console-lang.test.ts")).toBe("packages/web/src/lib/console-lang.test.ts");
     expect(resolveTestPath("U", "shared/legal-versions.test.ts")).toBe("packages/shared/src/legal-versions.test.ts");
     expect(resolveTestPath("UI", "registry.spec.ts")).toBe("packages/web/e2e/registry.spec.ts");
     expect(resolveTestPath("LF", "importer.flow.test.ts")).toBe("tests/flows/importer.flow.test.ts");

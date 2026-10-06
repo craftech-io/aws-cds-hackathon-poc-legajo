@@ -1,8 +1,12 @@
 // Display formatting of the console. Every business date it shows is simulated time of the world
 // (ADR-0007), read in the zone that means something to the reader: Argentina for the firm and the
 // importer, the supplier's own zone for a supplier deadline. Intl only supplies numeric parts and the
-// words (weekdays) come from copy, so the text does not depend on the browser's locale data.
+// words (weekdays, months, the order of day and month) come from copy, so the text does not depend on the
+// browser's locale data. The console's language (lib/console-lang.ts) picks the wording and the number
+// notation: es-AR (`14/10`, `12.480,5`) or English (`14 Oct`, `12,480.5`); the zone never changes.
+import type { Language } from "@legajo/shared";
 import { copy } from "../copy/console";
+import { activeLang } from "./console-lang";
 
 /** Zone of the firm, the importer and every "hora simulada" of the console. */
 export const AR_TIME_ZONE = "America/Argentina/Buenos_Aires";
@@ -68,22 +72,22 @@ export function formatTime(instant: string | Date | number, timeZone: string = A
   return `${pad(wall.hour)}:${pad(wall.minute)}`;
 }
 
-/** "14/10" */
+/** "14/10" (Spanish), "14 Oct" (English). */
 export function formatDayMonth(instant: string | Date | number, timeZone: string = AR_TIME_ZONE): string {
   const wall = wallClockOf(instant, timeZone);
-  return `${pad(wall.day)}/${pad(wall.month)}`;
+  return copy.time.dayMonth(wall.day, wall.month);
 }
 
-/** "mié 14/10 10:30": the simulated hour as the shell and the timelines show it. */
+/** "mié 14/10 10:30" / "Wed 14 Oct 10:30": the simulated hour as the shell and the timelines show it. */
 export function formatSimDateTime(instant: string | Date | number, timeZone: string = AR_TIME_ZONE): string {
   const wall = wallClockOf(instant, timeZone);
-  return `${copy.time.weekdays[wall.weekday] ?? ""} ${pad(wall.day)}/${pad(wall.month)} ${pad(wall.hour)}:${pad(wall.minute)}`;
+  return `${copy.time.weekdays[wall.weekday] ?? ""} ${copy.time.dayMonth(wall.day, wall.month)} ${pad(wall.hour)}:${pad(wall.minute)}`;
 }
 
-/** "14/10/2026 10:30" */
+/** "14/10/2026 10:30" / "14 Oct 2026 10:30" */
 export function formatDateTime(instant: string | Date | number, timeZone: string = AR_TIME_ZONE): string {
   const wall = wallClockOf(instant, timeZone);
-  return `${pad(wall.day)}/${pad(wall.month)}/${wall.year} ${pad(wall.hour)}:${pad(wall.minute)}`;
+  return `${copy.time.dayMonthYear(wall.day, wall.month, wall.year)} ${pad(wall.hour)}:${pad(wall.minute)}`;
 }
 
 /** Whole minutes from `from` to `to` (never negative): "hace X min". */
@@ -95,9 +99,9 @@ export function minutesBetween(fromMs: number, toMs: number): number {
 const READER_NUMBER = /^(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?(?:\s+([A-Za-z%]+))?$/;
 
 /**
- * A value of a reader observation as the console shows it: a number (with its unit, if any) in es-AR
- * notation, since "12,840 kg" reads as twelve kilos in Argentina; anything else ("not signed", a name)
- * as the reader wrote it.
+ * A value of a reader observation as the console shows it: a number (with its unit, if any) in the
+ * notation of the console's language (es-AR: "12,840 kg" reads as twelve kilos in Argentina, so it
+ * becomes "12.840 kg"); anything else ("not signed", a name) as the reader wrote it.
  */
 export function formatReaderValue(raw: string): string {
   const match = READER_NUMBER.exec(raw.trim());
@@ -108,11 +112,15 @@ export function formatReaderValue(raw: string): string {
   return unit === undefined ? number : `${number} ${unit}`;
 }
 
-/** es-AR grouping and decimal comma: 12480 → "12.480", 12480.5 → "12.480,5". */
-export function formatNumber(value: number, fractionDigits = 0): string {
+/**
+ * The marks of a language, the console's by default: es-AR 12480.5 → "12.480,5", English → "12,480.5".
+ * The landing passes its own language: it is not the console's.
+ */
+export function formatNumber(value: number, fractionDigits = 0, lang: Language = activeLang()): string {
+  const [group, decimal] = lang === "en" ? [",", "."] : [".", ","];
   const fixed = Math.abs(value).toFixed(fractionDigits);
   const [whole = "0", fraction] = fixed.split(".");
-  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, group);
   const sign = value < 0 && Number(fixed) !== 0 ? "-" : "";
-  return fraction === undefined ? `${sign}${grouped}` : `${sign}${grouped},${fraction}`;
+  return fraction === undefined ? `${sign}${grouped}` : `${sign}${grouped}${decimal}${fraction}`;
 }

@@ -25,7 +25,10 @@ import {
   useViewerIp,
 } from "../../../tests/ui-server/auth/browser-helpers.ts";
 import { blockExternalRequests } from "./support/assertions";
+import { followProjectLanguage } from "./support/console-lang";
 import { UI_SERVER_URL } from "./support/env";
+
+followProjectLanguage();
 
 // Fixture passwords of the in-memory pool: they never leave this machine.
 const PASSWORD = "Clave-de-Prueba-2026!";

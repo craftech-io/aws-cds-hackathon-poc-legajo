@@ -1,9 +1,12 @@
-// Texts of the operations view (docs/design-brief.md §6, row 1). Rioplatense Spanish, for the firm.
+// Texts of the operations view (docs/design-brief.md §6, row 1), in rioplatense Spanish and English,
+// for the firm. The English has exactly the shape of the Spanish (`satisfies`) and each text resolves
+// to the console's language when it is read (copy/localized.ts).
 import type { DossierStatus } from "@legajo/shared";
+import { localized, type Widen } from "../../copy/localized";
 import type { Risk } from "../dossier/risk";
 import type { SecondActNumber } from "./operations-model";
 
-export const operationsCopy = {
+const es = {
   fictitious: "Empresas, personas, buques y transportistas de esta demo son ficticios.",
   caption: "Operaciones del mundo, con la historia principal primero",
   columns: {
@@ -74,3 +77,79 @@ export const operationsCopy = {
     conflict: "Esa operación ya existe en este mundo.",
   },
 } as const;
+
+export type OperationsCopy = Widen<typeof es>;
+
+const en = {
+  fictitious: "The companies, people, vessels and carriers of this demo are fictitious.",
+  caption: "Operations of the world, main story first",
+  columns: {
+    operation: "Operation",
+    parties: "Importer and supplier",
+    eta: "ETA",
+    toArrival: "To arrival and risk",
+    dossier: "Dossier and escalations",
+    documents: "Documents",
+    control: "Conversation",
+    next: "Next event",
+  },
+  mainStory: "Main story",
+  secondAct: {
+    "4474": "Bounced email to the supplier",
+    "4477": "Document the reader does not recognize",
+    "4478": "Supplier who does not answer",
+    "4487": "Approved dossier: dispatch statuses",
+    "4488": "Dossier ready for review",
+  } satisfies Record<SecondActNumber, string>,
+  vessel: (vessel: string) => `Vessel ${vessel}`,
+  filters: {
+    status: "Dossier status",
+    risk: "Risk",
+    all: "All",
+    statuses: {
+      OPEN: "Open",
+      READY_FOR_REVIEW: "Ready for review",
+      APPROVED: "Approved",
+      REOPENED: "Reopened",
+    } satisfies Record<DossierStatus, string>,
+    risks: {
+      AT_RISK: "At risk",
+      ON_TRACK: "On track",
+      COMPLETE: "Complete",
+    } satisfies Record<Risk, string>,
+  },
+  riskHint: "At risk: the dossier is missing documents 72 h or less before arrival (the world's simulated time).",
+  unknown: "—",
+  toArrival: (days: number, hours: number) => (days > 0 ? `${days} d ${hours} h` : `${hours} h`),
+  arrived: "Already arrived",
+  next: {
+    none: "No pending events",
+    later: (date: string) => `After ${date}`,
+  },
+  escalationsOpen: (count: number) => (count === 1 ? "1 open escalation" : `${count} open escalations`),
+  processError: "Process error",
+  openDossier: (number: string) => `Open the dossier of operation ${number}`,
+  empty: {
+    title: "No operations in this world yet",
+    lead: "Create one with “New operation” from its number in the customs management platform.",
+  },
+  emptyFiltered: {
+    title: "No operation matches the filters",
+    lead: "Change the status, the risk or the ETA range.",
+  },
+  create: {
+    open: "New operation",
+    title: "New operation from the platform",
+    lead: "The firm brings the operation from the customs management platform (simulated) by its number: the dossier is created with its three documents and the five milestones relative to the ETA.",
+    number: "Operation number",
+    numberHint: "Four digits, as shown on the platform.",
+    invalid: "The number must have four digits.",
+    submit: "Create operation",
+    working: "Creating…",
+    close: "Close",
+    notFound: "The platform has no operation with that number for this firm.",
+    conflict: "That operation already exists in this world.",
+  },
+} satisfies OperationsCopy;
+
+export const operationsCopy: OperationsCopy = localized({ es, en });

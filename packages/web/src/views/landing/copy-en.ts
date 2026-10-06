@@ -276,5 +276,5 @@ export const en: LandingCopy = {
   },
   labels: labelsEn,
   observation: (code: ObservationCode): string => OBSERVATION_LABELS[code].en,
-  kg: (value: number): string => `${formatNumber(value).replace(/\./g, ",")} kg`,
+  kg: (value: number): string => `${formatNumber(value, 0, "en")} kg`,
 };

@@ -1,8 +1,9 @@
 // Texts shared by the data-driven views: loading and error states and the refusal of each BFF
-// `reason` (packages/bff/src/auth/errors.ts and the routers). The server messages are English and
-// technical; what the broker reads comes from here.
+// `reason` (packages/bff/src/auth/errors.ts and the routers), in Spanish and English (copy/localized.ts).
+// The server messages are English and technical; what the broker reads comes from here.
+import { localized, type Widen } from "./localized";
 
-export const dataCopy = {
+const es = {
   loading: "Cargando…",
   updating: "Actualizando…",
   retry: "Reintentar",
@@ -36,3 +37,42 @@ export const dataCopy = {
     WORLD_BUSY: "El mundo está ocupado: esperá a que termine lo que está en curso y volvé a intentar.",
   } as Readonly<Record<string, string>>,
 } as const;
+
+export type DataCopy = Widen<typeof es>;
+
+const en = {
+  loading: "Loading…",
+  updating: "Updating…",
+  retry: "Retry",
+  reference: "Reference code",
+  recentLogin: {
+    confirm: "Confirm with my password",
+  },
+  unauthorized: {
+    signIn: "Sign in again",
+  },
+  byKind: {
+    recentLogin: "Approving or reopening a dossier requires having signed in with your password in the last 15 minutes.",
+    unauthorized: "Your session expired. Sign in again.",
+    forbidden: "Your role cannot access this information or action.",
+    notFound: "We could not find what you were looking for.",
+    conflict: "Someone already resolved this or it changed while you were looking at it. Refresh and try again.",
+    invalid: "The data did not pass validation.",
+    precondition: "This action cannot be done in the current state.",
+    unavailable: "The service did not respond. Try again in a few seconds.",
+    network: "We could not reach the console. Check your connection and try again.",
+    unknown: "Something went wrong. If it happens again, give the reference code to the technical team.",
+  },
+  byReason: {
+    LOGIN_NOT_RECENT: "More than 15 minutes have passed since you signed in. Confirm your password to continue.",
+    ROLE_NOT_ALLOWED: "Your role cannot take this action.",
+    CROSS_FIRM: "That data does not belong to your firm.",
+    INPUT_TOO_LARGE: "The request covers too much data at once. Narrow the selection and try again.",
+    BROKER_INACTIVE: "Your user is no longer active in the firm.",
+    PRINCIPAL_INCOMPLETE: "Your user does not have a firm or a role assigned yet.",
+    AUTH_UNAVAILABLE: "The sign-in service did not respond. Try again in a few seconds.",
+    WORLD_BUSY: "The world is busy: wait for what is in progress to finish and try again.",
+  },
+} satisfies DataCopy;
+
+export const dataCopy: DataCopy = localized({ es, en });

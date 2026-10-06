@@ -1,9 +1,12 @@
 // Texts of the bitácora (`/app/audit`, docs/design-brief.md §6, FL-086) and the words the firm reads
-// for what the audit log stores as codes: decisions, actions, turn triggers and actors. An action the
-// map does not know yet reads as plain lowercase words, never as its raw code.
+// for what the audit log stores as codes: decisions, actions, turn triggers and actors, in Spanish and
+// English (copy/localized.ts: the English has exactly the Spanish shape and the console's language
+// picks one at render time). An action the map does not know yet reads as plain lowercase words, never
+// as its raw code.
 import type { AuditDecision, TurnTrigger } from "@legajo/shared";
+import { localized, type Widen } from "../../copy/localized";
 
-export const auditCopy = {
+const es = {
   counters: {
     title: "Resumen de la política",
     violations: "Violaciones de política",
@@ -45,25 +48,94 @@ export const auditCopy = {
   },
 } as const;
 
-export const DECISION_LABELS: Readonly<Record<AuditDecision, string>> = {
+export type AuditCopy = Widen<typeof es>;
+
+const en = {
+  counters: {
+    title: "Policy summary",
+    violations: "Policy violations",
+    violationsHint: "It must be 0: a send with no allowed decision, or one the policy, re-evaluated later, would have denied.",
+    denied: "Denied decisions",
+    deferred: "Deferred decisions",
+    evidenceHint: "The policy stopping the agent is the evidence next to the 0.",
+  },
+  byRule: {
+    title: "Denied and deferred decisions by rule",
+    description: "How many times each rule stopped or deferred a send in this world.",
+    empty: "No rule has denied or deferred a send in this world yet.",
+    rule: "Rule",
+    denied: "Denied",
+    deferred: "Deferred",
+  },
+  list: {
+    title: "Decisions",
+    description: "Every decision with the rule applied, the event that triggered it and who made it, newest first.",
+    empty: "No decisions match these filters.",
+    at: "Time",
+    decision: "Decision",
+    action: "What",
+    rules: "Rules",
+    trigger: "Trigger",
+    actor: "Who",
+    operation: "Operation",
+    noRules: "No rules",
+  },
+  filters: {
+    label: "Audit log filters",
+    operation: "Operation",
+    allOperations: "All operations",
+    decision: "Decision",
+    rule: "Rule",
+    allRules: "All rules",
+    actor: "Who",
+    allActors: "Everyone",
+  },
+} satisfies AuditCopy;
+
+export const auditCopy: AuditCopy = localized({ es, en });
+
+const decisionEs = {
   ALLOW: "Permitido",
   DENY: "Denegado",
   DEFER: "Diferido",
   ACTION: "Acción",
   VIOLATION: "Violación",
-};
+} satisfies Record<AuditDecision, string>;
 
-/** Plural labels of the decision filter. */
-export const DECISION_FILTER_LABELS: Readonly<Record<AuditDecision | "ALL", string>> = {
+export const DECISION_LABELS: Readonly<Record<AuditDecision, string>> = localized({
+  es: decisionEs,
+  en: {
+    ALLOW: "Allowed",
+    DENY: "Denied",
+    DEFER: "Deferred",
+    ACTION: "Action",
+    VIOLATION: "Violation",
+  } satisfies Widen<typeof decisionEs>,
+});
+
+const decisionFilterEs = {
   ALL: "Todas",
   ALLOW: "Permitidas",
   DENY: "Denegadas",
   DEFER: "Diferidas",
   ACTION: "Acciones",
   VIOLATION: "Violaciones",
-};
+} satisfies Record<AuditDecision | "ALL", string>;
 
-export const TRIGGER_LABELS: Readonly<Record<TurnTrigger, string>> = {
+/** Plural labels of the decision filter. */
+export const DECISION_FILTER_LABELS: Readonly<Record<AuditDecision | "ALL", string>> = localized({
+  es: decisionFilterEs,
+  en: {
+    ALL: "All",
+    ALLOW: "Allowed",
+    DENY: "Denied",
+    DEFER: "Deferred",
+    ACTION: "Actions",
+    VIOLATION: "Violations",
+  } satisfies Widen<typeof decisionFilterEs>,
+});
+
+const triggerEs = {
   IMPORTER_MESSAGE: "Mensaje del importador",
   SUPPLIER_EMAIL: "Email del proveedor",
   DOCUMENT_READ: "Documento leído",
@@ -74,12 +146,28 @@ export const TRIGGER_LABELS: Readonly<Record<TurnTrigger, string>> = {
   UPLOAD_COMPLETED: "Carga por link",
   BROKER_RELEASED: "Devuelto al agente",
   FOLLOWUP_DUE: "Seguimiento agendado",
-};
+} satisfies Record<TurnTrigger, string>;
+
+export const TRIGGER_LABELS: Readonly<Record<TurnTrigger, string>> = localized({
+  es: triggerEs,
+  en: {
+    IMPORTER_MESSAGE: "Importer message",
+    SUPPLIER_EMAIL: "Supplier email",
+    DOCUMENT_READ: "Document read",
+    MILESTONE: "Milestone",
+    ETA_CHANGED: "ETA change",
+    EMAIL_BOUNCED: "Email bounced",
+    CONTACT_CONFIRMED: "Contact confirmed",
+    UPLOAD_COMPLETED: "Upload by link",
+    BROKER_RELEASED: "Handed back to the agent",
+    FOLLOWUP_DUE: "Scheduled follow-up",
+  } satisfies Widen<typeof triggerEs>,
+});
 
 /** Who acted, grouped the way the filter offers it (`BROKER:<id>` is "Estudio"). */
 export type ActorKind = "AGENT" | "SYSTEM" | "IMPORTER" | "SUPPLIER" | "FIRM" | "SEED" | "QA";
 
-export const ACTOR_LABELS: Readonly<Record<ActorKind, string>> = {
+const actorEs = {
   AGENT: "Agente",
   SYSTEM: "Sistema (código determinista)",
   IMPORTER: "Importador",
@@ -87,9 +175,22 @@ export const ACTOR_LABELS: Readonly<Record<ActorKind, string>> = {
   FIRM: "Persona del estudio",
   SEED: "Datos sembrados",
   QA: "Ejecutor de escenarios",
-};
+} satisfies Record<ActorKind, string>;
 
-export const ACTION_LABELS: Readonly<Record<string, string>> = {
+export const ACTOR_LABELS: Readonly<Record<ActorKind, string>> = localized({
+  es: actorEs,
+  en: {
+    AGENT: "Agent",
+    SYSTEM: "System (deterministic code)",
+    IMPORTER: "Importer",
+    SUPPLIER: "Supplier",
+    FIRM: "Firm member",
+    SEED: "Seeded data",
+    QA: "Scenario runner",
+  } satisfies Widen<typeof actorEs>,
+});
+
+const actionEs = {
   SEND_WHATSAPP: "WhatsApp al importador",
   SEND_EMAIL: "Email al proveedor",
   CONSENT_GRANTED: "Opt-in registrado",
@@ -125,4 +226,45 @@ export const ACTION_LABELS: Readonly<Record<string, string>> = {
   UNKNOWN_SENDER: "Remitente no registrado",
   UNTRUSTED_SENDER: "Remitente no confiable",
   SIM_UNTRUSTED: "Correo ajeno al simulador",
-};
+} as Readonly<Record<string, string>>;
+
+export const ACTION_LABELS: Readonly<Record<string, string>> = localized({
+  es: actionEs,
+  en: {
+    SEND_WHATSAPP: "WhatsApp to the importer",
+    SEND_EMAIL: "Email to the supplier",
+    CONSENT_GRANTED: "Opt-in recorded",
+    CONSENT_REVOKED: "Opt-in revoked",
+    CONTACT_CONFIRMED: "Contact confirmed",
+    OPERATION_CREATED: "Operation created",
+    DOCUMENT_READ: "Document read",
+    TIMER_FIRED: "Timer fired",
+    MILESTONE_FIRED: "Milestone fired",
+    SKIPPED: "No action (no longer needed)",
+    ETA_RESCHEDULED: "Milestones rescheduled for the ETA",
+    GUARDRAIL_BLOCK: "Guardrail block",
+    GUARDRAIL_MASK: "Data masked by the guardrail",
+    APPROVED: "Dossier approved",
+    REOPENED: "Dossier reopened",
+    WAIVED: "Observation waived",
+    TAKEOVER: "Conversation taken over",
+    RELEASE: "Conversation handed back to the agent",
+    CLOCK_ADVANCED: "Clock advanced",
+    CLOCK_FORCED: "Clock advanced with the world busy",
+    WORLD_CREATED: "World created",
+    WORLD_RESET: "Demo reset",
+    SIM_REPLY: "Reply from the simulated supplier",
+    SEED_LOADED: "Data loaded",
+    EVENT_DEAD_LETTERED: "Event with a processing error",
+    TURN_CAP: "Turn cap",
+    AGENT_FALLBACK: "Fallback send of the first request",
+    AGENT_REFUSAL: "The agent referred it to the firm",
+    CROSS_FIRM: "Data from another firm",
+    INPUT_TOO_LARGE: "Request too large",
+    ROLE_NOT_ALLOWED: "Role not allowed",
+    RATE_LIMIT: "Hourly message limit",
+    UNKNOWN_SENDER: "Unregistered sender",
+    UNTRUSTED_SENDER: "Untrusted sender",
+    SIM_UNTRUSTED: "Mail from outside the simulator",
+  } satisfies Widen<typeof actionEs>,
+});

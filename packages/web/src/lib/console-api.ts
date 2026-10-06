@@ -1,7 +1,7 @@
 // Procedures of the shell (`clock` and `account`), called through the typed `AppRouter` client and
 // validated with zod, like every edge of the console. The shapes below are the contract the shell
 // relies on; the routers may answer more fields (the clock view reads the next events), never fewer.
-import { IsoInstant } from "@legajo/shared";
+import { IsoInstant, Language } from "@legajo/shared";
 import { z } from "zod";
 import type { ConsoleClient } from "./trpc";
 import { type ClockMove, ClockSnapshot, moveRequest } from "./world-clock";
@@ -36,4 +36,19 @@ export type AccountSession = z.infer<typeof AccountSession>;
 export async function fetchAccountSession(trpc: ConsoleClient, signal?: AbortSignal): Promise<AccountSession> {
   const raw = await trpc.account.session.query(undefined, signal ? { signal } : undefined);
   return AccountSession.parse(raw);
+}
+
+/** `account.preferences`: the language the account chose, `null` while it never did. */
+export const AccountPreferences = z.looseObject({ language: Language.nullable() });
+export type AccountPreferences = z.infer<typeof AccountPreferences>;
+
+export async function fetchAccountPreferences(trpc: ConsoleClient, signal?: AbortSignal): Promise<AccountPreferences> {
+  const raw = await trpc.account.preferences.query(undefined, signal ? { signal } : undefined);
+  return AccountPreferences.parse(raw);
+}
+
+/** `account.setLanguage`: keeps the language with the account, so it follows the user to every device. */
+export async function saveAccountLanguage(trpc: ConsoleClient, language: Language): Promise<AccountPreferences> {
+  const raw = await trpc.account.setLanguage.mutate({ language });
+  return AccountPreferences.parse(raw);
 }

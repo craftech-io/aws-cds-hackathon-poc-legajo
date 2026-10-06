@@ -13,7 +13,10 @@ import { WELCOME_TIMING } from "../src/views/auth/welcome-model.ts";
 import { localTime, quotaMessage } from "../src/views/auth/quota.ts";
 import { createVerifiedGuest, expireWorld, inLang, routeCognitoToServer, setDemoFull, specLang, testMailbox, testViewerIp, useViewerIp } from "../../../tests/ui-server/auth/browser-helpers.ts";
 import { blockExternalRequests } from "./support/assertions";
+import { followProjectLanguage } from "./support/console-lang";
 import { UI_SERVER_URL } from "./support/env";
+
+followProjectLanguage();
 
 // Fixture password of the in-memory pool: it never leaves this machine.
 const PASSWORD = "Clave-de-Prueba-2026!";
@@ -151,10 +154,10 @@ test.describe("[FL-111] cuotas de uso por mundo", () => {
       await route.fulfill({ status: 207, contentType: "application/json", body: JSON.stringify(paths.map((path, index) => (path === "clock.get" ? quotaError(path, quota) : items[index]))) });
     });
     await page.reload();
-    const notice = page.getByRole("alert").filter({ hasText: quotaMessage(AUTH_COPY.es, quota) });
+    const notice = page.getByRole("alert").filter({ hasText: quotaMessage(AUTH_COPY[lang], quota) });
     await expect(notice).toBeVisible();
     await expect(notice).toContainText(localTime(quota.resetsAtReal));
-    await notice.getByRole("button", { name: AUTH_COPY.es.quota.dismiss }).click();
+    await notice.getByRole("button", { name: AUTH_COPY[lang].quota.dismiss }).click();
     await expect(notice).toHaveCount(0);
   });
 

@@ -22,9 +22,12 @@ import { dossierCopy } from "../src/views/dossier/copy.ts";
 import { controlLabel } from "../src/views/dossier/labels.ts";
 import { operationsCopy } from "../src/views/operations/copy.ts";
 import { blockExternalRequests } from "./support/assertions";
+import { followProjectLanguage } from "./support/console-lang";
 import { UI_SERVER_URL } from "./support/env";
 import { signJwt } from "./support/keys";
 import { TOKENS_KEY } from "./support/session";
+
+followProjectLanguage();
 
 // Fixture password of the in-memory user pool: it never leaves this machine.
 const PASSWORD = "Clave-de-Prueba-2026!";

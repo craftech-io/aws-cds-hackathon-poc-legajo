@@ -32,9 +32,9 @@ describe("docs/flows-catalog.md", () => {
     expect(sections).toEqual(Object.keys(FLOW_AREAS));
   });
 
-  it("numbers 132 flows FL-001 … FL-132, each under an area", () => {
+  it("numbers 133 flows FL-001 … FL-133, each under an area", () => {
     const ids = [...CATALOG.matchAll(/^### (FL-\d{3}) · /gm)].map((match) => match[1] ?? "");
-    expect(ids).toEqual(Array.from({ length: 132 }, (_, index) => `FL-${String(index + 1).padStart(3, "0")}`));
+    expect(ids).toEqual(Array.from({ length: 133 }, (_, index) => `FL-${String(index + 1).padStart(3, "0")}`));
     for (const id of ids) expect(FlowId.safeParse(id).success).toBe(true);
     expect(CATALOG.indexOf("## Área A")).toBeLessThan(CATALOG.indexOf("### FL-001"));
   });
@@ -47,7 +47,7 @@ describe("docs/test-plan.md matrix", () => {
   });
 
   it("every SR and SMK cell cites valid step references", () => {
-    expect(MATRIX).toHaveLength(132);
+    expect(MATRIX).toHaveLength(133);
     const refs = MATRIX.flatMap((cells) => [cells[5], cells[6]]).flatMap((cell) => [...(cell ?? "").matchAll(/`([^`]+)`/g)].map((match) => match[1] ?? ""));
     expect(refs.length).toBeGreaterThan(100);
     expect(refs.filter((ref) => !ScenarioStepRef.safeParse(ref).success)).toEqual([]);

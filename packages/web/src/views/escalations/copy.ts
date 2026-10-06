@@ -1,6 +1,9 @@
-// Texts of the escalations inbox (docs/design-brief.md §6, row 3). Rioplatense Spanish, for the firm.
+// Texts of the escalations inbox (docs/design-brief.md §6, row 3), in rioplatense Spanish and English,
+// for the firm. The English has exactly the shape of the Spanish (`satisfies`) and each text resolves
+// to the console's language when it is read (copy/localized.ts).
+import { localized, type Widen } from "../../copy/localized";
 
-export const escalationsCopy = {
+const es = {
   caption: "Escalamientos abiertos, el más antiguo primero",
   filter: "Motivo",
   all: "Todos",
@@ -38,3 +41,46 @@ export const escalationsCopy = {
     close: "Cerrar",
   },
 } as const;
+
+export type EscalationsCopy = Widen<typeof es>;
+
+const en = {
+  caption: "Open escalations, oldest first",
+  filter: "Reason",
+  all: "All",
+  columns: {
+    operation: "Operation",
+    reason: "Reason",
+    summary: "Summary",
+    opened: "Opened",
+    by: "By",
+  },
+  openFor: (days: number, hours: number) => (days > 0 ? `${days} d ${hours} h ago` : `${hours} h ago`),
+  empty: {
+    title: "No open escalations",
+    lead: "When the agent or the system hands something over to the firm, it shows up here with its reason.",
+  },
+  emptyFiltered: "No open escalation with that reason",
+  open: (number: string) => `Escalation of operation ${number}`,
+  drawer: {
+    operation: (number: string) => `Operation ${number}`,
+    reason: "Reason",
+    summary: "Summary",
+    noSummary: "No summary.",
+    opened: (when: string, by: string) => `Opened on ${when} by ${by}`,
+    viewDossier: "View the dossier",
+    take: "Take over the conversation",
+    taking: "Taking over…",
+    takeLead: "Taking over the conversation pauses the agent on this operation and opens the dossier to write to the importer.",
+    resolveTitle: "Resolve",
+    resolution: "How it was resolved",
+    resolutionHint: "It is recorded in the audit log with your user and the simulated time.",
+    resolutionRequired: "Write how it was resolved.",
+    resolve: "Resolve",
+    resolving: "Resolving…",
+    resolved: "Escalation resolved.",
+    close: "Close",
+  },
+} satisfies EscalationsCopy;
+
+export const escalationsCopy: EscalationsCopy = localized({ es, en });

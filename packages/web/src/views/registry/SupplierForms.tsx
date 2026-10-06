@@ -78,7 +78,13 @@ export function ContactForm({ supplier, onSaved, onClose }: FormProps & { readon
   );
 }
 
-const BEHAVIOUR_OPTIONS = SupplierBehaviour.options.map((value) => ({ value, label: BEHAVIOUR_LABELS[value] }));
+// The label is a getter so the options follow the console's language after import.
+const BEHAVIOUR_OPTIONS = SupplierBehaviour.options.map((value) => ({
+  value,
+  get label() {
+    return BEHAVIOUR_LABELS[value];
+  },
+}));
 const ALL = "ALL";
 
 interface BehaviourFormProps extends FormProps {
