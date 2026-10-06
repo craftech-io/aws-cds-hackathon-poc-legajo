@@ -197,8 +197,8 @@ PDFs included, is deleted with the world when it expires or when deletion is req
 
 ## License
 
-Copyright © 2026 Craftech. All rights reserved. The source is published so it can be read and
-evaluated; it is not open source, and no license to use, copy, modify or distribute it is granted.
+[Apache License 2.0](LICENSE). Copyright 2026 Craftech; see [NOTICE](NOTICE). The license does not
+grant use of the SIDOM or Craftech names and logos.
 
 ## Submission notes
 

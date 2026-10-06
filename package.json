@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Legajo listo: coordination agent for customs brokerage firms in Latin America (AWS CDS Agentic AI Partner Hackathon submission by Craftech)",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "type": "module",
   "engines": {
     "node": "22.14.0",
