@@ -2,7 +2,8 @@
 // shapes fed by one array (tour-steps.ts). From 1024 px, the steps on the left and a sticky stage on
 // the right whose visual changes with the step in the middle of the screen (one IntersectionObserver;
 // a View Transition where it exists, a CSS cross-fade otherwise), with the route line filling as it
-// scrolls. From 768 px, stacked cards, visual above text. Below, a swipeable carousel with scroll-snap,
+// scrolls. From 768 px the step numbers (TourPills) stay stuck under the header, the current one filled,
+// until the last step has gone by. From 768 px, stacked cards, visual above text. Below, a swipeable carousel with scroll-snap,
 // previous and next buttons and "Paso 3 de 8". Neither the stage nor a carousel step ever cuts or
 // scrolls its visual: FitToSlot scales it to the stage's box (centred) or to 56 % of the viewport's
 // height. With reduced motion or paused animations the visual cuts straight to the next step and every
@@ -18,6 +19,7 @@ import { TOUR_STEPS, type TourStep, clampStep, routeProgress, stepAnchor } from 
 import { FitToSlot } from "./FitToSlot";
 import { GlossProvider } from "./gloss";
 import { StepText, VisualFooter } from "./TourParts";
+import { TourPills } from "./TourPills";
 import { StepVisual } from "./TourVisuals";
 
 type ViewTransitionDocument = Document & { startViewTransition?: (callback: () => void) => { readonly ready: Promise<void>; readonly finished: Promise<void> } };
@@ -70,19 +72,8 @@ function StickyTour() {
   return (
     <div className="grid grid-cols-12 gap-10">
       <div className="col-span-5">
-        <nav aria-label={tour.stepsLabel}>
-          <ol className="flex flex-wrap gap-1">
-            {TOUR_STEPS.map((candidate, index) => (
-              <li key={candidate.id}>
-                <a href={`#${stepAnchor(candidate.id)}`} aria-current={index === active ? "step" : undefined} className={`flex h-11 w-11 items-center justify-center rounded-full font-display text-sm font-semibold ${index === active ? "bg-signal text-harbor-950" : "text-foam-muted hover:text-foam"}`}>
-                  <span className="sr-only">{tour.stepLabel(index + 1, TOUR_STEPS.length)}</span>
-                  <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-                </a>
-              </li>
-            ))}
-          </ol>
-        </nav>
-        <div className="tour-steps relative mt-6 pl-10">
+        <TourPills active={active} />
+        <div className="tour-steps relative mt-4 pl-10">
           <span aria-hidden="true" className="route-dots absolute bottom-0 left-3 top-0 w-0.5" />
           <span
             aria-hidden="true"
@@ -100,7 +91,7 @@ function StickyTour() {
               data-step={index}
               aria-labelledby={`${stepAnchor(candidate.id)}-title`}
               aria-current={index === active ? "step" : undefined}
-              className="flex min-h-[72vh] scroll-mt-24 items-center"
+              className="flex min-h-[72vh] scroll-mt-36 items-center"
             >
               <StepText step={candidate} index={index} headingId={`${stepAnchor(candidate.id)}-title`} active={index === active} />
             </article>
@@ -130,12 +121,22 @@ function StickyTour() {
   );
 }
 
-function StackedStep({ step, index }: { readonly step: TourStep; readonly index: number }) {
+function StackedStep({ step, index, current, register }: { readonly step: TourStep; readonly index: number; readonly current: boolean; readonly register: (element: HTMLElement | null) => void }) {
   const { animate } = useMotion();
-  const ref = useRef<HTMLElement>(null);
+  const ref = useRef<HTMLElement | null>(null);
   const seen = useInView(ref, { threshold: 0.5, once: true });
   return (
-    <article ref={ref} id={stepAnchor(step.id)} aria-labelledby={`${stepAnchor(step.id)}-title`} className="rounded-panel border border-harbor-700 bg-harbor-900/60 p-6">
+    <article
+      ref={(element) => {
+        ref.current = element;
+        register(element);
+      }}
+      id={stepAnchor(step.id)}
+      data-step={index}
+      aria-labelledby={`${stepAnchor(step.id)}-title`}
+      aria-current={current ? "step" : undefined}
+      className="scroll-mt-36 rounded-panel border border-harbor-700 bg-harbor-900/60 p-6"
+    >
       <div data-reveal="">
         <div data-step-visual={step.id}>
           <StepVisual id={step.id} play={animate && seen} />
@@ -146,6 +147,30 @@ function StackedStep({ step, index }: { readonly step: TourStep; readonly index:
         <StepText step={step} index={index} headingId={`${stepAnchor(step.id)}-title`} />
       </div>
     </article>
+  );
+}
+
+/** From 768 px: the cards one under another, with the step numbers stuck under the header while they go by. */
+function StackedTour() {
+  const articles = useRef<(HTMLElement | null)[]>([]);
+  const active = useActiveStep(articles, MIDDLE_BAND);
+  return (
+    <div>
+      <TourPills active={active} />
+      <div className="mt-4 flex flex-col gap-6">
+        {TOUR_STEPS.map((step, index) => (
+          <StackedStep
+            key={step.id}
+            step={step}
+            index={index}
+            current={index === active}
+            register={(element) => {
+              articles.current[index] = element;
+            }}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -238,11 +263,7 @@ export function TourSection() {
         {desktop ? (
           <StickyTour />
         ) : tablet ? (
-          <div className="flex flex-col gap-6">
-            {TOUR_STEPS.map((step, index) => (
-              <StackedStep key={step.id} step={step} index={index} />
-            ))}
-          </div>
+          <StackedTour />
         ) : (
           <CarouselTour />
         )}

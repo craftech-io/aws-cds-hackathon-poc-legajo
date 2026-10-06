@@ -15,6 +15,7 @@ import { Icon } from "./icons";
 import { LangSwitch, useLandingCopy } from "./lang";
 import { EXTERNAL_LINK, SIGN_IN_PATH, contactHref, signupHref } from "./links";
 import { useMotion } from "./motion/MotionContext";
+import { useActiveSection } from "./scroll-spy";
 
 const SECTION_LINKS = ["tour", "guarantees", "integrations", "architecture", "faq"] as const;
 
@@ -49,7 +50,12 @@ function PauseButton({ withText }: { readonly withText: boolean }) {
   );
 }
 
-function MenuPanel({ id, onClose }: { readonly id: string; readonly onClose: () => void }) {
+/** The current section's link: `aria-current="location"` and a filled pill (a shape, not only a colour). */
+function sectionLinkProps(anchor: string, active: string | undefined) {
+  return anchor === active ? { "aria-current": "location" as const } : {};
+}
+
+function MenuPanel({ id, active, onClose }: { readonly id: string; readonly active: string | undefined; readonly onClose: () => void }) {
   const { nav, cta } = useLandingCopy();
   const panel = useRef<HTMLDivElement>(null);
 
@@ -83,7 +89,8 @@ function MenuPanel({ id, onClose }: { readonly id: string; readonly onClose: () 
         <ul className="flex flex-col py-2">
           {SECTION_LINKS.map((anchor) => (
             <li key={anchor}>
-              <a href={`#${anchor}`} onClick={onClose} className="flex min-h-11 items-center text-base font-semibold text-foam hover:text-signal">
+              <a href={`#${anchor}`} onClick={onClose} {...sectionLinkProps(anchor, active)} className={`flex min-h-11 items-center gap-2 text-base font-semibold hover:text-signal ${anchor === active ? "text-signal" : "text-foam"}`}>
+                <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${anchor === active ? "bg-signal" : "bg-transparent"}`} />
                 {nav[anchor]}
               </a>
             </li>
@@ -111,6 +118,7 @@ export function Header() {
   const [past, setPast] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const menuId = useId();
+  const active = useActiveSection(SECTION_LINKS);
 
   // The border appears once the hero has scrolled away (one observer on the hero's sentinel).
   useEffect(() => {
@@ -145,7 +153,7 @@ export function Header() {
           <ul className="flex items-center gap-1">
             {SECTION_LINKS.map((anchor) => (
               <li key={anchor}>
-                <a href={`#${anchor}`} className="inline-flex min-h-11 items-center whitespace-nowrap rounded-pill px-2.5 text-sm font-semibold text-foam-muted hover:text-foam">
+                <a href={`#${anchor}`} {...sectionLinkProps(anchor, active)} className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-pill px-2 text-sm font-semibold ${anchor === active ? "bg-harbor-800 text-foam" : "text-foam-muted hover:text-foam"}`}>
                   {nav[anchor]}
                 </a>
               </li>
@@ -174,7 +182,7 @@ export function Header() {
         </button>
       </div>
       <span aria-hidden="true" className={`block h-px bg-harbor-700 transition-opacity duration-300 ${past ? "opacity-100" : "opacity-0"}`} />
-      {open ? <MenuPanel id={menuId} onClose={closeMenu} /> : null}
+      {open ? <MenuPanel id={menuId} active={active} onClose={closeMenu} /> : null}
     </header>
   );
 }
