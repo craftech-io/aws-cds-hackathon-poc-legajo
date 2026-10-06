@@ -44,7 +44,7 @@ export function NavMenu() {
     <nav aria-label={copy.app.navigation} className="flex shrink-0 flex-col bg-navy px-3 py-3 md:w-60 md:py-5">
       <div className="hidden space-y-2 px-3 md:block">
         <p>
-          <LegajoWordmark tone="dark" size="lg" />
+          <LegajoWordmark tone="dark" size="md" />
         </p>
         <p className="text-xs text-cyan">{copy.app.tagline}</p>
       </div>
