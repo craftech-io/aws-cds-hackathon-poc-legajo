@@ -4,7 +4,7 @@
 // through the console), a clone of op-4473 (importer without opt-in) and one of op-4472 (no
 // authorization to write to the supplier). The registry refuses a supplier address outside the fence.
 import { SENT_STATUSES, decisions, openEscalations, outbound } from "./lib/asserts";
-import type { ConsoleAction } from "./lib/console";
+import { type ConsoleAction, consoleQuery } from "./lib/console";
 import { importerSays, tap } from "./lib/flows";
 import { type ScenarioContext, defineScenario } from "./lib/steps";
 import { advanceTo, awaitState, createWorld, opOf, worldOf } from "./lib/world";
@@ -49,7 +49,10 @@ export const sc16 = defineScenario({
         await ctx.qa("console", { procedure: "registry.consent.record", input: { clockId: worldOf(ctx).clockId, importerId: d.importerId, medium: "SIGNED_FORM", grantedAt: START, textVersion: CONSENT_TEXT_VERSION } });
         const settled = await ctx.settled(d.operationId);
         ctx.check(settled.parties.consent !== null && settled.parties.consent.revokedAt === null, "the opt-in is in force");
-        ctx.check(decisions(settled, { action: "CONSENT_GRANTED" }).length === 1, "CONSENT_GRANTED is audited");
+        // The opt-in is the importer's, not an operation's: its decision carries the importer and no
+        // operation, so it is read from the world's audit log, not from the operation's snapshot.
+        const audited = await consoleQuery(ctx, "audit", "list", { clockId: worldOf(ctx).clockId, decision: "ACTION", limit: 200 });
+        ctx.check(audited.decisions.filter((row) => row.action === "CONSENT_GRANTED" && row.refs.importerId === d.importerId).length === 1, "CONSENT_GRANTED is audited");
       },
     },
     {

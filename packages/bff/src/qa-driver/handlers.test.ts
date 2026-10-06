@@ -122,6 +122,17 @@ describe("QaDriver actions over stored state", () => {
     expect(events.at(-1)).toMatchObject({ type: "OUTBOUND_SEND", kind: "BROKER_MESSAGE", author: "BROKER:brk-qa-runner" });
   });
 
+  it("[FL-001] finds the opt-in it records in the world's audit log, by importer (it belongs to no operation)", async () => {
+    const { driver } = await setup();
+    const importerId = "imp-qa-812-1-sc01-a";
+    const record = { procedure: "registry.consent.record", input: { clockId: QA_CLOCK, importerId, medium: "SIGNED_FORM", grantedAt: START_SIM, textVersion: "v1" } };
+    expect(await driver({ action: "console", idempotencyKey: key(8), input: record })).toMatchObject({ ok: true });
+    const listed = await driver({ action: "console", idempotencyKey: key(8, "b"), input: { procedure: "audit.list", input: { clockId: QA_CLOCK, decision: "ACTION", limit: 200 } } });
+    const decisions = (listed as { result: { decisions: Array<{ action: string; operationId?: string; refs: { importerId?: string } }> } }).result.decisions;
+    expect(decisions.filter((row) => row.action === "CONSENT_GRANTED" && row.refs.importerId === importerId)).toMatchObject([{ actor: "BROKER:brk-qa-runner" }]);
+    expect(decisions.find((row) => row.action === "CONSENT_GRANTED")?.operationId).toBeUndefined();
+  });
+
   it("inspects the Memory actor and session of an operation", async () => {
     const seen: string[] = [];
     const memory = {
