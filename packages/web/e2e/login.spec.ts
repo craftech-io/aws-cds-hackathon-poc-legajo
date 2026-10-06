@@ -163,21 +163,6 @@ test.describe("[FL-079] login propio y tokens de 15 minutos", () => {
     await expectNoRawCodes(page);
   });
 
-  test("[FL-079] a guest whose world another session used in the last 2 hours sees the fixed notice, without a reset", async ({ page }) => {
-    const lastActiveAtReal = new Date(Date.now() - 12 * 60_000 - 5_000).toISOString();
-    await routeApi(page, shellApi({ "account.session": { data: { firm: { name: "Estudio Delta" }, otherSession: { lastActiveAtReal } } } }));
-    await plantSession(page, "guest");
-    await page.goto(`${SHELL_URL}/app/operations`);
-    const notice = page.getByRole("alert").filter({ hasText: copy.session.otherSessionEn });
-    await expect(notice).toBeVisible();
-    await expect(notice).toContainText(copy.session.otherSession(12));
-    await expect(notice.getByRole("button")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: /reiniciar/i })).toHaveCount(0);
-    // The notice neither blocks nor hides the console.
-    await expectView(page, "operations");
-    await expect(page.getByRole("button", { name: copy.clock.next })).toBeEnabled();
-  });
-
   test("[FL-105] a public guest without a world is sent to /welcome, which asks for one", async ({ page }) => {
     let asked = false;
     const calls = await routeApi(

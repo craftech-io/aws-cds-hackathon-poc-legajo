@@ -90,11 +90,6 @@ export function formatDateTime(instant: string | Date | number, timeZone: string
   return `${copy.time.dayMonthYear(wall.day, wall.month, wall.year)} ${pad(wall.hour)}:${pad(wall.minute)}`;
 }
 
-/** Whole minutes from `from` to `to` (never negative): "hace X min". */
-export function minutesBetween(fromMs: number, toMs: number): number {
-  return Math.max(0, Math.floor((toMs - fromMs) / 60_000));
-}
-
 /** A number the document reader writes the way the exporter's documents print it: "12,840", "12,840.5". */
 const READER_NUMBER = /^(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?(?:\s+([A-Za-z%]+))?$/;
 

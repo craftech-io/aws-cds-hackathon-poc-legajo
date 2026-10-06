@@ -63,10 +63,10 @@ describe("shell procedures over tRPC (clock and account routers)", () => {
     expect(JSON.parse(sent[1]?.body ?? "{}")).toEqual({ 0: { minutes: 60 } });
   });
 
-  it("reads the firm's name and a guest's other session from account.session", async () => {
-    stubBff(() => ({ data: { firm: { name: "Estudio Delta" }, otherSession: { lastActiveAtReal: "2026-10-01T12:00:00Z" } } }));
-    expect(await fetchAccountSession(createConsoleClient(() => "t"))).toEqual({ firm: { name: "Estudio Delta" }, otherSession: { lastActiveAtReal: "2026-10-01T12:00:00Z" } });
+  it("reads the firm's name from account.session", async () => {
+    stubBff(() => ({ data: { firm: { name: "Estudio Delta" } } }));
+    expect(await fetchAccountSession(createConsoleClient(() => "t"))).toEqual({ firm: { name: "Estudio Delta" } });
     expect(AccountSession.parse({})).toEqual({});
-    expect(AccountSession.safeParse({ otherSession: { lastActiveAtReal: "ayer" } }).success).toBe(false);
+    expect(AccountSession.safeParse({ firm: { name: "" } }).success).toBe(false);
   });
 });

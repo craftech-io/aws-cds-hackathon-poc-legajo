@@ -117,8 +117,5 @@ export async function accountApiRefuses(accessToken: string): Promise<boolean> {
   );
 }
 
-/** The fixed notice of the shell when another session used this guest world. */
-export const otherSessionNotice = (page: Page): Locator => page.getByRole("alert").filter({ hasText: copy.session.otherSessionEn });
-
 /** The simulator's reply button of the importer's phone (the WhatsApp button title of the copy). */
 export const phoneButton = (page: Page, title: string): Locator => page.getByRole("button", { name: title, exact: true });

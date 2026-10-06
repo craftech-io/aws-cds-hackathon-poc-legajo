@@ -31,5 +31,4 @@ Pedido del CTO (2026-10-06): la consola autenticada (todo `/app`) se usa en espa
 - Un texto leído a un `const` en el nivel del módulo del archivo (`const LABEL = copy.x.y` con un string) queda en el idioma del momento de la carga; el copy se lee dentro del render o de la función que lo usa, o se captura el objeto (`copy.nav.groups`), que sí sigue al idioma. La revisión de módulos lo buscó y no dejó ninguno.
 - Mientras el módulo de la consola está montado, `activeLang()` vale lo que muestra; al desmontarse (cerrar sesión) vuelve a `es`, de modo que la landing y las pantallas de acceso, que llevan su propio idioma, nunca leen el de la consola. Las pruebas de Node y de los specs leen español salvo que fijen `setActiveLang`.
 - Si guardar con la cuenta falla, la elección sigue vigente en ese navegador y un aviso lo dice; no se reintenta solo.
-- El aviso de "otra sesión" ya no repite el texto en inglés cuando la consola está en inglés.
 - La prueba: `routers/account-preferences.test.ts` y `worlds/guest-worlds.test.ts` (FL-133, U), `language.spec.ts` (FL-133, UI) y los `*.test.ts` de paridad de copy.

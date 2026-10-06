@@ -573,9 +573,9 @@ Convenciones:
 
 ### FL-079 · Login propio y tokens de 15 minutos
 - Actores: despachante, invitado · Canal: consola · Disparador: `/login` (o "Ingresar" / "Sign in" de la landing).
-- Pasos: SRP contra Cognito con el email o el usuario; cuentas del estudio: cambio de contraseña inicial y TOTP opcional; cuentas `GUEST` (reservadas `guest-NN` y públicas del alta): sin cambio forzado ni MFA (la consola oculta esas opciones, el BFF las rechaza y el access token no lleva el scope de administración de cuenta) y creación del mundo propio en el primer login (la cuenta reservada con su estudio fijo `firm-guest-<nn>`; la pública, FL-105); si otra sesión (otro `origin_jti`) actuó sobre ese mundo en las últimas 2 h, aviso fijo "Otra sesión usó este mundo hace X min: si compartís la cuenta, usá otra cuenta de invitado" sin opción de reiniciar; refresh silencioso al vencer el id token; cierre de sesión revoca (FL-108).
+- Pasos: SRP contra Cognito con el email o el usuario; cuentas del estudio: cambio de contraseña inicial y TOTP opcional; cuentas `GUEST` (reservadas `guest-NN` y públicas del alta): sin cambio forzado ni MFA (la consola oculta esas opciones, el BFF las rechaza y el access token no lleva el scope de administración de cuenta) y creación del mundo propio en el primer login (la cuenta reservada con su estudio fijo `firm-guest-<nn>`; la pública, FL-105); refresh silencioso al vencer el id token; cierre de sesión revoca (FL-108).
 - Estado esperado: sesión válida; token de 15 min; sin tokens en `localStorage`; para una cuenta reservada, `firm-guest-<nn>` con su mundo en pausa.
-- Prueba: U `auth/jwt.test.ts`, `routers/account.test.ts` · UI `login.spec.ts` · SR `SC-24/1`, `SC-25/1..3` · SMK `SMK/2`. Notas: Excepción parcial §2.1 (cambio de contraseña inicial y TOTP); `SC-25`: primer login crea el mundo y aviso de otra sesión.
+- Prueba: U `auth/jwt.test.ts`, `routers/account.test.ts` · UI `login.spec.ts` · SR `SC-24/1`, `SC-25/1..2` · SMK `SMK/2`. Notas: Excepción parcial §2.1 (cambio de contraseña inicial y TOTP); `SC-25`: primer login crea el mundo.
 
 ### FL-080 · Lista de operaciones
 - Actores: analista · Canal: consola · Disparador: `/app/operations`.
@@ -623,7 +623,7 @@ Convenciones:
 - Actores: despachante (`BROKER`) o invitado (`GUEST`) · Canal: consola · Disparador: "Reiniciar demo" (o `IDLE_GUEST_RESET`, el trabajo nocturno de las 04:00 sobre los mundos reservados sin actividad en 24 h).
 - Pasos: `reset_demo_world` sobre el mundo del usuario: incrementa `worldEpoch` (nunca vuelve atrás; una recarga del seed hace lo mismo), deja la tumba de la época anterior, borra sus items y schedules, borra y reescribe sus filas de `Platform`, recarga su plantilla del seed, reloj en pausa al inicio; borra los eventos y registros de Memory de los actores de la época anterior. Ningún otro mundo cambia.
 - Estado esperado: mundo igual a su plantilla, incluida la ETA de la plataforma; direcciones de operación con etiqueta nueva; el primer turno después del reinicio recupera 0 registros de Memory y no menciona mensajes anteriores; 1 reinicio cada 10 min por reloj y, en mundos de invitado, 12 por día (`QUOTA_EXCEEDED`, FL-111; el principal QA está exento).
-- Prueba: U `clock/reset.test.ts`, `worlds/worlds.test.ts`, `worlds/guest-worlds.test.ts`, `scripts/seed/__tests__/load.test.ts`, `routers/clock.test.ts` · UI `clock.spec.ts` · SR `SC-20/5`, `SC-20/9`, `SC-25/4..5`. Notas: `GLOBAL#firm-qa`; `worlds/guest-worlds.test.ts` cubre `IDLE_GUEST_RESET`: reinicia solo los mundos reservados sin actividad en 24 h y nunca uno público; `SC-25`: reinicio por la consola del invitado con la ETA de `Platform` restaurada.
+- Prueba: U `clock/reset.test.ts`, `worlds/worlds.test.ts`, `worlds/guest-worlds.test.ts`, `scripts/seed/__tests__/load.test.ts`, `routers/clock.test.ts` · UI `clock.spec.ts` · SR `SC-20/5`, `SC-20/9`, `SC-25/3..4`. Notas: `GLOBAL#firm-qa`; `worlds/guest-worlds.test.ts` cubre `IDLE_GUEST_RESET`: reinicia solo los mundos reservados sin actividad en 24 h y nunca uno público; `SC-25`: reinicio por la consola del invitado con la ETA de `Platform` restaurada.
 
 ### FL-088 · Comportamiento del proveedor simulado
 - Actores: analista, invitado · Canal: consola · Disparador: Registro → proveedor → "Comportamiento simulado".
@@ -897,8 +897,8 @@ Diseño en ADR-0014 (palabras y guard), ADR-0016 (rutas, animación, capturas) y
 - Prueba: U `views/landing/utm.test.ts`, `views/landing/links.test.ts`, `routers/signup.test.ts` · UI `landing-cta.spec.ts` · SR `SC-26/1`, `SC-26/5`.
 
 ### FL-131 · Textos visibles de la consola y del recorrido guiado para un invitado
-- Actores: invitado · Canal: consola · Disparador: primer ingreso con el recorrido guiado abierto, simulador, buzón y aviso de otra sesión.
-- Pasos: el recorrido guiado (que sigue el idioma de la consola, FL-133), los estados de `/welcome`, los avisos de cuota y de otra sesión, el menú de cuenta y los textos alternativos salen de `copy/` en es y en; el rol se muestra como "Invitado" / "Guest"; ninguna vista muestra un id interno de cuenta (`usr-…`), el email del lead ni el nombre de la app SST.
+- Actores: invitado · Canal: consola · Disparador: primer ingreso con el recorrido guiado abierto, simulador y buzón.
+- Pasos: el recorrido guiado (que sigue el idioma de la consola, FL-133), los estados de `/welcome`, el aviso de cuota, el menú de cuenta y los textos alternativos salen de `copy/` en es y en; el rol se muestra como "Invitado" / "Guest"; ninguna vista muestra un id interno de cuenta (`usr-…`), el email del lead ni el nombre de la app SST.
 - Estado esperado: ninguna palabra de ADR-0014 en el DOM de la consola de un invitado (Playwright recorre las vistas y pasa el `innerText` por el mismo chequeo que `frame-check.ts`); paridad de claves es/en.
 - Prueba: U `views/tour/copy.test.ts` · UI `guest-copy.spec.ts`. Notas: complementa a FL-125, que mira las fuentes y el `dist` pero no el texto armado en tiempo de ejecución.
 

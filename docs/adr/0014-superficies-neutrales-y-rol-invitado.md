@@ -137,3 +137,7 @@ El trabajo de renombrado va antes que cualquier otra línea de la ola de superfi
 - Toda PR que agregue texto visible corre el guard localmente; una palabra de la lista en un texto legítimo se reescribe.
 - Las credenciales de las cuentas reservadas siguen yendo solo a las instrucciones privadas del formulario; el README de producto dice cómo registrarse.
 - Si la POC se reutiliza en otro contexto comercial, el guard queda y la lista puede crecer sin tocar el código que la usa.
+
+## Adenda 2026-10-06: aviso de "otra sesión" retirado
+
+El CTO decidió retirar el aviso de "otra sesión" de la consola del invitado (la fila "Textos" de la tabla de §8 lo nombra): cada ingreso nuevo de la misma persona cuenta como otra sesión, así que el aviso salía sin que nadie compartiera la cuenta (lo recibió el propio CTO) y no es un requisito del concurso. `account.session` ya no devuelve `otherSession` y la consola no muestra nada. Se conserva `lastSession` del mundo (`originJti`, `authTime`, `lastActiveAtReal`) porque el `WorldJanitor` lo usa para el reinicio por inactividad y el vencimiento de los mundos públicos; el subcampo `previous` se eliminó con el aviso.

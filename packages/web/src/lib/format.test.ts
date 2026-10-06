@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AR_TIME_ZONE, formatDateTime, formatDayMonth, formatNumber, formatReaderValue, formatSimDateTime, formatTime, minutesBetween, wallClockOf } from "./format";
+import { AR_TIME_ZONE, formatDateTime, formatDayMonth, formatNumber, formatReaderValue, formatSimDateTime, formatTime, wallClockOf } from "./format";
 
 describe("simulated time as the shell shows it (Argentina)", () => {
   it("reads the story's start and the supplier's deferred email in Argentine time", () => {
@@ -25,18 +25,13 @@ describe("simulated time as the shell shows it (Argentina)", () => {
   });
 });
 
-describe("numbers and elapsed minutes", () => {
+describe("numbers", () => {
   it("groups thousands with a dot and uses a decimal comma (es-AR)", () => {
     expect(formatNumber(12_480)).toBe("12.480");
     expect(formatNumber(12_840.5, 1)).toBe("12.840,5");
     expect(formatNumber(-1_234_567)).toBe("-1.234.567");
     expect(formatNumber(95)).toBe("95");
     expect(formatNumber(-0.01, 1)).toBe("0,0");
-  });
-
-  it("counts whole minutes and never goes negative", () => {
-    expect(minutesBetween(0, 125_000)).toBe(2);
-    expect(minutesBetween(10_000, 0)).toBe(0);
   });
 });
 

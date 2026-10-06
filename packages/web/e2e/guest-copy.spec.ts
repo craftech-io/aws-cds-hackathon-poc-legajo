@@ -1,10 +1,9 @@
 // FL-131 · the visible texts of the console and of the guided tour for a guest (docs/flows-catalog.md;
 // ADR-0014 §2 and §8; docs/landing-spec.md D-09). A visitor who signed up alone opens its own world
 // (built from the `guest` template on the local UI server) and walks every view of the console, the
-// dossier of 4471, the "Recorrido guiado" panel in Spanish and English, the account menu and the notice
-// a second session gets. The text each one shows at run time (its `innerText`, data included) goes
-// through the same matcher as the neutral-surfaces guard and the frame check (scripts/lint/neutral-words.ts),
-// and none of it may show an internal account id, the visitor's email or the app's internal name. The
+// dossier of 4471, the "Recorrido guiado" panel in Spanish and English and the account menu. The text
+// each one shows at run time (its `innerText`, data included) goes through the same matcher as the
+// neutral-surfaces guard and the frame check (scripts/lint/neutral-words.ts), and none of it may show an internal account id, the visitor's email or the app's internal name. The
 // role reads "Invitado". Every project of the public surfaces runs it. Nothing leaves the machine.
 import { type Page, expect, test } from "@playwright/test";
 import { findNeutralHits } from "../../../scripts/lint/neutral-words.ts";
@@ -115,27 +114,5 @@ test.describe("[FL-131] the console of a guest who signed up alone", () => {
     await expect(page.getByRole("button", { name: copy.account.changePassword })).toHaveCount(0);
     await expect(page.getByRole("button", { name: copy.account.totp })).toHaveCount(0);
     expectGuestSafe(await visibleText(page), "account menu", email);
-  });
-
-  test("[FL-131] the notice a second session of the same guest gets reads without the guarded words", async ({ page, browser, request }, info) => {
-    const lang = specLang(info);
-    const email = testMailbox(info, "gs");
-    await createVerifiedGuest(request, UI_SERVER_URL, email, PASSWORD);
-    await signIn(page, email, lang);
-    await visibleText(page);
-
-    const { baseURL, locale, timezoneId, viewport } = test.info().project.use;
-    const other = await browser.newContext({ baseURL, locale, timezoneId, ...(viewport ? { viewport } : {}) });
-    const second = await other.newPage();
-    const secondBlocked = await blockExternalRequests(second);
-    await routeCognitoToServer(second, UI_SERVER_URL);
-    await useViewerIp(second, testViewerIp(info));
-    await signIn(second, email, lang);
-    // The Spanish notice carries its fixed English line; the English one is the whole notice (FL-133).
-    const notice = second.getByRole("alert").filter({ hasText: lang === "es" ? copy.session.otherSessionEn : /use another guest account/ });
-    await expect(notice).toBeVisible();
-    expectGuestSafe(await notice.innerText(), "other-session notice", email);
-    expect(secondBlocked, "requests of the second session that tried to leave the machine").toEqual([]);
-    await other.close();
   });
 });

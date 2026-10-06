@@ -1,8 +1,7 @@
-// SC-25 · the guest's world and its sessions (docs/test-plan.md §4.5): two browser contexts (A and B)
-// of the synthetic account `guest-test` on the deployed console. The first sign-in creates the guest's
-// world from the `guest` template through the BFF; a second session gets the shell's fixed notice
-// without a reset button; "Reiniciar demo" brings the template back, with a new epoch, a new thread
-// address for 4471 and the platform's ETA restored. Runs before SC-24 (the same account) and destroys
+// SC-25 · the guest's world and its session (docs/test-plan.md §4.5): a browser context (A) of the
+// synthetic account `guest-test` on the deployed console. The first sign-in creates the guest's world
+// from the `guest` template through the BFF; "Reiniciar demo" brings the template back, with a new
+// epoch, a new thread address for 4471 and the platform's ETA restored. Runs before SC-24 (the same account) and destroys
 // the guest world at the start and in its cleanup.
 import type { Browser, BrowserContext, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
@@ -11,7 +10,7 @@ import { GUEST_TEST_CLOCK_ID } from "@legajo/shared";
 import { formatSimDateTime } from "../../packages/web/src/lib/format";
 import { clockCopy } from "../../packages/web/src/views/clock/copy";
 import { TOUR_WINDOW } from "../../packages/web/src/views/tour/steps";
-import { guestPassword, launchBrowser, operationIdOf, otherSessionNotice, signIn } from "./lib/browser";
+import { guestPassword, launchBrowser, operationIdOf, signIn } from "./lib/browser";
 import { SITE } from "./lib/site";
 import { type ScenarioContext, defineScenario, ensure } from "./lib/steps";
 
@@ -23,7 +22,6 @@ interface Sessions {
   readonly contexts: BrowserContext[];
   readonly password: string;
   a?: Page;
-  b?: Page;
 }
 
 function sessionsOf(ctx: ScenarioContext): Sessions {
@@ -92,18 +90,6 @@ export const sc25 = defineScenario({
     },
     {
       n: 3,
-      title: "session B is told that another session used the world, and gets no reset button there",
-      flows: ["FL-079"],
-      async run(ctx) {
-        const sessions = sessionsOf(ctx);
-        sessions.b = await newSession(sessions);
-        const notice = otherSessionNotice(sessions.b);
-        await expect(notice).toBeVisible({ timeout: 60_000 });
-        await expect(notice.getByRole("button")).toHaveCount(0);
-      },
-    },
-    {
-      n: 4,
       title: "session A resets the demo: the template again, a new epoch and a new address for 4471",
       flows: ["FL-087"],
       async run(ctx) {
@@ -124,7 +110,7 @@ export const sc25 = defineScenario({
       },
     },
     {
-      n: 5,
+      n: 4,
       title: "the platform has 4471 with the template's ETA again",
       flows: ["FL-087"],
       async run(ctx) {

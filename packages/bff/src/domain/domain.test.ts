@@ -3,6 +3,7 @@ import { EntityName, ZonedInstant, clockTtlSeconds, entryAt, isExpired, utcInsta
 import { parseDocVersionId, isBlocking } from "./documents";
 import { Firm, matrixDefault } from "./firms";
 import { canTransitionDossier } from "./operations";
+import { LastSession } from "./world-state";
 import { ENTITIES, checkEntityItem, entitiesOf } from "./registry";
 import { parseTimerKey, timerKeyOf } from "./timers";
 
@@ -19,6 +20,13 @@ describe("instants", () => {
     expect(isExpired(1_000, new Date(1_000_000))).toBe(true);
     expect(isExpired(1_001, new Date(1_000_000))).toBe(false);
     expect(isExpired(undefined, new Date())).toBe(false);
+  });
+});
+
+describe("last session", () => {
+  it("keeps parsing a stored row that still carries the retired `previous` field", () => {
+    const stored = { originJti: "jti-b", authTime: 1, lastActiveAtReal: "2026-09-26T15:05:00.000Z", previous: { originJti: "jti-a", lastActiveAtReal: "2026-09-26T15:00:00.000Z" } };
+    expect(LastSession.parse(stored)).toEqual({ originJti: "jti-b", authTime: 1, lastActiveAtReal: "2026-09-26T15:05:00.000Z" });
   });
 });
 

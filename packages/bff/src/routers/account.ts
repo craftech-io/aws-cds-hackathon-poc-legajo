@@ -1,11 +1,8 @@
 // `account` router (docs/tool-catalog.md, docs/architecture.md §10, FL-079, ADR-0015 §4): who the
-// session is, the name of its firm and, for a guest, the state of its world, whether another session
-// used the same guest world in the last 2 real hours (asked once per sign-in by the shell,
-// packages/web/src/lib/console-api.ts) and its usage. The guest world keeps the last session that acted
-// on it (`CLOCK#GUEST#<firmId>.lastSession`); a different `origin_jti` inside the window gets the fixed
-// notice of docs/design-brief.md §7.1, which neither blocks nor offers a reset. The sign-in records
-// this session as the last one, and every later call of the session keeps it fresh
-// (guest-activity.ts, from `firmProcedure`).
+// session is, the name of its firm and, for a guest, the state of its world and its usage. The guest
+// world keeps the last session that acted on it (`CLOCK#GUEST#<firmId>.lastSession`) for the janitor's
+// idle reset and public-world expiry: the sign-in records this session as the last one, and every later
+// call of the session keeps it fresh (guest-activity.ts, from `firmProcedure`).
 //
 //   session  staff: the firm gate of `firmProcedure`; a guest: also before its world exists or after
 //            it is gone (the world's state instead of a 403), and a public guest's `Leads.lastLoginAt`
@@ -23,54 +20,28 @@ import { z } from "zod";
 import type { GuestBootstrap, Principal } from "../auth/principal";
 import { guestFromClaims, guestOfPrincipal, isSignInFresh } from "../auth/principal";
 import type { Connector } from "../connector/index";
-import type { Clock } from "../domain/world-state";
 import { leadEmailHash } from "../lib/crypto";
 import type { AccessDeps } from "../signup/deps";
 import { readUsage } from "../worlds/guest-quotas";
 import { isPublicGuestFirm, readSlot, worldStateOf } from "../worlds/guest-slots";
 import { liveAccountWorld } from "../worlds/guest-worlds";
-import { markGuestActivity, sessionIdOf } from "./guest-activity";
+import { markGuestActivity } from "./guest-activity";
 import { type Context, type FirmContext, accountProcedure, enterFirm, guestBootstrapProcedure, isGuestWorldGone, publicProcedure, router } from "./trpc";
 
-/** Another session within this many real milliseconds of its last action gets the notice. */
-export const OTHER_SESSION_WINDOW_MS = 2 * 60 * 60_000;
-
-export interface OtherSession {
-  /** Last real instant the other session acted on the world. */
-  readonly lastActiveAtReal: string;
-  readonly minutesAgo: number;
-}
-
 /**
- * The notice for `sessionId` given the clock's last session, or `null`. When `sessionId` already is
- * the last session (its own write won, or this is a repeated check), the session it took over from counts.
+ * Reads the guest world and records this session as the last one. The write is best-effort: calls of
+ * the same sign-in race on the clock's version (the shell's first batch, StrictMode's double effect),
+ * and the session's next call records it again (guest-activity.ts).
  */
-export function otherSessionOf(clock: Pick<Clock, "lastSession">, sessionId: string, realNow: Date): OtherSession | null {
-  const last = clock.lastSession;
-  const other = last?.originJti === sessionId ? last.previous : last;
-  if (other === undefined || other.originJti === sessionId) return null;
-  const elapsed = realNow.getTime() - Date.parse(other.lastActiveAtReal);
-  if (elapsed < 0 || elapsed >= OTHER_SESSION_WINDOW_MS) return null;
-  return { lastActiveAtReal: other.lastActiveAtReal, minutesAgo: Math.floor(elapsed / 60_000) };
-}
-
-/**
- * Reads the guest world, answers the notice and records this session as the last one. The notice
- * comes from the read; the write is best-effort: calls of the same sign-in race on the clock's version
- * (the shell's first batch, StrictMode's double effect), and a lost race must not cost the notice.
- * The session's next call records it again (guest-activity.ts).
- */
-export async function touchGuestSession(data: Connector, principal: Principal, realNow: Date): Promise<{ worldReady: boolean; otherSession: OtherSession | null }> {
-  const clockId = guestClockId(principal.firmId);
-  const clock = await data.world.findClock(clockId);
-  if (clock === undefined) return { worldReady: false, otherSession: null };
-  const otherSession = otherSessionOf(clock, sessionIdOf(principal), realNow);
+export async function touchGuestSession(data: Connector, principal: Principal, realNow: Date): Promise<{ worldReady: boolean }> {
+  const clock = await data.world.findClock(guestClockId(principal.firmId));
+  if (clock === undefined) return { worldReady: false };
   try {
     await markGuestActivity(data, clock, principal, realNow, 0);
   } catch (error) {
     if (!(error instanceof ConnectorError && error.code === "CONFLICT")) throw error;
   }
-  return { worldReady: true, otherSession };
+  return { worldReady: true };
 }
 
 /** RESERVED for `guest-01..NN` and `guest-test`; PUBLIC for a self-service account (no firm yet, or a public slot). */
@@ -122,7 +93,7 @@ async function firmSession(ctx: FirmContext) {
   const realNow = ctx.deps.wallClock();
   const firm = await ctx.deps.connector.firms.findFirm(principal.firmId);
   const base = staffSession(firm === undefined ? null : { firmId: firm.firmId, name: firm.name, kind: firm.kind }, principal, realNow);
-  if (!principal.isGuest) return { ...base, worldReady: true, otherSession: null };
+  if (!principal.isGuest) return { ...base, worldReady: true };
   const touched = await touchGuestSession(ctx.deps.connector, principal, realNow);
   return { ...base, ...touched, world: (touched.worldReady ? "READY" : "NONE") satisfies GuestWorldState, guestKind: guestKindOf(principal.firmId) };
 }
@@ -141,7 +112,6 @@ async function bootstrapSession(ctx: Context, guest: GuestBootstrap) {
     canChangePassword: false,
     canSetUpMfa: false,
     worldReady: false,
-    otherSession: null,
     world: world.state,
     guestKind: guestKindOf(guest.firmId ?? world.firmId),
     ...(world.expiresAtReal === undefined ? {} : { worldExpiresAtReal: world.expiresAtReal }),

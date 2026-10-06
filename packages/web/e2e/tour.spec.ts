@@ -1,7 +1,6 @@
 // The guest's guided tour (docs/design-brief.md §15, views/tour/steps.ts). Against the local UI
 // server a guest finds the panel open with step 1, its hour read from the real `clock.get` of its
-// world, in Spanish or English, and a second session on the same guest world gets the shell's fixed
-// notice from the real `account.session`. Scripted answers then walk the buttons: each waits for a
+// world, in Spanish or English. Scripted answers then walk the buttons: each waits for a
 // quiet world and sends its move to `tour.run` (which runs `clock.advanceTo` at 15/10 10:00,
 // `clock.moveEta` from the ETA of 4471 or `dossier.approve` on the server), fills "Qué mirar" from the
 // pending timers of 4471 that `tour.steps` answers and shows the English gloss of the step's message.
@@ -70,26 +69,6 @@ test.describe("the guided tour against the real world of a guest", () => {
     await expect(english).toContainText("paused at Oct 14 10:30");
     await expect(english).toContainText(stepById("sign-in").wait.en);
     await expect(english).toContainText(TOUR_TEXTS.en.intro);
-  });
-
-  // The shell's first batch carries `clock.get` and `account.session` (twice under React's StrictMode):
-  // their writes race on the clock's version, and the notice must survive the race (FL-079).
-  test("a second session on the same guest world gets the fixed notice, without a reset", async ({ page, browser }) => {
-    await plantSession(page, "guest", { signedInAgo: 3_600 });
-    const recorded = page.waitForResponse((response) => response.url().includes("account.session") && response.ok());
-    await page.goto("/app/operations");
-    await recorded;
-
-    const { baseURL, locale, timezoneId } = test.info().project.use;
-    const other = await browser.newContext({ baseURL, locale, timezoneId });
-    const second = await other.newPage();
-    await plantSession(second, "guest", { signedInAgo: 5 });
-    await second.goto("/app/operations");
-    const notice = second.getByRole("alert").filter({ hasText: copy.session.otherSessionEn });
-    await expect(notice).toBeVisible();
-    await expect(notice).toContainText(/Otra sesión usó este mundo hace/);
-    await expect(notice.getByRole("button")).toHaveCount(0);
-    await other.close();
   });
 });
 

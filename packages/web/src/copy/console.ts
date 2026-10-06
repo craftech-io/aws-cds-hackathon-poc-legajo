@@ -135,14 +135,6 @@ const es = {
     forceWarning: "El mundo sigue ocupado hace más de 5 minutos: si avanzás igual, la historia puede quedar desordenada.",
     busyRefused: "El mundo se ocupó mientras tanto: esperá a que termine y volvé a intentar.",
   },
-  session: {
-    otherSession: (minutes: number) =>
-      minutes < 1
-        ? "Otra sesión usó este mundo hace menos de un minuto: si compartís la cuenta, usá otra cuenta de invitado."
-        : `Otra sesión usó este mundo hace ${minutes} min: si compartís la cuenta, usá otra cuenta de invitado.`,
-    /** The fixed English line under the Spanish notice; the English console shows only its own. */
-    otherSessionEn: "This world is in use by another session: please use another guest account.",
-  },
   scope: {
     label: "Alcance",
     etaFrom: "ETA desde",
@@ -278,13 +270,6 @@ const en = {
     force: "Advance anyway",
     forceWarning: "The world has been busy for more than 5 minutes: if you advance anyway, the story may end up out of order.",
     busyRefused: "The world became busy in the meantime: wait for it to finish and try again.",
-  },
-  session: {
-    otherSession: (minutes: number) =>
-      minutes < 1
-        ? "Another session used this world less than a minute ago: if you share the account, use another guest account."
-        : `Another session used this world ${minutes} min ago: if you share the account, use another guest account.`,
-    otherSessionEn: "This world is in use by another session: please use another guest account.",
   },
   scope: {
     label: "Scope",
