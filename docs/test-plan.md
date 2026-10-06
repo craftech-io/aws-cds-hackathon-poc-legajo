@@ -6,14 +6,14 @@ El CTO pidió no ver la POC hasta que esté 100 % probada. Este documento fija q
 
 La POC está **100 % probada** cuando, sobre un mismo commit de `main` desplegado en `poc`:
 
-1. Cada uno de los 132 flujos tiene todas las pruebas que le asigna la matriz de §2, y todas están en verde.
+1. Cada uno de los 133 flujos tiene todas las pruebas que le asigna la matriz de §2, y todas están en verde.
 2. Todo flujo que toca un servicio de AWS en runtime (SES, AgentCore, Scheduler, lector, EventBridge, S3, Cognito) tiene al menos un paso del **ejecutor de escenarios** en `poc` (`SR`). Excepciones cerradas, con motivo, en §2.1.
 3. La suite completa de escenarios, **incluidos `SC-24` (recorrido del invitado), `SC-25` (mundo y sesiones del invitado) y `SC-26` (alta pública de punta a punta)**, pasa **3 corridas seguidas** (el agente no es determinista: un escenario que pasa 2 de 3 no está probado).
 4. `policy_audit` sobre todos los mundos de esas corridas da **0 violaciones**.
 5. El smoke de CI (`SC-00`) pasa en el deploy de ese commit.
 6. Los checks de rendimiento y costo de §6 están dentro de umbral.
 7. La revisión de seguridad de §7 no tiene hallazgos altos ni medios abiertos.
-8. `npm run flows:check` confirma que la matriz de §2 cubre los 132 flujos, que cada prueba citada existe y lleva la etiqueta del flujo, y que cada paso `SR` citado declara el flujo; `npm run tour:check` confirma que el README y `SC-24` salen de la misma fuente.
+8. `npm run flows:check` confirma que la matriz de §2 cubre los 133 flujos, que cada prueba citada existe y lleva la etiqueta del flujo, y que cada paso `SR` citado declara el flujo; `npm run tour:check` confirma que el README y `SC-24` salen de la misma fuente.
 
 ## 2. Niveles de prueba
 
@@ -185,6 +185,7 @@ Generada desde las líneas "Prueba" de `docs/flows-catalog.md`; `npm run flows:c
 | FL-130 | Llamados a la acción y origen de la visita | `views/landing/utm.test.ts`, `views/landing/links.test.ts`, `routers/signup.test.ts` | — | `landing-cta.spec.ts` | `SC-26/1`, `SC-26/5` | — | — |
 | FL-131 | Textos visibles de la consola y del recorrido guiado para un invitado | `views/tour/copy.test.ts` | — | `guest-copy.spec.ts` | — | — | complementa a FL-125, que mira las fuentes y el `dist` pero no el texto armado en tiempo de ejecución |
 | FL-132 | Alta confirmada con la demo completa: el lead queda y el primer ingreso responde `CAPACITY` | `signup/finalize.test.ts`, `signup/dispatch.test.ts`, `routers/guest-world.test.ts` | `guest-world.flow.test.ts` | `welcome.spec.ts` | — | — | Excepción §2.1 (llenar los 60 cupos públicos en `poc` costaría 60 mundos reales); el mecanismo del cupo lleno es el de FL-110 |
+| FL-133 | Idioma de la consola y preferencia por usuario | `routers/account-preferences.test.ts`, `worlds/guest-worlds.test.ts`, `leads/delete.test.ts`, `packages/web/src/copy/localized.test.ts`, `packages/web/src/lib/console-lang.test.ts`, `packages/web/src/lib/preferred-lang.test.ts` | — | `language.spec.ts` | — | — | sin `SR`: la consola no tiene un servicio de AWS en runtime para este flujo más allá de DynamoDB y Cognito, que cubren `SC-00` y `SC-26` |
 <!-- MATRIX:END -->
 
 ## 3. Pruebas locales
@@ -195,7 +196,7 @@ Generada desde las líneas "Prueba" de `docs/flows-catalog.md`; `npm run flows:c
 
 **Consola.** Playwright con el servidor local de §2: una sesión por rol (`BROKER`, `ANALYST`, `GUEST` reservado, `GUEST` público sin estudio todavía, otro estudio) firmada por la clave efímera; ninguna llamada sale de la máquina; trazas de Playwright apagadas salvo `E2E_TRACE=1`. Una spec por vista (`login`, `operations`, `dossier`, `isolation`, `registry`, `clock`, `simulator`, `mailbox`, `metrics`, `audit`, `landing`, `public-upload`, `tour`), cada una con su chequeo de accesibilidad básica (roles y nombres) y de textos (sin códigos crudos ni ids que una persona vea). `login.spec.ts` solo necesita Vite y el mock de Cognito (corre desde la ola 1); cubre la variante `GUEST`: sin cambio de contraseña ni TOTP, y el aviso "otra sesión usó este mundo" cuando `account.session` lo devuelve (sin botón de reinicio). `clock.spec.ts` cubre el mundo ocupado: botones deshabilitados con el motivo y la espera, "Avanzar igual" recién después de 5 minutos. `public-upload.spec.ts` sube contra el emulador de S3 con el `fetch` real y la CORS declarada.
 
-**Superficies públicas (landing, alta, acceso, consola del invitado).** Mismo servidor local, con el doble de Cognito de §2, la tabla `Leads` en memoria, `SignupDispatch` en proceso, `LeadNotice` con un SES falso que graba, y sin WAF ni OAC (el `ui-server` agrega `X-Origin-Verify` y un `CloudFront-Viewer-Address` de prueba, acepta el id token en `X-Legajo-Auth` y verifica `x-amz-content-sha256` si viene; el desafío de WAF sobre el documento `/signup` y los `signup.*` se prueba en `SC-26/1` y `SC-26/10`). Las specs `landing`, `landing-tour`, `landing-layout`, `landing-cta`, `gallery`, `a11y`, `auth`, `welcome`, `guest-isolation` y `guest-copy` corren en **seis proyectos** de `playwright.config.ts`:
+**Superficies públicas (landing, alta, acceso, consola del invitado).** Mismo servidor local, con el doble de Cognito de §2, la tabla `Leads` en memoria, `SignupDispatch` en proceso, `LeadNotice` con un SES falso que graba, y sin WAF ni OAC (el `ui-server` agrega `X-Origin-Verify` y un `CloudFront-Viewer-Address` de prueba, acepta el id token en `X-Legajo-Auth` y verifica `x-amz-content-sha256` si viene; el desafío de WAF sobre el documento `/signup` y los `signup.*` se prueba en `SC-26/1` y `SC-26/10`). Las specs `landing`, `landing-tour`, `landing-layout`, `landing-cta`, `gallery`, `a11y`, `auth`, `welcome`, `guest-isolation`, `guest-copy` y `language` corren en **seis proyectos** de `playwright.config.ts`:
 
 | Proyecto | Viewport | Idioma | Movimiento |
 |---|---|---|---|

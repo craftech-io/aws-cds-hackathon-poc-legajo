@@ -385,9 +385,11 @@ Pestañas:
 
 | Qué | Idioma |
 |---|---|
-| Consola, textos al importador, plantillas de WhatsApp | Español rioplatense (voseo), en `packages/bff/src/copy/es-AR.ts`; glosa fija en inglés de plantillas y textos fijos en `copy/en-gloss.ts` (visible con "EN" en el simulador y en el recorrido) |
+| Consola autenticada | Español rioplatense (voseo) **e inglés** (ADR-0020): selector "Idioma: Español \| English" en el menú "Mi cuenta"; abre en el idioma que el visitante eligió en la landing o en el acceso, si no en el del navegador (español si alguno de `navigator.languages` es `es*`, inglés si no), y la elección se guarda por usuario en el servidor (`account.preferences` / `account.setLanguage`, `Runtime/ACCOUNT#<sub>`) para que lo siga a cualquier dispositivo, también a un invitado cuyo mundo se recrea. Textos en `packages/web/src/copy/` y `views/<vista>/copy*.ts` (`es` y `en` con la misma forma); fechas y números con la notación del idioma y la zona de Buenos Aires. Lo que viene de los datos o del agente no se traduce |
+| Textos al importador, plantillas de WhatsApp | Español rioplatense (voseo), en `packages/bff/src/copy/es-AR.ts`; glosa fija en inglés de plantillas y textos fijos en `copy/en-gloss.ts` (visible con "EN" en el simulador y en el recorrido) |
 | Emails al proveedor | Inglés, en `packages/bff/src/copy/en.ts` |
-| Landing y recorrido guiado | es/en con conmutador (`packages/web/src/views/landing/copy.ts`, `packages/web/src/views/tour/steps.ts`) |
+| Landing | es/en con conmutador (`packages/web/src/views/landing/copy.ts`) |
+| Recorrido guiado | es/en: sigue el idioma de la consola (`packages/web/src/views/tour/steps.ts` guarda los dos textos de cada paso) |
 | README (producto, con las notas de la submission al final), instrucciones privadas de prueba, materiales de submission | Inglés |
 | Alta, login, emails de cuenta, páginas legales | es/en (según el conmutador de la landing o el atributo `locale`) |
 | `CLAUDE.md`, `CONTEXT.md`, `docs/`, ADRs, casos de QA | Español (Argentina) |
