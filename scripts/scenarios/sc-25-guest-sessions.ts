@@ -8,6 +8,7 @@ import type { Browser, BrowserContext, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type { QaSnapshot } from "@legajo/bff/qa-driver/snapshot";
 import { GUEST_TEST_CLOCK_ID } from "@legajo/shared";
+import { formatSimDateTime } from "../../packages/web/src/lib/format";
 import { clockCopy } from "../../packages/web/src/views/clock/copy";
 import { TOUR_WINDOW } from "../../packages/web/src/views/tour/steps";
 import { guestPassword, launchBrowser, operationIdOf, otherSessionNotice, signIn } from "./lib/browser";
@@ -77,8 +78,13 @@ export const sc25 = defineScenario({
       async run(ctx) {
         const page = sessionsOf(ctx).a;
         ensure(page !== undefined, "session A is open");
+        const operationId = ctx.state.operationId;
+        ensure(typeof operationId === "string", "step 1 found operation 4471");
         await page.goto(`${SITE}/app/clock`);
         const operation = section(page, clockCopy.operation.title);
+        // The selector lists the world's operations by ETA (4487, the earliest, comes first): pick 4471.
+        await operation.getByLabel(clockCopy.operation.select).selectOption(operationId);
+        await expect(operation.getByText(clockCopy.operation.currentEta(formatSimDateTime(TEMPLATE_ETA)))).toBeVisible();
         await operation.getByRole("button", { name: clockCopy.operation.etaEarlier }).click();
         await operation.getByRole("button", { name: clockCopy.operation.etaSubmit }).click();
         await ctx.eventually("the platform with the earlier ETA", async () => (await platformEta(ctx)) === Date.parse(EARLIER_ETA), 60);
