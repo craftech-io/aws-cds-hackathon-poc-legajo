@@ -134,12 +134,12 @@ export function canTransitionDossier(from: DossierStatus, to: DossierStatus): bo
 /** Dossier statuses the agent still works on (everything but approved). */
 export const ACTIVE_DOSSIER_STATUSES: readonly DossierStatus[] = ["OPEN", "READY_FOR_REVIEW", "REOPENED"];
 
-export function dossierStatusAt(operation: Pick<Operation, "dossierHistory">, atSim: string): DossierStatus | undefined {
-  return entryAt(operation.dossierHistory, atSim)?.status;
+export function dossierStatusAt(operation: Pick<Operation, "dossierHistory">, atSim: string, atReal?: string): DossierStatus | undefined {
+  return entryAt(operation.dossierHistory, atSim, atReal)?.status;
 }
 
-export function controlAt(operation: Pick<Operation, "controlHistory">, atSim: string): ConversationControl | undefined {
-  return entryAt(operation.controlHistory, atSim)?.control;
+export function controlAt(operation: Pick<Operation, "controlHistory">, atSim: string, atReal?: string): ConversationControl | undefined {
+  return entryAt(operation.controlHistory, atSim, atReal)?.control;
 }
 
 /** The behaviour the simulator applies to this operation: its override, else the supplier's. */

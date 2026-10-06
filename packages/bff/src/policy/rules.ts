@@ -6,7 +6,7 @@
 // when it is the stricter one, so a history that lags the item can never let a send through.
 import { normalizePhone } from "@legajo/shared";
 import { findSensitiveAsk } from "../copy/forbidden";
-import { entryAt } from "../domain/common";
+import { entryAt, inForceAt } from "../domain/common";
 import { controlAt, dossierStatusAt } from "../domain/operations";
 import { authorizationActiveAt, contactStatusAt } from "../domain/parties";
 import { deny, missing, pass, recipientText, skip } from "./checks";
@@ -18,6 +18,15 @@ function atSim(ctx: PolicyContext): string {
   return ctx.simNow.toISOString();
 }
 
+/**
+ * The send's real instant for a past send (`AS_OF`): a step dated at the same simulated instant counts
+ * only if it was recorded before the message went out (domain/common.ts `inForceAt`). A send decided
+ * now reads every recorded step and also honours the current values.
+ */
+function atReal(ctx: PolicyContext): string | undefined {
+  return ctx.mode === "AS_OF" ? ctx.realNow.toISOString() : undefined;
+}
+
 function sending(ctx: PolicyContext): boolean {
   return ctx.mode === "SEND";
 }
@@ -26,7 +35,7 @@ function sending(ctx: PolicyContext): boolean {
 export function checkControl(ctx: PolicyContext): RuleCheck {
   const { author } = ctx.message;
   if (author !== "AGENT") return skip(`written by ${author.startsWith("BROKER:") ? "the firm" : author.toLowerCase()}: the rule only stops the agent`);
-  const taken = controlAt(ctx.operation, atSim(ctx)) === "BROKER" || (sending(ctx) && ctx.operation.control === "BROKER");
+  const taken = controlAt(ctx.operation, atSim(ctx), atReal(ctx)) === "BROKER" || (sending(ctx) && ctx.operation.control === "BROKER");
   return taken ? deny("the firm has taken the conversation: the agent does not send") : pass("the agent has the conversation");
 }
 
@@ -74,7 +83,7 @@ function importerOfOperation(ctx: PolicyContext): boolean {
 
 function consentEntry(ctx: PolicyContext) {
   const consent = ctx.input.importer?.consent;
-  return consent === undefined ? undefined : entryAt(consent.history, atSim(ctx));
+  return consent === undefined ? undefined : entryAt(consent.history, atSim(ctx), atReal(ctx));
 }
 
 /** `CP-OPTIN`: WhatsApp needs an opt-in registered by the instant (its revocation is `CP-OPTOUT`'s). */
@@ -103,13 +112,12 @@ export function checkSupplierAuth(ctx: PolicyContext): RuleCheck {
   if (supplier !== undefined && supplier.supplierId !== supplierId) return deny("the supplier given is not the operation's supplier");
   if (!importerOfOperation(ctx)) return deny("the authorization given is not the operation's importer's");
   const authorization = importer?.authorization;
-  const authorized = authorizationActiveAt(authorization, atSim(ctx)) && !(sending(ctx) && authorization?.authorized === false);
+  const authorized = authorizationActiveAt(authorization, atSim(ctx), atReal(ctx)) && !(sending(ctx) && authorization?.authorized === false);
   if (!authorized) return deny("the importer has not authorized the agent to write to this supplier");
   if (contact === undefined) return deny("the email has no registered contact of the supplier");
   if (contact.supplierId !== supplierId) return deny("the contact is not a contact of the operation's supplier");
   if (ctx.message.contactId !== undefined && ctx.message.contactId !== contact.contactId) return deny("the contact given is not the message's contact");
-  const at = ctx.simNow.getTime();
-  const everConfirmed = contact.statusHistory.some((entry) => entry.status === "ACTIVE" && Date.parse(entry.atSim) <= at);
+  const everConfirmed = contact.statusHistory.some((entry) => entry.status === "ACTIVE" && inForceAt(entry, atSim(ctx), atReal(ctx)));
   if (!everConfirmed || (sending(ctx) && contact.status === "PENDING_CONFIRMATION")) return deny("the contact was never confirmed: only an ACTIVE contact is written to");
   return pass("authorized by the importer, to a confirmed contact of the operation's supplier");
 }
@@ -119,14 +127,14 @@ export function checkBouncedContact(ctx: PolicyContext): RuleCheck {
   if (!ctx.toSupplierByEmail) return skip("the contact status only applies to email to the supplier");
   const { contact } = ctx.input;
   if (contact === undefined) return skip("no contact to guest (CP-SUPPLIER-AUTH)");
-  const dated = contactStatusAt(contact, atSim(ctx));
+  const dated = contactStatusAt(contact, atSim(ctx), atReal(ctx));
   const status = dated === "BOUNCED" || dated === "COMPLAINED" ? dated : sending(ctx) && (contact.status === "BOUNCED" || contact.status === "COMPLAINED") ? contact.status : undefined;
   return status === undefined ? pass("the contact has not bounced or complained") : deny(`the contact ${status === "BOUNCED" ? "bounced" : "complained"}: it is never written to again`);
 }
 
 /** `CP-APPROVED-SCOPE`: an approved dossier asks nobody for anything. */
 export function checkApprovedScope(ctx: PolicyContext): RuleCheck {
-  const approved = dossierStatusAt(ctx.operation, atSim(ctx)) === "APPROVED" || (sending(ctx) && ctx.operation.dossierStatus === "APPROVED");
+  const approved = dossierStatusAt(ctx.operation, atSim(ctx), atReal(ctx)) === "APPROVED" || (sending(ctx) && ctx.operation.dossierStatus === "APPROVED");
   if (!approved) return pass("the dossier is not approved");
   const { kind, counterpart } = ctx.message;
   if (counterpart === "FIRM") return pass("a notice to the firm's own mailbox asks no party for anything");

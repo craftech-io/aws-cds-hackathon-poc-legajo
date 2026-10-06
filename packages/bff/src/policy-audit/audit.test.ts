@@ -113,6 +113,17 @@ describe("[FL-060] policy audit", () => {
     expect(report.violations).toEqual([]);
   });
 
+  it("[FL-060] [FL-067] [FL-031] in a paused world, a takeover and a complaint recorded after the send at the same simulated instant are not violations", async () => {
+    await send(toImporter);
+    await send(toSupplier);
+    const after = new Date(Date.parse(REAL_NOW) + 20_000).toISOString();
+    const { operations, parties } = stores.connector;
+    const operation = await operations.getOperation("op-4471");
+    await operations.setControl({ operationId: "op-4471", control: "BROKER", atSim: toImporter.sentAtSim, atReal: after, by: "BROKER:brk-delta-martina", expectedVersion: operation.version });
+    await parties.transitionContact({ supplierId: "sup-qingdao", contactId: "ctc-qingdao-1", to: "COMPLAINED", atSim: toSupplier.sentAtSim, atReal: after, by: "SYSTEM", reason: "abuse" });
+    expect((await runPolicyAudit(deps(), { firmId: FIRM, clockId: CLOCK })).violations).toEqual([]);
+  });
+
   it("[FL-060] flags a send the policy of that moment would have denied", async () => {
     await stores.connector.parties.revokeConsent({ importerId: "imp-norpampa", atSim: "2026-10-15T09:00:00-03:00", by: "IMPORTER" });
     await send(toImporter);
