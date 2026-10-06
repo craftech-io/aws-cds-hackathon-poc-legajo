@@ -24,7 +24,7 @@ export function SignInLink({ className, label }: { readonly className: string; r
   const { state } = useSession();
   const signedIn = state.status === "authenticated";
   return (
-    <Link to={signedIn ? CONSOLE_HOME : SIGN_IN_PATH} className={className}>
+    <Link to={signedIn ? CONSOLE_HOME : SIGN_IN_PATH} className={`whitespace-nowrap ${className}`}>
       {signedIn ? cta.toConsole : (label ?? cta.signIn)}
     </Link>
   );
