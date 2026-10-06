@@ -45,7 +45,10 @@ export const sc19 = defineScenario({
       flows: ["FL-096"],
       async run(ctx) {
         const waiting = await awaitState(ctx, opOf(ctx, "a").operationId, "READER_RETRY scheduled", (snapshot) => timers(snapshot, { kind: "READER_RETRY", status: "SCHEDULED" }).length === 1, WAITS.turnSec);
-        ctx.check(waiting.versions.every((version) => version.reading === undefined), "no reading invented while the reader fails");
+        // The clone of op-4471 already has its commercial invoice read (v1, from the template): only the
+        // packing list that arrived while the reader fails must stay without a reading.
+        const packingLists = waiting.versions.filter((version) => version.docType === "PACKING_LIST");
+        ctx.check(packingLists.length > 0 && packingLists.every((version) => version.reading === undefined && version.state === "RECEIVED"), "no reading invented while the reader fails");
         ctx.check(waiting.documents.find((row) => row.docType === "PACKING_LIST")?.status === "RECEIVED", "the packing list is RECEIVED");
       },
     },
