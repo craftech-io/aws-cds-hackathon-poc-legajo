@@ -90,7 +90,9 @@ new aws.connect.PhoneNumberContactFlowAssociation("WhatsAppNumberFlow", {
 export const spareWhatsappNumber = new aws.connect.PhoneNumber(
   "SpareWhatsAppNumber",
   { targetArn: phoneInstance.arn, countryCode: WHATSAPP_NUMBER.countryCode, type: WHATSAPP_NUMBER.type, description: `Spare WhatsApp number verified by ${$app.name} (${$app.stage})` },
-  keep,
+  // Unprotected so the next change can drop it from this stack: it moves to the other demo's own
+  // instance, and `retainOnDelete` keeps the number claimed in the account while it moves.
+  { retainOnDelete: true },
 );
 
 new aws.connect.PhoneNumberContactFlowAssociation("SpareWhatsAppNumberFlow", {
