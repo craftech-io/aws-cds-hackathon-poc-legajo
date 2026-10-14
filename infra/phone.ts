@@ -84,23 +84,6 @@ new aws.connect.PhoneNumberContactFlowAssociation("WhatsAppNumberFlow", {
   contactFlowId: otpFlow.contactFlowId,
 });
 
-// A second DID for another Craftech demo of this account, verified through the same OTP flow: the
-// account's Connect instance quota is full, so that demo borrows this instance only to receive Meta's
-// verification call. Same retention as the first number (a released number loses its registration).
-export const spareWhatsappNumber = new aws.connect.PhoneNumber(
-  "SpareWhatsAppNumber",
-  { targetArn: phoneInstance.arn, countryCode: WHATSAPP_NUMBER.countryCode, type: WHATSAPP_NUMBER.type, description: `Spare WhatsApp number verified by ${$app.name} (${$app.stage})` },
-  // Unprotected so the next change can drop it from this stack: it moves to the other demo's own
-  // instance, and `retainOnDelete` keeps the number claimed in the account while it moves.
-  { retainOnDelete: true },
-);
-
-new aws.connect.PhoneNumberContactFlowAssociation("SpareWhatsAppNumberFlow", {
-  instanceId: phoneInstance.id,
-  phoneNumberId: spareWhatsappNumber.id,
-  contactFlowId: otpFlow.contactFlowId,
-});
-
 // ---- PhoneOtp ---------------------------------------------------------------------------------------
 
 const place = $util.all([accountId, region]).apply(([account, regionName]) => ({ account, region: regionName }));
@@ -126,5 +109,4 @@ phoneRecordings.notify({
 
 /** The number as E.164, for the operator and the outputs (`sst deploy` prints it). */
 export const whatsappPhoneNumber = whatsappNumber.phoneNumber;
-export const spareWhatsappPhoneNumber = spareWhatsappNumber.phoneNumber;
 export const phoneStorage = recordingsStorage;
