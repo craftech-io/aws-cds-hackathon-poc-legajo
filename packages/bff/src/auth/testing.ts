@@ -70,7 +70,9 @@ export function createTestIssuer(options: { kid?: string; now?: () => Date } = {
         token_use: "id",
         auth_time: issuedAt,
         iat: issuedAt,
-        exp: issuedAt + 3600,
+        // The verifier checks `exp` against the machine's clock, not the injected one: a world pinned
+        // to a past instant still gets a token that has not expired.
+        exp: Math.max(issuedAt, Math.floor(Date.now() / 1000)) + 3600,
         "cognito:username": "7f1c9d2e-0000-4000-8000-000000000001",
         "cognito:groups": ["BROKER"],
         "custom:firmId": "firm-delta",
