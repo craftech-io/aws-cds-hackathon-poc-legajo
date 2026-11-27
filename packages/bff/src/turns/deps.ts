@@ -7,6 +7,7 @@ import type { Connector } from "../connector/index";
 import type { TokenUsage } from "../domain/conversations";
 import type { SecretKey } from "../lib/crypto";
 import type { Logger } from "../lib/log";
+import type { TurnCostLedger } from "../worker/turn-cost";
 import type { EscalationPort, EventHandlers, TurnFailureCause } from "../worker/ports";
 import type { G1Prefilter } from "./prefilter";
 import type { TurnReads } from "./preload";
@@ -20,6 +21,8 @@ export interface TurnDeps {
   readonly handlers: Pick<EventHandlers, "milestoneFallback">;
   /** `consumeQuota(clockId, "AGENT_TURNS")` of worlds/guest-quotas.ts, logging its metrics on `log`. */
   readonly consumeTurnQuota: (clockId: string, log: Logger) => Promise<void>;
+  /** The spend cap of the guest who holds the world (worker/turn-cost.ts). */
+  readonly turnCost: TurnCostLedger;
   /** HKDF `session` subkey (tokens of the turn). */
   readonly sessionKey: () => SecretKey;
   /** HKDF `runtime-session` subkey (`runtimeSessionId`). */
@@ -32,7 +35,7 @@ export interface TurnDeps {
   readonly random?: (size: number) => Uint8Array;
 }
 
-export type SkipReason = "NO_OPERATION" | "CONTROL_BROKER" | "TURN_QUOTA" | "TURN_CAP";
+export type SkipReason = "NO_OPERATION" | "CONTROL_BROKER" | "TURN_QUOTA" | "TURN_CAP" | "TURN_COST";
 
 export type TurnOutcome =
   | { readonly kind: "SKIPPED"; readonly reason: SkipReason }

@@ -139,6 +139,7 @@ export const AUTH_ES = {
     usage: "Uso de tu estudio de prueba",
     usageLine: (used: number, limit: number) => `${used} de ${limit}`,
     globalExhausted: "Se alcanzó el límite de uso de hoy.",
+    agentExhausted: "Tu cuenta ya usó todo el tiempo de agente incluido en la prueba: el agente no responde más. Si querés seguir, hablemos.",
     dismiss: "Entendido",
     kinds: {
       AGENT_TURNS: "turnos del agente",

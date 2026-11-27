@@ -8,6 +8,9 @@
 //   any other stop, a timeout, a stream error    `TURN_FAILED` and `TurnErrors`; a `MILESTONE DOCS_REQUEST`
 //                                                turn gets its deterministic fallback (FL-097)
 //   a throttled call that ran out of retries     the turn closes and the event goes back to the queue
+//
+// The spend hold of a guest (worker/turn-cost.ts) closes here: settled to the usage the stream reported,
+// kept as the turn's cost when the model ran and reported nothing, given back when it never ran.
 import { buildSystemPrompt } from "../agent/system-prompt";
 import { renderEnvelope } from "../agent/envelope";
 import { type HarnessTurnResult, HarnessError } from "../agent/harness-client";
@@ -17,6 +20,7 @@ import { WORKER_ACTIONS, auditOnce } from "../worker/audit";
 import type { TurnEvent } from "../worker/events";
 import { handleGuardrailBlock } from "../worker/guardrail-block";
 import type { TurnFailureCause, WorkerContext } from "../worker/ports";
+import type { TurnCostHold } from "../worker/turn-cost";
 import type { TurnDeps, TurnOutcome } from "./deps";
 import { type TurnInbound, envelopeAttachments, envelopeEvent, envelopeFacts } from "./envelope";
 import { takeForcedFailure } from "./forced-failure";
@@ -30,6 +34,7 @@ export interface InvokeInput {
   readonly operation: Operation;
   readonly event: TurnEvent;
   readonly inbound?: TurnInbound;
+  readonly hold: TurnCostHold;
 }
 
 type Invocation = { readonly ran: true; readonly result: HarnessTurnResult; readonly latencyMs: number } | { readonly ran: false; readonly cause: TurnFailureCause };
@@ -64,9 +69,11 @@ async function invokeHarness(deps: TurnDeps, ctx: WorkerContext & { readonly dea
   const started = ctx.now().getTime();
   try {
     const result = await deps.harness.invoke({ ...identity, envelope, systemPrompt: buildSystemPrompt({ delimiter }), deadlineMs: ctx.deadlineMs });
+    await input.hold.settle(result.usage);
     return { ran: true, result, latencyMs: ctx.now().getTime() - started };
   } catch (error) {
     if (!(error instanceof HarnessError) || error.kind === "THROTTLED") throw error;
+    await input.hold.keep();
     // AWS's error name and message (no payload): what to fix, without guessing.
     const cause = error.cause instanceof Error ? { causeName: error.cause.name, causeMessage: error.cause.message.slice(0, 300) } : {};
     ctx.log.warn("turn.harness_failed", { kind: error.kind, turnId: session.turnId, ...cause });

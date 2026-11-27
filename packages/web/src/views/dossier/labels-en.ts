@@ -206,6 +206,7 @@ export const en = {
     SIM_REPLY: "Reply from the supplier simulator",
     AGENT_FALLBACK: "System fallback message",
     TURN_CAP: "The firm's turn cap was reached",
+    TURN_COST: "No agent turn: your account used all the agent time it includes",
     AUTO_REPLY_IGNORED: "Automatic reply ignored",
     SEND_WHATSAPP: "Sent on WhatsApp",
     SEND_EMAIL: "Sent by email",

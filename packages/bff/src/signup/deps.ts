@@ -7,7 +7,7 @@ import { LEGAL_VERSIONS } from "@legajo/shared/legal-versions";
 import type { ConsentVersions } from "@legajo/shared/signup";
 import { authConfig } from "../auth/config";
 import { type TableClient, tableClient } from "../connector/index";
-import { ulid, randomBase32 } from "../lib/crypto";
+import { cognitoCallerTag, ulid, randomBase32 } from "../lib/crypto";
 import { secretValue, subkey } from "../lib/secrets";
 import { type LeadStore, createLeadStore } from "../leads/store";
 import { APP_ORIGIN } from "../public-web/deps";
@@ -64,7 +64,7 @@ export function defaultAccessDeps(): AccessDeps {
     client,
     signups: createSignupStore(client),
     leads: createLeadStore(client),
-    cognito: createSignupCognito(auth),
+    cognito: createSignupCognito({ ...auth, callerTag: cognitoCallerTag(subkey("cognito-caller")) }),
     invoker: lambdaAsyncInvoker(),
     keys: signupKeys(),
     legalVersions: LEGAL_VERSIONS,

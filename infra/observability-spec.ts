@@ -74,6 +74,7 @@ export const DOCUMENTED_METRICS: readonly MetricSpec[] = [
   { name: "GuestWorldFailed", emitters: ["WorldJanitor"], unit: "Count", source: `${BFF}/worlds/guest-worlds.ts` },
   { name: "QuotaHits", emitters: QUOTA_RUNNERS, unit: "Count", dimensions: { Kind: "$.kind" }, source: `${BFF}/worlds/guest-quotas.ts` },
   { name: "GuestBudgetHits", emitters: QUOTA_RUNNERS, unit: "Count", source: `${BFF}/worlds/guest-quotas.ts` },
+  { name: "GuestCostHits", emitters: ["OperationWorker"], unit: "Count", dimensions: { Reason: "$.reason" }, source: `${BFF}/worker/turn-cost.ts` },
   { name: "LeadNoticeFailed", emitters: ["LeadNotice"], unit: "Count", source: `${BFF}/leads/notice/notice.ts` },
 ];
 

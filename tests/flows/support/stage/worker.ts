@@ -27,6 +27,7 @@ import { handoffEscalation } from "@legajo/bff/worker/escalation";
 import type { EventHandlers, WorkerContext } from "@legajo/bff/worker/ports";
 import { type OperationWorker, type WorkerDeps, createOperationWorker } from "@legajo/bff/worker/worker";
 import { consumeQuota } from "@legajo/bff/worlds/guest-quotas";
+import { createTurnCostLedger } from "@legajo/bff/worker/turn-cost";
 import { LOCAL_BUCKETS, MAIL_ROUTES, type StageContext } from "./context";
 
 /** `Resource.Harness` of a local world (the turn's limits are the stage's, infra/agentcore.ts). */
@@ -109,6 +110,7 @@ export function createStageWorker(stage: StageContext): StageWorker {
       prefilter: createG1Prefilter({ link: () => LOCAL_G1, send: (input) => runtime.send(new ApplyGuardrailCommand(input)) }),
       handlers,
       consumeTurnQuota: (clockId, log) => consumeQuota({ client: stage.stores.client, now: stage.now, log }, clockId, "AGENT_TURNS"),
+      turnCost: createTurnCostLedger({ client: stage.stores.client, now: stage.now }),
       sessionKey: () => stage.key("session"),
       runtimeSessionKey: () => stage.key("runtime-session"),
       agentMode: "SCRIPTED",

@@ -298,6 +298,10 @@ _Avoid_: bounce list, lista negra
 Tope por mundo de invitado en **reloj real** (turnos del agente, emails salientes, mensajes del simulador, movimientos del reloj, cargas, operaciones nuevas, reinicios), más un presupuesto diario global de los mundos públicos. Al superarla, la acción se rechaza con `QUOTA_EXCEEDED` y la hora en que se renueva.
 _Avoid_: rate limit (es el del alta), límite de la cuenta
 
+**Tope de gasto de la cuenta** (`COST#<sub>`):
+Lo que puede costar el agente para una cuenta registrada en toda su vida (US$ 1), sin reinicio: sigue a la persona y no al mundo, así que un cupo que pasa a otra cuenta no le hereda el gasto a nadie. Cada turno reserva antes del Harness y se liquida al costo real; pasado el tope no hay más turnos (`TURN_COST`). El personal interno no lo tiene.
+_Avoid_: cuota (es del mundo y se renueva)
+
 **Rate limit del alta** (`RL#…`):
 Tope por IP, por email, por dominio y total sobre el alta, el reenvío del código y los emails de cuenta; su objetivo es que el alta no sirva para mandar códigos a terceros ni para agotar el cupo.
 _Avoid_: cuota (es la del mundo)

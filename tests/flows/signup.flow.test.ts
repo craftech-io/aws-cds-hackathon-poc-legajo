@@ -46,8 +46,8 @@ describe("public sign-up flows", () => {
     expect(notices[0]?.input.Content?.Simple?.Body?.Text?.Data).toContain(EMAIL);
   });
 
-  it("[FL-102] wrong codes count down to EXPIRED; the expired sign-up confirms nothing and a new one from /signup works", async () => {
-    const { edge: api } = await edge();
+  it("[FL-102] wrong codes count down to EXPIRED; the expired sign-up confirms nothing and a new one from /signup works once its account is 10 minutes old", async () => {
+    const { flow, edge: api } = await edge();
     const started = await api.startSignup(EMAIL);
 
     const attempts: Array<string | undefined> = [];
@@ -57,6 +57,13 @@ describe("public sign-up flows", () => {
     expect(statusOf(await api.confirm(started.signupId, EMAIL))).toBe("EXPIRED");
     expect(await leadOf(api.access, EMAIL)).toBeUndefined();
 
+    // The pending account is younger than 10 minutes: another sign-up of the email leaves it alone.
+    const codesBefore = api.access.cognito.codes.length;
+    const early = await api.startSignup(EMAIL, { viewer: "198.51.100.20:40001" });
+    expect(early.signupId).not.toBe(started.signupId);
+    expect(api.access.cognito.codes).toHaveLength(codesBefore);
+
+    flow.advanceReal(10 * 60_000);
     const again = await api.startSignup(EMAIL, { viewer: "198.51.100.20:40001" });
     expect(again.signupId).not.toBe(started.signupId);
     expect(statusOf(await api.confirm(again.signupId, EMAIL))).toBe("CONFIRMED");

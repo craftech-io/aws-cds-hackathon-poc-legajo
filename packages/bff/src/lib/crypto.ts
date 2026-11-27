@@ -15,7 +15,8 @@ export type SecretKey = string | Uint8Array;
  * Fixed labels of the subkeys (HKDF `info`); changing one invalidates every value derived with it.
  * The public sign-up adds five (ADR-0015 §9): `signup-ticket` (the ticket `AuthPreSignUp` checks),
  * `signup-seal` (the password in transit to `SignupDispatch`), `lead-email` (`Leads/EMAIL#` and
- * `Runtime/MAILSTATUS#`), `rate` (IP and domain of the rate-limit counters) and `form` (`formShownAt`).
+ * `Runtime/MAILSTATUS#`), `rate` (IP and domain of the rate-limit counters) and `form` (`formShownAt`);
+ * `cognito-caller` marks the Cognito calls of `SignupDispatch` for the user pool's web ACL.
  */
 export const SUBKEY_PURPOSES = [
   "session",
@@ -30,6 +31,7 @@ export const SUBKEY_PURPOSES = [
   "lead-email",
   "rate",
   "form",
+  "cognito-caller",
 ] as const;
 export type SubkeyPurpose = (typeof SUBKEY_PURPOSES)[number];
 
@@ -48,6 +50,16 @@ export function deriveSubkey(master: SecretKey, purpose: SubkeyPurpose): Uint8Ar
   if (master.length === 0) throw new RangeError("the master key is empty");
   if (!SUBKEY_PURPOSES.includes(purpose)) throw new RangeError(`unknown subkey purpose "${String(purpose)}"`);
   return hkdfSha256(master, SUBKEY_SALT, purpose, SUBKEY_BYTES);
+}
+
+/**
+ * Value of `x-legajo-caller` on the Cognito calls of `SignupDispatch`, which the rate rules of the user
+ * pool's web ACL leave out (infra/auth-waf-spec.ts): the `cognito-caller` subkey in base64url.
+ */
+export const COGNITO_CALLER_HEADER = "x-legajo-caller";
+
+export function cognitoCallerTag(callerSubkey: Uint8Array): string {
+  return Buffer.from(callerSubkey).toString("base64url");
 }
 
 export function sha256Hex(message: string | Uint8Array): string {

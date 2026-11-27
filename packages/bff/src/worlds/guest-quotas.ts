@@ -14,6 +14,7 @@ import { countMetric } from "../channels/adapter";
 import type { TableClient } from "../connector/index";
 import type { Logger } from "../lib/log";
 import { type CounterGroup, consumeWindowed, fullestWindow, readWindowed } from "../signup/counters";
+import { isCostExhausted, readGuestCost } from "../worker/turn-cost";
 import { isPublicGuestFirm } from "./guest-slots";
 
 export const QUOTA_METRICS = { hits: "QuotaHits", budget: "GuestBudgetHits" } as const;
@@ -75,9 +76,11 @@ function usageOf(kind: QuotaKind, readings: ReadonlyArray<{ window: WindowedLimi
 export interface UsageReport {
   readonly quotas: QuotaUsage[];
   readonly globalBudget: "OK" | "EXHAUSTED";
+  /** The account's agent spend (worker/turn-cost.ts): `EXHAUSTED` once no new turn fits under its cap. */
+  readonly agentBudget: "OK" | "EXHAUSTED";
 }
 
-/** `account.usage`: every window of every kind of the world (and the account's preparations), plus the global budget. */
+/** `account.usage`: every window of every kind of the world (and the account's preparations), plus the global budget and the account's agent spend. */
 export async function readUsage(client: TableClient, input: { readonly clockId?: string; readonly sub: string }, now: Date): Promise<UsageReport> {
   const quotas: QuotaUsage[] = [];
   const firmId = input.clockId === undefined ? undefined : guestFirmOfClock(input.clockId);
@@ -92,6 +95,7 @@ export async function readUsage(client: TableClient, input: { readonly clockId?:
       if (group !== undefined && !fullestWindow(await readWindowed(client, group.base, group.limits, now)).ok) exhausted = true;
     }
   }
-  return { quotas, globalBudget: exhausted ? "EXHAUSTED" : "OK" };
+  const agentBudget = isCostExhausted(await readGuestCost(client, input.sub)) ? "EXHAUSTED" : "OK";
+  return { quotas, globalBudget: exhausted ? "EXHAUSTED" : "OK", agentBudget };
 }
 

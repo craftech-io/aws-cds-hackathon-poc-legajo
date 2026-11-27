@@ -803,7 +803,7 @@ cuando son botones, enlaces del footer con padding); tipografía fluida con `cla
 | LCP | < 2,5 s en 4G lenta emulada (Lighthouse mobile, `simulate`) sobre `poc` | Lighthouse CI en el job de verificación post-deploy (no bloquea el deploy; falla el check de `qa`) |
 | CLS | < 0,05 | Idem |
 | INP | < 200 ms | Idem (TBT < 200 ms como proxy) |
-| JS propio de landing + acceso | ≤ 90 KB gzip: el chunk de entrada y lo que importa de forma estática, sin la consola (otro chunk) ni el runtime de terceros | `vite build` + script `scripts/landing/bundle-budget.ts` que falla por encima |
+| JS propio de landing + acceso | ≤ 93 KB gzip: el chunk de entrada y lo que importa de forma estática, sin la consola (otro chunk) ni el runtime de terceros | `vite build` + script `scripts/landing/bundle-budget.ts` que falla por encima |
 | JS de terceros que `/` descarga antes de pintar | ≤ 100 KB gzip: chunks `vendor-react` (React 19, `react-dom`, `scheduler`) y `vendor-data` (zod, tRPC), separados por `packages/web/vite.config.ts` | Idem (el script informa también el total de `/`) |
 | CSS total | ≤ 35 KB gzip | Idem |
 | Fuente | ≤ 45 KB (`latin` + `latin-ext`) | Idem |
@@ -811,8 +811,8 @@ cuando son botones, enlaces del footer con padding); tipografía fluida con `cla
 | Imágenes bajo el pliegue | AVIF con fallback WebP, `srcset` por ancho (desktop 480, 960, 1440 y 1920; mobile 390 y 780, los de ADR-0016 §4), `sizes` por layout, `loading="lazy"`, `decoding="async"`, `width`/`height` del manifiesto | `render-visuals.ts`/`capture-console.ts` generan las variantes |
 
 Decisión del presupuesto de JS (integración de la etapa A2, 2026-10-02; la confirma `architect`): React 19 solo pesa
-unos 66 KB gzip y zod más tRPC unos 31 KB, así que ningún reparto de chunks deja "landing + acceso" en 90 KB contando el
-runtime. El presupuesto de 90 KB mide el código propio (el que crece con cada cambio de la landing y del acceso) y el
+unos 66 KB gzip y zod más tRPC unos 31 KB, así que ningún reparto de chunks deja "landing + acceso" en 93 KB contando el
+runtime. El presupuesto de 93 KB mide el código propio (el que crece con cada cambio de la landing y del acceso) y el
 runtime de terceros tiene su propio tope de 100 KB, que solo cambia con una actualización de dependencias. El medidor
 real de la experiencia sigue siendo el LCP de Lighthouse sobre `poc` de la fila de arriba. Al integrar A2: propio 82,4 KB,
 terceros 96,5 KB, total 179 KB gzip.

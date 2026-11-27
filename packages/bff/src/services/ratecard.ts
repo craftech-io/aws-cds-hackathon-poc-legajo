@@ -116,6 +116,39 @@ export function dossierCost(usage: DossierUsage, rows: readonly unknown[], optio
   return { status: "VERIFIED", usd: roundUsd(lines.reduce((sum, line) => sum + line.usd, 0)), lines, whatsappPricedAsLive };
 }
 
+/**
+ * USD per million tokens the spend cap of a guest charges for a turn of the Harness (worker/turn-cost.ts).
+ * Prices of `HARNESS_MODEL_ID` through its `global.*` profile in the AWS price list (us-east-1); a cache
+ * write is priced at its 5-minute rate. The `RATECARD` rows of `Reference` stay the source of the
+ * dossier's cost; this table only guards spend.
+ */
+export const GUEST_CAP_TOKEN_RATES: Readonly<Record<TokenKind, number>> = { input: 2, output: 10, cacheRead: 0.1, cacheWrite: 2.5 };
+
+/**
+ * USD added to every turn of a guest for the model calls its usage does not report: the G1 pre-filter,
+ * the G2 grounding check of each outbound and the three Memory strategies that run the agent's model
+ * over the turn's events. A CONFIRMAR with the Guardrails and AgentCore Memory bills; kept high.
+ */
+export const GUEST_CAP_TURN_OVERHEAD_USD = 0.02;
+
+export interface TurnTokens {
+  readonly inputTokens: number;
+  readonly outputTokens: number;
+  readonly cacheReadTokens: number;
+  readonly cacheWriteTokens: number;
+}
+
+/** Micro-dollars a guest is charged for one turn: tokens × `GUEST_CAP_TOKEN_RATES` plus the overhead, rounded up. */
+export function guestTurnCostMicros(usage: TurnTokens): number {
+  // A price per million tokens is micro-dollars per token.
+  const tokens =
+    usage.inputTokens * GUEST_CAP_TOKEN_RATES.input +
+    usage.outputTokens * GUEST_CAP_TOKEN_RATES.output +
+    usage.cacheReadTokens * GUEST_CAP_TOKEN_RATES.cacheRead +
+    usage.cacheWriteTokens * GUEST_CAP_TOKEN_RATES.cacheWrite;
+  return Math.ceil(tokens + GUEST_CAP_TURN_OVERHEAD_USD * 1_000_000);
+}
+
 /** True while any row is provisional: the metrics view labels every cost "sin tarifa verificada". */
 export function hasProvisionalRates(rows: readonly unknown[]): boolean {
   return z.array(RateCardRow).parse(rows).some((row) => row.provisional);

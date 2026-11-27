@@ -44,8 +44,8 @@ describe("turn caps of a firm", () => {
   it("a demo world has no guest quota: the budget only counts the firm's caps", async () => {
     const world = await workerWorld();
     const operation = await world.stores.connector.operations.getOperation(OPERATION);
-    const budget = await checkTurnBudget({ data: world.stores.connector, consumeTurnQuota: world.deps.turn.consumeTurnQuota, now: world.realNow, log: world.log }, operation);
-    expect(budget).toEqual({ allowed: true });
+    const budget = await checkTurnBudget({ data: world.stores.connector, consumeTurnQuota: world.deps.turn.consumeTurnQuota, turnCost: world.deps.turn.turnCost, now: world.realNow, log: world.log }, operation);
+    expect(budget).toEqual({ allowed: true, hold: expect.anything() });
     expect(world.metrics("QuotaHits")).toEqual([]);
   });
 });

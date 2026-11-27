@@ -5,7 +5,9 @@
 //   deleteUnconfirmed   deletes only a user that is UNCONFIRMED and has no group at that moment
 //   addGuestGroup       adds only the literal group GUEST, only to a user with no group at that moment
 //
-// Every call carries the SDK timeout and a backoff retry on throttling (lib/clients.ts, lib/retry.ts).
+// Every call carries the SDK timeout and a backoff retry on throttling (lib/clients.ts, lib/retry.ts),
+// and, with `callerTag`, the header `x-legajo-caller` the rate rules of the pool's web ACL leave out
+// (infra/auth-waf-spec.ts): the browser calls the same public client from the visitor's own address.
 import {
   AdminAddUserToGroupCommand,
   AdminDeleteUserCommand,
@@ -22,6 +24,7 @@ import {
   type UserType,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { awsClientConfig } from "../lib/clients";
+import { COGNITO_CALLER_HEADER } from "../lib/crypto";
 import { withRetry } from "../lib/retry";
 import { COGNITO_TIMEOUTS } from "../auth/totp";
 
@@ -74,6 +77,8 @@ export interface CognitoConfig {
   readonly userPoolId: string;
   readonly clientId: string;
   readonly region: string;
+  /** Value of `x-legajo-caller` (lib/crypto.ts `cognitoCallerTag`); without it no header is added. */
+  readonly callerTag?: string;
 }
 
 const RETRYABLE = new Set(["TooManyRequestsException", "InternalErrorException", "TimeoutError", "ThrottlingException"]);
@@ -112,6 +117,17 @@ export function emailFilter(email: string): string {
 }
 
 export function createSignupCognito(config: CognitoConfig, client = new CognitoIdentityProviderClient({ region: config.region, ...awsClientConfig(COGNITO_TIMEOUTS) })): SignupCognito {
+  const tag = config.callerTag;
+  if (tag !== undefined) {
+    client.middlewareStack.add(
+      (next) => async (args) => {
+        const request = args.request as { headers?: Record<string, string> };
+        if (request.headers !== undefined) request.headers[COGNITO_CALLER_HEADER] = tag;
+        return next(args);
+      },
+      { step: "build", name: "legajoCallerHeader" },
+    );
+  }
   const send = <T>(call: () => Promise<T>) => withRetry(call, { attempts: 3, baseDelayMs: 100, shouldRetry: (error) => RETRYABLE.has(nameOf(error)) });
   const pool = { UserPoolId: config.userPoolId };
 

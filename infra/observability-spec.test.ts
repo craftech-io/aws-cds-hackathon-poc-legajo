@@ -209,7 +209,7 @@ describe("[FL-098] the alarm of the dead letters of OperationEvents", () => {
 describe("metrics of docs/architecture.md §12 and ADR-0015 §9", () => {
   it("lists exactly the metrics of §12 and of ADR-0015 §9", () => {
     const documented = new Set([...metricNames(line12("- Métricas `LegajoAgent/*`:")), ...metricNames(adrRow("Métricas"))]);
-    expect(documented.size).toBe(26);
+    expect(documented.size).toBe(27);
     expect(DOCUMENTED_METRICS.map((spec) => spec.name).sort()).toEqual([...documented].sort());
     expect(METRICS.map((spec) => spec.name).sort()).toEqual([...documented, ...metricNames(line12("- Métricas de los adaptadores de canal"))].sort());
   });

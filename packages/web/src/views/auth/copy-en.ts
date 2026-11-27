@@ -135,6 +135,7 @@ export const AUTH_EN: AuthCopy = {
     usage: "Your trial firm's usage",
     usageLine: (used: number, limit: number) => `${used} of ${limit}`,
     globalExhausted: "The daily usage limit was reached.",
+    agentExhausted: "Your account has used all the agent time included in the trial: the agent no longer answers. To keep going, let's talk.",
     dismiss: "Got it",
     kinds: {
       AGENT_TURNS: "agent turns",

@@ -94,6 +94,7 @@ export default $config({
     await import("./infra/guardrail"); // WP-09
     await import("./infra/policy"); // WP-09
     await import("./infra/auth"); // WP-11
+    await import("./infra/auth-waf"); // per-IP limits of ForgotPassword and ResendConfirmationCode on the pool
     await import("./infra/messaging-email"); // WP-18
     await import("./infra/leads"); // WP-51: needs auth, storage and the SES senders; before scheduler and bff
     const { whatsappPhoneNumber } = await import("./infra/phone"); // the WhatsApp number and its verification bot

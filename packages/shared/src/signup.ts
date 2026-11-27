@@ -125,12 +125,14 @@ export const SignupRejectReason = z.enum([
   "FORM_TOKEN",
   "RESERVED_DOMAIN",
   "OWN_DOMAIN",
+  "DISPOSABLE_DOMAIN",
   "NO_MX",
   "EMAIL_QUOTA",
   "DOMAIN_QUOTA",
   "MAIL_STATUS",
   "BREAKER_OPEN",
   "INELIGIBLE",
+  "PENDING_RECENT",
   "IP_RATE",
   "TOTAL_CAPACITY",
   "NO_VIEWER_IP",
@@ -162,7 +164,7 @@ export type EnsureWorldOutput = z.infer<typeof EnsureWorldOutput>;
 export const QuotaUsage = z.object({ kind: QuotaKind, window: LimitWindow, used: z.number().int().min(0), limit: z.number().int().min(1), resetsAtReal: z.string() });
 export type QuotaUsage = z.infer<typeof QuotaUsage>;
 
-export const AccountUsageOutput = z.object({ quotas: z.array(QuotaUsage), globalBudget: z.enum(["OK", "EXHAUSTED"]) });
+export const AccountUsageOutput = z.object({ quotas: z.array(QuotaUsage), globalBudget: z.enum(["OK", "EXHAUSTED"]), agentBudget: z.enum(["OK", "EXHAUSTED"]) });
 export type AccountUsageOutput = z.infer<typeof AccountUsageOutput>;
 
 /** `data.quota` of a `QUOTA_EXCEEDED` refusal (tRPC `TOO_MANY_REQUESTS`, `reason: "QUOTA_EXCEEDED"`). */

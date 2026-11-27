@@ -768,6 +768,26 @@ Resources:
               - wafv2:DescribeManagedRuleGroup
               - wafv2:ListAvailableManagedRuleGroups
             Resource: "*"
+          - Sid: CognitoWebAclOfThisApp
+            Effect: Allow
+            Action:
+              - wafv2:AssociateWebACL
+              - wafv2:CreateWebACL
+              - wafv2:DeleteWebACL
+              - wafv2:DisassociateWebACL
+              - wafv2:GetWebACL
+              - wafv2:GetWebACLForResource
+              - wafv2:ListTagsForResource
+              - wafv2:TagResource
+              - wafv2:UntagResource
+              - wafv2:UpdateWebACL
+            Resource: !Sub "arn:${AWS::Partition}:wafv2:${Region}:${AWS::AccountId}:regional/webacl/${AppName}-${DeployStage}-auth/*"
+          - Sid: CognitoWafManagedRuleReferences
+            Effect: Allow
+            Action:
+              - wafv2:CreateWebACL
+              - wafv2:UpdateWebACL
+            Resource: !Sub "arn:${AWS::Partition}:wafv2:${Region}:*:regional/managedruleset/*"
           - Sid: DenyCloudFrontFunctionsOfOtherProjects
             Effect: Deny
             Action:

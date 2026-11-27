@@ -61,6 +61,24 @@ describe("[FL-101] a new email", () => {
     expect(access.cognito.users.has("usr-old")).toBe(false);
     expect(cognitoWrites(access.cognito.calls)).toEqual(["deleteUnconfirmed", "signUp"]);
   });
+
+  it("[FL-104] never replaces an UNCONFIRMED user younger than 10 minutes: nothing written, PENDING_RECENT", async () => {
+    access.cognito.seed({ username: "usr-pending", email: EMAIL, status: "UNCONFIRMED", createdAt: new Date(NOW.getTime() - 9 * 60_000) });
+    const { signupId, answer } = await startSignup(access, { email: EMAIL }, "ip-a", log());
+    expect(answer).toMatchObject({ status: "CODE_SENT" });
+    expect(await stored(signupId)).toMatchObject({ branch: "INELIGIBLE" });
+    expect(access.cognito.users.get("usr-pending")).toMatchObject({ status: "UNCONFIRMED" });
+    expect(cognitoWrites(access.cognito.calls)).toEqual([]);
+    expect(access.cognito.codes).toEqual([]);
+    expect(metrics()).toContainEqual(expect.objectContaining({ metric: "SignupRejected", reason: "PENDING_RECENT" }));
+  });
+
+  it("[FL-104] replaces it once it is 10 minutes old", async () => {
+    access.cognito.seed({ username: "usr-pending", email: EMAIL, status: "UNCONFIRMED", createdAt: new Date(NOW.getTime() - 10 * 60_000) });
+    const { signupId } = await startSignup(access, { email: EMAIL });
+    expect(await stored(signupId)).toMatchObject({ branch: "NEW" });
+    expect(cognitoWrites(access.cognito.calls)).toEqual(["deleteUnconfirmed", "signUp"]);
+  });
 });
 
 describe("[FL-104] an email that already has an account", () => {
