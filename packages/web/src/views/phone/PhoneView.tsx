@@ -42,6 +42,8 @@ function noticeText(copy: PhoneCopy, notice: PhoneNotice): string {
       return copy.errors.notPersonal;
     case "blocked":
       return copy.errors.blocked;
+    case "countryNotAllowed":
+      return copy.errors.countryNotAllowed;
     case "generic":
       return copy.errors.generic;
   }

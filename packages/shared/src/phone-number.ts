@@ -8,7 +8,7 @@ const PHONE_SEPARATORS = /[\s\-.()]/g;
 /** Digits of an E.164 number, country code included. */
 export const PHONE_DIGITS = { min: 8, max: 15 } as const;
 
-/** `+` and 8 to 15 digits (E.164), any country; the first digit of the country code is never 0. */
+/** `+` and 8 to 15 digits (E.164); the first digit of the country code is never 0. */
 export const E164 = new RegExp(`^\\+[1-9][0-9]{${PHONE_DIGITS.min - 1},${PHONE_DIGITS.max - 1}}$`);
 
 /** The number as stored: separators dropped, then E.164 or a refusal. */

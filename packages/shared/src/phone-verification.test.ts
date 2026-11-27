@@ -1,4 +1,4 @@
-// The phone of the sign-up form and of the phone screen (ADR-0021 §1): E.164, any country, separators
+// The phone of the sign-up form and of the phone screen (ADR-0021 §1): E.164 (the Americas only, phone-policy.ts), separators
 // people type dropped before anything is stored; the code is six digits.
 import { describe, expect, it } from "vitest";
 import { AccountPhone, PhoneCode, SendPhoneCodeInput, phoneHint } from "./phone-verification";

@@ -49,7 +49,7 @@ export const AUTH_ES = {
     honeypot: "No completes este campo",
     errors: {
       email: "Escribí un email válido.",
-      phone: "Escribí el celular con + y el código de país.",
+      phone: "Celular de América con + y código de país.",
       password: "La contraseña no cumple las reglas de abajo.",
       tooLong: (max: number) => `Usá como máximo ${max} caracteres.`,
       consentTerms: "Para crear la cuenta tenés que aceptar los términos y la política de privacidad.",

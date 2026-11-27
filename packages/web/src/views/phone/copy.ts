@@ -9,7 +9,7 @@ const ES = {
   signInTitle: "Ingresá el código del SMS",
   signInLead: (hint: string) => `Para entrar mandamos un código por SMS a tu celular terminado en ${hint}.`,
   phone: "Celular",
-  phoneHint: "Con + y el código de país (+54 en Argentina).",
+  phoneHint: "De un país de América, con + y el código de país (+54 en Argentina).",
   phoneLocked: "El celular de la cuenta no se cambia desde acá. Si ya no tenés ese número, escribinos.",
   send: "Enviarme el código",
   sending: "Enviando…",
@@ -29,6 +29,7 @@ const ES = {
     expired: "El código venció o ya no sirve. Pedí uno nuevo.",
     inUse: "Ese número ya está en uso en otra cuenta. Usá otro celular o escribinos.",
     notPersonal: "Usá un celular personal.",
+    countryNotAllowed: "Por ahora solo aceptamos celulares de países de América. Si necesitás acceso, escribinos.",
     blocked: "Esta cuenta está bloqueada y no puede usar la demo. Si creés que es un error, escribinos.",
     sendFailed: "No pudimos mandar el SMS a ese número. En algunos países los SMS necesitan un registro previo; probá con otro celular o escribinos.",
     limit: (limit: SmsLimitName, minutes: number) =>
@@ -37,7 +38,7 @@ const ES = {
         : limit === "perAccount" || limit === "perNumber"
           ? "Llegaste al máximo de códigos por SMS de hoy para esta cuenta. Probá mañana o escribinos."
           : limit === "foreign"
-            ? "Por hoy se agotaron los códigos por SMS para celulares de fuera de Latinoamérica y España. Probá mañana o escribinos."
+            ? "Por hoy se agotaron los códigos por SMS para celulares de fuera de Latinoamérica. Probá mañana o escribinos."
             : `Hay demasiados pedidos de código ahora. Probá de nuevo en ${minutes} min o escribinos.`,
     generic: "No pudimos completar el pedido. Probá de nuevo en unos minutos.",
   },
@@ -49,7 +50,7 @@ const EN = {
   signInTitle: "Enter the code we texted you",
   signInLead: (hint: string) => `To sign in we texted a code to your mobile ending in ${hint}.`,
   phone: "Mobile number",
-  phoneHint: "With + and the country code (for example +54 for Argentina).",
+  phoneHint: "From a country of the Americas, with + and the country code (for example +54 for Argentina).",
   phoneLocked: "The account's mobile number is not changed here. If you no longer have it, write to us.",
   send: "Text me the code",
   sending: "Sending…",
@@ -69,6 +70,7 @@ const EN = {
     expired: "The code expired or no longer works. Ask for a new one.",
     inUse: "That number is already in use by another account. Use another mobile or write to us.",
     notPersonal: "Use a personal mobile number.",
+    countryNotAllowed: "For now we only accept mobiles from countries of the Americas. If you need access, write to us.",
     blocked: "This account is blocked and cannot use the demo. If you think this is a mistake, write to us.",
     sendFailed: "We could not text that number. Some countries need a prior registration for SMS; try another mobile or write to us.",
     limit: (limit: SmsLimitName, minutes: number) =>
@@ -77,7 +79,7 @@ const EN = {
         : limit === "perAccount" || limit === "perNumber"
           ? "You reached today's maximum of SMS codes for this account. Try tomorrow or write to us."
           : limit === "foreign"
-            ? "Today's SMS codes for mobiles outside Latin America and Spain are used up. Try tomorrow or write to us."
+            ? "Today's SMS codes for mobiles outside Latin America are used up. Try tomorrow or write to us."
             : `There are too many code requests right now. Try again in ${minutes} min or write to us.`,
     generic: "We could not complete the request. Try again in a few minutes.",
   },

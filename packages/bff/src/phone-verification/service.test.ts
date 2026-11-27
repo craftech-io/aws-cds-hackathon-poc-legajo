@@ -55,7 +55,7 @@ describe("[FL-134] enrolment: the first sign-in verifies the number", () => {
     expect(access.sms.sent[0]?.text).toMatch(/^Tu código de Legajo listo es \d{6}\. Vence en 10 minutos\.$/);
     const stored = JSON.stringify(stores.client.dump(LEADS_TABLE).find((row) => row.SK === "CODE"));
     expect(stored).not.toContain(lastCode());
-    expect(await send(ana({ sub: "sub-en", username: "usr-en", lang: "en" }), "+447700900123")).toMatchObject({ status: "CODE_SENT" });
+    expect(await send(ana({ sub: "sub-en", username: "usr-en", lang: "en" }), "+12025550123")).toMatchObject({ status: "CODE_SENT" });
     expect(access.sms.sent.at(-1)?.text).toMatch(/^Your Legajo listo code is \d{6}\. It expires in 10 minutes\.$/);
   });
 
@@ -100,6 +100,27 @@ describe("[FL-134] enrolment: the first sign-in verifies the number", () => {
     expect(await send(ana(), "+5491155555555")).toEqual({ status: "PHONE_INVALID" });
     expect(await send(ana(), PHONE)).toMatchObject({ status: "CODE_SENT" });
     expect(access.sms.sent).toHaveLength(1);
+  });
+});
+
+describe("[FL-134] only numbers of the Americas", () => {
+  it("refuses a European or Asian number typed or from the sign-up, and Spain too, without any SMS", async () => {
+    await draft("usr-ana", "+34611223344");
+    expect(await send(ana())).toEqual({ status: "PHONE_COUNTRY_NOT_ALLOWED" });
+    for (const phone of ["+447700900123", "+819012345678", "+34611223344"]) expect(await send(ana(), phone), phone).toEqual({ status: "PHONE_COUNTRY_NOT_ALLOWED" });
+    expect(access.sms.sent).toEqual([]);
+  });
+
+  it("accepts +1 and +52", async () => {
+    expect(await send(phoneAccount({ username: "usr-us", ipHash: "ip-us" }), "+12025550123")).toMatchObject({ status: "CODE_SENT" });
+    expect(await send(phoneAccount({ username: "usr-mx", ipHash: "ip-mx" }), "+5215512345678")).toMatchObject({ status: "CODE_SENT" });
+  });
+
+  it("never texts a number outside the Americas verified before, at sign-in: the account gets the refusal", async () => {
+    await access.phones.setVerified("sub-usr-ana", "+34611223344", accountPhoneHash(access.keys.accountPhone, "+34611223344"), now);
+    expect(await phoneStatus(access, ana())).toMatchObject({ status: "SIGN_IN" });
+    expect(await send(ana())).toEqual({ status: "PHONE_COUNTRY_NOT_ALLOWED" });
+    expect(access.sms.sent).toEqual([]);
   });
 });
 

@@ -45,7 +45,7 @@ export const AUTH_EN: AuthCopy = {
     honeypot: "Do not fill in this field",
     errors: {
       email: "Enter a valid email.",
-      phone: "Enter the number with + and the country code.",
+      phone: "Americas mobile, with + and the country code.",
       password: "The password does not meet the rules below.",
       tooLong: (max: number) => `Use at most ${max} characters.`,
       consentTerms: "To create the account you need to accept the terms and the privacy policy.",

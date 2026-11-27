@@ -24,6 +24,7 @@ export type PhoneNotice =
   | { readonly kind: "phoneRequired" }
   | { readonly kind: "notPersonal" }
   | { readonly kind: "blocked" }
+  | { readonly kind: "countryNotAllowed" }
   | { readonly kind: "generic" };
 
 /** Whole minutes, at least one. */
@@ -50,6 +51,8 @@ export function sendOutcome(answer: SendPhoneCodeOutput, now: number): SendOutco
       return { kind: "notice", notice: { kind: "phoneRequired" } };
     case "PHONE_NOT_PERSONAL":
       return { kind: "notice", notice: { kind: "notPersonal" } };
+    case "PHONE_COUNTRY_NOT_ALLOWED":
+      return { kind: "notice", notice: { kind: "countryNotAllowed" } };
     case "SEND_FAILED":
       return { kind: "notice", notice: { kind: "sendFailed" } };
   }
@@ -79,6 +82,7 @@ export function phoneProblem(value: string): PhoneNotice | undefined {
   if (!parsed.success) return { kind: "phoneRequired" };
   const refusal = phoneRefusal(parsed.data);
   if (refusal === "NOT_PERSONAL") return { kind: "notPersonal" };
+  if (refusal === "COUNTRY_NOT_ALLOWED") return { kind: "countryNotAllowed" };
   return refusal === "FILLER" ? { kind: "phoneRequired" } : undefined;
 }
 
@@ -91,5 +95,5 @@ export function failureNotice(error: unknown): PhoneNotice {
 
 /** Whether a notice offers Craftech's contact (the limits of the day, a number that cannot be used). */
 export function offersContact(notice: PhoneNotice | undefined): boolean {
-  return notice !== undefined && (notice.kind === "inUse" || notice.kind === "blocked" || notice.kind === "locked" || notice.kind === "sendFailed" || (notice.kind === "limit" && notice.limit !== "RESEND"));
+  return notice !== undefined && (notice.kind === "inUse" || notice.kind === "blocked" || notice.kind === "countryNotAllowed" || notice.kind === "locked" || notice.kind === "sendFailed" || (notice.kind === "limit" && notice.limit !== "RESEND"));
 }

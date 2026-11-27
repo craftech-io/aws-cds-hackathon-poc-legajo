@@ -50,6 +50,12 @@ describe("[FL-135] the phone screen", () => {
     expect(sendOutcome({ status: "PHONE_NOT_PERSONAL" }, NOW)).toEqual({ kind: "notice", notice: { kind: "notPersonal" } });
     expect(sendOutcome({ status: "PHONE_INVALID" }, NOW)).toEqual({ kind: "notice", notice: { kind: "phoneRequired" } });
     expect(PHONE_COPY.es.errors.notPersonal).toBe("Usá un celular personal.");
+    expect(phoneProblem("+34 611 22 33 44")).toEqual({ kind: "countryNotAllowed" });
+    expect(phoneProblem("+81 90 1234 5678")).toEqual({ kind: "countryNotAllowed" });
+    expect(phoneProblem("+1 202 555 0123")).toBeUndefined();
+    expect(sendOutcome({ status: "PHONE_COUNTRY_NOT_ALLOWED" }, NOW)).toEqual({ kind: "notice", notice: { kind: "countryNotAllowed" } });
+    expect(offersContact({ kind: "countryNotAllowed" })).toBe(true);
+    expect(PHONE_COPY.es.errors.countryNotAllowed).toBe("Por ahora solo aceptamos celulares de países de América. Si necesitás acceso, escribinos.");
   });
 
   it("[FL-134] the foreign quota offers Craftech's contact in both languages", () => {

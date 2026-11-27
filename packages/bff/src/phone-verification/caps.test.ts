@@ -64,6 +64,13 @@ describe("[FL-134] SMS limits", () => {
     expect(await consumeSms(stores.client, keys({ sub: "sub-x", phoneHash: hex(99), ipHash: "ip-x", home: false }), now)).toEqual({ ok: true });
   });
 
+  it("+1 counts in the foreign quota and +54 does not", async () => {
+    expect(await sendPhoneCode(access, phoneAccount({ username: "usr-us", ipHash: "ip-us" }), "+12025550123", log)).toMatchObject({ status: "CODE_SENT" });
+    expect(await stores.client.get(RUNTIME_TABLE, counterKey("RL#SMS#FOREIGN", "DAY", now))).toMatchObject({ count: 1 });
+    expect(await sendPhoneCode(access, phoneAccount({ username: "usr-ar", ipHash: "ip-ar" }), "+5491155550101", log)).toMatchObject({ status: "CODE_SENT" });
+    expect(await stores.client.get(RUNTIME_TABLE, counterKey("RL#SMS#FOREIGN", "DAY", now))).toMatchObject({ count: 1 });
+  });
+
   it("the sixth SMS to numbers outside the region is refused by sendPhoneCode with the foreign limit, and nothing is sent", async () => {
     const foreign = SMS_LIMITS.foreign[0].limit;
     for (let index = 0; index < foreign; index += 1) {
