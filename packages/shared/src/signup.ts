@@ -63,7 +63,7 @@ export const SignupStartInput = z
     formToken: FormToken,
     email: SignupEmail,
     password: Password,
-    /** Mobile number in E.164, any country: the SMS code goes to it after the email (ADR-0021). */
+    /** Mobile number in E.164 of a country of the Americas (refused otherwise by the BFF): the SMS code goes to it after the email (ADR-0021). */
     phone: AccountPhone,
     name: OptionalText,
     company: OptionalText,

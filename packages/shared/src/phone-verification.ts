@@ -48,6 +48,8 @@ export const SendPhoneCodeOutput = z.discriminatedUnion("status", [
   z.object({ status: z.literal("PHONE_INVALID") }),
   /** A range that is not a person's mobile (phone-policy.ts): "Usá un celular personal". */
   z.object({ status: z.literal("PHONE_NOT_PERSONAL") }),
+  /** A number outside the Americas (phone-policy.ts), typed or already verified: no SMS goes to it. */
+  z.object({ status: z.literal("PHONE_COUNTRY_NOT_ALLOWED") }),
   /** The SMS could not be delivered (a country that needs a registered sender, a number that does not exist). */
   z.object({ status: z.literal("SEND_FAILED") }),
   z.object({ status: z.literal("CLEARED") }),
