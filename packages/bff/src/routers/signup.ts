@@ -5,6 +5,7 @@
 // Nothing here writes `AuditLog` or logs an email: the metrics count by reason (signup/service.ts).
 import { TRPCError } from "@trpc/server";
 import { ToolError } from "@legajo/shared";
+import { phoneRefusal } from "@legajo/shared/phone-policy";
 import { SignupConfirmInput, SignupFormInput, SignupResendInput, SignupStartInput } from "@legajo/shared/signup";
 import { countMetric } from "../channels/adapter";
 import { viewerIpHash } from "../lib/viewer-ip";
@@ -22,6 +23,14 @@ function invalid(message: string, reason: "BATCH_NOT_ALLOWED" | "NO_VIEWER_IP"):
   return new TRPCError({ code: "BAD_REQUEST", message, cause: new ToolError("INVALID", message, reason) });
 }
 
+/**
+ * The form's schema plus the numbers that are not a person's mobile or are filler (phone-policy.ts):
+ * the form answers its own phone error. Checked only here, so those lists stay out of the landing's chunk.
+ */
+export const SignupStartServerInput = SignupStartInput.superRefine((input, context) => {
+  if (phoneRefusal(input.phone) !== undefined) context.addIssue({ code: "custom", path: ["phone"], message: "expected a personal mobile number" });
+});
+
 export const signupProcedure = publicProcedure.use(({ ctx, next, path }) => {
   const { request } = ctx;
   const alone = request === IN_PROCESS || (!request.batch && !request.encoded && request.procedures.length === 1 && request.procedures[0] === path);
@@ -36,7 +45,7 @@ export const signupProcedure = publicProcedure.use(({ ctx, next, path }) => {
 
 export const signupRouter = router({
   form: signupProcedure.input(SignupFormInput).query(({ ctx, input }) => signupForm(ctx.access(), input.lang)),
-  start: signupProcedure.input(SignupStartInput).mutation(({ ctx, input }) => signupStart(ctx.access(), input, { ipHash: ctx.ipHash, log: ctx.log })),
+  start: signupProcedure.input(SignupStartServerInput).mutation(({ ctx, input }) => signupStart(ctx.access(), input, { ipHash: ctx.ipHash, log: ctx.log })),
   resend: signupProcedure.input(SignupResendInput).mutation(({ ctx, input }) => signupResend(ctx.access(), input.signupId, { ipHash: ctx.ipHash, log: ctx.log })),
   confirm: signupProcedure.input(SignupConfirmInput).mutation(({ ctx, input }) => signupConfirm(ctx.access(), input, { ipHash: ctx.ipHash, log: ctx.log })),
 });

@@ -95,12 +95,16 @@ export const PHONE_SESSION_TTL_SECONDS = 12 * 60 * 60;
 /** The sign-up's lead data waits this long for the phone to be verified; past it the account still enrols, without a lead. */
 export const LEAD_DRAFT_TTL_SECONDS = 30 * 24 * 60 * 60;
 
-/** SMS sent per account (enrolment and sign-ins together), per number, per viewer IP and in total, `Runtime/RL#SMS#…`. */
+/**
+ * SMS sent per account (enrolment and sign-ins together), per number, per viewer IP and in total,
+ * `Runtime/RL#SMS#…`; numbers outside the home region (phone-policy.ts) also share `foreign`.
+ */
 export const SMS_LIMITS = {
   perAccount: [{ window: "DAY", limit: 6 }],
   perNumber: [{ window: "DAY", limit: 3 }],
   perIp: [{ window: "DAY", limit: 5 }],
-  total: [{ window: "DAY", limit: 150 }],
+  total: [{ window: "DAY", limit: 40 }],
+  foreign: [{ window: "DAY", limit: 5 }],
 } as const satisfies Readonly<Record<string, readonly WindowedLimit[]>>;
 export type SmsLimit = keyof typeof SMS_LIMITS;
 

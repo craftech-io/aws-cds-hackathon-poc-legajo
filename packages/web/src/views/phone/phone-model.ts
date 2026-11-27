@@ -2,6 +2,7 @@
 // code, what each answer of the BFF shows, and when another code may be asked for. The shapes are the
 // shared contract's (packages/shared/src/phone-verification.ts).
 import { AccountPhone, PhoneCode, type SendPhoneCodeOutput, type SmsLimitName, type VerifyPhoneCodeOutput } from "@legajo/shared/phone-verification";
+import { phoneRefusal } from "@legajo/shared/phone-policy";
 import { CONSOLE_HOME, PHONE_PATH } from "../../routes";
 
 /** Only a path of this app, never another origin nor the phone screen itself. */
@@ -20,6 +21,7 @@ export type PhoneNotice =
   | { readonly kind: "invalid"; readonly attemptsLeft: number }
   | { readonly kind: "expired" }
   | { readonly kind: "phoneRequired" }
+  | { readonly kind: "notPersonal" }
   | { readonly kind: "generic" };
 
 /** Whole minutes, at least one. */
@@ -42,7 +44,10 @@ export function sendOutcome(answer: SendPhoneCodeOutput, now: number): SendOutco
     case "PHONE_LOCKED":
       return { kind: "notice", notice: { kind: "locked" } };
     case "PHONE_REQUIRED":
+    case "PHONE_INVALID":
       return { kind: "notice", notice: { kind: "phoneRequired" } };
+    case "PHONE_NOT_PERSONAL":
+      return { kind: "notice", notice: { kind: "notPersonal" } };
     case "SEND_FAILED":
       return { kind: "notice", notice: { kind: "sendFailed" } };
   }
@@ -66,7 +71,15 @@ export function secondsUntil(resendAt: number | undefined, now: number): number 
   return resendAt === undefined ? 0 : Math.max(0, Math.ceil((resendAt - now) / 1000));
 }
 
-export const isValidPhone = (value: string): boolean => AccountPhone.safeParse(value).success;
+/** What a typed number shows before it is sent: the shape, a filler number, a range that is not a person's mobile. */
+export function phoneProblem(value: string): PhoneNotice | undefined {
+  const parsed = AccountPhone.safeParse(value);
+  if (!parsed.success) return { kind: "phoneRequired" };
+  const refusal = phoneRefusal(parsed.data);
+  if (refusal === "NOT_PERSONAL") return { kind: "notPersonal" };
+  return refusal === "FILLER" ? { kind: "phoneRequired" } : undefined;
+}
+
 export const isValidCode = (value: string): boolean => PhoneCode.safeParse(value).success;
 
 /** Whether a notice offers Craftech's contact (the limits of the day, a number that cannot be used). */

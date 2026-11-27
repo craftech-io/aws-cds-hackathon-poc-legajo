@@ -32,7 +32,7 @@ export const SendPhoneCodeInput = z.object({ phone: AccountPhone.optional() }).s
 export type SendPhoneCodeInput = z.input<typeof SendPhoneCodeInput>;
 
 /** Which limit of `SMS_LIMITS` was hit, or the minute between two codes (`RESEND`). */
-export const SmsLimitName = z.enum(["perAccount", "perNumber", "perIp", "total", "RESEND"] satisfies readonly (SmsLimit | "RESEND")[]);
+export const SmsLimitName = z.enum(["perAccount", "perNumber", "perIp", "total", "foreign", "RESEND"] satisfies readonly (SmsLimit | "RESEND")[]);
 export type SmsLimitName = z.infer<typeof SmsLimitName>;
 
 export const SendPhoneCodeOutput = z.discriminatedUnion("status", [
@@ -44,6 +44,10 @@ export const SendPhoneCodeOutput = z.discriminatedUnion("status", [
   z.object({ status: z.literal("PHONE_LOCKED") }),
   /** Enrolling without a number: the screen asks for it. */
   z.object({ status: z.literal("PHONE_REQUIRED") }),
+  /** A filler number (phone-policy.ts): refused as an invalid number, the screen asks for another. */
+  z.object({ status: z.literal("PHONE_INVALID") }),
+  /** A range that is not a person's mobile (phone-policy.ts): "Usá un celular personal". */
+  z.object({ status: z.literal("PHONE_NOT_PERSONAL") }),
   /** The SMS could not be delivered (a country that needs a registered sender, a number that does not exist). */
   z.object({ status: z.literal("SEND_FAILED") }),
   z.object({ status: z.literal("CLEARED") }),

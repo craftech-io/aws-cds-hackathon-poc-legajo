@@ -1,7 +1,8 @@
 // The SMS limits of SMS_LIMITS (packages/shared/src/guest-limits.ts) on the windowed counters of
 // `Runtime` (signup/counters.ts, the same mechanism as the sign-up and the account emails): one unit in
-// every window of the account, the number, the viewer IP and the whole demo, or in none. A refusal names
-// the limit that is full, so the screen can say which one and when it resets.
+// every window of the account, the number, the viewer IP and the whole demo (and, for a number outside
+// the home region, the foreign quota of the whole demo), or in none. A refusal names the limit that is
+// full, so the screen can say which one and when it resets.
 import { SMS_LIMITS, type SmsLimit } from "@legajo/shared/guest-limits";
 import type { TableClient } from "../connector/index";
 import { type CounterGroup, consumeWindowed, fullestWindow, readWindowed } from "../signup/counters";
@@ -11,6 +12,8 @@ export interface SmsCapKeys {
   readonly phoneHash: string;
   /** HMAC of the viewer's aggregated IP; absent only for calls built on the server. */
   readonly ipHash?: string;
+  /** A number of the home region (phone-policy.ts): it never counts in the foreign quota. */
+  readonly home: boolean;
 }
 
 export type SmsCapOutcome = { readonly ok: true } | { readonly ok: false; readonly limit: SmsLimit; readonly retryAfterSec: number };
@@ -21,6 +24,7 @@ function groupsOf(keys: SmsCapKeys): Array<CounterGroup & { readonly name: SmsLi
     { name: "perNumber", base: `RL#SMS#NUMBER#${keys.phoneHash}`, limits: SMS_LIMITS.perNumber },
     ...(keys.ipHash === undefined ? [] : [{ name: "perIp" as const, base: `RL#SMS#IP#${keys.ipHash}`, limits: SMS_LIMITS.perIp }]),
     { name: "total", base: "RL#SMS#TOTAL", limits: SMS_LIMITS.total },
+    ...(keys.home ? [] : [{ name: "foreign" as const, base: "RL#SMS#FOREIGN", limits: SMS_LIMITS.foreign }]),
   ];
 }
 

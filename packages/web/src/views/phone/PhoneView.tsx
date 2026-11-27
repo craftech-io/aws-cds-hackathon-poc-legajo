@@ -16,7 +16,7 @@ import { CodeField, ErrorNote, Field, LinkButton, NoticeNote, StepHeading, Submi
 import { EXTERNAL_LINK, contactHref } from "../landing/links";
 import { PHONE_COPY, type PhoneCopy } from "./copy";
 import { fetchPhoneStatus, sendPhoneCode, verifyPhoneCode } from "./phone-api";
-import { type PhoneNotice, isValidCode, isValidPhone, offersContact, returnTarget, secondsUntil, sendOutcome, verifyOutcome } from "./phone-model";
+import { type PhoneNotice, isValidCode, offersContact, phoneProblem, returnTarget, secondsUntil, sendOutcome, verifyOutcome } from "./phone-model";
 
 type Mode = { readonly kind: "loading" } | { readonly kind: "enrol"; readonly phone: string } | { readonly kind: "signIn"; readonly hint: string };
 
@@ -38,6 +38,8 @@ function noticeText(copy: PhoneCopy, notice: PhoneNotice): string {
       return copy.errors.expired;
     case "phoneRequired":
       return copy.errors.phone(PHONE_DIGITS.min, PHONE_DIGITS.max);
+    case "notPersonal":
+      return copy.errors.notPersonal;
     case "generic":
       return copy.errors.generic;
   }
@@ -116,7 +118,8 @@ function PhoneScreen() {
   const onSend = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (busy) return;
-    if (mode.kind === "enrol" && !isValidPhone(phone)) return setNotice({ kind: "phoneRequired" });
+    const problem = mode.kind === "enrol" ? phoneProblem(phone) : undefined;
+    if (problem !== undefined) return setNotice(problem);
     void send(mode.kind === "enrol" ? phone : undefined);
   };
 

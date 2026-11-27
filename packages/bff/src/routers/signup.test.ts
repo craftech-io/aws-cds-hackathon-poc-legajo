@@ -160,3 +160,12 @@ describe("[FL-130] origin of the visit", () => {
     expect((await access.signups.get(own, now))?.referrer).toBeUndefined();
   });
 });
+
+describe("[FL-134] the sign-up's mobile number", () => {
+  it.each(["+3197012345678", "+447012345678", "+88212345678", "+5491100000000"])("%s is INVALID with the phone named, and nothing is dispatched", async (phone) => {
+    const result = await start({ ...validForm(access), phone });
+    expect(result).toMatchObject({ status: 400, error: { reason: "INVALID" } });
+    expect(JSON.stringify(result.error?.zodError)).toContain("phone");
+    expect(access.invoker.invoked).toEqual([]);
+  });
+});
