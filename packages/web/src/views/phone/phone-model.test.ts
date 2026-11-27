@@ -2,7 +2,7 @@
 // the resend countdown and where Craftech's contact is offered; both decks of texts in the same shape.
 import { describe, expect, it } from "vitest";
 import { PHONE_COPY } from "./copy";
-import { isValidCode, isValidPhone, minutesOf, offersContact, returnTarget, secondsUntil, sendOutcome, verifyOutcome } from "./phone-model";
+import { isValidCode, minutesOf, offersContact, phoneProblem, returnTarget, secondsUntil, sendOutcome, verifyOutcome } from "./phone-model";
 
 const NOW = 1_800_000_000_000;
 
@@ -37,10 +37,26 @@ describe("[FL-135] the phone screen", () => {
   });
 
   it("checks the number and the code with the shared contract", () => {
-    expect(isValidPhone("+54 9 11 5555-0101")).toBe(true);
-    expect(isValidPhone("11 5555 0101")).toBe(false);
+    expect(phoneProblem("+54 9 11 5555-0101")).toBeUndefined();
+    expect(phoneProblem("11 5555 0101")).toEqual({ kind: "phoneRequired" });
     expect(isValidCode("123456")).toBe(true);
     expect(isValidCode("12345")).toBe(false);
+  });
+
+  it("[FL-134] refuses a range that is not a personal mobile and a filler number before sending, and tells the BFF's refusals", () => {
+    expect(phoneProblem("+31 97 0123 4567")).toEqual({ kind: "notPersonal" });
+    expect(phoneProblem("+44 70 1234 5678")).toEqual({ kind: "notPersonal" });
+    expect(phoneProblem("+54 9 11 0000-0000")).toEqual({ kind: "phoneRequired" });
+    expect(sendOutcome({ status: "PHONE_NOT_PERSONAL" }, NOW)).toEqual({ kind: "notice", notice: { kind: "notPersonal" } });
+    expect(sendOutcome({ status: "PHONE_INVALID" }, NOW)).toEqual({ kind: "notice", notice: { kind: "phoneRequired" } });
+    expect(PHONE_COPY.es.errors.notPersonal).toBe("Usá un celular personal.");
+  });
+
+  it("[FL-134] the foreign quota offers Craftech's contact in both languages", () => {
+    expect(sendOutcome({ status: "RATE_LIMITED", limit: "foreign", retryAfterSec: 3_600 }, NOW)).toEqual({ kind: "notice", notice: { kind: "limit", limit: "foreign", minutes: 60 } });
+    expect(offersContact({ kind: "limit", limit: "foreign", minutes: 60 })).toBe(true);
+    expect(PHONE_COPY.es.errors.limit("foreign", 60)).toContain("escribinos");
+    expect(PHONE_COPY.en.errors.limit("foreign", 60)).toContain("write to us");
   });
 
   it("has both decks with the same keys", () => {

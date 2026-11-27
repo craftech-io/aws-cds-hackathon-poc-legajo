@@ -4,6 +4,7 @@
 // session's mark. Every SMS goes to the in-memory sender: no test sends a real one.
 import { beforeEach, describe, expect, it } from "vitest";
 import { PHONE_CODE } from "@legajo/shared/guest-limits";
+import { NON_PERSONAL_PREFIXES } from "@legajo/shared/phone-policy";
 import type { MemoryStores } from "../connector/index";
 import { memoryStores } from "../connector/testing";
 import { leadEmailHash } from "../lib/crypto";
@@ -85,6 +86,20 @@ describe("[FL-134] enrolment: the first sign-in verifies the number", () => {
     expect(await passPhoneCode(access, ana(), PHONE)).toEqual({ status: "CLEARED" });
     expect(await access.leads.get(leadEmailHash(access.keys.leadEmail, EMAIL))).toMatchObject({ phone: PHONE });
     expect(notices()).toHaveLength(0);
+  });
+
+  it.each(NON_PERSONAL_PREFIXES)("a typed %s number is refused as not a personal mobile, before any limit or SMS", async (prefix) => {
+    await draft();
+    expect(await send(ana(), `${prefix}12345678`)).toEqual({ status: "PHONE_NOT_PERSONAL" });
+    expect(access.sms.sent).toEqual([]);
+  });
+
+  it("a filler number is refused as invalid, typed or from the sign-up's draft", async () => {
+    await draft("usr-ana", "+5491100000000");
+    expect(await send(ana())).toEqual({ status: "PHONE_INVALID" });
+    expect(await send(ana(), "+5491155555555")).toEqual({ status: "PHONE_INVALID" });
+    expect(await send(ana(), PHONE)).toMatchObject({ status: "CODE_SENT" });
+    expect(access.sms.sent).toHaveLength(1);
   });
 });
 

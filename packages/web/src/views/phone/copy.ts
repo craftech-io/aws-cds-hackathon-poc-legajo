@@ -28,13 +28,16 @@ const ES = {
     invalid: (left: number) => `El código no es correcto. Te ${left === 1 ? "queda 1 intento" : `quedan ${left} intentos`}.`,
     expired: "El código venció o ya no sirve. Pedí uno nuevo.",
     inUse: "Ese número ya está en uso en otra cuenta. Usá otro celular o escribinos.",
+    notPersonal: "Usá un celular personal.",
     sendFailed: "No pudimos mandar el SMS a ese número. En algunos países los SMS necesitan un registro previo; probá con otro celular o escribinos.",
     limit: (limit: SmsLimitName, minutes: number) =>
       limit === "RESEND"
         ? `Esperá ${minutes} min antes de pedir otro código.`
         : limit === "perAccount" || limit === "perNumber"
           ? "Llegaste al máximo de códigos por SMS de hoy para esta cuenta. Probá mañana o escribinos."
-          : `Hay demasiados pedidos de código ahora. Probá de nuevo en ${minutes} min o escribinos.`,
+          : limit === "foreign"
+            ? "Por hoy se agotaron los códigos por SMS para celulares de fuera de Latinoamérica y España. Probá mañana o escribinos."
+            : `Hay demasiados pedidos de código ahora. Probá de nuevo en ${minutes} min o escribinos.`,
     generic: "No pudimos completar el pedido. Probá de nuevo en unos minutos.",
   },
 };
@@ -64,13 +67,16 @@ const EN = {
     invalid: (left: number) => `That code is not right. ${left === 1 ? "1 try left" : `${left} tries left`}.`,
     expired: "The code expired or no longer works. Ask for a new one.",
     inUse: "That number is already in use by another account. Use another mobile or write to us.",
+    notPersonal: "Use a personal mobile number.",
     sendFailed: "We could not text that number. Some countries need a prior registration for SMS; try another mobile or write to us.",
     limit: (limit: SmsLimitName, minutes: number) =>
       limit === "RESEND"
         ? `Wait ${minutes} min before asking for another code.`
         : limit === "perAccount" || limit === "perNumber"
           ? "You reached today's maximum of SMS codes for this account. Try tomorrow or write to us."
-          : `There are too many code requests right now. Try again in ${minutes} min or write to us.`,
+          : limit === "foreign"
+            ? "Today's SMS codes for mobiles outside Latin America and Spain are used up. Try tomorrow or write to us."
+            : `There are too many code requests right now. Try again in ${minutes} min or write to us.`,
     generic: "We could not complete the request. Try again in a few minutes.",
   },
 } satisfies typeof ES;

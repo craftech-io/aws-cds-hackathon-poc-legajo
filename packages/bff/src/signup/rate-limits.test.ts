@@ -45,11 +45,16 @@ describe("[FL-112] signup.start per viewer IP and in total", () => {
     expect(refused.status === "RATE_LIMITED" && refused.retryAfterSec).toBe((Date.parse("2026-10-15T00:00:00.000Z") - at.getTime()) / 1000);
   });
 
-  it("answers CAPACITY past the new sign-ups of the whole demo in an hour", async () => {
+  it(`answers CAPACITY past ${limitOf(SIGNUP_RATE_LIMITS.startTotal, "DAY")} new sign-ups of the whole demo in a day, until the next UTC day`, async () => {
     const { client } = memoryStores();
-    const total = limitOf(SIGNUP_RATE_LIMITS.startTotal, "HOUR");
-    await times(total, async () => gateStart(client, `ip-${Math.random()}`, NOW));
+    const total = limitOf(SIGNUP_RATE_LIMITS.startTotal, "DAY");
+    let index = 0;
+    await times(total, async () => {
+      index += 1;
+      expect((await gateStart(client, `ip-${index}`, new Date(NOW.getTime() + index * 60_000))).status).toBe("OK");
+    });
     expect(await gateStart(client, "ip-new", NOW)).toEqual({ status: "CAPACITY" });
+    expect((await gateStart(client, "ip-new", new Date("2026-10-15T00:00:01.000Z"))).status).toBe("OK");
   });
 });
 

@@ -3,7 +3,8 @@
 //
 //   status   CLEARED (this session passed) | ENROL (no verified number yet; the form's number to
 //            prefill) | SIGN_IN (the verified number, by its last four digits)
-//   send     ENROL: the typed or the form's number, refused when another account verified it; SIGN_IN:
+//   send     ENROL: the typed or the form's number, refused when it is not a person's mobile or filler
+//            (phone-policy.ts) or when another account verified it; SIGN_IN:
 //            always the verified number, any number sent is refused (`PHONE_LOCKED`). Then a minute since
 //            the last code, the SMS limits, the code's HMAC stored over the previous code (conditional),
 //            the SMS; a failed SMS removes the code
@@ -15,6 +16,7 @@
 import { randomInt } from "node:crypto";
 import { type Language } from "@legajo/shared";
 import { PHONE_CODE } from "@legajo/shared/guest-limits";
+import { isHomeNumber, phoneRefusal } from "@legajo/shared/phone-policy";
 import { type PhoneStatusOutput, type SendPhoneCodeOutput, type VerifyPhoneCodeOutput, phoneHint } from "@legajo/shared/phone-verification";
 import { countMetric } from "../channels/adapter";
 import { type SecretKey, hmacSha256Hex, safeEqual } from "../lib/crypto";
@@ -81,6 +83,8 @@ async function targetOf(deps: PhoneDeps, account: PhoneAccount, typed: string | 
   }
   const phone = typed ?? (await deps.leads.getDraft(account.username, deps.now()))?.phone;
   if (phone === undefined) return { ok: false, answer: { status: "PHONE_REQUIRED" } };
+  const refusal = phoneRefusal(phone);
+  if (refusal !== undefined) return { ok: false, answer: { status: refusal === "NOT_PERSONAL" ? "PHONE_NOT_PERSONAL" : "PHONE_INVALID" } };
   const owner = await deps.phones.ownerOf(accountPhoneHash(deps.keys.accountPhone, phone));
   if (owner !== undefined && owner !== account.sub) return { ok: false, answer: { status: "PHONE_IN_USE" } };
   return { ok: true, phone, purpose: "ENROL" };
@@ -102,7 +106,7 @@ export async function sendPhoneCode(deps: PhoneDeps, account: PhoneAccount, type
     if (wait > 0) return refused(log, { status: "RATE_LIMITED", limit: "RESEND", retryAfterSec: wait });
   }
   const phoneHash = accountPhoneHash(deps.keys.accountPhone, target.phone);
-  const cap = await consumeSms(deps.client, { sub: account.sub, phoneHash, ...(account.ipHash === undefined ? {} : { ipHash: account.ipHash }) }, now);
+  const cap = await consumeSms(deps.client, { sub: account.sub, phoneHash, home: isHomeNumber(target.phone), ...(account.ipHash === undefined ? {} : { ipHash: account.ipHash }) }, now);
   if (!cap.ok) return refused(log, { status: "RATE_LIMITED", limit: cap.limit, retryAfterSec: cap.retryAfterSec });
   const digits = deps.newPhoneCode();
   const bound = { sub: account.sub, sessionId: account.sessionId, phoneHash };

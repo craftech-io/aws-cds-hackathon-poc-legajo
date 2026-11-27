@@ -5,7 +5,7 @@
 // that are not CONFIRMED leave 1.5 s after the request started (checked here on the padding asked for).
 import { performance } from "node:perf_hooks";
 import { describe, expect, it } from "vitest";
-import { NON_CONFIRMED_RESPONSE_MS, RESEND_WAIT_SECONDS } from "@legajo/shared/guest-limits";
+import { NON_CONFIRMED_RESPONSE_MS, RESEND_WAIT_SECONDS, SIGNUP_RATE_LIMITS } from "@legajo/shared/guest-limits";
 import { memoryStores } from "../connector/testing";
 import { type TestAccess, edgeHeaders, testAccessDeps } from "../signup/testing";
 import { TEST_PASSWORD, drainDispatch, validForm } from "../signup/testing-flows";
@@ -20,6 +20,8 @@ const BRANCHES = {
   SUPPRESSED: "alguien@empresa.test",
 } as const;
 type Branch = keyof typeof BRANCHES;
+/** Rounds of every branch that fit in one day of the demo-wide sign-up limit. */
+const ROUNDS_PER_DAY = Math.min(20, Math.floor(Math.min(...SIGNUP_RATE_LIMITS.startTotal.map((limit) => limit.limit)) / Object.keys(BRANCHES).length));
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -73,8 +75,8 @@ describe("[FL-104] signup.start and signup.resend answer alike in every branch",
     const started: Record<Branch, number[]> = { NEW: [], EXISTING_GUEST: [], INELIGIBLE: [], SUPPRESSED: [] };
     const ids: Record<Branch, string[]> = { NEW: [], EXISTING_GUEST: [], INELIGIBLE: [], SUPPRESSED: [] };
     for (let index = 0; index < SAMPLES; index += 1) {
-      // A fresh day every 20 rounds keeps the per-IP and total limits out of the measure.
-      if (index % 20 === 0) advance(86_400_000);
+      // A fresh day every few rounds keeps the per-IP and total limits out of the measure.
+      if (index % ROUNDS_PER_DAY === 0) advance(86_400_000);
       for (const branch of Object.keys(BRANCHES) as Branch[]) {
         const event = trpcEvent("POST", "/api/signup.start", { input: validForm(access, { email: BRANCHES[branch] }), edge: edgeHeaders(`203.0.113.${index % 250}:${1_000 + index}`) });
         let answer: Awaited<ReturnType<typeof call>> | undefined;

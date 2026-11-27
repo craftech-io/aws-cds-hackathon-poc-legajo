@@ -96,12 +96,13 @@ export async function handleTestRoute(request: IncomingMessage, response: Server
     const { email } = await jsonBody(request, ByEmail);
     const { client, keys, now } = deps.access.deps;
     const domain = domainHash(keys.rate, email);
-    await forgetWindowed(client, RATE_BASES.startTotal, ["HOUR", "DAY"], now());
+    await forgetWindowed(client, RATE_BASES.startTotal, ["DAY"], now());
     await forgetWindowed(client, RATE_BASES.startDomain(domain), ["HOUR"], now());
     await forgetWindowed(client, MAIL_BASES.domain(domain), ["HOUR"], now());
     await forgetWindowed(client, MAIL_BASES.total, ["DAY"], now());
-    // The demo-wide SMS cap of ADR-0021 (150 a day) is shared by every spec of the run too.
+    // The demo-wide SMS caps of ADR-0021 (in total and outside the home region) are shared by every spec of the run too.
     await forgetWindowed(client, "RL#SMS#TOTAL", ["DAY"], now());
+    await forgetWindowed(client, "RL#SMS#FOREIGN", ["DAY"], now());
     json(response, 200, { forgotten: true });
     return true;
   }

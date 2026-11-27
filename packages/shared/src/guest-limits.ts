@@ -36,7 +36,7 @@ export const UTM_VALUE_MAX_CHARS = 100;
 /** Referrer reduced to scheme and host (§2). */
 export const REFERRER_MAX_CHARS = 200;
 /** Deadline of the MX lookup of the email's domain in `SignupDispatch` (§3.2). */
-export const SIGNUP_MX_TIMEOUT_MS = 1_500;
+export const SIGNUP_MX_TIMEOUT_MS = 2_000;
 
 /** A fixed bucket of real time; counters reset when their bucket ends. */
 export const LimitWindow = z.enum(["TEN_MINUTES", "HOUR", "DAY"]);
@@ -58,11 +58,8 @@ export const SIGNUP_RATE_LIMITS = {
   startPerEmail: [{ window: "DAY", limit: 3 }],
   /** New sign-ups per email domain → `SUPPRESSED`. */
   startPerDomain: [{ window: "HOUR", limit: 30 }],
-  /** New sign-ups in total → `CAPACITY`. */
-  startTotal: [
-    { window: "HOUR", limit: 100 },
-    { window: "DAY", limit: 300 },
-  ],
+  /** New sign-ups of the whole demo, among every visitor → `CAPACITY`. */
+  startTotal: [{ window: "DAY", limit: 40 }],
   /** `signup.confirm` per viewer IP → `RATE_LIMITED`. */
   confirmPerIp: [{ window: "HOUR", limit: 30 }],
 } as const satisfies Readonly<Record<string, readonly WindowedLimit[]>>;
@@ -95,12 +92,16 @@ export const PHONE_SESSION_TTL_SECONDS = 12 * 60 * 60;
 /** The sign-up's lead data waits this long for the phone to be verified; past it the account still enrols, without a lead. */
 export const LEAD_DRAFT_TTL_SECONDS = 30 * 24 * 60 * 60;
 
-/** SMS sent per account (enrolment and sign-ins together), per number, per viewer IP and in total, `Runtime/RL#SMS#…`. */
+/**
+ * SMS sent per account (enrolment and sign-ins together), per number, per viewer IP and in total,
+ * `Runtime/RL#SMS#…`; numbers outside the home region (phone-policy.ts) also share `foreign`.
+ */
 export const SMS_LIMITS = {
   perAccount: [{ window: "DAY", limit: 6 }],
   perNumber: [{ window: "DAY", limit: 3 }],
   perIp: [{ window: "DAY", limit: 5 }],
-  total: [{ window: "DAY", limit: 150 }],
+  total: [{ window: "DAY", limit: 40 }],
+  foreign: [{ window: "DAY", limit: 5 }],
 } as const satisfies Readonly<Record<string, readonly WindowedLimit[]>>;
 export type SmsLimit = keyof typeof SMS_LIMITS;
 

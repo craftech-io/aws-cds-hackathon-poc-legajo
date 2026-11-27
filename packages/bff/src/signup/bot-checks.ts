@@ -1,8 +1,8 @@
 // What `SignupDispatch` checks before mailing a code (ADR-0015 §3.1 and §3.2), after `signup.start`
 // already answered `CODE_SENT`: a bot that fills the honeypot, sends the form too fast or too late, or
-// writes a domain that cannot receive mail (or a disposable mailbox) learns nothing, and nobody gets a code. Every check here is
-// a reason to suppress (`SignupRejected {reason}`), never an error the visitor sees.
-import { promises as dns } from "node:dns";
+// writes a domain that cannot receive mail (or a disposable mailbox) learns nothing, and nobody gets a
+// code. Every check here is a reason to suppress (`SignupRejected {reason}`), never an error the visitor sees.
+import { Resolver } from "node:dns/promises";
 import { SES_MAILBOX_SIMULATOR_DOMAIN, SIM_MAIL_DOMAIN, STAGE_DOMAIN, isReservedDomain } from "@legajo/shared";
 import { SIGNUP_FORM_MAX_SECONDS, SIGNUP_FORM_MIN_SECONDS, SIGNUP_MX_TIMEOUT_MS } from "@legajo/shared/guest-limits";
 import type { SignupRejectReason } from "@legajo/shared/signup";
@@ -22,10 +22,10 @@ export function formSuppression(signup: Pick<PendingSignup, "honeypot" | "formSh
   return undefined;
 }
 
-// Special-use names that never receive mail (RFC 6761, RFC 7686, RFC 8375, ICANN `internal`),
-// on top of the reserved ones of @legajo/shared.
+// Special-use names that never receive mail (RFC 6761, RFC 7686, RFC 8375, ICANN `internal`) and the
+// placeholder `test.com` people type to try a form, on top of the reserved ones of @legajo/shared.
 const SPECIAL_USE_TLDS = ["local", "onion", "internal"];
-const SPECIAL_USE_DOMAINS = ["home.arpa"];
+const SPECIAL_USE_DOMAINS = ["home.arpa", "test.com"];
 
 function within(domain: string, parent: string): boolean {
   return domain === parent || domain.endsWith(`.${parent}`);
@@ -56,7 +56,8 @@ export interface MxRecord {
 
 export type MxResolver = (domain: string) => Promise<readonly MxRecord[]>;
 
-export const systemMxResolver: MxResolver = (domain) => dns.resolveMx(domain);
+/** One try with the same short deadline as `checkMx`, so a slow resolver never keeps the lookup alive. */
+export const systemMxResolver: MxResolver = (domain) => new Resolver({ timeout: SIGNUP_MX_TIMEOUT_MS, tries: 1 }).resolveMx(domain);
 
 /** A domain that answers no MX, or only the null MX of RFC 7505 (`.`), cannot receive mail. */
 const NO_MAIL_CODES = new Set(["ENOTFOUND", "ENODATA"]);
@@ -64,8 +65,8 @@ const NO_MAIL_CODES = new Set(["ENOTFOUND", "ENODATA"]);
 export type MxVerdict = { readonly status: "OK" } | { readonly status: "NO_MX" } | { readonly status: "DISPOSABLE" } | { readonly status: "UNKNOWN" };
 
 /**
- * MX lookup with its own deadline: `ENOTFOUND`/`ENODATA` or only a null MX suppress, and so does a domain
- * whose every MX is a disposable-mailbox exchanger (`DISPOSABLE`); a resolver error
+ * MX lookup with its own deadline (2 s): `ENOTFOUND`/`ENODATA` or only a null MX suppress, and so does a
+ * domain with any MX of a disposable-mailbox provider (`DISPOSABLE`); a resolver error
  * (`ETIMEOUT`, `ESERVFAIL`, `ECONNREFUSED`, the deadline) lets the sign-up through (`SignupMxUnknown`).
  */
 export async function checkMx(domain: string, resolve: MxResolver, timeoutMs: number = SIGNUP_MX_TIMEOUT_MS): Promise<MxVerdict> {
