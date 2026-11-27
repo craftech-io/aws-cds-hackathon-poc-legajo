@@ -7,7 +7,8 @@
 //         2 suppresses: honeypot or form time, reserved/own/no-MX domain, bounce status, open breaker,
 //           too many sign-ups of the email or of the domain
 //         3 classifies the email (ListUsers, AdminGetUser, AdminListGroupsForUser; signup/classify.ts)
-//           and acts: SignUp with the ticket | delete the UNCONFIRMED user and SignUp | ForgotPassword
+//           and acts: SignUp with the ticket | delete the UNCONFIRMED user and SignUp (only once that
+//           user is 10 minutes old; a younger one is left alone, `PENDING_RECENT`) | ForgotPassword
 //           (`intent signup-existing`) | nothing
 //         4 records the branch (only while `dispatchSeq` is still its own)
 // RESEND  a sign-up whose START never ran (dropped as stale by this resend, or never invoked) still
@@ -15,6 +16,7 @@
 //         the recorded branch: ResendConfirmationCode | ForgotPassword | nothing; a sign-up whose
 //         dispatch failed is classified again (it has no password any more: only codes are resent).
 import { z } from "zod";
+import { SIGNUP_PENDING_REPLACE_MIN_SECONDS } from "@legajo/shared/guest-limits";
 import { SignupId, type SignupBranch, type SignupRejectReason } from "@legajo/shared/signup";
 import { countMetric } from "../channels/adapter";
 import { isBreakerOpen, readMailStatus } from "../channels/email/mail-status";
@@ -70,6 +72,7 @@ async function suppressionOf(deps: DispatchDeps, signup: PendingSignup, log: Log
   if (domain !== undefined) return domain;
   const mx = await checkMx(domainOf(signup.email), deps.resolveMx);
   if (mx.status === "NO_MX") return "NO_MX";
+  if (mx.status === "DISPOSABLE") return "DISPOSABLE_DOMAIN";
   if (mx.status === "UNKNOWN") countMetric(log, SIGNUP_METRICS.mxUnknown);
   if ((await readMailStatus(deps.client, signup.emailHash)) !== undefined) return "MAIL_STATUS";
   if (await isBreakerOpen(deps.client)) return "BREAKER_OPEN";
@@ -88,14 +91,22 @@ async function createUser(deps: DispatchDeps, signup: PendingSignup, password: s
   return "NEW";
 }
 
+/** An UNCONFIRMED user created less than 10 minutes ago: another sign-up of its email never replaces it. */
+export function isRecentPending(user: Pick<CognitoUser, "createdAt">, now: Date): boolean {
+  return now.getTime() - user.createdAt.getTime() < SIGNUP_PENDING_REPLACE_MIN_SECONDS * 1000;
+}
+
 /** Acts on the classification; `password` is only in memory, already gone from the item. */
-async function act(deps: DispatchDeps, signup: PendingSignup, found: Classification, password: string | undefined): Promise<{ branch: SignupBranch; accountUsername?: string }> {
+async function act(deps: DispatchDeps, signup: PendingSignup, found: Classification, password: string | undefined): Promise<{ branch: SignupBranch; accountUsername?: string; reason?: SignupRejectReason }> {
   if (found.branch === "INELIGIBLE") return { branch: "INELIGIBLE" };
   if (found.branch === "EXISTING_GUEST") {
     await deps.cognito.forgotPassword(found.existing.user.username, metadataOf(signup, "signup-existing"));
     return { branch: "EXISTING_GUEST", accountUsername: found.existing.user.username };
   }
-  if (found.replace !== undefined && !(await deps.cognito.deleteUnconfirmed(found.replace.user.username))) return { branch: "INELIGIBLE" };
+  if (found.replace !== undefined) {
+    if (isRecentPending(found.replace.user, deps.now())) return { branch: "INELIGIBLE", reason: "PENDING_RECENT" };
+    if (!(await deps.cognito.deleteUnconfirmed(found.replace.user.username))) return { branch: "INELIGIBLE" };
+  }
   const branch = await createUser(deps, signup, password);
   return branch === "NEW" ? { branch, accountUsername: signup.username } : { branch };
 }
@@ -104,7 +115,7 @@ async function start(deps: DispatchDeps, signup: PendingSignup, password: string
   const suppressed = await suppressionOf(deps, signup, log);
   if (suppressed !== undefined) return { branch: "SUPPRESSED", reason: suppressed };
   const decided = await act(deps, signup, classifyExisting(await findUsers(deps, signup.email)), password);
-  return decided.branch === "INELIGIBLE" ? { ...decided, reason: "INELIGIBLE" } : decided;
+  return decided.branch === "INELIGIBLE" ? { ...decided, reason: decided.reason ?? "INELIGIBLE" } : decided;
 }
 
 async function resend(deps: DispatchDeps, signup: PendingSignup, log: Logger): Promise<{ branch: SignupBranch; accountUsername?: string; reason?: SignupRejectReason }> {

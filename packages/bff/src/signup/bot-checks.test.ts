@@ -30,6 +30,13 @@ describe("[FL-114] the email's domain (ADR-0015 §3.2)", () => {
     expect(domainSuppression("ana@despachos-del-sur.com.ar")).toBeUndefined();
   });
 
+  it("suppresses disposable mailboxes and their subdomains, and only those", () => {
+    for (const email of ["a@mailinator.com", "a@YOPMAIL.com", "a@x.guerrillamail.com", "a@10minutemail.com", "a@euploading.com"]) {
+      expect(domainSuppression(email), email).toBe("DISPOSABLE_DOMAIN");
+    }
+    for (const email of ["a@notmailinator.com", "a@mailinator.com.ar"]) expect(domainSuppression(email), email).toBeUndefined();
+  });
+
   it("suppresses a domain without MX or with the null MX, and lets a resolver failure through", async () => {
     expect(await checkMx("ok.example-fict.com", async () => [{ exchange: "mx.ok.example-fict.com", priority: 10 }])).toEqual({ status: "OK" });
     expect(await checkMx("null.example-fict.com", async () => [{ exchange: "", priority: 0 }])).toEqual({ status: "NO_MX" });
@@ -41,5 +48,7 @@ describe("[FL-114] the email's domain (ADR-0015 §3.2)", () => {
       expect(await checkMx("flaky.example-fict.com", async () => Promise.reject(Object.assign(new Error(code), { code })))).toEqual({ status: "UNKNOWN" });
     }
     expect(await checkMx("slow.example-fict.com", () => new Promise(() => undefined), 20)).toEqual({ status: "UNKNOWN" });
+    expect(await checkMx("throwaway.example-fict.com", async () => [{ exchange: "mx.smtp.is", priority: 10 }])).toEqual({ status: "DISPOSABLE" });
+    expect(await checkMx("mixed.example-fict.com", async () => [{ exchange: "mx.smtp.is", priority: 10 }, { exchange: "mx.mixed.example-fict.com", priority: 20 }])).toEqual({ status: "OK" });
   });
 });
