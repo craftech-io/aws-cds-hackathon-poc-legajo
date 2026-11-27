@@ -304,12 +304,12 @@ describe("Gateway targets (docs/architecture.md §9.2)", () => {
 });
 
 describe("runtime log group and content in traces (docs/architecture.md §12)", () => {
-  it("names the live endpoint's group, never DEFAULT's, with 30 days of retention", () => {
+  it("names the live endpoint's group, never DEFAULT's, with the app's 14 days of retention", () => {
     expect(runtimeLogGroupEndpoints()).toEqual([HARNESS_ENDPOINT_NAME]);
     expect(() => runtimeLogGroupEndpoints("DEFAULT")).toThrow(/DEFAULT/);
     expect(runtimeLogGroupName("harness_x-Ab12", "live")).toBe("/aws/bedrock-agentcore/runtimes/harness_x-Ab12-live");
     expect(() => runtimeLogGroupName("../x", "live")).toThrow();
-    expect(AGENT_LOG_RETENTION_DAYS).toBe(30);
+    expect(AGENT_LOG_RETENTION_DAYS).toBe(14);
   });
 
   it("records that no Harness or endpoint field turns content capture off, so retention is what is fixed", () => {

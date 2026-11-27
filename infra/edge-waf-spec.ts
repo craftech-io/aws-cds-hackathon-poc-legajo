@@ -1,186 +1,46 @@
-// The web ACL of the edge as plain data and pure functions (ADR-0015 §3.1 and §3.3, docs/architecture.md
-// §10 and §13, docs/build-plan.md WP-51). No SST or Pulumi dependency: infra/edge-waf.ts lays these
-// arguments over the web ACL the Router creates (`waf` + `transform.waf` of `sst.aws.Router`, the SST
-// component, which also associates it with the distribution), and infra/edge-waf-spec.test.ts checks
-// every value against the ADR without an AWS account.
+// The edge's web ACL as plain data (ADR-0015 §3.3 amendment of 2026-11-27, docs/architecture.md §10
+// and §13). Since that date the Router no longer creates a web ACL of its own: it takes the one every
+// demo of the account shares, `demos-borde`, created and kept by the `craftech/demos` project of the
+// `labs` repository (its `infra/borde.ts`). infra/edge-waf.ts looks it up by name on every deploy and
+// infra/web.ts puts its ARN on the distribution (`transform.cdn`, `webAclArn`). It must exist before
+// the deploy; this app never changes it.
 //
-// Four rules, in this order:
-//   0 IpReputation     AWS managed list of IPs known for abuse (block)
-//   1 SignupRate       20 requests per 5 min per IP to any path that CONTAINS `signup.` after URL_DECODE
-//                      and LOWERCASE, so a batch or an encoding cannot hide a `signup.*` (block, 403)
-//   2 ApiRate          1,500 requests per 5 min per IP to `/api/` (block, 403)
-//   3 SignupChallenge  silent Challenge, no SDK: a GET of exactly `/signup` (the document the browser
-//                      opens with a full navigation) OR any path that contains `signup.`; immunity 3,600 s
-// A match on `signup.` is never STARTS_WITH: `/api/trpc/account.usage,signup.start` starts with
-// `/api/trpc/account` and would slip past. WAF's rate rules aggregate by individual address (also in
-// IPv6); the /64 aggregation of the BFF is the one that counts for the signup's own limits.
+// What `demos-borde` does today (owned by craftech/demos, listed here for the operator and the tests):
+//   - an IP block list and AWS's IP reputation list
+//   - sign-ups from hosting providers blocked
+//   - 20 requests per IP every 5 min to paths with `signup.` or `password.`
+//   - 30 per IP every 5 min to the SMS-code paths `telefono.`, `phone.`, `cuenta.enviarCodigo` and
+//     `cuenta.verificarCodigo` (this app's are named otherwise: SMS_CODE_PATHS)
+//   - 5,000 per IP every 5 min to `/api/`
 //
-// No SDK of WAF (its integration URL exists only with ATP, ACFP or targeted Bot Control), no CAPTCHA,
-// no Bot Control: the CSP adds no WAF domain and there is no `VITE_WAF_INTEGRATION_URL`.
+// What the app's own web ACL had and the shared one does not: `/api/` at 1,500 (now 5,000), and the
+// counted `signup` rule with its `LegajoEdge*` metrics (it never challenged: the CSP refuses the
+// interstitial). The app keeps its own limits in the BFF (ADR-0015 §3.2, ADR-0021 §8) and the user
+// pool keeps its own regional web ACL (infra/auth-waf.ts), which this change does not touch.
+//
+// No SDK of WAF, no CAPTCHA, no Bot Control: the CSP adds no WAF domain and there is no
+// `VITE_WAF_INTEGRATION_URL`.
 
+/** The web ACL every demo of the account shares (scope CLOUDFRONT, us-east-1). */
+export const SHARED_EDGE_WEB_ACL = "demos-borde";
 export const WEB_ACL_SCOPE = "CLOUDFRONT";
 
-/** Fixed name of the web ACL (docs/architecture.md §1), inside the deploy role's `<app>-<stage>-*` fence. */
-export function webAclName(app: string, stage: string): string {
+/** Name of the app's own web ACL before the shared one: the first deploy with this change deletes it. */
+export function formerWebAclName(app: string, stage: string): string {
   return `${app}-${stage}-edge`;
 }
 
-export const EDGE_WAF = {
-  /** Evaluation window of both rate rules. */
-  rateWindowSeconds: 300,
-  /** Requests per window per IP to a path that contains `signup.` (ADR-0015 §3.2). */
-  signupRateLimit: 20,
-  /** Requests per window per IP to `/api/*` (ADR-0015 §3.2). */
-  apiRateLimit: 1_500,
-  /** A solved challenge lasts an hour; the form lives up to 2 h and recovers by reloading (§3.1). */
-  challengeImmunitySeconds: 3_600,
-  /** What every `signup.*` procedure path contains: `/api/trpc/signup.start`. */
-  signupMarker: "signup.",
-  /** The document of the signup, always opened with a full navigation (§3.3). */
-  signupDocumentPath: "/signup",
-  apiPrefix: "/api/",
-} as const;
+/** The paths of this app's SMS code (ADR-0021), as they reach the edge: none matches the shared rule's texts. */
+export const SMS_CODE_PATHS = ["/api/account.phoneStatus", "/api/account.sendPhoneCode", "/api/account.verifyPhoneCode", "/api/account.endPhoneSession"] as const;
 
-/** The AWS managed rule group of the reputation rule (no WCU-heavy Bot Control, no ATP, no ACFP). */
-export const IP_REPUTATION_GROUP = { vendorName: "AWS", name: "AWSManagedRulesAmazonIpReputationList" } as const;
+/** The texts of the shared rule on the SMS-code paths (`demos-borde`, craftech/demos). */
+export const SHARED_SMS_RULE_TEXTS = ["telefono.", "phone.", "cuenta.enviarCodigo", "cuenta.verificarCodigo"] as const;
 
-/** Prefix of every CloudWatch metric the web ACL publishes (`AWS/WAFV2`, free). */
-export const WAF_METRIC_PREFIX = "LegajoEdge";
-
-type TextTransformation = { priority: number; type: "URL_DECODE" | "LOWERCASE" | "NONE" };
-type FieldToMatch = { uriPath: Record<string, never> } | { method: Record<string, never> };
-
-export interface ByteMatch {
-  readonly byteMatchStatement: {
-    readonly searchString: string;
-    readonly positionalConstraint: "CONTAINS" | "EXACTLY" | "STARTS_WITH";
-    readonly fieldToMatch: FieldToMatch;
-    readonly textTransformations: TextTransformation[];
-  };
-}
-
-export interface RateBased {
-  readonly rateBasedStatement: { readonly limit: number; readonly aggregateKeyType: "IP"; readonly evaluationWindowSec: number; readonly scopeDownStatement: ByteMatch };
-}
-
-export interface ManagedGroup {
-  readonly managedRuleGroupStatement: { readonly vendorName: string; readonly name: string };
-}
-
-export interface OrOfStatements {
-  readonly orStatement: { readonly statements: Array<ByteMatch | { andStatement: { statements: ByteMatch[] } }> };
-}
-
-export type WafStatement = ByteMatch | RateBased | ManagedGroup | OrOfStatements;
-
-export interface WafRule {
-  readonly name: string;
-  readonly priority: number;
-  readonly action?: { block: Record<string, never> } | { challenge: Record<string, never> } | { count: Record<string, never> };
-  readonly overrideAction?: { none: Record<string, never> };
-  readonly challengeConfig?: { immunityTimeProperty: { immunityTime: number } };
-  readonly statement: WafStatement;
-  readonly visibilityConfig: { cloudwatchMetricsEnabled: true; metricName: string; sampledRequestsEnabled: true };
-}
-
-const visibility = (name: string): WafRule["visibilityConfig"] => ({ cloudwatchMetricsEnabled: true, metricName: `${WAF_METRIC_PREFIX}${name}`, sampledRequestsEnabled: true });
-
-/** A path that contains `signup.` once decoded and lower-cased. */
-export const SIGNUP_PATH_MATCH: ByteMatch = {
-  byteMatchStatement: {
-    searchString: EDGE_WAF.signupMarker,
-    positionalConstraint: "CONTAINS",
-    fieldToMatch: { uriPath: {} },
-    textTransformations: [
-      { priority: 0, type: "URL_DECODE" },
-      { priority: 1, type: "LOWERCASE" },
-    ],
-  },
-};
-
-const exactly = (searchString: string, fieldToMatch: FieldToMatch): ByteMatch => ({
-  byteMatchStatement: { searchString, positionalConstraint: "EXACTLY", fieldToMatch, textTransformations: [{ priority: 0, type: "NONE" }] },
-});
-
-/** `GET /signup`: the document request the challenge interstitial answers. */
-export const SIGNUP_DOCUMENT_MATCH = { andStatement: { statements: [exactly("GET", { method: {} }), exactly(EDGE_WAF.signupDocumentPath, { uriPath: {} })] } };
-
-/** The four rules of ADR-0015 §3.3, in priority order. */
-export function edgeWafRules(): WafRule[] {
-  const immunity = { immunityTimeProperty: { immunityTime: EDGE_WAF.challengeImmunitySeconds } };
-  return [
-    {
-      name: "IpReputation",
-      priority: 0,
-      overrideAction: { none: {} },
-      statement: { managedRuleGroupStatement: { ...IP_REPUTATION_GROUP } },
-      visibilityConfig: visibility("IpReputation"),
-    },
-    {
-      name: "SignupRate",
-      priority: 1,
-      action: { block: {} },
-      statement: { rateBasedStatement: { limit: EDGE_WAF.signupRateLimit, aggregateKeyType: "IP", evaluationWindowSec: EDGE_WAF.rateWindowSeconds, scopeDownStatement: SIGNUP_PATH_MATCH } },
-      visibilityConfig: visibility("SignupRate"),
-    },
-    {
-      name: "ApiRate",
-      priority: 2,
-      action: { block: {} },
-      statement: {
-        rateBasedStatement: {
-          limit: EDGE_WAF.apiRateLimit,
-          aggregateKeyType: "IP",
-          evaluationWindowSec: EDGE_WAF.rateWindowSeconds,
-          scopeDownStatement: {
-            byteMatchStatement: { searchString: EDGE_WAF.apiPrefix, positionalConstraint: "STARTS_WITH", fieldToMatch: { uriPath: {} }, textTransformations: [{ priority: 0, type: "NONE" }] },
-          },
-        },
-      },
-      visibilityConfig: visibility("ApiRate"),
-    },
-    {
-      name: "SignupChallenge",
-      priority: 3,
-      // Count, not Challenge: the interstitial needs inline script and challenge.js from *.token.awswaf.com,
-      // which the console's CSP (script-src 'self') refuses on poc, so a challenged visitor never reached the
-      // form. Bots stay stopped by the reputation list, the two rate rules, the honeypot, the minimum time and
-      // the email code (ADR-0015 §3); the rule keeps its metric.
-      action: { count: {} },
-      challengeConfig: immunity,
-      statement: { orStatement: { statements: [SIGNUP_DOCUMENT_MATCH, SIGNUP_PATH_MATCH] } },
-      visibilityConfig: visibility("SignupChallenge"),
-    },
-  ];
-}
-
-export interface WebAclSettings {
-  readonly name: string;
-  readonly scope: typeof WEB_ACL_SCOPE;
-  readonly description: string;
-  readonly defaultAction: { allow: Record<string, never> };
-  readonly rules: WafRule[];
-  readonly challengeConfig: { immunityTimeProperty: { immunityTime: number } };
-  readonly visibilityConfig: { cloudwatchMetricsEnabled: true; metricName: string; sampledRequestsEnabled: true };
-}
-
-/** What infra/edge-waf.ts lays over the web ACL the Router creates: every rule SST would add is replaced. */
-export function webAclSettings(app: string, stage: string): WebAclSettings {
-  return {
-    name: webAclName(app, stage),
-    scope: WEB_ACL_SCOPE,
-    description: "Edge of the console: IP reputation, rate limits and a counted signup rule.",
-    defaultAction: { allow: {} },
-    rules: edgeWafRules(),
-    challengeConfig: { immunityTimeProperty: { immunityTime: EDGE_WAF.challengeImmunitySeconds } },
-    visibilityConfig: visibility("WebAcl"),
-  };
-}
+/** The header the console sends its id token in: the shared ACL's logs redact it (craftech/demos). */
+export const ID_TOKEN_HEADER = "x-legajo-auth";
 
 /**
- * Monthly cost (us-east-1, 2026-09-26, ADR-0015 §3.3): US$ 5 the web ACL + US$ 1 per rule + US$ 0.60 per
- * million requests + the price per 1,000 challenge responses, budgeted at its ceiling (US$ 1) until
- * docs/pending.md P-07.1 confirms it. Below 100,000 requests and 2,000 challenges a month. Recorded for
- * the rate card of WP-41.
+ * Monthly cost the rate card of WP-41 records for the edge (us-east-1, 2026-09-26, ADR-0015 §3.3): the
+ * figure of the app's own web ACL. The shared one is paid once for every demo of the account.
  */
 export const EDGE_WAF_MONTHLY_COST_USD = { min: 9.4, max: 11 } as const;

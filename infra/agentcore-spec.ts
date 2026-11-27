@@ -14,6 +14,7 @@
 
 import { createHash } from "node:crypto";
 import type { ToolTarget } from "../packages/shared/src/tools";
+import { LOG_RETENTION_DAYS } from "./observability-spec";
 import { CAPABILITIES, LAMBDA_CAPABILITIES, resolveCapabilities, type CapabilityName, type LambdaCapabilities, type LambdaName } from "./iam-capabilities";
 
 /** Account and region the ARNs are built for (the resource modules read them from the provider). */
@@ -275,14 +276,14 @@ export function gatewayTargetDescription(target: ToolTarget, tools: number, dige
 export const RUNTIME_LOG_GROUP_PREFIX = "/aws/bedrock-agentcore/runtimes/";
 /** AgentCore creates the DEFAULT endpoint's group with the runtime (ResourceAlreadyExistsException if the IaC does). */
 export const RUNTIME_DEFAULT_ENDPOINT = "DEFAULT";
-export const AGENT_LOG_RETENTION_DAYS = 30;
+export const AGENT_LOG_RETENTION_DAYS = LOG_RETENTION_DAYS;
 
 export function runtimeLogGroupName(agentRuntimeId: string, endpointName: string): string {
   if (!/^[a-zA-Z][a-zA-Z0-9_-]{0,99}$/.test(agentRuntimeId)) throw new Error(`Unexpected AgentCore runtime id "${agentRuntimeId}".`);
   return `${RUNTIME_LOG_GROUP_PREFIX}${agentRuntimeId}-${endpointName}`;
 }
 
-/** Endpoints whose log group the IaC creates before the endpoint: `live` only. DEFAULT is AgentCore's; its 30-day retention is declared manual configuration (docs/architecture.md §17 item 11). */
+/** Endpoints whose log group the IaC creates before the endpoint: `live` only. DEFAULT is AgentCore's; its 14-day retention is declared manual configuration (docs/architecture.md §17 item 11). */
 export function runtimeLogGroupEndpoints(endpointName: string = HARNESS_ENDPOINT_NAME): string[] {
   if (endpointName === RUNTIME_DEFAULT_ENDPOINT) throw new Error("The Harness endpoint cannot be DEFAULT: AgentCore owns that log group.");
   return [endpointName];
@@ -293,8 +294,7 @@ export function runtimeLogGroupEndpoints(endpointName: string = HARNESS_ENDPOINT
  * HarnessEndpoint has a field that turns off GenAI content capture, in the pinned provider or in the
  * control-plane SDK (the test re-reads both). The runtime's OpenTelemetry switch is not an alternative:
  * its MCP instrumentation records tool arguments and results whatever the switch says
- * (github.com/aws-observability/aws-otel-python-instrumentation/issues/904). So capture stays on and the
- * retention is fixed: the `live` runtime log group (its `spans` stream included) by this IaC, 30 days;
+ * (github.com/aws-observability/aws-otel-python-instrumentation/issues/904). So capture stays on and the retention is fixed: the `live` runtime log group (its `spans` stream included) by this IaC, the app's 14 days;
  * `aws/spans` belongs to the account's Transaction Search (§17 item 2), shared by every project of the
  * account and outside the deploy role's fence, so this app verifies it and never manages it.
  */

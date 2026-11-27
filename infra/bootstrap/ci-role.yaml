@@ -757,6 +757,17 @@ Resources:
               - wafv2:UntagResource
               - wafv2:UpdateWebACL
             Resource: !Sub "arn:${AWS::Partition}:wafv2:us-east-1:${AWS::AccountId}:global/webacl/${AppName}-${DeployStage}-*/*"
+          # The demos' shared edge web ACL (`demos-borde`, created and kept by craftech/demos): the Router
+          # looks it up by name on every deploy and CloudFront checks it when the distribution takes it.
+          # The rules above stay so the deploy can delete the app's own web ACL it replaces.
+          - Sid: EdgeSharedWebAcl
+            Effect: Allow
+            Action: wafv2:GetWebACL
+            Resource: !Sub "arn:${AWS::Partition}:wafv2:us-east-1:${AWS::AccountId}:global/webacl/demos-borde/*"
+          - Sid: EdgeWebAclLookup
+            Effect: Allow
+            Action: wafv2:ListWebACLs
+            Resource: "*"
           # CreateWebACL/UpdateWebACL also authorize every rule set the web ACL references (Service
           # Authorization Reference: ipset, managedruleset, regexpatternset, rulegroup, webacl). The
           # IP reputation rule references an AWS managed rule set, owned by AWS, not by this account.
