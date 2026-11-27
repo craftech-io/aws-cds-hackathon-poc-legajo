@@ -7,7 +7,7 @@ import { createTestIssuer, testContextDeps } from "../auth/testing";
 import type { MemoryStores } from "../connector/index";
 import { createHandler, type BffHandler } from "../routers/handler";
 import { appRouter } from "../routers/index";
-import { isSessionCleared } from "../phone-verification/service";
+import { sessionState } from "../phone-verification/service";
 import { createContextFactory } from "../routers/trpc";
 import type { ContextDeps } from "../routers/deps";
 import { edgeHeaders, testEdgeGuard, type TestAccess } from "./testing";
@@ -23,7 +23,7 @@ export interface Bff {
 /** `phoneGate: "real"`: the second factor of ADR-0021 over the same stores (otherwise every session passed it). */
 export function bffFor(stores: MemoryStores, access: TestAccess, lines?: string[], options: { readonly phoneGate?: "real" } = {}): Bff {
   const issuer = createTestIssuer({ now: access.now });
-  const phoneGate = options.phoneGate === "real" ? (sub: string, sessionId: string) => isSessionCleared(access, sub, sessionId) : undefined;
+  const phoneGate = options.phoneGate === "real" ? (sub: string, sessionId: string) => sessionState(access, sub, sessionId) : undefined;
   const deps = testContextDeps({ verifier: issuer.verifier(), stores, now: access.now, ...(lines === undefined ? {} : { lines }), ...(phoneGate === undefined ? {} : { phoneGate }) });
   return { handler: createHandler(appRouter, createContextFactory(() => deps, () => access), testEdgeGuard), deps, issuer };
 }

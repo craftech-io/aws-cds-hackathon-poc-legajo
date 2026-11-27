@@ -1,8 +1,9 @@
 // Items of the SMS code that guards every sign-in session (ADR-0021), in `Leads` next to the leads
 // because a phone number is personal data of the same kind (ADR-0015 §6):
 //
-//   PHONE#<sub>        / ACCOUNT            the account's verified number (E.164, its hash, when), or the
-//                                           server-side mark of an automation account (`automation`)
+//   PHONE#<sub>        / ACCOUNT            the account's verified number (E.164, its hash, when), the
+//                                           server-side mark of an automation account (`automation`) and
+//                                           the operator's block (`blockedAt`, scripts/console/block.ts)
 //   PHONE#<sub>        / CODE               the code in flight: only its HMAC, the number it went to, the
 //                                           sign-in session it belongs to, tries and expiry (TTL 10 min)
 //   PHONE#<sub>        / SESSION#<session>  this sign-in session passed the code (TTL: the session's life)
@@ -28,6 +29,8 @@ export const AccountPhoneRecord = z.object({
   verifiedAt: Instant.optional(),
   /** Written only by the operator's scripts or the fenced QaDriver, never by a procedure a person calls. */
   automation: AutomationReason.optional(),
+  /** The operator's block: while set, the account reaches nothing, not even the SMS code. Never written by a procedure. */
+  blockedAt: Instant.optional(),
   version: z.number().int().min(1),
 });
 export type AccountPhoneRecord = z.output<typeof AccountPhoneRecord>;

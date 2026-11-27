@@ -16,7 +16,7 @@ import { CodeField, ErrorNote, Field, LinkButton, NoticeNote, StepHeading, Submi
 import { EXTERNAL_LINK, contactHref } from "../landing/links";
 import { PHONE_COPY, type PhoneCopy } from "./copy";
 import { fetchPhoneStatus, sendPhoneCode, verifyPhoneCode } from "./phone-api";
-import { type PhoneNotice, isValidCode, offersContact, phoneProblem, returnTarget, secondsUntil, sendOutcome, verifyOutcome } from "./phone-model";
+import { type PhoneNotice, failureNotice, isValidCode, offersContact, phoneProblem, returnTarget, secondsUntil, sendOutcome, verifyOutcome } from "./phone-model";
 
 type Mode = { readonly kind: "loading" } | { readonly kind: "enrol"; readonly phone: string } | { readonly kind: "signIn"; readonly hint: string };
 
@@ -40,6 +40,8 @@ function noticeText(copy: PhoneCopy, notice: PhoneNotice): string {
       return copy.errors.phone(PHONE_DIGITS.min, PHONE_DIGITS.max);
     case "notPersonal":
       return copy.errors.notPersonal;
+    case "blocked":
+      return copy.errors.blocked;
     case "generic":
       return copy.errors.generic;
   }
@@ -52,6 +54,14 @@ function useNow(intervalMs: number): number {
     return () => window.clearInterval(timer);
   }, [intervalMs]);
   return now;
+}
+
+function ContactLink({ label }: { readonly label: string }) {
+  return (
+    <a href={contactHref("phone")} {...EXTERNAL_LINK} className="inline-flex min-h-11 items-center text-sm font-semibold text-signal-ink underline underline-offset-4">
+      {label}
+    </a>
+  );
 }
 
 function PhoneScreen() {
@@ -84,8 +94,8 @@ function PhoneScreen() {
       }
       if (outcome.resendAt !== undefined) setResendAt(outcome.resendAt);
       setNotice(outcome.notice);
-    } catch {
-      setNotice({ kind: "generic" });
+    } catch (error) {
+      setNotice(failureNotice(error));
     } finally {
       setBusy(false);
     }
@@ -108,7 +118,7 @@ function PhoneScreen() {
           void send();
         }
       })
-      .catch(() => active && setNotice({ kind: "generic" }));
+      .catch((error: unknown) => active && setNotice(failureNotice(error)));
     return () => {
       active = false;
     };
@@ -133,13 +143,24 @@ function PhoneScreen() {
       if (outcome.kind === "cleared") return navigate(target, { replace: true });
       setCode("");
       setNotice(outcome.notice);
-    } catch {
-      setNotice({ kind: "generic" });
+    } catch (error) {
+      setNotice(failureNotice(error));
     } finally {
       setBusy(false);
     }
   };
 
+  // A blocked account (ADR-0021 §16) gets nothing but the notice, Craftech's contact and the way out.
+  if (notice?.kind === "blocked")
+    return (
+      <div className="space-y-5">
+        <ErrorNote>{noticeText(copy, notice)}</ErrorNote>
+        <ContactLink label={copy.contact} />
+        <p className="text-center text-sm">
+          <LinkButton onClick={signOut}>{copy.signOut}</LinkButton>
+        </p>
+      </div>
+    );
   if (mode.kind === "loading") return notice ? <ErrorNote>{noticeText(copy, notice)}</ErrorNote> : <p className="text-sm text-ink-muted">{copy.checking}</p>;
   const wait = secondsUntil(resendAt, now);
   const isError = notice !== undefined && notice.kind !== "sent";
@@ -147,11 +168,7 @@ function PhoneScreen() {
     <div className="space-y-5">
       <StepHeading title={mode.kind === "enrol" ? copy.enrolTitle : copy.signInTitle} lead={mode.kind === "enrol" ? copy.enrolLead : copy.signInLead(mode.hint)} />
       {notice ? isError ? <ErrorNote>{noticeText(copy, notice)}</ErrorNote> : <NoticeNote>{noticeText(copy, notice)}</NoticeNote> : null}
-      {offersContact(notice) ? (
-        <a href={contactHref("phone")} {...EXTERNAL_LINK} className="inline-flex min-h-11 items-center text-sm font-semibold text-signal-ink underline underline-offset-4">
-          {copy.contact}
-        </a>
-      ) : null}
+      {offersContact(notice) ? <ContactLink label={copy.contact} /> : null}
       {mode.kind === "enrol" && !sentOnce ? (
         <form className="space-y-4" onSubmit={onSend} noValidate>
           <Field id="phone-number" label={copy.phone} hint={copy.phoneHint} type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} required />

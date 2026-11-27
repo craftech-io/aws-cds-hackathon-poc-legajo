@@ -48,7 +48,7 @@ export function qaContextDeps(deps: QaConsoleDeps): ContextDeps {
     whatsappMode: deps.whatsappMode,
     health: [],
     // Its principal is an automation (`qaPrincipal`) and never asks; any other principal finds no session cleared.
-    phoneGate: () => Promise.resolve(false),
+    phoneGate: () => Promise.resolve("REQUIRED" as const),
     wallClock: deps.now,
     loggerFor: deps.loggerFor ?? ((correlationId) => createLogger({ correlationId, bindings: { service: "qa-driver", principal: "qa" } })),
   };

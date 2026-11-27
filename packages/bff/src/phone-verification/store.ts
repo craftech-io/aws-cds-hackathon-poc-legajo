@@ -37,6 +37,10 @@ export interface PhoneStore {
   endSession(sub: string, sessionId: string): Promise<void>;
   /** The operator's or the fenced QaDriver's mark of an automation account. */
   markAutomation(sub: string, reason: AutomationReason, now: Date): Promise<void>;
+  /** The operator's block of the account (scripts/console/block.ts), set or lifted; nothing else changes. */
+  setBlocked(sub: string, blocked: boolean, now: Date): Promise<void>;
+  /** Every session mark and the code in flight of the account: how many items went away. */
+  endAllSessions(sub: string): Promise<number>;
   /** Every phone item of the account and the index of its number (leads:delete, retention). */
   forgetAccount(sub: string): Promise<void>;
 }
@@ -140,6 +144,24 @@ export function createPhoneStore(client: TableClient): PhoneStore {
       if (account?.phoneHash !== undefined && (await ownerOf(account.phoneHash)) === sub) await client.delete(LEADS_TABLE, phoneOwnerKey(account.phoneHash));
       const rows = await client.query(LEADS_TABLE, { hashValue: accountPhoneKey(sub).PK });
       for (const row of rows) await client.delete(LEADS_TABLE, { PK: String(row.PK), SK: String(row.SK) });
+    },
+
+    async setBlocked(sub, blocked, now) {
+      const existing = await client.get(LEADS_TABLE, accountPhoneKey(sub));
+      const kept: Record<string, unknown> = { ...existing };
+      delete kept.blockedAt;
+      const version = typeof existing?.version === "number" ? existing.version : 0;
+      const item = { ...accountPhoneKey(sub), ...stamp(now, "AccountPhone"), ...kept, sub, ...(blocked ? { blockedAt: now.toISOString() } : {}), updatedAt: now.toISOString(), version: version + 1 };
+      AccountPhoneRecord.parse(item);
+      // Pinned to the version read: a verification or a mark written in between makes the operator retry.
+      await client.put(LEADS_TABLE, item, existing === undefined ? { ifNotExists: true } : { equals: { version } });
+    },
+
+    async endAllSessions(sub) {
+      const rows = await client.query(LEADS_TABLE, { hashValue: accountPhoneKey(sub).PK });
+      const gone = rows.filter((row) => String(row.SK) === phoneCodeKey(sub).SK || String(row.SK).startsWith("SESSION#"));
+      for (const row of gone) await client.delete(LEADS_TABLE, { PK: String(row.PK), SK: String(row.SK) });
+      return gone.length;
     },
 
     async markAutomation(sub, reason, now) {

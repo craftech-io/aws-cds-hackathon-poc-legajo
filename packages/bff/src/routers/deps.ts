@@ -19,7 +19,7 @@ import { type TotpStatusReader, createCognitoTotpReader } from "../auth/totp";
 import { type Connector, connector, tableClient } from "../connector/index";
 import { type Logger, createLogger } from "../lib/log";
 import { bucketName, channelMode, readLinked } from "../lib/resource";
-import { isSessionCleared } from "../phone-verification/service";
+import { type SessionState, sessionState } from "../phone-verification/service";
 import { createPhoneStore } from "../phone-verification/store";
 import { sigV4Signer } from "../reader/signer";
 import { type DocumentUrlSigner, s3DocumentUrlSigner } from "./document-url";
@@ -38,8 +38,8 @@ export interface ContextDeps {
   readonly whatsappMode: () => ChannelMode;
   /** Dependencies `GET /api/health` probes. */
   readonly health: readonly HealthCheck[];
-  /** Whether this sign-in session passed the SMS code, or the account is an automation (routers/phone-gate.ts). */
-  readonly phoneGate: (sub: string, sessionId: string) => Promise<boolean>;
+  /** Whether this sign-in session passed the SMS code (or the account is an automation), or the account is blocked (routers/phone-gate.ts). */
+  readonly phoneGate: (sub: string, sessionId: string) => Promise<SessionState>;
   /** Real time: `auth_time` comes from Cognito's clock, never from a world clock. */
   readonly wallClock: () => Date;
   /** One logger per request, bound to its correlation id. */
@@ -75,7 +75,7 @@ export function defaultDeps(): ContextDeps {
       let phones: ReturnType<typeof createPhoneStore> | undefined;
       return (sub: string, sessionId: string) => {
         phones ??= createPhoneStore(tableClient());
-        return isSessionCleared({ phones, now: wallClock }, sub, sessionId);
+        return sessionState({ phones, now: wallClock }, sub, sessionId);
       };
     })(),
     wallClock,

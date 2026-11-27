@@ -2,7 +2,7 @@
 // the resend countdown and where Craftech's contact is offered; both decks of texts in the same shape.
 import { describe, expect, it } from "vitest";
 import { PHONE_COPY } from "./copy";
-import { isValidCode, minutesOf, offersContact, phoneProblem, returnTarget, secondsUntil, sendOutcome, verifyOutcome } from "./phone-model";
+import { failureNotice, isValidCode, minutesOf, offersContact, phoneProblem, returnTarget, secondsUntil, sendOutcome, verifyOutcome } from "./phone-model";
 
 const NOW = 1_800_000_000_000;
 
@@ -57,6 +57,14 @@ describe("[FL-135] the phone screen", () => {
     expect(offersContact({ kind: "limit", limit: "foreign", minutes: 60 })).toBe(true);
     expect(PHONE_COPY.es.errors.limit("foreign", 60)).toContain("escribinos");
     expect(PHONE_COPY.en.errors.limit("foreign", 60)).toContain("write to us");
+  });
+
+  it("[FL-137] tells a blocked account with Craftech's contact, and any other failure generically", () => {
+    expect(failureNotice({ message: "blocked", data: { code: "FORBIDDEN", httpStatus: 403, reason: "ACCOUNT_BLOCKED" } })).toEqual({ kind: "blocked" });
+    expect(failureNotice({ message: "x", data: { code: "FORBIDDEN", httpStatus: 403, reason: "PHONE_VERIFICATION_REQUIRED" } })).toEqual({ kind: "generic" });
+    expect(failureNotice(new Error("offline"))).toEqual({ kind: "generic" });
+    expect(offersContact({ kind: "blocked" })).toBe(true);
+    expect(PHONE_COPY.es.errors.blocked).toContain("escribinos");
   });
 
   it("has both decks with the same keys", () => {
