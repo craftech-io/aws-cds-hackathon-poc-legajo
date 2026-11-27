@@ -36,7 +36,7 @@ export const UTM_VALUE_MAX_CHARS = 100;
 /** Referrer reduced to scheme and host (§2). */
 export const REFERRER_MAX_CHARS = 200;
 /** Deadline of the MX lookup of the email's domain in `SignupDispatch` (§3.2). */
-export const SIGNUP_MX_TIMEOUT_MS = 1_500;
+export const SIGNUP_MX_TIMEOUT_MS = 2_000;
 
 /** A fixed bucket of real time; counters reset when their bucket ends. */
 export const LimitWindow = z.enum(["TEN_MINUTES", "HOUR", "DAY"]);
