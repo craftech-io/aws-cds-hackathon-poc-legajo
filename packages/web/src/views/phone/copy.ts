@@ -29,6 +29,7 @@ const ES = {
     expired: "El código venció o ya no sirve. Pedí uno nuevo.",
     inUse: "Ese número ya está en uso en otra cuenta. Usá otro celular o escribinos.",
     notPersonal: "Usá un celular personal.",
+    blocked: "Esta cuenta está bloqueada y no puede usar la demo. Si creés que es un error, escribinos.",
     sendFailed: "No pudimos mandar el SMS a ese número. En algunos países los SMS necesitan un registro previo; probá con otro celular o escribinos.",
     limit: (limit: SmsLimitName, minutes: number) =>
       limit === "RESEND"
@@ -68,6 +69,7 @@ const EN = {
     expired: "The code expired or no longer works. Ask for a new one.",
     inUse: "That number is already in use by another account. Use another mobile or write to us.",
     notPersonal: "Use a personal mobile number.",
+    blocked: "This account is blocked and cannot use the demo. If you think this is a mistake, write to us.",
     sendFailed: "We could not text that number. Some countries need a prior registration for SMS; try another mobile or write to us.",
     limit: (limit: SmsLimitName, minutes: number) =>
       limit === "RESEND"

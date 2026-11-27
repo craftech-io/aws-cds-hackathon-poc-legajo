@@ -59,10 +59,23 @@ export function codeHash(key: SecretKey, code: Pick<PhoneCodeRecord, "sub" | "se
 
 const epoch = (date: Date): number => Math.floor(date.getTime() / 1000);
 
-/** Whether this sign-in session may use the console: an automation account, or a session that passed the code. */
+/**
+ * What this sign-in session may do, from the account's phone item: BLOCKED (the operator's block wins
+ * over everything, the automation mark included), CLEARED (an automation account, or a session that
+ * passed the code) or REQUIRED.
+ */
+export type SessionState = "CLEARED" | "REQUIRED" | "BLOCKED";
+
+export async function sessionState(deps: Pick<PhoneDeps, "phones" | "now">, sub: string, sessionId: string): Promise<SessionState> {
+  const account = await deps.phones.getAccount(sub);
+  if (account?.blockedAt !== undefined) return "BLOCKED";
+  if (account?.automation !== undefined) return "CLEARED";
+  return (await deps.phones.isSessionCleared(sub, sessionId, deps.now())) ? "CLEARED" : "REQUIRED";
+}
+
+/** Whether this sign-in session may use the console; never for a blocked account. */
 export async function isSessionCleared(deps: Pick<PhoneDeps, "phones" | "now">, sub: string, sessionId: string): Promise<boolean> {
-  if ((await deps.phones.getAccount(sub))?.automation !== undefined) return true;
-  return deps.phones.isSessionCleared(sub, sessionId, deps.now());
+  return (await sessionState(deps, sub, sessionId)) === "CLEARED";
 }
 
 export async function phoneStatus(deps: PhoneDeps, account: PhoneAccount): Promise<PhoneStatusOutput> {
@@ -78,7 +91,7 @@ type Target = { readonly ok: true; readonly phone: string; readonly purpose: Pho
 async function targetOf(deps: PhoneDeps, account: PhoneAccount, typed: string | undefined): Promise<Target> {
   const record = await deps.phones.getAccount(account.sub);
   if (record?.verifiedAt !== undefined && record.phone !== undefined) {
-    // Whoever holds the password must not move the code to another phone (ADR-0021 §16).
+    // Whoever holds the password must not move the code to another phone (ADR-0021 §11).
     return typed === undefined ? { ok: true, phone: record.phone, purpose: "SIGN_IN" } : { ok: false, answer: { status: "PHONE_LOCKED" } };
   }
   const phone = typed ?? (await deps.leads.getDraft(account.username, deps.now()))?.phone;

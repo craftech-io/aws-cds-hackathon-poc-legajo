@@ -20,6 +20,8 @@ export const ERROR_REASON = {
   GUEST_WORLD_GONE: "GUEST_WORLD_GONE",
   /** The sign-in session has not passed the SMS code yet: only the phone procedures answer (ADR-0021). */
   PHONE_VERIFICATION_REQUIRED: "PHONE_VERIFICATION_REQUIRED",
+  /** The operator blocked the account (scripts/console/block.ts): nothing answers it, not even the SMS code. */
+  ACCOUNT_BLOCKED: "ACCOUNT_BLOCKED",
 } as const;
 export type ErrorReason = (typeof ERROR_REASON)[keyof typeof ERROR_REASON];
 

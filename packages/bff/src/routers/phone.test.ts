@@ -101,7 +101,7 @@ describe("[FL-135] the code clears one session", () => {
 describe("[FL-136] automation", () => {
   it("the QaDriver's principal, built on the server, never asks for a code", async () => {
     await seedBrokers(stores, [{ firmId: "firm-qa", brokerId: "brk-qa-runner", role: "BROKER", sub: "qa" }]);
-    const caller = createConsoleCaller(serverContext({ principal: qaPrincipal({ role: "BROKER", now: NOW }), deps: { ...bff.deps, phoneGate: () => Promise.resolve(false) }, access: () => access }));
+    const caller = createConsoleCaller(serverContext({ principal: qaPrincipal({ role: "BROKER", now: NOW }), deps: { ...bff.deps, phoneGate: () => Promise.resolve("REQUIRED" as const) }, access: () => access }));
     await expect(caller.account.setLanguage({ language: "en" })).resolves.toEqual({ language: "en" });
   });
 });

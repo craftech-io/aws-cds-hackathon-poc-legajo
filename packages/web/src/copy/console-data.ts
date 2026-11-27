@@ -35,6 +35,7 @@ const es = {
     PRINCIPAL_INCOMPLETE: "Tu usuario todavía no tiene un estudio o un rol asignado.",
     AUTH_UNAVAILABLE: "El servicio de ingreso no respondió. Probá de nuevo en unos segundos.",
     WORLD_BUSY: "El mundo está ocupado: esperá a que termine lo que está en curso y volvé a intentar.",
+    ACCOUNT_BLOCKED: "Esta cuenta está bloqueada y no puede usar la demo. Si creés que es un error, escribinos desde la página de Craftech.",
   } as Readonly<Record<string, string>>,
 } as const;
 
@@ -72,6 +73,7 @@ const en = {
     PRINCIPAL_INCOMPLETE: "Your user does not have a firm or a role assigned yet.",
     AUTH_UNAVAILABLE: "The sign-in service did not respond. Try again in a few seconds.",
     WORLD_BUSY: "The world is busy: wait for what is in progress to finish and try again.",
+    ACCOUNT_BLOCKED: "This account is blocked and cannot use the demo. If you think this is a mistake, write to us from the Craftech page.",
   },
 } satisfies DataCopy;
 

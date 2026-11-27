@@ -8,6 +8,9 @@
 //   sendPhoneCode    `{ phone? }`: a corrected number only while enrolling
 //   verifyPhoneCode  `{ code }`
 //   endPhoneSession  sign-out: the session's mark goes away
+//
+// A blocked account (phone-gate.ts) gets 403 `ACCOUNT_BLOCKED` here too, before anything is read or
+// sent: only `endPhoneSession` still answers, so the sign-out completes.
 import { TRPCError } from "@trpc/server";
 import type { Language } from "@legajo/shared";
 import { SendPhoneCodeInput, VerifyPhoneCodeInput } from "@legajo/shared/phone-verification";
@@ -15,6 +18,7 @@ import { AUTH_REASON, AuthError } from "../auth/errors";
 import { viewerIpHash } from "../lib/viewer-ip";
 import { signInSessionId } from "../phone-verification/records";
 import { type PhoneAccount, endPhoneSession, phoneStatus, sendPhoneCode, verifyPhoneCode } from "../phone-verification/service";
+import { assertPhoneCleared } from "./phone-gate";
 import { type Context, publicProcedure } from "./trpc";
 
 export interface PhoneContext extends Context {
@@ -35,11 +39,13 @@ export const phoneProcedure = publicProcedure.use(async ({ ctx, next, path }) =>
     ctx.log.warn("console.auth.refused", { path, reason: cause.reason });
     throw new TRPCError({ code: "UNAUTHORIZED", message: cause.message, cause });
   }
+  const identity = { sub: claims.sub, authTime: claims.auth_time, ...(claims.origin_jti === undefined ? {} : { originJti: claims.origin_jti }) };
+  await assertPhoneCleared(ctx, identity, path);
   const username = claims["cognito:username"];
   const viewer = ctx.request.viewer;
   const phoneAccount: PhoneAccount = {
     sub: claims.sub,
-    sessionId: signInSessionId({ authTime: claims.auth_time, ...(claims.origin_jti === undefined ? {} : { originJti: claims.origin_jti }) }),
+    sessionId: signInSessionId(identity),
     username,
     ...(typeof claims.email === "string" && claims.email !== "" ? { email: claims.email } : {}),
     ...(viewer === undefined ? {} : { ipHash: viewerIpHash(ctx.access().keys.rate, viewer) }),

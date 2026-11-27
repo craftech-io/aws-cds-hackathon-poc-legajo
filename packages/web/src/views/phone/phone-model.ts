@@ -3,6 +3,7 @@
 // shared contract's (packages/shared/src/phone-verification.ts).
 import { AccountPhone, PhoneCode, type SendPhoneCodeOutput, type SmsLimitName, type VerifyPhoneCodeOutput } from "@legajo/shared/phone-verification";
 import { phoneRefusal } from "@legajo/shared/phone-policy";
+import { apiErrorOf } from "../../lib/api-error";
 import { CONSOLE_HOME, PHONE_PATH } from "../../routes";
 
 /** Only a path of this app, never another origin nor the phone screen itself. */
@@ -22,6 +23,7 @@ export type PhoneNotice =
   | { readonly kind: "expired" }
   | { readonly kind: "phoneRequired" }
   | { readonly kind: "notPersonal" }
+  | { readonly kind: "blocked" }
   | { readonly kind: "generic" };
 
 /** Whole minutes, at least one. */
@@ -82,7 +84,12 @@ export function phoneProblem(value: string): PhoneNotice | undefined {
 
 export const isValidCode = (value: string): boolean => PhoneCode.safeParse(value).success;
 
+/** A refusal of the BFF as the screen tells it: a blocked account (ADR-0021 §16), or the generic notice. */
+export function failureNotice(error: unknown): PhoneNotice {
+  return apiErrorOf(error).reason === "ACCOUNT_BLOCKED" ? { kind: "blocked" } : { kind: "generic" };
+}
+
 /** Whether a notice offers Craftech's contact (the limits of the day, a number that cannot be used). */
 export function offersContact(notice: PhoneNotice | undefined): boolean {
-  return notice !== undefined && (notice.kind === "inUse" || notice.kind === "locked" || notice.kind === "sendFailed" || (notice.kind === "limit" && notice.limit !== "RESEND"));
+  return notice !== undefined && (notice.kind === "inUse" || notice.kind === "blocked" || notice.kind === "locked" || notice.kind === "sendFailed" || (notice.kind === "limit" && notice.limit !== "RESEND"));
 }

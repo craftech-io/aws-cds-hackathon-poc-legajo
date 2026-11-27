@@ -33,6 +33,8 @@
     "channels:whatsapp-templates": "sst shell --stage poc -- tsx scripts/channels/whatsapp-templates.ts",
     "channels:waba-event-destination": "sst shell --stage poc -- tsx scripts/channels/waba-event-destination.ts",
     "console:invite": "sst shell --stage poc -- tsx scripts/console/invite.ts",
+    "console:block": "sst shell --stage poc -- tsx scripts/console/block.ts",
+    "console:unblock": "sst shell --stage poc -- tsx scripts/console/block.ts --unblock",
     "leads:export": "sst shell --stage poc -- tsx scripts/leads/export.ts",
     "leads:optout": "sst shell --stage poc -- tsx scripts/leads/optout.ts",
     "leads:delete": "sst shell --stage poc -- tsx scripts/leads/delete.ts",

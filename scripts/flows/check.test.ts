@@ -53,7 +53,7 @@ describe("catalog and matrix", () => {
 
   it("keeps the committed matrix of docs/test-plan.md in step with docs/flows-catalog.md", () => {
     const flows = parseCatalog(readFileSync(resolve(process.cwd(), CATALOG_FILE), "utf8"));
-    expect(flows).toHaveLength(136);
+    expect(flows).toHaveLength(137);
     expect(committedMatrix(readFileSync(resolve(process.cwd(), TEST_PLAN_FILE), "utf8"))).toBe(renderMatrix(flows));
   });
 });

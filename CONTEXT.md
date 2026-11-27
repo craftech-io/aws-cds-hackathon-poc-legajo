@@ -282,6 +282,10 @@ _Avoid_: OTP (es el flujo de la llamada de verificación de WhatsApp), MFA (es e
 Una cuenta que ninguna persona usa y que no recibe SMS (`guest-test`, las cuentas `qa-signup-*` de `SC-26`), marcada una por una del lado del servidor para que sus sesiones no pidan el código. Nunca es lead.
 _Avoid_: cuenta exenta, cuenta interna
 
+**Cuenta bloqueada** (`PHONE#<sub>/ACCOUNT.blockedAt`, `npm run console:block`):
+Una cuenta que el operador cortó por abuso: con su token todavía vigente no llega a nada, ni siquiera al código del SMS (`ACCOUNT_BLOCKED`), y además queda deshabilitada en Cognito y sin sesiones. La marca la ponen y la quitan solo los scripts del operador (`console:block`, `console:unblock`) y gana sobre la de automatización.
+_Avoid_: cuenta deshabilitada (eso solo es el estado de Cognito, que no corta un token vigente)
+
 **Consentimiento** (`consents.terms`, `consents.contact`):
 Aceptación explícita, separada y sin tildar por defecto, guardada con fecha y **versión del texto**: términos y privacidad (obligatorio para la cuenta) y "Acepto que Craftech me contacte por esta solución" (opcional, revocable sin perder la cuenta).
 _Avoid_: opt-in (es el de WhatsApp del importador), checkbox
