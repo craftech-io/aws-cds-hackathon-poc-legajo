@@ -1,4 +1,4 @@
-# Catálogo de flujos (FL-001 a FL-136)
+# Catálogo de flujos (FL-001 a FL-137)
 
 Ciento treinta y seis flujos: caminos felices, alternativas, controles de seguridad, flujos solo de consola y, desde la decisión del CTO del 2026-09-26, las superficies públicas (alta propia, cuenta de invitado, leads y landing comercial; ADR-0014 a ADR-0016). Cada flujo es una unidad de prueba: su fila en la matriz de trazabilidad de `docs/test-plan.md` §2 lista las pruebas que lo prueban y `npm run flows:check` falla si un flujo no tiene fila o si una prueba citada no existe.
 
@@ -936,3 +936,10 @@ Diseño en ADR-0014 (palabras y guard), ADR-0016 (rutas, animación, capturas) y
 - Estado esperado: solo esas cuentas entran sin código; ningún procedimiento que llama una persona escribe la marca, ni la deciden el dominio del email, el grupo ni nada del token; una cuenta marcada nunca enrola un celular, así que nunca es lead (su borrador vence a los 30 días).
 - Reglas: ADR-0021 §8.
 - Prueba: U `phone-verification/service.test.ts`, `routers/phone.test.ts`, `qa-driver/signup-fence.test.ts` · SR `SC-26/5`. Notas: `SC-24` y `SC-25` lo ejercen también al ingresar con `guest-test`.
+
+### FL-137 · Cuenta bloqueada por el operador
+- Actores: el operador, una cuenta que abusa de la demo (invitado, personal o automatización) · Canal: terminal del operador y web (`/verify-phone`, consola) · Disparador: `npm run console:block -- --stage poc --account <usuario o email>` mientras la cuenta tiene un id token vigente y una sesión que ya pasó el código; `npm run console:unblock` para revertirlo.
+- Pasos: el script pone `blockedAt` en `Leads/PHONE#<sub>/ACCOUNT` de cada usuario del nombre o del email, lo deshabilita en Cognito (`AdminDisableUser`), revoca sus refresh tokens (`AdminUserGlobalSignOut`) y borra sus marcas `SESSION#` y el código en vuelo; el pedido siguiente de la cuenta lee la marca en la compuerta (`routers/phone-gate.ts`, el mismo ítem de cada pedido) y responde 403 `ACCOUNT_BLOCKED` en todo procedimiento, los del celular incluidos, salvo `account.preferences` y `account.endPhoneSession`; la web muestra en `/verify-phone` «Esta cuenta está bloqueada…» con el contacto de Craftech y el botón para salir, y en la consola el aviso de error de cada vista; `console:unblock` habilita al usuario y quita la marca.
+- Estado esperado: con el token vigente y la sesión ya verificada, la cuenta no accede a nada, no se le manda ningún SMS ni se le acepta un código; la marca gana sobre la de automatización; ningún procedimiento de la web pone ni quita la marca; al desbloquear quedan el celular verificado y la marca de automatización, y el ingreso siguiente pide el código; la terminal no muestra ningún email.
+- Reglas: ADR-0021 §16.
+- Prueba: U `routers/account-blocked.test.ts`, `scripts/console/block.test.ts`, `packages/web/src/views/phone/phone-model.test.ts`. Notas: sin `SR`: un escenario en `poc` deshabilitaría una cuenta real de Cognito; el script se prueba con dobles (sin llamar a AWS) y el operador lo verifica una vez después del despliegue (`docs/architecture.md` §17 ítem 15).

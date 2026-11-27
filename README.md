@@ -185,6 +185,11 @@ FORBIDDEN_TERMS="…" npm run lint:forbidden  # the operator's list lives outsid
 - **Operator scripts**: `npm run console:invite` (internal accounts), `npm run seed:load`, and the
   lead scripts `leads:export`, `leads:optout` and `leads:delete` (confirmed sign-ups; see the privacy
   policy).
+- **Blocking an account**: `npm run console:block -- --stage poc --account <username or email>` cuts the
+  account in the act (a server-side mark the BFF reads on every request, even with a token that is still
+  valid), disables it in Cognito, revokes its refresh tokens and deletes its SMS-code sessions;
+  `npm run console:unblock -- --stage poc --account <username or email>` enables it again. Both run
+  inside `sst shell` with the operator's credentials and print only usernames and counts.
 
 ## Privacy
 
