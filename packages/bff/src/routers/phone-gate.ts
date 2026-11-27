@@ -13,6 +13,7 @@
 import { TRPCError } from "@trpc/server";
 import { ERROR_REASON, ToolError } from "@legajo/shared";
 import { describeError } from "../auth/errors";
+import { countMetric } from "../channels/adapter";
 import type { Logger } from "../lib/log";
 import { signInSessionId } from "../phone-verification/records";
 import type { SessionState } from "../phone-verification/service";
@@ -23,6 +24,9 @@ export const PHONE_OPEN_PATHS: ReadonlySet<string> = new Set(["account.phoneStat
 
 /** Procedures that still answer a blocked account: what the web needs to show the notice and sign out. */
 export const BLOCKED_OPEN_PATHS: ReadonlySet<string> = new Set(["account.preferences", "account.endPhoneSession"]);
+
+/** Named security decisions of the gate (`metric` field, no personal data): the second factor pending, the account blocked. */
+export const GATE_METRICS = { required: "PhoneVerificationRequired", blocked: "AccountBlocked" } as const;
 
 export const PHONE_REQUIRED_MESSAGE = "enter the code we sent to your mobile phone to continue";
 export const ACCOUNT_BLOCKED_MESSAGE = "this account is blocked: write to Craftech";
@@ -44,10 +48,10 @@ export async function assertPhoneCleared(ctx: { readonly deps: ContextDeps; read
     throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "could not check the phone verification", cause: error });
   }
   if (state === "BLOCKED") {
-    ctx.log.warn("console.phone_gate.blocked", { path });
+    countMetric(ctx.log, GATE_METRICS.blocked, { path });
     throw new TRPCError({ code: "FORBIDDEN", message: ACCOUNT_BLOCKED_MESSAGE, cause: new ToolError("FORBIDDEN", ACCOUNT_BLOCKED_MESSAGE, ERROR_REASON.ACCOUNT_BLOCKED) });
   }
   if (state === "CLEARED" || PHONE_OPEN_PATHS.has(path)) return;
-  ctx.log.info("console.phone_gate.required", { path });
+  countMetric(ctx.log, GATE_METRICS.required, { path });
   throw new TRPCError({ code: "FORBIDDEN", message: PHONE_REQUIRED_MESSAGE, cause: new ToolError("FORBIDDEN", PHONE_REQUIRED_MESSAGE, ERROR_REASON.PHONE_VERIFICATION_REQUIRED) });
 }

@@ -6,6 +6,7 @@ import type { AnyTRPCRouter } from "@trpc/server";
 import { awsLambdaRequestHandler } from "@trpc/server/adapters/aws-lambda";
 import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context as LambdaContext } from "aws-lambda";
 import { describeError } from "../auth/errors";
+import { pathOf, withAccessLog } from "../lib/access-log";
 import { createLogger } from "../lib/log";
 import { type EdgeGuard, edgeCheck, lambdaEdgeGuard, routeFacts } from "../signup/edge";
 import { appRouter } from "./index";
@@ -53,4 +54,5 @@ export function createHandler(router: AnyTRPCRouter, contextOf: (options: Create
   };
 }
 
-export const handler: BffHandler = createHandler(appRouter, createContext, lambdaEdgeGuard);
+// One access line per request (lib/access-log.ts), the refusals of the edge check included.
+export const handler: BffHandler = withAccessLog(createHandler(appRouter, createContext, lambdaEdgeGuard), { service: "bff", route: pathOf });

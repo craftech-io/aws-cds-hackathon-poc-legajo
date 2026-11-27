@@ -75,6 +75,20 @@ describe("[FL-137] a blocked account with a valid token and a cleared session", 
   });
 });
 
+describe("[FL-138] the gate's named security decisions", () => {
+  it("writes AccountBlocked and PhoneVerificationRequired with the path and nothing personal", async () => {
+    const lines: string[] = [];
+    const logged = bffFor(stores, access, lines, { phoneGate: "real" });
+    const token = logged.issuer.idToken({ sub: GUEST_SUB, "cognito:username": "usr-01j9zq00000000000000000009", "custom:firmId": undefined, "custom:role": "GUEST", "custom:isGuest": "true", "cognito:groups": ["GUEST"], auth_time: authTime, origin_jti: "jti-9" });
+    await call(logged, trpcEvent("GET", "/api/account.session", { input: {}, headers: headers(token) }));
+    await access.phones.setBlocked(GUEST_SUB, true, NOW);
+    await call(logged, trpcEvent("POST", "/api/account.sendPhoneCode", { input: { phone: "+5491155550149" }, headers: headers(token) }));
+    const metrics = lines.map((line) => JSON.parse(line) as Record<string, unknown>).filter((line) => typeof line.metric === "string");
+    expect(metrics).toEqual([expect.objectContaining({ metric: "PhoneVerificationRequired", path: "account.session" }), expect.objectContaining({ metric: "AccountBlocked", path: "account.sendPhoneCode" })]);
+    expect(lines.join("\n")).not.toContain("5491155550149");
+  });
+});
+
 describe("[FL-137] the block for staff and for automation accounts", () => {
   it("cuts a broker's firm procedures in the act", async () => {
     await seedBrokers(stores, [{ firmId: "firm-delta", brokerId: "brk-delta-bea", role: "BROKER", sub: STAFF_SUB }]);

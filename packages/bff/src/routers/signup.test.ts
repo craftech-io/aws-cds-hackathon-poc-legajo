@@ -168,4 +168,13 @@ describe("[FL-134] the sign-up's mobile number", () => {
     expect(JSON.stringify(result.error?.zodError)).toContain("phone");
     expect(access.invoker.invoked).toEqual([]);
   });
+
+  it("[FL-138] names each refusal with its reason, without the number", async () => {
+    const lines: string[] = [];
+    const logged = bffFor(stores, access, lines);
+    for (const phone of ["+3197012345678", "+5491100000000", "+34611223344"]) await call(logged, trpcEvent("POST", "/api/signup.start", { input: { ...validForm(access), phone }, edge: edgeHeaders() }));
+    const metrics = lines.map((line) => JSON.parse(line) as Record<string, unknown>).filter((line) => line.metric === "SignupPhoneRefused");
+    expect(metrics.map((line) => line.reason)).toEqual(["NOT_PERSONAL", "FILLER", "COUNTRY_NOT_ALLOWED"]);
+    expect(lines.join("\n")).not.toContain("3197012345678");
+  });
 });

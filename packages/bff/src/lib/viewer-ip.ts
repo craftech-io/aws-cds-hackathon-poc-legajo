@@ -1,9 +1,10 @@
 // The two facts of a request that only CloudFront can vouch for (ADR-0015 §3.1 and §3.2): that it came
 // through our distribution (`X-Origin-Verify`, compared in constant time as the first step of every
 // route of `Bff` and `PublicWeb`) and who the viewer is (`CloudFront-Viewer-Address`, trusted only
-// after that check). The viewer IP is never stored or logged in clear: rate limits key it as
+// after that check). The viewer IP is never stored in clear: rate limits key it as
 // HMAC(K_rate, "v4|<a.b.c.d>") or HMAC(K_rate, "v6|<first 64 bits>"), so one host and one IPv6 /64 are
-// one counter whatever the port or the address inside the prefix.
+// one counter whatever the port or the address inside the prefix. The only line that writes it in clear
+// is the access line of lib/access-log.ts, in log groups kept 14 days.
 import { isIP } from "node:net";
 import { type SecretKey, hmacSha256Hex, safeEqual } from "./crypto";
 

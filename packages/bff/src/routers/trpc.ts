@@ -44,6 +44,8 @@ import { type IdTokenClaims, bearerToken } from "../auth/jwt";
 import { type GuestBootstrap, type Principal, guestFromClaims, guestOfPrincipal, guestRowRefusal, isSignInFresh, principalFromClaims, withBrokerRow } from "../auth/principal";
 import type { BrokerMatch } from "../auth/staff";
 import { type FencedId, type FirmOwnership, createFirmOwnership, crossFirmTarget, fencedIdOf, fencedIdsOf } from "../auth/scope";
+import { countMetric } from "../channels/adapter";
+import { noteVerifiedSub } from "../lib/access-log";
 import { type Logger, correlationIdFrom } from "../lib/log";
 import { VIEWER_ADDRESS_HEADER, type ViewerIp, headerValue, parseViewerAddress } from "../lib/viewer-ip";
 import { type AccessDeps, defaultAccessDeps } from "../signup/deps";
@@ -132,6 +134,7 @@ export function createContextFactory(resolveDeps: () => ContextDeps, resolveAcce
     let claims: IdTokenClaims | null = null;
     try {
       claims = await deps.verifier.verify(bearerToken(header(event.headers, AUTH_HEADER)));
+      noteVerifiedSub(claims.sub);
       return { ...base, claims, principal: principalFromClaims(claims), authFailure: null };
     } catch (error) {
       const authFailure =
@@ -226,7 +229,11 @@ interface AuditedContext {
 
 // The refusal is written to the firm's audit log first; a log that cannot be written never turns a
 // 403 into a pass or a 500.
+/** Named security decision of an audited refusal (`metric` field): a cross-firm read or write among them. */
+export const DENIAL_METRIC = "AccessDenied";
+
 async function refuseAudited(ctx: AuditedContext, path: string, refusal: AuditedRefusal, message: string, target?: FencedId): Promise<never> {
+  countMetric(ctx.log, DENIAL_METRIC, { refusal, path });
   try {
     const decision = denialDecision({ principal: ctx.principal, refusal, path, correlationId: ctx.correlationId, at: ctx.deps.wallClock(), message, ...(target ? { target } : {}) });
     await ctx.deps.connector.audit.record(decision);
