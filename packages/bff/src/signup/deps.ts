@@ -11,7 +11,7 @@ import { cognitoCallerTag, ulid, randomBase32 } from "../lib/crypto";
 import { secretValue, subkey } from "../lib/secrets";
 import { type LeadStore, createLeadStore } from "../leads/store";
 import { APP_ORIGIN } from "../public-web/deps";
-import { type MxResolver, systemMxResolver } from "./bot-checks";
+import { type AddressResolver, type MxResolver, systemAddressResolver, systemMxResolver } from "./bot-checks";
 import { type SignupCognito, createSignupCognito } from "./cognito";
 import { type AsyncInvoker, lambdaAsyncInvoker } from "./invoke";
 import { type PhoneStore, createPhoneStore } from "../phone-verification/store";
@@ -54,6 +54,8 @@ export interface AccessDeps {
   readonly newUlid: () => string;
   readonly newSignupId: () => string;
   readonly resolveMx: MxResolver;
+  /** A and AAAA of a mail server: a domain whose MX sits at a disposable service's address is disposable. */
+  readonly resolveAddresses: AddressResolver;
 }
 
 /** The two secrets of the public sign-up (infra/secrets.ts), through lib/secrets.ts. */
@@ -89,6 +91,7 @@ export function defaultAccessDeps(): AccessDeps {
     newUlid: () => ulid(),
     newSignupId: () => randomBase32(26),
     resolveMx: systemMxResolver,
+    resolveAddresses: systemAddressResolver,
   };
   return defaults;
 }

@@ -7,7 +7,7 @@ import { SES_MAILBOX_SIMULATOR_DOMAIN, SIM_MAIL_DOMAIN, STAGE_DOMAIN, isReserved
 import { SIGNUP_FORM_MAX_SECONDS, SIGNUP_FORM_MIN_SECONDS, SIGNUP_MX_TIMEOUT_MS } from "@legajo/shared/guest-limits";
 import type { SignupRejectReason } from "@legajo/shared/signup";
 import { withDeadline } from "../lib/deadline";
-import { isDisposableDomain, isDisposableExchanger } from "./disposable-domains";
+import { isDisposableDomain, isDisposableExchanger, isDisposableMailAddress } from "./disposable-domains";
 import type { PendingSignup } from "../leads/lead";
 
 export type Suppression = Extract<SignupRejectReason, "HONEYPOT" | "TOO_FAST" | "TOO_SLOW" | "FORM_TOKEN" | "RESERVED_DOMAIN" | "OWN_DOMAIN" | "DISPOSABLE_DOMAIN" | "NO_MX">;
@@ -59,24 +59,55 @@ export type MxResolver = (domain: string) => Promise<readonly MxRecord[]>;
 /** One try with the same short deadline as `checkMx`, so a slow resolver never keeps the lookup alive. */
 export const systemMxResolver: MxResolver = (domain) => new Resolver({ timeout: SIGNUP_MX_TIMEOUT_MS, tries: 1 }).resolveMx(domain);
 
+/** The A and AAAA addresses of a mail server; a family that does not answer is simply absent. */
+export type AddressResolver = (host: string) => Promise<readonly string[]>;
+
+export const systemAddressResolver: AddressResolver = async (host) => {
+  const resolver = new Resolver({ timeout: SIGNUP_MX_TIMEOUT_MS, tries: 1 });
+  const [v4, v6] = await Promise.allSettled([resolver.resolve4(host), resolver.resolve6(host)]);
+  return [...(v4.status === "fulfilled" ? v4.value : []), ...(v6.status === "fulfilled" ? v6.value : [])];
+};
+
+/** Mail servers whose addresses are looked up: a domain lists a handful at most. */
+const MAX_MX_HOSTS = 5;
+
+/** Any address of the mail servers is a disposable service's; a lookup that fails or is late counts as no. */
+async function atDisposableAddress(hosts: readonly string[], resolve: AddressResolver, timeoutMs: number): Promise<boolean> {
+  try {
+    const addresses = await withDeadline("signup MX address lookup", timeoutMs, () => Promise.all(hosts.slice(0, MAX_MX_HOSTS).map((host) => resolve(host).catch(() => [] as readonly string[]))));
+    return addresses.some(isDisposableMailAddress);
+  } catch {
+    return false;
+  }
+}
+
 /** A domain that answers no MX, or only the null MX of RFC 7505 (`.`), cannot receive mail. */
 const NO_MAIL_CODES = new Set(["ENOTFOUND", "ENODATA"]);
 
-export type MxVerdict = { readonly status: "OK" } | { readonly status: "NO_MX" } | { readonly status: "DISPOSABLE" } | { readonly status: "UNKNOWN" };
+export type MxVerdict =
+  | { readonly status: "OK" }
+  | { readonly status: "NO_MX" }
+  /** `via`: the server's name (or a host under a listed domain), or the address it resolves to. */
+  | { readonly status: "DISPOSABLE"; readonly via: "MX_NAME" | "MX_ADDRESS" }
+  | { readonly status: "UNKNOWN" };
 
 /**
  * MX lookup with its own deadline (2 s): `ENOTFOUND`/`ENODATA` or only a null MX suppress, and so does a
- * domain with any MX of a disposable-mailbox provider (`DISPOSABLE`); a resolver error
+ * domain with any MX of a disposable-mailbox provider, by its name or by an A/AAAA address of the list,
+ * resolved with the same deadline (`DISPOSABLE`); a resolver error
  * (`ETIMEOUT`, `ESERVFAIL`, `ECONNREFUSED`, the deadline) lets the sign-up through (`SignupMxUnknown`).
  */
-export async function checkMx(domain: string, resolve: MxResolver, timeoutMs: number = SIGNUP_MX_TIMEOUT_MS): Promise<MxVerdict> {
+export async function checkMx(domain: string, resolve: MxResolver, timeoutMs: number = SIGNUP_MX_TIMEOUT_MS, resolveAddresses?: AddressResolver): Promise<MxVerdict> {
+  let hosts: string[];
   try {
     const records = await withDeadline("signup MX lookup", timeoutMs, () => resolve(domain));
-    const usable = records.filter((record) => record.exchange !== "" && record.exchange !== ".");
-    if (usable.length === 0) return { status: "NO_MX" };
-    return isDisposableExchanger(usable.map((record) => record.exchange)) ? { status: "DISPOSABLE" } : { status: "OK" };
+    hosts = records.filter((record) => record.exchange !== "" && record.exchange !== ".").map((record) => record.exchange.replace(/\.$/, ""));
   } catch (error) {
     const code = typeof error === "object" && error !== null ? Reflect.get(error, "code") : undefined;
     return typeof code === "string" && NO_MAIL_CODES.has(code) ? { status: "NO_MX" } : { status: "UNKNOWN" };
   }
+  if (hosts.length === 0) return { status: "NO_MX" };
+  if (isDisposableExchanger(hosts)) return { status: "DISPOSABLE", via: "MX_NAME" };
+  if (resolveAddresses !== undefined && (await atDisposableAddress(hosts, resolveAddresses, timeoutMs))) return { status: "DISPOSABLE", via: "MX_ADDRESS" };
+  return { status: "OK" };
 }

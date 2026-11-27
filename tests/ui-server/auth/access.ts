@@ -94,6 +94,7 @@ export function createLocalAccess(stores: MemoryStores, poolId: string, appOrigi
     newUlid: () => ulid(now().getTime()),
     newSignupId: () => randomBase32(26),
     resolveMx: async (domain) => [{ exchange: `mx.${domain}`, priority: 10 }],
+    resolveAddresses: async () => ["192.0.2.25"],
   };
 
   return {

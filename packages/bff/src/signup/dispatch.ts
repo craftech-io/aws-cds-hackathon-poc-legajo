@@ -45,7 +45,7 @@ export const SIGNUP_METRICS = {
 
 export type DispatchOutcome = { readonly outcome: "STALE" } | { readonly outcome: "DONE"; readonly branch: SignupBranch; readonly reason?: SignupRejectReason };
 
-export type DispatchDeps = Pick<AccessDeps, "client" | "signups" | "cognito" | "keys" | "now" | "resolveMx">;
+export type DispatchDeps = Pick<AccessDeps, "client" | "signups" | "cognito" | "keys" | "now" | "resolveMx" | "resolveAddresses">;
 
 /** The context the seal of `signup.start` is bound to. */
 export function sealContext(signupId: string): string {
@@ -57,9 +57,14 @@ export function domainHash(rateKey: SecretKey, email: string): string {
   return hmacSha256Hex(rateKey, `domain|${domainOf(email)}`);
 }
 
-function rejected(log: Logger, reason: SignupRejectReason): void {
-  countMetric(log, SIGNUP_METRICS.rejected, { reason });
+/** A disposable domain found by the address of its mail server, not by its name (E10 of the demos' rules). */
+export const DISPOSABLE_MAIL_SERVER = "DISPOSABLE_MAIL_SERVER";
+
+function rejected(log: Logger, reason: SignupRejectReason, detail?: string): void {
+  countMetric(log, SIGNUP_METRICS.rejected, { reason, ...(detail === undefined ? {} : { detail }) });
 }
+
+type Suppressed = { readonly reason: SignupRejectReason; readonly detail?: string };
 
 async function findUsers(deps: DispatchDeps, email: string): Promise<FoundUser[]> {
   const users = await deps.cognito.findByEmail(email);
@@ -67,19 +72,19 @@ async function findUsers(deps: DispatchDeps, email: string): Promise<FoundUser[]
 }
 
 /** Everything that suppresses before Cognito is asked anything about the email. */
-async function suppressionOf(deps: DispatchDeps, signup: PendingSignup, log: Logger): Promise<SignupRejectReason | undefined> {
+async function suppressionOf(deps: DispatchDeps, signup: PendingSignup, log: Logger): Promise<Suppressed | undefined> {
   const form = formSuppression(signup);
-  if (form !== undefined) return form;
+  if (form !== undefined) return { reason: form };
   const domain = domainSuppression(signup.email);
-  if (domain !== undefined) return domain;
-  const mx = await checkMx(domainOf(signup.email), deps.resolveMx);
-  if (mx.status === "NO_MX") return "NO_MX";
-  if (mx.status === "DISPOSABLE") return "DISPOSABLE_DOMAIN";
+  if (domain !== undefined) return { reason: domain };
+  const mx = await checkMx(domainOf(signup.email), deps.resolveMx, undefined, deps.resolveAddresses);
+  if (mx.status === "NO_MX") return { reason: "NO_MX" };
+  if (mx.status === "DISPOSABLE") return { reason: "DISPOSABLE_DOMAIN", ...(mx.via === "MX_ADDRESS" ? { detail: DISPOSABLE_MAIL_SERVER } : {}) };
   if (mx.status === "UNKNOWN") countMetric(log, SIGNUP_METRICS.mxUnknown);
-  if ((await readMailStatus(deps.client, signup.emailHash)) !== undefined) return "MAIL_STATUS";
-  if (await isBreakerOpen(deps.client)) return "BREAKER_OPEN";
+  if ((await readMailStatus(deps.client, signup.emailHash)) !== undefined) return { reason: "MAIL_STATUS" };
+  if (await isBreakerOpen(deps.client)) return { reason: "BREAKER_OPEN" };
   const quota = await gateEmail(deps.client, mailboxQuotaHash(deps.keys.leadEmail, signup.email), domainHash(deps.keys.rate, signup.email), deps.now());
-  return quota === "OK" ? undefined : quota;
+  return quota === "OK" ? undefined : { reason: quota };
 }
 
 function metadataOf(signup: PendingSignup, intent?: string): Record<string, string> {
@@ -113,9 +118,9 @@ async function act(deps: DispatchDeps, signup: PendingSignup, found: Classificat
   return branch === "NEW" ? { branch, accountUsername: signup.username } : { branch };
 }
 
-async function start(deps: DispatchDeps, signup: PendingSignup, password: string | undefined, log: Logger): Promise<{ branch: SignupBranch; accountUsername?: string; reason?: SignupRejectReason }> {
+async function start(deps: DispatchDeps, signup: PendingSignup, password: string | undefined, log: Logger): Promise<{ branch: SignupBranch; accountUsername?: string; reason?: SignupRejectReason; detail?: string }> {
   const suppressed = await suppressionOf(deps, signup, log);
-  if (suppressed !== undefined) return { branch: "SUPPRESSED", reason: suppressed };
+  if (suppressed !== undefined) return { branch: "SUPPRESSED", ...suppressed };
   const decided = await act(deps, signup, classifyExisting(await findUsers(deps, signup.email)), password);
   return decided.branch === "INELIGIBLE" ? { ...decided, reason: decided.reason ?? "INELIGIBLE" } : decided;
 }
@@ -162,7 +167,7 @@ export async function runDispatch(deps: DispatchDeps, raw: unknown, log: Logger)
   }
   // No dispatch took its first step yet (the password is still sealed): this event is the sign-up's START.
   const neverDispatched = signup.dispatchedSeq === undefined || claim.sealed !== undefined;
-  let decided: { branch: SignupBranch; accountUsername?: string; reason?: SignupRejectReason };
+  let decided: { branch: SignupBranch; accountUsername?: string; reason?: SignupRejectReason; detail?: string };
   try {
     decided = event.kind === "START" || neverDispatched ? await start(deps, signup, password, log) : await resend(deps, signup, log);
   } catch (error) {
@@ -171,7 +176,7 @@ export async function runDispatch(deps: DispatchDeps, raw: unknown, log: Logger)
   } finally {
     password = undefined;
   }
-  if (decided.reason !== undefined) rejected(log, decided.reason);
+  if (decided.reason !== undefined) rejected(log, decided.reason, decided.detail);
   await deps.signups.setBranch(signup.signupId, event.dispatchSeq, decided.branch, deps.now(), decided.accountUsername);
   log.info("signup.dispatch.done", { signupId: signup.signupId, kind: event.kind, branch: decided.branch });
   return { outcome: "DONE", branch: decided.branch, ...(decided.reason === undefined ? {} : { reason: decided.reason }) };

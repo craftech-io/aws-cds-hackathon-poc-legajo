@@ -24,6 +24,7 @@ export const DISPOSABLE_DOMAINS: ReadonlySet<string> = new Set([
   "emltmp.com",
   "euploading.com",
   "fakeinbox.com",
+  "freeml.net",
   "getairmail.com",
   "getnada.com",
   "guerrillamail.com",
@@ -36,11 +37,16 @@ export const DISPOSABLE_DOMAINS: ReadonlySet<string> = new Set([
   "mailinator.net",
   "mailnesia.com",
   "mailpoof.com",
+  "mailpwr.com",
+  "mailtowin.com",
+  "maximail.vip",
+  "mimimail.me",
   "mintemail.com",
   "moakt.com",
   "mohmal.com",
   "mytemp.email",
   "nada.email",
+  "pickmail.org",
   "sharklasers.com",
   "spambox.us",
   "spamgourmet.com",
@@ -62,6 +68,25 @@ export const DISPOSABLE_DOMAINS: ReadonlySet<string> = new Set([
 
 /** Mail providers of disposable mailboxes: any MX under one of these serves throwaway inboxes, whatever the domain. */
 export const DISPOSABLE_MX_PROVIDERS: ReadonlySet<string> = new Set(["smtp.is"]);
+
+/**
+ * Addresses of the mail servers of disposable-mailbox services (A and AAAA of a domain's MX): the domain
+ * names rotate, the server that receives the mail does not. A domain with any MX at one of them is
+ * disposable too (`DISPOSABLE_DOMAIN`, detail `DISPOSABLE_MAIL_SERVER`).
+ */
+export const DISPOSABLE_MX_ADDRESSES: ReadonlyMap<string, string> = new Map([
+  ["78.47.124.133", "the 10mail.org family: 10mail.org, emltmp.com, emlpro.com, mailpwr.com, mimimail.me, pickmail.org, freeml.net, mailtowin.com, maximail.vip"],
+  ["94.130.108.80", "the 10mail.org family (second server)"],
+  ["49.12.18.190", "smtp.is (euploading.com)"],
+  ["15.204.213.223", "vomoto.com, blondmail.com"],
+  ["178.162.170.166", "Guerrilla Mail"],
+  ["178.32.61.35", "1secmail.com"],
+]);
+
+/** True when any address of the domain's mail servers is a listed one. */
+export function isDisposableMailAddress(addresses: readonly string[]): boolean {
+  return addresses.some((address) => DISPOSABLE_MX_ADDRESSES.has(address.trim().toLowerCase()));
+}
 
 let publicList: ReadonlySet<string> | undefined;
 

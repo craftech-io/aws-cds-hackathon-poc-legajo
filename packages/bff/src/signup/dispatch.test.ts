@@ -11,7 +11,7 @@ import { leadEmailHash } from "../lib/crypto";
 import { createLogger } from "../lib/log";
 import { LEADS_TABLE, signupKey } from "../leads/lead";
 import { runDispatch } from "./dispatch";
-import { type TestAccess, cognitoWrites, fakeMx, testAccessDeps } from "./testing";
+import { type TestAccess, cognitoWrites, fakeAddresses, fakeMx, testAccessDeps } from "./testing";
 import { drainDispatch, startSignup, validForm } from "./testing-flows";
 import { signupResend, signupStart } from "./service";
 import { SignupStartInput } from "@legajo/shared/signup";
@@ -137,6 +137,23 @@ describe("[FL-114] suppressed before Cognito is asked anything", () => {
     expect(await stored(signupId)).toMatchObject({ branch: "SUPPRESSED" });
     expect(metrics()).toContainEqual(expect.objectContaining({ reason: "NO_MX" }));
     expect(access.cognito.calls).toEqual([]);
+  });
+
+  it("[FL-114] a new domain whose mail server sits at a disposable service's address is suppressed like a disposable mailbox", async () => {
+    access = testAccessDeps(stores, { now: () => NOW, addresses: fakeAddresses({ "mx.dominio-nuevo.example-fict.com": ["2001:db8::25", "78.47.124.133"] }) });
+    const { signupId } = await startSignup(access, { email: "ana@dominio-nuevo.example-fict.com" }, "ip-a", log());
+    expect(await stored(signupId)).toMatchObject({ branch: "SUPPRESSED" });
+    expect(metrics()).toContainEqual(expect.objectContaining({ metric: "SignupRejected", reason: "DISPOSABLE_DOMAIN", detail: "DISPOSABLE_MAIL_SERVER" }));
+    expect(access.cognito.calls).toEqual([]);
+  });
+
+  it("[FL-114] a mail server at another address, or whose address lookup fails, lets the sign-up through", async () => {
+    access = testAccessDeps(stores, { now: () => NOW, addresses: async (host) => (host === "mx.falla.example-fict.com" ? Promise.reject(Object.assign(new Error("timeout"), { code: "ETIMEOUT" })) : ["203.0.113.25"]) });
+    for (const email of ["ana@otro.example-fict.com", "ana@falla.example-fict.com"]) {
+      const { signupId } = await startSignup(access, { email }, `ip-${email.length}`, log());
+      expect((await stored(signupId))?.branch, email).toBe("NEW");
+    }
+    expect(metrics().filter((line) => line.metric === "SignupRejected")).toEqual([]);
   });
 
   it("a form sent in less than 3 s is suppressed", async () => {

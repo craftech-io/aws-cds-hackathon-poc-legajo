@@ -58,13 +58,29 @@ describe("[FL-114] the email's domain (ADR-0015 §3.2)", () => {
       expect(await checkMx("flaky.example-fict.com", async () => Promise.reject(Object.assign(new Error(code), { code })))).toEqual({ status: "UNKNOWN" });
     }
     expect(await checkMx("slow.example-fict.com", () => new Promise(() => undefined), 20)).toEqual({ status: "UNKNOWN" });
-    expect(await checkMx("throwaway.example-fict.com", async () => [{ exchange: "mx.smtp.is", priority: 10 }])).toEqual({ status: "DISPOSABLE" });
-    expect(await checkMx("other.example-fict.com", async () => [{ exchange: "mx2.SMTP.IS.", priority: 10 }])).toEqual({ status: "DISPOSABLE" });
-    expect(await checkMx("listed.example-fict.com", async () => [{ exchange: "mx.yopmail.com", priority: 10 }])).toEqual({ status: "DISPOSABLE" });
+    expect(await checkMx("throwaway.example-fict.com", async () => [{ exchange: "mx.smtp.is", priority: 10 }])).toEqual({ status: "DISPOSABLE", via: "MX_NAME" });
+    expect(await checkMx("other.example-fict.com", async () => [{ exchange: "mx2.SMTP.IS.", priority: 10 }])).toEqual({ status: "DISPOSABLE", via: "MX_NAME" });
+    expect(await checkMx("listed.example-fict.com", async () => [{ exchange: "mx.yopmail.com", priority: 10 }])).toEqual({ status: "DISPOSABLE", via: "MX_NAME" });
     expect(await checkMx("lookalike.example-fict.com", async () => [{ exchange: "mx.notsmtp.is", priority: 10 }])).toEqual({ status: "OK" });
   });
 
+  it("suppresses a new domain by the address of its mail server, and only by a listed one", async () => {
+    const mx = async (domain: string) => [{ exchange: `mx.${domain}.`, priority: 10 }];
+    const at = (addresses: readonly string[]) => async () => addresses;
+    for (const address of ["78.47.124.133", "94.130.108.80", "49.12.18.190", "15.204.213.223", "178.162.170.166", "178.32.61.35"]) {
+      expect(await checkMx("nuevo.example-fict.com", mx, 50, at([address])), address).toEqual({ status: "DISPOSABLE", via: "MX_ADDRESS" });
+    }
+    expect(await checkMx("otro.example-fict.com", mx, 50, at(["203.0.113.25", "2001:db8::25"]))).toEqual({ status: "OK" });
+    expect(await checkMx("falla.example-fict.com", mx, 50, () => Promise.reject(new Error("ESERVFAIL")))).toEqual({ status: "OK" });
+    expect(await checkMx("lento.example-fict.com", mx, 20, () => new Promise(() => undefined))).toEqual({ status: "OK" });
+    expect(await checkMx("throwaway.example-fict.com", async () => [{ exchange: "mx.smtp.is", priority: 10 }], 50, at(["203.0.113.25"]))).toEqual({ status: "DISPOSABLE", via: "MX_NAME" });
+  });
+
+  it("suppresses the domains of the same family seen on 2026-11-27 at 12:23 by name too", () => {
+    for (const domain of ["mailpwr.com", "mimimail.me", "pickmail.org", "freeml.net", "mailtowin.com", "maximail.vip"]) expect(domainSuppression(`a@${domain}`), domain).toBe("DISPOSABLE_DOMAIN");
+  });
+
   it("a second, ordinary MX does not hide a disposable provider", async () => {
-    expect(await checkMx("mixed.example-fict.com", async () => [{ exchange: "mx.mixed.example-fict.com", priority: 10 }, { exchange: "mx.smtp.is", priority: 20 }])).toEqual({ status: "DISPOSABLE" });
+    expect(await checkMx("mixed.example-fict.com", async () => [{ exchange: "mx.mixed.example-fict.com", priority: 10 }, { exchange: "mx.smtp.is", priority: 20 }])).toEqual({ status: "DISPOSABLE", via: "MX_NAME" });
   });
 });
