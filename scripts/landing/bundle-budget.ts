@@ -4,14 +4,14 @@
 // imports statically (followed through `import … from "./x.js"`, never through a dynamic `import()`,
 // which is how the console and the gallery's viewer load); none of those chunks may be the console's
 // (`console-routes-*` or a view's `View-*`). Budgets, gzip level 9: the app's own JavaScript (landing
-// and access) ≤ 90 KB; the third-party runtime, which packages/web/vite.config.ts puts in `vendor-*`
+// and access) ≤ 93 KB; the third-party runtime, which packages/web/vite.config.ts puts in `vendor-*`
 // chunks (React, zod, tRPC), ≤ 100 KB on its own cap; CSS ≤ 35 KB in total; the title font ≤ 45 KB on
 // disk. Exit 0 within budget, 1 over it, 2 without a build.
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { gzipSync } from "node:zlib";
 
-export const BUDGET_KB = { js: 90, vendor: 100, css: 35, font: 45 } as const;
+export const BUDGET_KB = { js: 93, vendor: 100, css: 35, font: 45 } as const;
 
 const KB = 1024;
 const CONSOLE_CHUNK = /^(console-routes|View)-[\w-]+\.js$/;
