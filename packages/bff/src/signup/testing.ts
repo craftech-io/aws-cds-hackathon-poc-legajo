@@ -8,7 +8,7 @@ import type { MemoryStores } from "../connector/index";
 import { deriveSubkey, leadEmailHash, randomBase32 } from "../lib/crypto";
 import { ORIGIN_VERIFY_HEADER, VIEWER_ADDRESS_HEADER } from "../lib/viewer-ip";
 import { createLeadStore } from "../leads/store";
-import type { MxResolver } from "./bot-checks";
+import type { AddressResolver, MxResolver } from "./bot-checks";
 import type { CognitoUser, ConfirmOutcome, SignUpRequest, SignupCognito } from "./cognito";
 import { GUEST_GROUP } from "./cognito";
 import type { AccessDeps, SignupKeys } from "./deps";
@@ -213,7 +213,12 @@ export interface TestAccess extends AccessDeps {
 }
 
 /** `AccessDeps` over the in-memory connector; `now` is the real clock the test moves. */
-export function testAccessDeps(stores: MemoryStores, options: { readonly now?: () => Date; readonly mx?: MxResolver } = {}): TestAccess {
+/** Every mail server answers a documentation address (RFC 5737) unless the test gives others. */
+export function fakeAddresses(byHost: Readonly<Record<string, readonly string[]>> = {}): AddressResolver {
+  return async (host) => byHost[host] ?? ["192.0.2.25"];
+}
+
+export function testAccessDeps(stores: MemoryStores, options: { readonly now?: () => Date; readonly mx?: MxResolver; readonly addresses?: AddressResolver } = {}): TestAccess {
   const now = options.now ?? (() => new Date("2026-10-14T13:30:00.000Z"));
   const keys = testSignupKeys();
   const slept: number[] = [];
@@ -239,5 +244,6 @@ export function testAccessDeps(stores: MemoryStores, options: { readonly now?: (
     newUlid: () => `01J9ZQ${String(++ulids).padStart(20, "0")}`,
     newSignupId: () => randomBase32(26),
     resolveMx: options.mx ?? fakeMx(),
+    resolveAddresses: options.addresses ?? fakeAddresses(),
   };
 }
