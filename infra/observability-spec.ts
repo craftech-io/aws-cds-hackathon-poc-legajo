@@ -18,6 +18,17 @@ import type { LambdaName } from "./iam-capabilities";
 
 export const METRIC_NAMESPACE = "LegajoAgent";
 
+/**
+ * Retention of every log group this app creates (the owner's rule for the demos, docs/architecture.md
+ * §12): 14 days, long enough to investigate an incident from the logs and no longer than that. Every
+ * Lambda gets it from the $transform of sst.config.ts; the Harness runtime group of infra/agentcore.ts
+ * from `AGENT_LOG_RETENTION_DAYS`. No group of this app keeps logs longer on purpose: the audit trail
+ * is the `AuditLog` table, not a log group.
+ */
+export const LOG_RETENTION_DAYS = 14;
+/** The same 14 days in SST's `logging.retention` words. */
+export const LOG_RETENTION = "2 weeks";
+
 export type MetricUnit = "Count" | "Milliseconds" | "None";
 
 export interface MetricSpec {

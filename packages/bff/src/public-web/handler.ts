@@ -8,6 +8,7 @@
 import { ConnectorError, operationNumberOf } from "@legajo/shared";
 import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 import type { Connector } from "../connector/index";
+import { publicWebRoute, withAccessLog } from "../lib/access-log";
 import { type Logger, correlationIdFrom, createLogger } from "../lib/log";
 import { isOriginVerified } from "../lib/viewer-ip";
 import { type EdgeGuard, lambdaEdgeGuard } from "../signup/edge";
@@ -120,12 +121,16 @@ export function createPublicWebHandler(deps: PublicWebDeps, edge: EdgeGuard): Pu
 
 let lambdaHandler: PublicWebHandler | undefined;
 
-export const handler: PublicWebHandler = async (event) => {
-  try {
-    lambdaHandler ??= createPublicWebHandler(defaultPublicWebDeps(), lambdaEdgeGuard);
-  } catch {
-    // A missing link or secret: the page says "try later" instead of a CloudFront error.
-    return errorPage(503, "unavailable");
-  }
-  return lambdaHandler(event);
-};
+// One access line per request (lib/access-log.ts), with the link's token cut out of the route.
+export const handler: PublicWebHandler = withAccessLog(
+  async (event) => {
+    try {
+      lambdaHandler ??= createPublicWebHandler(defaultPublicWebDeps(), lambdaEdgeGuard);
+    } catch {
+      // A missing link or secret: the page says "try later" instead of a CloudFront error.
+      return errorPage(503, "unavailable");
+    }
+    return lambdaHandler(event);
+  },
+  { service: "public-web", route: publicWebRoute },
+);

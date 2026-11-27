@@ -1,10 +1,12 @@
 // Observability (docs/architecture.md §12, ADR-0015 §9, docs/build-plan.md WP-32). Names, patterns,
 // thresholds and the budget live in infra/observability-spec.ts (checked by its test).
 //
-//   Logs      Every Lambda's log group is created by SST with the 30-day retention of the
-//             $transform in sst.config.ts. The Harness runtime group of the `live` endpoint is created
-//             by infra/agentcore.ts before that endpoint, also with 30 days; `DEFAULT` is AgentCore's
-//             and stays empty. The code writes one JSON line per event (packages/bff/src/lib/log.ts).
+//   Logs      Every Lambda's log group is created by SST with the 14-day retention of the
+//             $transform in sst.config.ts (observability-spec.ts LOG_RETENTION). The Harness runtime
+//             group of the `live` endpoint is created by infra/agentcore.ts before that endpoint, also
+//             with 14 days; `DEFAULT` is AgentCore's and stays empty. The code writes one JSON line per
+//             event (packages/bff/src/lib/log.ts), and `Bff` and `PublicWeb` one access line per
+//             request (`"message":"acceso"`, packages/bff/src/lib/access-log.ts).
 //   Metrics   `LegajoAgent/*`: one CloudWatch Logs metric filter per metric and emitting function, over
 //             the group SST creates for it (`fn.nodes.logGroup`; its name does not follow the function
 //             name, SST draws a separate suffix for each). WAF publishes its own per-rule metrics in

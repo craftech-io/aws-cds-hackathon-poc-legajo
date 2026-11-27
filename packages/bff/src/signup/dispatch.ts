@@ -39,6 +39,8 @@ export const SIGNUP_METRICS = {
   rejected: "SignupRejected",
   mxUnknown: "SignupMxUnknown",
   dispatchFailed: "SignupDispatchFailed",
+  /** `signup.start` with a number refused by phone-policy.ts (`reason`: NOT_PERSONAL, FILLER, COUNTRY_NOT_ALLOWED). */
+  phoneRefused: "SignupPhoneRefused",
 } as const;
 
 export type DispatchOutcome = { readonly outcome: "STALE" } | { readonly outcome: "DONE"; readonly branch: SignupBranch; readonly reason?: SignupRejectReason };

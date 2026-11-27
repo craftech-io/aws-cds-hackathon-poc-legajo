@@ -5,6 +5,7 @@
 // Nothing here writes `AuditLog` or logs an email: the metrics count by reason (signup/service.ts).
 import { TRPCError } from "@trpc/server";
 import { ToolError } from "@legajo/shared";
+import { AccountPhone } from "@legajo/shared/phone-number";
 import { phoneRefusal } from "@legajo/shared/phone-policy";
 import { SignupConfirmInput, SignupFormInput, SignupResendInput, SignupStartInput } from "@legajo/shared/signup";
 import { countMetric } from "../channels/adapter";
@@ -43,9 +44,18 @@ export const signupProcedure = publicProcedure.use(({ ctx, next, path }) => {
   return next({ ctx: signupContext });
 });
 
+/** Names the refusal of a number at sign-up (`SignupPhoneRefused {reason}`) before the schema answers INVALID. */
+const startProcedure = signupProcedure.use(async ({ ctx, next, getRawInput }) => {
+  const raw = await getRawInput();
+  const phone = AccountPhone.safeParse(typeof raw === "object" && raw !== null ? Reflect.get(raw, "phone") : undefined);
+  const refusal = phone.success ? phoneRefusal(phone.data) : undefined;
+  if (refusal !== undefined) countMetric(ctx.log, SIGNUP_METRICS.phoneRefused, { reason: refusal });
+  return next();
+});
+
 export const signupRouter = router({
   form: signupProcedure.input(SignupFormInput).query(({ ctx, input }) => signupForm(ctx.access(), input.lang)),
-  start: signupProcedure.input(SignupStartServerInput).mutation(({ ctx, input }) => signupStart(ctx.access(), input, { ipHash: ctx.ipHash, log: ctx.log })),
+  start: startProcedure.input(SignupStartServerInput).mutation(({ ctx, input }) => signupStart(ctx.access(), input, { ipHash: ctx.ipHash, log: ctx.log })),
   resend: signupProcedure.input(SignupResendInput).mutation(({ ctx, input }) => signupResend(ctx.access(), input.signupId, { ipHash: ctx.ipHash, log: ctx.log })),
   confirm: signupProcedure.input(SignupConfirmInput).mutation(({ ctx, input }) => signupConfirm(ctx.access(), input, { ipHash: ctx.ipHash, log: ctx.log })),
 });

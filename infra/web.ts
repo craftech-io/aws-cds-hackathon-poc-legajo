@@ -25,8 +25,8 @@
 //     (cloudfront:DescribeFunction), like the rest of the distribution's configuration.
 //   - The cache behavior forwards every viewer header but Host, plus `CloudFront-Viewer-Address`
 //     (web-spec.ts ORIGIN_REQUEST_POLICY); the deploy fails if SST ever puts another policy there.
-//   - AWS WAF: the web ACL of infra/edge-waf.ts, created by the Router (`waf`) and associated with its
-//     distribution: IP reputation, rate limits and a silent challenge on `/signup` and `signup.*`.
+//   - AWS WAF: the demos' shared web ACL `demos-borde` (infra/edge-waf.ts), looked up by name on every
+//     deploy and put on the distribution (`transform.cdn`, `webAclArn`); the Router creates none.
 //
 // Routing table: the Router keeps its routes in a CloudFront key-value store, whose ARN carries an
 // opaque id no IAM statement can predict. The store is the one the CI bootstrap creates
@@ -47,7 +47,7 @@
 import { authWebEnvironment } from "./auth";
 import { consoleHeadersPolicyName, routerKeyValueStoreName } from "./ci-spec";
 import { appDomain, dns } from "./dns";
-import { applyEdgeWaf } from "./edge-waf";
+import { sharedEdgeWebAcl } from "./edge-waf";
 import { OriginVerifyKey } from "./secrets";
 import { LEGAL_PAGES, ORIGIN_REQUEST_POLICY, ROUTER_PROTECTION, STATIC_FILE_OPTIONS, legalUrl, originVerifyInjection } from "./web-spec";
 
@@ -87,13 +87,12 @@ export const router = new sst.aws.Router("Router", {
   },
   // Function URLs in AWS_IAM, invocable only by this distribution, every request signed (OAC).
   protection: ROUTER_PROTECTION,
-  // The web ACL of infra/edge-waf.ts, associated with the distribution.
-  waf: true,
   // The injection sets X-Origin-Verify; the store replaces the one SST would create (see the header).
   edge: { viewerRequest: { injection: originVerifyCode, kvStore: bootstrapKvStoreArn } },
   transform: {
-    waf: applyEdgeWaf,
     cdn: (args) => {
+      // The demos' shared web ACL (infra/edge-waf.ts), never one of this app.
+      args.webAclArn = sharedEdgeWebAcl.arn;
       args.defaultCacheBehavior = withHeadersPolicy(args.defaultCacheBehavior, consoleHeadersPolicyId);
       if (args.orderedCacheBehaviors !== undefined) {
         args.orderedCacheBehaviors = $util

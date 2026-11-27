@@ -20,7 +20,7 @@
 //               only (`@legajo-tools/*`), so no shell, file or code tools; the default system prompt of
 //               packages/bff/src/agent/system-prompt.ts; public network, idle microVMs stopped after 5
 //               minutes. Created after the policies, so no turn ever runs without the fences.
-//   Log group   `/aws/bedrock-agentcore/runtimes/<runtimeId>-live`, 30 days, created after the Harness and
+//   Log group   `/aws/bedrock-agentcore/runtimes/<runtimeId>-live`, 14 days, created after the Harness and
 //               before the endpoint (never the DEFAULT one, which AgentCore creates). Content capture in
 //               traces cannot be turned off: TRACE_CONTENT_CAPTURE of infra/agentcore-spec.ts.
 //   Endpoint    `live`, pinned to the Harness version of this deploy.
@@ -38,7 +38,7 @@
 //   aws --profile craftech-demos bedrock-agentcore-control list-gateway-targets --gateway-identifier <id>  → 5 READY
 //   aws --profile craftech-demos bedrock-agentcore-control get-memory --memory-id <id>                     → ACTIVE, 3 strategies
 //   aws --profile craftech-demos logs describe-log-groups --log-group-name-prefix /aws/bedrock-agentcore/runtimes/harness_aws_cds_hackathon_poc_legajo_poc
-//     → <runtimeId>-live with retentionInDays 30 (-DEFAULT: AgentCore's, 30 days by §17 item 11)
+//     → <runtimeId>-live with retentionInDays 14 (-DEFAULT: AgentCore's, 14 days by §17 item 11)
 
 import { DEFAULT_SYSTEM_PROMPT } from "../packages/bff/src/agent/system-prompt";
 import { ToolTarget } from "../packages/shared/src/tools";

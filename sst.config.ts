@@ -70,17 +70,19 @@ export default $config({
   },
 
   async run() {
-    // Defaults every Lambda in the app inherits; a module can still override them per function.
+    // Defaults every Lambda in the app inherits; a module can still override them per function. The
+    // log retention is the app's single one (infra/observability-spec.ts LOG_RETENTION, 14 days).
+    const { LOG_RETENTION } = await import("./infra/observability-spec");
     $transform(sst.aws.Function, (args) => {
       args.runtime ??= "nodejs22.x";
       args.architecture ??= "arm64";
-      args.logging ??= { retention: "1 month" };
+      args.logging ??= { retention: LOG_RETENTION };
     });
 
     // Infra modules, in dependency order (docs/build-plan.md §1). Every module exists since WP-02;
     // the stubs export nothing until their work package fills them, so a later wave edits its module
     // and never this list. The one declared exception is the public signup (ADR-0015, WP-51), which
-    // adds `leads` (Leads, SignupDispatch, LeadNotice) and `edge-waf` (the web ACL of the Router).
+    // adds `leads` (Leads, SignupDispatch, LeadNotice) and `edge-waf` (the shared web ACL of the Router).
     await import("./infra/tags");
     // Registers the $transform that stamps the IAM path and the CI permissions boundary on every
     // role, so it must come before any module that creates one.
@@ -109,7 +111,7 @@ export default $config({
     await import("./infra/scheduler"); // WP-24
     await import("./infra/bff"); // WP-32
     const { appUrl } = await import("./infra/dns");
-    await import("./infra/edge-waf"); // WP-51: the Router of infra/web.ts creates the web ACL with it
+    await import("./infra/edge-waf"); // the shared web ACL `demos-borde` the Router of infra/web.ts takes
     await import("./infra/web"); // WP-04
     await import("./infra/observability"); // WP-32
 

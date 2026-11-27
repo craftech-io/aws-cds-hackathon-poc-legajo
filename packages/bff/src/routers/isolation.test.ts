@@ -114,6 +114,8 @@ describe("[FL-082] firm isolation of the console", () => {
     const body = z.looseObject({ error: z.looseObject({ data: z.looseObject({ reason: z.string(), correlationId: z.string() }) }) }).parse(JSON.parse(response.body ?? "{}"));
     expect(body.error.data).toMatchObject({ reason: AUTH_REASON.CROSS_FIRM, correlationId: "console-isolation-01" });
     for (const leaked of ["Norpampa", "4471", "Austral Aurora", "firm-delta"]) expect(response.body).not.toContain(leaked);
+    // [FL-138] the named security decision: one line with the fixed metric field.
+    expect(lines.map((line) => JSON.parse(line) as Record<string, unknown>).filter((line) => line.metric === "AccessDenied")).toEqual([expect.objectContaining({ refusal: "CROSS_FIRM", path: "operations.get" })]);
 
     const [decision, ...others] = await denials("firm-norte");
     expect(others).toEqual([]);

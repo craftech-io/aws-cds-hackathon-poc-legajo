@@ -259,9 +259,10 @@ describe("AWS WAF of the edge (ADR-0015 §3.3 and §9)", () => {
     expect(read("docs/architecture.md")).toContain("`arn:aws:wafv2:us-east-1:776805327629:global/webacl/aws-cds-hackathon-poc-legajo-poc-*/*`");
   });
 
-  it("covers the fixed name of the web ACL (docs/architecture.md §1) with its ARN", () => {
-    expect(read("docs/architecture.md")).toContain("| Web ACL de WAF (scope `CLOUDFRONT`) | `aws-cds-hackathon-poc-legajo-poc-edge` |");
-    expect(allows.some(({ body }) => body.includes(WEB_ACL))).toBe(true);
+  it("reads the shared web ACL of docs/architecture.md §1, and can still delete the app's former one", () => {
+    expect(read("docs/architecture.md")).toContain("| Web ACL de WAF (scope `CLOUDFRONT`) | `demos-borde` (compartida por las demos de la cuenta;");
+    expect(statement("EdgeSharedWebAcl")).toContain("global/webacl/demos-borde/*");
+    expect(allows.some(({ body }) => body.includes(WEB_ACL) && body.includes("wafv2:DeleteWebACL"))).toBe(true);
   });
 
   it("reads AWS's managed rule groups through the justified wildcard statement only", () => {
@@ -305,6 +306,7 @@ const WILDCARD_SIDS = [
   "CloudFrontCreatesAndReads",
   "EdgeOriginAccessControls",
   "EdgeWafManagedRuleReads",
+  "EdgeWebAclLookup",
   "DnsLookups",
   "ReadLogsOfThisApp",
   "ConnectOfThisApp",
