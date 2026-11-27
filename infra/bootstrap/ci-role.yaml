@@ -788,6 +788,36 @@ Resources:
               - wafv2:CreateWebACL
               - wafv2:UpdateWebACL
             Resource: !Sub "arn:${AWS::Partition}:wafv2:${Region}:*:regional/managedruleset/*"
+          # WAF authorizes an association on the web ACL AND on the protected resource, and asks Cognito on the
+          # deploy role's behalf with no resource tags: the pool side goes by ARN, and the deny refuses a pool
+          # that carries another app's tag whenever the tag is known.
+          - Sid: CognitoWebAclAssociationOnThePool
+            Effect: Allow
+            Action:
+              - wafv2:AssociateWebACL
+              - wafv2:DisassociateWebACL
+              - wafv2:GetWebACLForResource
+              - wafv2:ListResourcesForWebACL
+              - cognito-idp:AssociateWebACL
+              - cognito-idp:DisassociateWebACL
+              - cognito-idp:GetWebACLForResource
+              - cognito-idp:ListResourcesForWebACL
+            Resource: !Sub "arn:${AWS::Partition}:cognito-idp:${Region}:${AWS::AccountId}:userpool/*"
+          - Sid: WafGetWebAclForResource
+            Effect: Allow
+            Action: wafv2:GetWebACLForResource
+            Resource: !Sub "arn:${AWS::Partition}:wafv2:${Region}:${AWS::AccountId}:regional/webacl/*/*"
+          - Sid: DenyWebAclOnPoolsOfOtherProjects
+            Effect: Deny
+            Action:
+              - cognito-idp:AssociateWebACL
+              - cognito-idp:DisassociateWebACL
+            Resource: "*"
+            Condition:
+              "Null":
+                aws:ResourceTag/sst:app: "false"
+              StringNotEquals:
+                aws:ResourceTag/sst:app: !Ref AppName
           - Sid: DenyCloudFrontFunctionsOfOtherProjects
             Effect: Deny
             Action:
