@@ -15,6 +15,12 @@ export const SIGNUP_FORM_MAX_SECONDS = 2 * 60 * 60;
 export const SIGNUP_TICKET_TTL_SECONDS = 120;
 /** `Leads/SIGNUP#<signupId>` expires by DynamoDB TTL after a day (§2). */
 export const SIGNUP_PENDING_TTL_SECONDS = 24 * 60 * 60;
+/**
+ * An UNCONFIRMED account younger than this is never deleted and created again by another sign-up of its
+ * email (`PENDING_RECENT`): repeating the sign-up with someone else's address cannot keep replacing the
+ * account whose code that person is about to type (ADR-0015 §1.2).
+ */
+export const SIGNUP_PENDING_REPLACE_MIN_SECONDS = 10 * 60;
 /** Seconds between two `signup.resend` of one sign-up (`resendAfterSec`). */
 export const RESEND_WAIT_SECONDS = 60;
 /** `signup.resend` per sign-up. */
@@ -173,6 +179,15 @@ export const PUBLIC_GLOBAL_BUDGET: Readonly<Partial<Record<QuotaKind, number>>> 
   AGENT_TURNS: 1_500,
   OUTBOUND_EMAILS: 1_500,
 };
+
+/**
+ * Agent spend of one registered guest (the Cognito `sub` bound to the world), in USD, for the life of
+ * the account: no daily reset and no reset when the world is destroyed or its slot goes to someone else
+ * (`Runtime/COST#<sub>`). Internal worlds (demo, QA, `guest-test`) have no such cap.
+ */
+export const GUEST_AGENT_COST_CAP_USD = 1;
+/** Held before every turn of a guest and settled to the turn's real cost when it closes: a turn opens only while its hold fits under the cap. */
+export const TURN_COST_HOLD_USD = 0.15;
 
 const WINDOW_MS: Readonly<Record<LimitWindow, number>> = { TEN_MINUTES: 10 * 60_000, HOUR: 60 * 60_000, DAY: 24 * 60 * 60_000 };
 

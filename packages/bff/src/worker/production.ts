@@ -10,6 +10,7 @@
 //   queue              `ChangeMessageVisibility` of a `POISON`        Resource.OperationEvents
 //   reader             `GET /v1/health` and the intake's readings      Resource.ReaderMock
 //   consumeTurnQuota   `consumeQuota(clockId, "AGENT_TURNS")`          worlds/guest-quotas.ts
+//   turnCost           spend cap of a guest, `Runtime/COST#<sub>`      worker/turn-cost.ts
 //   keys               `session` and `runtime-session` subkeys         SessionTokenKey
 //
 // The deterministic handlers of the other modules, imported in process (docs/tool-catalog.md, handlers
@@ -56,6 +57,7 @@ import { eventBridgeScheduler } from "../timers/scheduler-client";
 import { stageDispatcher } from "../timers/stage";
 import { linkedG1Prefilter } from "../turns/prefilter";
 import { consumeQuota } from "../worlds/guest-quotas";
+import { createTurnCostLedger } from "./turn-cost";
 import { handoffEscalation } from "./escalation";
 import type { EventHandlers, WorkerContext } from "./ports";
 import { linkedQueueVisibility } from "./probe";
@@ -142,6 +144,7 @@ export function productionWorkerDeps(): WorkerDeps {
       prefilter: linkedG1Prefilter(),
       handlers,
       consumeTurnQuota: (clockId, quotaLog: Logger) => consumeQuota({ client, now, log: quotaLog }, clockId, "AGENT_TURNS"),
+      turnCost: createTurnCostLedger({ client, now }),
       sessionKey: () => subkey("session"),
       runtimeSessionKey: () => subkey("runtime-session"),
       agentMode: "REAL",

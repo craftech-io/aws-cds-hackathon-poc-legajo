@@ -1,6 +1,6 @@
 // A guest's usage of its demo world (ADR-0015 §4, docs/landing-spec.md §8.5): `account.usage`, one line
-// per kind with the window closest to its cap, and the day's budget of the public worlds when it is
-// spent. Discreet: it lives in the account menu, read when the menu opens.
+// per kind with the window closest to its cap, the day's budget of the public worlds when it is spent
+// and the account's agent time when it is spent (it never renews). Discreet: it lives in the account menu, read when the menu opens.
 import { useSession } from "../../context/SessionContext";
 import { dataCopy } from "../../copy/console-data";
 import { useRemote } from "../../lib/use-remote";
@@ -30,6 +30,7 @@ export function UsageIndicator() {
     <section aria-label={copy.quota.usage} className="border-b border-mist px-3 py-2 text-xs text-slate">
       <p className="font-semibold uppercase tracking-wide">{copy.quota.usage}</p>
       {data.globalBudget === "EXHAUSTED" ? <p className="mt-1 text-warning">{copy.quota.globalExhausted}</p> : null}
+      {data.agentBudget === "EXHAUSTED" ? <p className="mt-1 text-warning">{copy.quota.agentExhausted}</p> : null}
       <ul className="mt-1 space-y-0.5">
         {lines.map((line) => (
           <li key={line.kind} className={`flex justify-between gap-3 ${line.exhausted ? "text-warning" : ""}`}>

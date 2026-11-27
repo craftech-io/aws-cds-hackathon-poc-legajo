@@ -211,6 +211,7 @@ export const es = {
     SIM_REPLY: "Respuesta del simulador de proveedor",
     AGENT_FALLBACK: "Mensaje de respaldo del sistema",
     TURN_CAP: "Tope de turnos del estudio alcanzado",
+    TURN_COST: "Sin turno del agente: tu cuenta usó todo el tiempo de agente incluido",
     AUTO_REPLY_IGNORED: "Respuesta automática ignorada",
     SEND_WHATSAPP: "Envío por WhatsApp",
     SEND_EMAIL: "Envío por email",

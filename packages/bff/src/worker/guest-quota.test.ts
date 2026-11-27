@@ -5,9 +5,13 @@
 import { describe, expect, it } from "vitest";
 import { PUBLIC_GLOBAL_BUDGET } from "@legajo/shared/guest-limits";
 import { counterKey, RUNTIME_TABLE } from "../signup/counters";
+import { NO_HOLD, type TurnCostLedger } from "./turn-cost";
 import { GUEST_CLOCK, GUEST_FIRM, GUEST_OPERATION, completed, seedGuestOperation, turnEvent, workerWorld } from "./testing";
 
 const guestTurn = (key: string, operationId = GUEST_OPERATION, firmId = GUEST_FIRM) => turnEvent({ trigger: "FOLLOWUP_DUE", key, operationId, clockId: `GUEST#${firmId}`, firmId });
+
+// The spend cap of the person (worker/turn-cost.test.ts) would stop these turns first.
+const turnCost: TurnCostLedger = { hold: async () => ({ allowed: true, hold: NO_HOLD }) };
 
 async function quotaRows(world: Awaited<ReturnType<typeof workerWorld>>, operationId: string) {
   return (await world.stores.connector.audit.listByOperation(operationId)).filter((decision) => decision.action === "TURN_QUOTA");
@@ -15,7 +19,7 @@ async function quotaRows(world: Awaited<ReturnType<typeof workerWorld>>, operati
 
 describe("turn quota of a guest world", () => {
   it("the 31st turn in a real hour has no turn: note TURN_QUOTA, QuotaHits, no Harness and no outbound", async () => {
-    const world = await workerWorld({ guestWorld: true, harness: Array.from({ length: 31 }, () => completed()) });
+    const world = await workerWorld({ turnCost, guestWorld: true, harness: Array.from({ length: 31 }, () => completed()) });
     for (let index = 0; index < 31; index += 1) await world.deliver(guestTurn(`t${index}`));
     expect(world.harness.requests).toHaveLength(30);
     const notes = (await world.stores.connector.conversations.listTurnNotes(GUEST_OPERATION)).filter((note) => note.text === "TURN_QUOTA");
@@ -31,7 +35,7 @@ describe("turn quota of a guest world", () => {
   });
 
   it("the daily limit of 120 holds across hours", async () => {
-    const world = await workerWorld({ guestWorld: true, harness: Array.from({ length: 121 }, () => completed()) });
+    const world = await workerWorld({ turnCost, guestWorld: true, harness: Array.from({ length: 121 }, () => completed()) });
     for (let hour = 0; hour < 4; hour += 1) {
       for (let index = 0; index < 30; index += 1) await world.deliver(guestTurn(`d${hour}-${index}`));
       world.advanceReal(60 * 60_000);
@@ -43,7 +47,7 @@ describe("turn quota of a guest world", () => {
   });
 
   it("a public world past the global budget of the day: GuestBudgetHits, kind GLOBAL, no turn", async () => {
-    const world = await workerWorld({ harness: [completed()] });
+    const world = await workerWorld({ turnCost, harness: [completed()] });
     const operationId = await seedGuestOperation(world.stores, "firm-guest-31", "7031");
     const budget = PUBLIC_GLOBAL_BUDGET.AGENT_TURNS ?? 0;
     await world.stores.client.put(RUNTIME_TABLE, { ...counterKey("QUOTA#GUEST_PUBLIC#AGENT_TURNS", "DAY", world.realNow()), entity: "WindowCounter", count: budget });
@@ -55,7 +59,7 @@ describe("turn quota of a guest world", () => {
   });
 
   it("a reserved guest world does not spend the public budget", async () => {
-    const world = await workerWorld({ guestWorld: true, harness: [completed()] });
+    const world = await workerWorld({ turnCost, guestWorld: true, harness: [completed()] });
     await world.deliver(guestTurn("r1"));
     expect(await world.stores.client.get(RUNTIME_TABLE, counterKey("QUOTA#GUEST_PUBLIC#AGENT_TURNS", "DAY", world.realNow()))).toBeUndefined();
     expect(await world.stores.client.get(RUNTIME_TABLE, counterKey(`QUOTA#${GUEST_CLOCK}#AGENT_TURNS`, "HOUR", world.realNow()))).toMatchObject({ count: 1 });

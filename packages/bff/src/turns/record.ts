@@ -1,7 +1,7 @@
 // What a turn leaves behind besides its tools' effects (docs/architecture.md §9.1, docs/design-brief.md §8):
 //
 //   TurnNote        the final text of the Harness (ADR-0011: an internal note, never sent), or a fixed
-//                   code when there was no turn (`TURN_QUOTA`) or its text must not be kept (a guardrail's
+//                   code when there was no turn (`TURN_QUOTA`, `TURN_COST`) or its text must not be kept (a guardrail's
 //                   sentinel, a failed turn)
 //   LegajoMetrics   the turn and its tokens (`metadata.usage`), and the first-response latency: real ms
 //                   from the inbound message to the first outbound of the turn that answered it
@@ -24,6 +24,7 @@ export const TURN_METRICS = { latency: "TurnLatency", errors: "TurnErrors" } as 
 /** Fixed notes of the turns that left no text of the model. */
 export const FIXED_NOTES = {
   quota: "TURN_QUOTA",
+  cost: "TURN_COST",
   guardrail: "GUARDRAIL_BLOCK",
   failed: "TURN_FAILED",
 } as const;

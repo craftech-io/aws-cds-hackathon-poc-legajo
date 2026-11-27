@@ -4,8 +4,9 @@
 //   1. the operation exists in the event's world (a reset or a destroyed world leaves late events behind)
 //   2. `control = BROKER` → no turn: `TURN_SKIPPED_CONTROL_BROKER` (`CP-CONTROL-BROKER`, FL-069); the
 //      event stays on the timeline and its PDFs went through their own intake
-//   3. the quota of a guest world and the firm's turn caps (worker/turn-cap.ts) → `TURN_QUOTA` with its
-//      note, or `TURN_CAP`; no turn and no outbound
+//   3. the spend of the guest who holds the world, the quota of a guest world and the firm's turn caps
+//      (worker/turn-cap.ts) → `TURN_COST` or `TURN_QUOTA` with its note, or `TURN_CAP`; no turn and no
+//      outbound. A turn that passed holds its spend until it closes (worker/turn-cost.ts)
 //   4. the G1 pre-filter over the turn's untrusted text, if a party wrote it (turns/prefilter.ts): only a
 //      BLOCKED assessment blocks (worker/guardrail-block.ts) and the Harness is not invoked; an
 //      anonymization goes on with G1's text, masked again by the normalizer, and `GUARDRAIL_MASK`
@@ -19,6 +20,7 @@ import type { TurnEvent } from "../worker/events";
 import { handleGuardrailBlock } from "../worker/guardrail-block";
 import type { WorkerContext } from "../worker/ports";
 import { type TurnBudget, checkTurnBudget } from "../worker/turn-cap";
+import { TURN_COST_METRIC } from "../worker/turn-cost";
 import type { TurnDeps, TurnOutcome } from "./deps";
 import { type TurnInbound, loadInbound } from "./envelope";
 import { invokeTurn } from "./invoke";
@@ -44,6 +46,12 @@ function decisionBase(event: TurnEvent, operation: Operation, ctx: WorkerContext
 /** The note and the audit of a turn the budget refused. */
 async function refuseByBudget(deps: TurnDeps, ctx: WorkerContext, event: TurnEvent, operation: Operation, budget: Exclude<TurnBudget, { allowed: true }>): Promise<TurnOutcome> {
   const base = decisionBase(event, operation, ctx);
+  if (budget.refusal === "TURN_COST") {
+    await writeTurnNote({ data: deps.data, agentMode: deps.agentMode, now: ctx.now, log: ctx.log }, { operation, event, turnId: `cost-${event.eventId}`, text: FIXED_NOTES.cost });
+    await auditOnce(deps.data.audit, { ...base, action: WORKER_ACTIONS.turnCost, detail: { reason: budget.reason } });
+    countMetric(ctx.log, TURN_COST_METRIC, { reason: budget.reason });
+    return { kind: "SKIPPED", reason: "TURN_COST" };
+  }
   if (budget.refusal === "TURN_QUOTA") {
     await writeTurnNote({ data: deps.data, agentMode: deps.agentMode, now: ctx.now, log: ctx.log }, { operation, event, turnId: `quota-${event.eventId}`, text: FIXED_NOTES.quota });
     await auditOnce(deps.data.audit, { ...base, action: WORKER_ACTIONS.turnQuota, detail: { kind: budget.kind, resetsAtReal: budget.resetsAtReal } });
@@ -87,13 +95,18 @@ export async function runAgentTurn(deps: TurnDeps, event: TurnEvent, ctx: TurnCo
     await auditOnce(deps.data.audit, { ...decisionBase(event, operation, ctx), action: WORKER_ACTIONS.skippedControl, ruleIds: ["CP-CONTROL-BROKER"], ...(event.messageId === undefined ? {} : { refs: { messageId: event.messageId } }) });
     return { kind: "SKIPPED", reason: "CONTROL_BROKER" };
   }
-  const budget = await checkTurnBudget({ data: deps.data, consumeTurnQuota: deps.consumeTurnQuota, now: ctx.now, log: ctx.log }, operation);
+  const budget = await checkTurnBudget({ data: deps.data, consumeTurnQuota: deps.consumeTurnQuota, turnCost: deps.turnCost, now: ctx.now, log: ctx.log }, operation);
   if (!budget.allowed) return refuseByBudget(deps, ctx, event, operation, budget);
-  let inbound = await loadInbound(deps.data, event, operation);
-  if (inbound !== undefined) {
-    const filtered = await prefilter(deps, ctx, event, operation, inbound);
-    if ("blocked" in filtered) return filtered.blocked;
-    inbound = filtered.inbound;
+  try {
+    let inbound = await loadInbound(deps.data, event, operation);
+    if (inbound !== undefined) {
+      const filtered = await prefilter(deps, ctx, event, operation, inbound);
+      if ("blocked" in filtered) return filtered.blocked;
+      inbound = filtered.inbound;
+    }
+    return await invokeTurn(deps, ctx, { operation, event, hold: budget.hold, ...(inbound === undefined ? {} : { inbound }) });
+  } finally {
+    // A turn that settled or kept its hold already closed it; anything else gives it back.
+    await budget.hold.release();
   }
-  return invokeTurn(deps, ctx, { operation, event, ...(inbound === undefined ? {} : { inbound }) });
 }

@@ -13,6 +13,7 @@ export const WORKER_ACTIONS = {
   skippedControl: "TURN_SKIPPED_CONTROL_BROKER",
   turnCap: "TURN_CAP",
   turnQuota: "TURN_QUOTA",
+  turnCost: "TURN_COST",
   guardrailBlock: "GUARDRAIL_BLOCK",
   guardrailMask: "GUARDRAIL_MASK",
   turnFailed: "TURN_FAILED",

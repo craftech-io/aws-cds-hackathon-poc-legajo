@@ -17,6 +17,7 @@ import { createLogger, type Logger } from "../lib/log";
 import { GUEST_FIRM, seedConsoleWorld } from "../routers/testing";
 import type { G1Prefilter, G1Verdict } from "../turns/prefilter";
 import { consumeQuota } from "../worlds/guest-quotas";
+import { type TurnCostLedger, createTurnCostLedger } from "./turn-cost";
 import type { OperationQueueEventInput, TurnEvent } from "./events";
 import type { EscalationPort, EscalationRequest, EventHandlers, MilestoneFallbackInput } from "./ports";
 import type { QueueVisibility } from "./probe";
@@ -124,6 +125,8 @@ export interface WorkerWorldOptions {
   readonly readerOk?: boolean;
   /** Runs the operations target in process before the Harness, as the stage does (turns/preload.ts). */
   readonly reads?: boolean;
+  /** Replaces the spend cap of the guests (worker/turn-cost.ts) for tests about other limits. */
+  readonly turnCost?: TurnCostLedger;
 }
 
 function escalationPort(stores: MemoryStores, requests: EscalationRequest[]): EscalationPort {
@@ -175,6 +178,7 @@ export async function workerWorld(options: WorkerWorldOptions = {}): Promise<Wor
       prefilter,
       handlers,
       consumeTurnQuota: (clockId, quotaLog) => consumeQuota({ client: stores.client, now, log: quotaLog }, clockId, "AGENT_TURNS"),
+      turnCost: options.turnCost ?? createTurnCostLedger({ client: stores.client, now }),
       sessionKey: () => deriveSubkey(MASTER_KEY, "session"),
       runtimeSessionKey: () => deriveSubkey(MASTER_KEY, "runtime-session"),
       agentMode: "SCRIPTED",

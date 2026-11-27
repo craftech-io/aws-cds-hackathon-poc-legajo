@@ -9,6 +9,7 @@ import { QuotaExceededError } from "@legajo/shared/errors";
 import { consumeQuota } from "@legajo/bff/worlds/guest-quotas";
 import { leasePublicSlot, readAccountWorld, releaseSlot } from "@legajo/bff/worlds/guest-slots";
 import { createWorld } from "@legajo/bff/worlds/factory";
+import { brokerKey } from "@legajo/bff/connector/keys";
 import { leadEmailHash } from "@legajo/bff/lib/crypto";
 import { describe, expect, it } from "vitest";
 import { useFlowWorld } from "./support/lifecycle";
@@ -139,6 +140,8 @@ describe("guest world flows", () => {
   it("[FL-111] a guest world that spends its outbound emails and its turns: the send is denied by CP-WORLD-QUOTA inside the turn, and once the turns run out a milestone opens none", async () => {
     const { flow } = await edge({ "4471": { MILESTONE: [{ steps: [READ_OPERATION, READ_DOSSIER, EMAIL_DOCS_REQUEST], note: "Pedí al proveedor." }] } });
     await createWorld({ kind: "GUEST", firmId: "firm-guest-41" }, flow.worlds);
+    // What GUEST_CREATE does after the factory: the broker row bound to its person, who pays the turns.
+    await flow.stores.client.update("Firms", brokerKey("firm-guest-41", "brk-guest-41"), { set: { cognitoSub: "sub-guest-41", active: true } }, flow.realNow().toISOString(), { condition: { ifExists: true } });
     const clockId = "GUEST#firm-guest-41";
     const operationId = (await flow.data.operations.listOperations("firm-guest-41", { clockId })).find((operation) => operation.operationNumber === "4471")?.operationId ?? "";
 
