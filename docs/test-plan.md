@@ -190,6 +190,7 @@ Generada desde las líneas "Prueba" de `docs/flows-catalog.md`; `npm run flows:c
 | FL-135 | El código del SMS como segundo factor de cada sesión | `routers/phone.test.ts`, `phone-verification/service.test.ts`, `packages/web/src/views/phone/phone-model.test.ts`, `packages/web/src/views/auth/session.test.ts` | — | `phone.spec.ts` | — | — | sin `SR`: el SMS real no se lee en un escenario; `SC-24`, `SC-25` y `SC-26` ingresan con cuentas de automatización (FL-136) |
 | FL-136 | Cuentas de automatización sin SMS | `phone-verification/service.test.ts`, `routers/phone.test.ts`, `qa-driver/signup-fence.test.ts` | — | — | `SC-26/5` | — | `SC-24` y `SC-25` lo ejercen también al ingresar con `guest-test` |
 | FL-137 | Cuenta bloqueada por el operador | `routers/account-blocked.test.ts`, `scripts/console/block.test.ts`, `packages/web/src/views/phone/phone-model.test.ts` | — | — | — | — | sin `SR`: un escenario en `poc` deshabilitaría una cuenta real de Cognito; el script se prueba con dobles (sin llamar a AWS) y el operador lo verifica una vez después del despliegue (`docs/architecture.md` §17 ítem 15) |
+| FL-138 | Registros para investigar un incidente | `packages/bff/src/lib/access-log.test.ts`, `routers/account-blocked.test.ts`, `routers/signup.test.ts`, `routers/isolation.test.ts`, `infra/log-retention.test.ts` | — | — | — | — | sin `SR`: la línea se lee en CloudWatch después del despliegue (`docs/architecture.md` §12 "Cómo se leen") |
 <!-- MATRIX:END -->
 
 ## 3. Pruebas locales
