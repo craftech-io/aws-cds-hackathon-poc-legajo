@@ -5,7 +5,8 @@
 //                public signup (`signup.*`), guest bootstrap (`account.*`), phone simulator. Runs the
 //                world factory in process (WORLDS: first guest login, "Reiniciar demo", synthetic PDFs),
 //                enqueues console sends and clock work, and invokes InboundWhatsApp (simulator), SimMail
-//                (SIM_REPLY of a clock move), WorldJanitor (MEMORY_PURGE, GUEST_CREATE), SignupDispatch and LeadNotice. No SES, no
+//                (SIM_REPLY of a clock move), WorldJanitor (MEMORY_PURGE, GUEST_CREATE), SignupDispatch and LeadNotice; sends the
+//                SMS code of every sign-in (SNS Publish to a number only, ADR-0021). No SES, no
 //                End User Messaging, no Guardrails (iam-capabilities.ts).
 //   PublicWeb    the upload page `/u/<token>` (packages/bff/src/public-web/handler.ts), no login: Runtime,
 //                AuditLog and the presigned POST to Uploads.
@@ -55,6 +56,7 @@ import { GuardrailG1 } from "./guardrail";
 import type { LambdaName } from "./iam-capabilities";
 import { lateLinks, links } from "./late-links";
 import { signupGrants } from "./leads";
+import { SMS_PUBLISH_STATEMENTS } from "./sms-spec";
 import { emailLinks, inboundEmail, simMail } from "./messaging-email";
 import { inboundWhatsApp } from "./messaging-whatsapp";
 import { grantMockInvoke, mockLinks, mockPermissions } from "./mocks";
@@ -139,7 +141,8 @@ export const bff = new sst.aws.Function("Bff", {
     worldJanitor, // MEMORY_PURGE and GUEST_CREATE, asynchronously
     ...bffSignup.link,
   ],
-  permissions: [...mockPermissions("Bff"), ...bffSignup.permissions],
+  // SEND_SMS (ADR-0021): Publish to a phone number, never to a topic (infra/sms-spec.ts).
+  permissions: [...mockPermissions("Bff"), ...bffSignup.permissions, ...SMS_PUBLISH_STATEMENTS],
 });
 
 /** Resource side of MOCK_PLATFORM (infra/mocks.ts). */

@@ -24,12 +24,14 @@ export const AUTH_EN: AuthCopy = {
     forgot: "Reset your password · Legajo listo",
     reset: "New password · Legajo listo",
     welcome: "Preparing your world · Legajo listo",
+    phone: "Mobile · Legajo listo",
   },
   signup: {
     title: "Try Legajo listo",
     lead: "Create your account and in a minute you get your trial firm, with operation 4471 ready to walk through.",
     email: "Work email",
     emailHint: "We will send you a code to verify it.",
+    phone: "Mobile (with + and country code)",
     password: "Password",
     optionalGroup: "Tell us about you (optional)",
     name: "Name",
@@ -43,6 +45,7 @@ export const AUTH_EN: AuthCopy = {
     honeypot: "Do not fill in this field",
     errors: {
       email: "Enter a valid email.",
+      phone: "Enter the number with + and the country code.",
       password: "The password does not meet the rules below.",
       tooLong: (max: number) => `Use at most ${max} characters.`,
       consentTerms: "To create the account you need to accept the terms and the privacy policy.",

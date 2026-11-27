@@ -10,7 +10,7 @@ describe("calls to action [FL-130]", () => {
     for (const placement of CONTACT_PLACEMENTS) {
       expect(contactHref(placement)).toBe(`https://craftech.io/contact/?utm_source=legajo-listo&utm_medium=demo&utm_campaign=poc-landing&utm_content=${placement}`);
     }
-    expect(CONTACT_PLACEMENTS).toEqual(["header", "closing", "footer", "welcome-failed", "platform", "faq", "welcome-capacity"]);
+    expect(CONTACT_PLACEMENTS).toEqual(["header", "closing", "footer", "welcome-failed", "platform", "faq", "welcome-capacity", "phone"]);
   });
 
   it("opens Craftech's site in a new tab with neither opener nor referrer, and offers the sales address", () => {

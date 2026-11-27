@@ -50,6 +50,7 @@ What each group of statements is for:
 | `GuardDutyMalwareScanRule` (boundary) | The managed EventBridge rule GuardDuty Malware Protection for S3 creates through the plan's role |
 | `WhatsAppOfThisAccount` (boundary) | End User Messaging Social sends only from phone numbers of this account |
 | `TranscribeVerificationCalls` (boundary) | `PhoneOtp` transcribes Meta's verification call: only `transcription-job/otp-*` |
+| `SmsToPhoneNumbersOnly` (boundary) | The Bff texts the SMS code of every sign-in (ADR-0021): `sns:Publish` with `NotResource` of every topic ARN (`arn:aws:sns:*:*:*`), so a role of the app can publish to a phone number and never to a topic outside its tag fence; SNS has no ARN for a phone number. The Bff's own policy repeats it (Allow `*` plus an explicit Deny of topics, infra/sms-spec.ts) |
 | `ConnectServiceLinkedRole`, `ConnectServiceLinkedRolePolicies` | The Connect service-linked role (`aws-service-role/connect.amazonaws.com/*`): created once, and its inline policy updated when the recordings bucket is associated |
 | `HarnessUnderlyingRuntime` | The runtime AgentCore creates under the Harness, named `harness_<AgentNamePrefix>*` |
 | `CloudControlTransport` | `awsnative.*` resources go through the Cloud Control API, IAM prefix `cloudformation` |
@@ -111,6 +112,10 @@ The same command applies every later change. Edit statements, not the `Descripti
 policy: IAM cannot change it in place and the replacement fails with `already exists`. The public
 signup (wave 3) adds the `wafv2` and OAC statements: the operator applies the template again before
 the first deploy of that wave.
+
+The SMS code of ADR-0021 adds `SmsToPhoneNumbersOnly` to the boundary: apply the template again
+before the deploy that ships it, or the Bff's `sns:Publish` is denied by the boundary and every
+sign-in answers `SEND_FAILED`.
 
 The SST bootstrap of the account and the stage passphrase are created by the operator's first
 `npx sst secret set ... --stage poc` (step 3), never by CI.

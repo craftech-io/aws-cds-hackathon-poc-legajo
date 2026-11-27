@@ -18,7 +18,7 @@ const PendingSignup = z.object({
   resends: z.number().int().nonnegative(),
   /** The other fields of the form, not secret, for "Cambiar email" and "Empezar de nuevo". */
   fields: z
-    .object({ name: z.string().max(200), company: z.string().max(200), jobTitle: z.string().max(200), terms: z.boolean(), contact: z.boolean() })
+    .object({ phone: z.string().max(32).optional(), name: z.string().max(200), company: z.string().max(200), jobTitle: z.string().max(200), terms: z.boolean(), contact: z.boolean() })
     .optional(),
 });
 export type PendingSignup = z.infer<typeof PendingSignup>;

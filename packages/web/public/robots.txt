@@ -6,3 +6,4 @@ Disallow: /signup
 Disallow: /login
 Disallow: /forgot
 Disallow: /welcome
+Disallow: /verify-phone

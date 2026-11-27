@@ -8,6 +8,7 @@ import { WafBlockedError, WafChallengeError } from "../../lib/waf";
 const FORM: SignupForm = {
   ...EMPTY_SIGNUP,
   email: "  Ana.Prueba@Sim.Legajo.Demo.Craftech.io ",
+  phone: "+54 9 11 5555 0101",
   password: "Clave-de-Prueba-2026!",
   terms: true,
 };
@@ -18,6 +19,10 @@ describe("[FL-101] the sign-up form", () => {
     expect(validateSignup(FORM)).toEqual({});
     expect(validateSignup({ ...FORM, email: "no-es-un-email" })).toEqual({ email: { kind: "email" } });
     expect(validateSignup({ ...FORM, password: "corta" })).toEqual({ password: { kind: "password" } });
+    // The mobile is required, in E.164 with any country code (ADR-0021).
+    expect(validateSignup({ ...FORM, phone: "" })).toEqual({ phone: { kind: "phone" } });
+    expect(validateSignup({ ...FORM, phone: "11 5555 0101" })).toEqual({ phone: { kind: "phone" } });
+    expect(validateSignup({ ...FORM, phone: "+44 7700 900123" })).toEqual({});
     expect(validateSignup({ ...FORM, password: " Clave-de-Prueba-2026!" })).toEqual({ password: { kind: "password" } });
     const tooLong = "x".repeat(SIGNUP_OPTIONAL_MAX_CHARS + 1);
     expect(validateSignup({ ...FORM, name: tooLong, company: tooLong, jobTitle: tooLong })).toEqual({
@@ -46,8 +51,8 @@ describe("[FL-101] the sign-up form", () => {
 
   it("[FL-113] keeps neither the password nor the honeypot across WAF's reload", () => {
     const draft = draftOf({ ...FORM, name: "Ana", contact: true, website: "bot" });
-    expect(Object.keys(draft).sort()).toEqual(["company", "contact", "email", "jobTitle", "name", "terms"]);
-    expect(formFromDraft(draft)).toEqual({ ...EMPTY_SIGNUP, email: FORM.email, name: "Ana", terms: true, contact: true });
+    expect(Object.keys(draft).sort()).toEqual(["company", "contact", "email", "jobTitle", "name", "phone", "terms"]);
+    expect(formFromDraft(draft)).toEqual({ ...EMPTY_SIGNUP, email: FORM.email, phone: FORM.phone, name: "Ana", terms: true, contact: true });
     expect(formFromDraft(draftOfFields({ email: "otra@sim.legajo.demo.craftech.io" }))).toEqual({ ...EMPTY_SIGNUP, email: "otra@sim.legajo.demo.craftech.io" });
   });
 
@@ -69,7 +74,7 @@ describe("[FL-101] the sign-up form", () => {
     expect(accessFailureOf(new Error("fetch", { cause: new WafBlockedError("b") }))).toEqual({ kind: "rateLimitedEdge" });
     const invalid = { message: "bad", data: { code: "BAD_REQUEST", reason: "INVALID", zodError: { fieldErrors: { email: ["bad"], consents: ["bad"] } } } };
     expect(accessFailureOf(invalid)).toEqual({ kind: "invalid", fields: ["email", "consents"] });
-    expect(errorsFromServer(["email", "consents", "other"])).toEqual({ email: { kind: "email" }, terms: { kind: "consentTerms" } });
+    expect(errorsFromServer(["email", "phone", "consents", "other"])).toEqual({ email: { kind: "email" }, phone: { kind: "phone" }, terms: { kind: "consentTerms" } });
     expect(accessFailureOf({ message: "offline" })).toEqual({ kind: "offline" });
     expect(accessFailureOf({ message: "down", data: { code: "INTERNAL_SERVER_ERROR", correlationId: "corr-9" } })).toEqual({ kind: "unexpected", reference: "corr-9" });
   });

@@ -10,6 +10,7 @@ import { LEADS_FUNCTIONS, cognitoStatement, leadsStatement, qaSignupMailStatemen
 import { EMAIL_FUNCTIONS } from "./messaging-email-spec";
 import { ALARMS, DOCUMENTED_METRICS, METRICS, METRIC_NAMESPACE, POLICY_AUDIT, PROJECT_BUDGET, RESERVED_CONCURRENCY, alarmQueries, budgetName, budgetNotifications, budgetSubscribers, metricFilterSpecs, type AlarmSpec } from "./observability-spec";
 import { storageFor } from "./storage-keys";
+import { SMS_PUBLISH_STATEMENTS } from "./sms-spec";
 import { EDGE_BUDGETS, LAMBDA_ROUTES } from "./web-spec";
 
 const fake = vi.hoisted(() => {
@@ -336,7 +337,7 @@ describe("Bff and PublicWeb behind the Router (ADR-0015 §3.1)", () => {
     expect(created).not.toHaveProperty("environment");
   });
 
-  it("Bff: its data, the platform mock, the Router-side secret and the signup grants; it invokes only its five functions and sends nothing", async () => {
+  it("Bff: its data, the platform mock, the Router-side secret and the signup grants; it invokes only its five functions and sends only the SMS code", async () => {
     const created = await fnArgs("Bff");
     expect(linkNames(created.link)).toEqual([
       ...stored("Bff"),
@@ -344,7 +345,7 @@ describe("Bff and PublicWeb behind the Router (ADR-0015 §3.1)", () => {
       ...["Leads", "SignupDispatch", "LeadNotice", "OriginVerifyKey", "GuestObjects"],
     ]);
     expect(invoked(created.link).sort()).toEqual(["InboundWhatsApp", "LeadNotice", "SignupDispatch", "SimMail", "WorldJanitor"]);
-    expect(created.permissions?.slice(1)).toEqual([leadsStatement("Bff", "LeadsData.arn"), cognitoStatement("Bff", "UserPool.arn"), signupRuntimeStatement("Runtime.arn")]);
+    expect(created.permissions?.slice(1)).toEqual([leadsStatement("Bff", "LeadsData.arn"), cognitoStatement("Bff", "UserPool.arn"), signupRuntimeStatement("Runtime.arn"), ...SMS_PUBLISH_STATEMENTS]);
   });
 
   it("PublicWeb: Runtime, AuditLog, Uploads and the origin key, nothing else", async () => {

@@ -13,6 +13,8 @@ import { minutesOf } from "./verify-model";
 /** The fields of the form that are not secret: what survives a full page load of `/signup`. */
 export interface SignupFields {
   readonly email: string;
+  /** Mobile in E.164 (+ and the country code): the SMS code goes to it (ADR-0021). */
+  readonly phone: string;
   readonly name: string;
   readonly company: string;
   readonly jobTitle: string;
@@ -26,22 +28,23 @@ export interface SignupForm extends SignupFields {
   readonly website: string;
 }
 
-export const EMPTY_SIGNUP: SignupForm = { email: "", password: "", name: "", company: "", jobTitle: "", terms: false, contact: false, website: "" };
+export const EMPTY_SIGNUP: SignupForm = { email: "", phone: "", password: "", name: "", company: "", jobTitle: "", terms: false, contact: false, website: "" };
 
-export const SIGNUP_FIELDS = ["email", "password", "name", "company", "jobTitle", "terms"] as const;
+export const SIGNUP_FIELDS = ["email", "phone", "password", "name", "company", "jobTitle", "terms"] as const;
 export type SignupField = (typeof SIGNUP_FIELDS)[number];
 
-export type FieldError = { readonly kind: "email" } | { readonly kind: "password" } | { readonly kind: "tooLong"; readonly max: number } | { readonly kind: "consentTerms" };
+export type FieldError = { readonly kind: "email" } | { readonly kind: "phone" } | { readonly kind: "password" } | { readonly kind: "tooLong"; readonly max: number } | { readonly kind: "consentTerms" };
 
 export type FieldErrors = Partial<Record<SignupField, FieldError>>;
 
 /** The part of the BFF's schema a person fills in; `formToken`, `lang` and attribution come from the page. */
-const PersonFields = SignupStartInput.pick({ email: true, password: true, name: true, company: true, jobTitle: true, consents: true });
+const PersonFields = SignupStartInput.pick({ email: true, phone: true, password: true, name: true, company: true, jobTitle: true, consents: true });
 
 /** Field errors of `form`, with the same schema `signup.start` validates against. */
 export function validateSignup(form: SignupForm): FieldErrors {
   const parsed = PersonFields.safeParse({
     email: form.email,
+    phone: form.phone,
     password: form.password,
     name: form.name,
     company: form.company,
@@ -53,6 +56,7 @@ export function validateSignup(form: SignupForm): FieldErrors {
   for (const issue of parsed.error.issues) {
     const head = issue.path[0];
     if (head === "email") errors.email = { kind: "email" };
+    else if (head === "phone") errors.phone = { kind: "phone" };
     else if (head === "password") errors.password = { kind: "password" };
     else if (head === "name" || head === "company" || head === "jobTitle") errors[head] = { kind: "tooLong", max: SIGNUP_OPTIONAL_MAX_CHARS };
     else if (head === "consents") errors.terms = { kind: "consentTerms" };
@@ -65,6 +69,7 @@ export function errorsFromServer(fields: readonly string[]): FieldErrors {
   const errors: FieldErrors = {};
   for (const field of fields) {
     if (field === "email") errors.email = { kind: "email" };
+    else if (field === "phone") errors.phone = { kind: "phone" };
     else if (field === "password") errors.password = { kind: "password" };
     else if (field === "name" || field === "company" || field === "jobTitle") errors[field] = { kind: "tooLong", max: SIGNUP_OPTIONAL_MAX_CHARS };
     else if (field === "consents") errors.terms = { kind: "consentTerms" };
@@ -89,6 +94,7 @@ export function startInputOf(form: SignupForm, context: StartContext): SignupSta
     formToken: context.formToken,
     email: form.email,
     password: form.password,
+    phone: form.phone,
     ...(name !== undefined ? { name } : {}),
     ...(company !== undefined ? { company } : {}),
     ...(jobTitle !== undefined ? { jobTitle } : {}),
@@ -103,7 +109,7 @@ export function startInputOf(form: SignupForm, context: StartContext): SignupSta
 
 /** What a WAF reload keeps: everything but the password and the honeypot. */
 export function draftOf(form: SignupForm): ChallengeDraft {
-  return { email: form.email, name: form.name, company: form.company, jobTitle: form.jobTitle, terms: form.terms, contact: form.contact };
+  return { email: form.email, phone: form.phone, name: form.name, company: form.company, jobTitle: form.jobTitle, terms: form.terms, contact: form.contact };
 }
 
 function text(draft: ChallengeDraft, key: string): string {
@@ -116,6 +122,7 @@ export function formFromDraft(draft: ChallengeDraft): SignupForm {
   return {
     ...EMPTY_SIGNUP,
     email: text(draft, "email"),
+    phone: text(draft, "phone"),
     name: text(draft, "name"),
     company: text(draft, "company"),
     jobTitle: text(draft, "jobTitle"),

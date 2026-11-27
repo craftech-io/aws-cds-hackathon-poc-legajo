@@ -64,7 +64,7 @@ test.describe("[FL-127] accesibilidad de las superficies públicas", () => {
     const t = AUTH_COPY[langOf(info)];
     await page.goto(`/signup${langOf(info) === "en" ? "?lang=en" : ""}`);
     await page.getByRole("button", { name: t.signup.submit }).click();
-    const summary = page.getByRole("alert").filter({ hasText: t.signup.errors.summary(3) });
+    const summary = page.getByRole("alert").filter({ hasText: t.signup.errors.summary(4) });
     await expect(summary).toBeVisible();
     for (const link of await summary.getByRole("link").all()) {
       const box = await link.boundingBox();

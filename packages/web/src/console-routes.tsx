@@ -17,6 +17,9 @@ import { CONSOLE_HOME, CONSOLE_PREFIX, type RouteId, routeAllows, routeOf } from
 import { useNoIndex } from "./views/auth/AuthLang";
 import { SecurityPrompts } from "./views/auth/SecurityPrompts";
 
+/** `/verify-phone` (ADR-0021) loads with this chunk: app.tsx takes it from here, never from the landing's. */
+export { PhoneView } from "./views/phone/PhoneView";
+
 const VIEWS: Readonly<Record<RouteId, LazyExoticComponent<ComponentType>>> = {
   operations: lazy(() => import("./views/operations/View")),
   dossier: lazy(() => import("./views/dossier/View")),

@@ -47,7 +47,7 @@ describe("console routes (docs/design-brief.md §6)", () => {
 
 describe("[FL-101] public access routes (docs/landing-spec.md D-01)", () => {
   it("[FL-101] has one URL per access screen, outside the console", () => {
-    expect(ACCESS_PATHS).toEqual(["/signup", "/signup/verify", "/login", "/forgot", "/forgot/reset", "/welcome"]);
+    expect(ACCESS_PATHS).toEqual(["/signup", "/signup/verify", "/login", "/forgot", "/forgot/reset", "/welcome", "/verify-phone"]);
     for (const path of ACCESS_PATHS) {
       expect(path.startsWith(CONSOLE_PREFIX)).toBe(false);
       expect(routeOf(path)).toBeUndefined();

@@ -38,6 +38,8 @@ export function shellApi(overrides: ApiScript = {}): ApiScript {
     "clock.get": { data: CLOCK_AT_START },
     "account.session": { data: { firm: { name: "Estudio Delta" } } },
     "account.preferences": { data: { language: null } },
+    // The session already passed the SMS code of ADR-0021 (phone.spec.ts covers the screen itself).
+    "account.phoneStatus": { data: { status: "CLEARED" } },
     ...overrides,
   };
 }

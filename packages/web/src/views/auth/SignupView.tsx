@@ -1,5 +1,5 @@
-// `/signup` (docs/landing-spec.md §8.2, ADR-0015 §1, FL-101, FL-112, FL-113, FL-119): email and
-// password, three optional fields, the two consent boxes unticked, the hidden honeypot. The page asks
+// `/signup` (docs/landing-spec.md §8.2, ADR-0015 §1, ADR-0021, FL-101, FL-112, FL-113, FL-119): email,
+// mobile in E.164 (the SMS code of every sign-in goes to it) and password, three optional fields, the two consent boxes unticked, the hidden honeypot. The page asks
 // `signup.form` for its signed `formToken` on arrival and sends `signup.start` alone (lib/trpc.ts). The
 // answer is the same for a new email and one with an account: `/signup/verify` either way. The browser
 // never calls Cognito's `SignUp`. A WAF challenge reloads the page once, keeping the fields that are not
@@ -39,6 +39,7 @@ import {
 
 const IDS: Readonly<Record<SignupField | "contact" | "website", string>> = {
   email: "signup-email",
+  phone: "signup-phone",
   password: "signup-password",
   name: "signup-name",
   company: "signup-company",
@@ -52,6 +53,8 @@ function errorText(copy: AuthCopy, error: FieldError): string {
   switch (error.kind) {
     case "email":
       return copy.signup.errors.email;
+    case "phone":
+      return copy.signup.errors.phone;
     case "password":
       return copy.signup.errors.password;
     case "tooLong":
@@ -155,7 +158,7 @@ function SignupScreen() {
       const answer = await startSignup(trpc, startInputOf(form, { formToken, lang, attribution: readAttribution() }));
       const outcome = startOutcome(answer, Date.now());
       if (outcome.kind === "codeSent") {
-        const fields = { name: form.name, company: form.company, jobTitle: form.jobTitle, terms: form.terms, contact: form.contact };
+        const fields = { phone: form.phone, name: form.name, company: form.company, jobTitle: form.jobTitle, terms: form.terms, contact: form.contact };
         savePendingSignup({ signupId: outcome.signupId, email: normalizeEmail(form.email), resendAvailableAt: outcome.resendAvailableAt, resends: 0, fields });
         holdPassword(form.password);
         navigate(hrefWithLang(SIGNUP_VERIFY_PATH, lang));
@@ -218,6 +221,18 @@ function SignupScreen() {
         onBlur={blur("email")}
         required
         {...(errorOf("email") !== undefined ? { error: errorOf("email") } : {})}
+      />
+      <Field
+        id={IDS.phone}
+        label={copy.signup.phone}
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel"
+        value={form.phone}
+        onChange={(event) => update("phone", event.target.value)}
+        onBlur={blur("phone")}
+        required
+        {...(errorOf("phone") !== undefined ? { error: errorOf("phone") } : {})}
       />
       <div className="space-y-2">
         <PasswordField

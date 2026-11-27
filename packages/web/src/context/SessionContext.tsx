@@ -2,8 +2,8 @@
 // that carries it, and the security prompts of the console (sign in again to approve, enrol the
 // optional TOTP, change the password; the last two never for a guest). Tokens live only in
 // sessionStorage (lib/auth/tokens.ts). Two refusals concern the whole console, whatever view made the
-// call: a guest whose world is gone goes to `/welcome`, and a usage quota opens `QuotaNotice`
-// (ADR-0015 §4). Signing out lands on the landing's "Cerraste sesión" (FL-108). React Context +
+// call: a guest whose world is gone goes to `/welcome`, a session that has not passed the SMS code goes
+// to `/verify-phone` (ADR-0021), and a usage quota opens `QuotaNotice` (ADR-0015 §4). Signing out lands on the landing's "Cerraste sesión" (FL-108). React Context +
 // useState only (CLAUDE.md: no state libraries).
 import type { QuotaExceededData } from "@legajo/shared/signup";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -17,7 +17,7 @@ import { type ConsoleRefusal, createConsoleClient, type ConsoleClient } from "..
 import { CONSOLE_PREFIX, WELCOME_PATH } from "../routes";
 import { currentLang } from "../views/auth/lang";
 import { quotaOfRefusal } from "../views/auth/quota";
-import { endSession, signedOutHref } from "../views/auth/session";
+import { endPhoneSession, endSession, phoneStepHref, signedOutHref } from "../views/auth/session";
 
 export type SessionState =
   | { readonly status: "loading" }
@@ -90,6 +90,9 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
         getIdToken: () => tokensRef.current?.idToken,
         onRefusal: (refusal: ConsoleRefusal) => {
           if (refusal.reason === "GUEST_WORLD_GONE") navigateRef.current(WELCOME_PATH, { replace: true });
+          // The session has not passed the SMS code (ADR-0021): to the phone screen, and back afterwards
+          // (the screen itself calls only the procedures that answer before the code).
+          else if (refusal.reason === "PHONE_VERIFICATION_REQUIRED") navigateRef.current(phoneStepHref(window.location.pathname + window.location.search), { replace: true });
           // `/welcome` tells its own quota (world preparations); the console's notice is for the console.
           else if (refusal.reason === "QUOTA_EXCEEDED" && window.location.pathname.startsWith(CONSOLE_PREFIX)) {
             const exceeded = quotaOfRefusal(refusal.data);
@@ -157,7 +160,10 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
     setPrompt(undefined);
     setQuota(undefined);
     setState({ status: "anonymous" });
-    void endSession(auth?.cognito, tokens);
+    // The phone mark goes first, with the token that is still in hand; then the refresh token is revoked.
+    const idToken = tokens?.idToken;
+    const ending = idToken === undefined ? Promise.resolve() : endPhoneSession(createConsoleClient({ getIdToken: () => idToken }));
+    void ending.then(() => endSession(auth?.cognito, tokens));
     navigate(signedOutHref(currentLang(new URLSearchParams(window.location.search))), { replace: true });
   }, [auth, navigate]);
 
