@@ -21,6 +21,11 @@
 //                            any other role: 403 + AuditLog DENY ROLE_NOT_ALLOWED
 //   recentLoginProcedure     broker + interactive sign-in at most 15 minutes old, 60 s of skew, real
 //                            clock (approve, reopen)
+//   phoneProcedure           (routers/phone.ts) any verified token, staff or guest, with or without a
+//                            world: the SMS code of the session (ADR-0021)
+//
+// Every authenticated entry also checks that the session of the token passed the SMS code (ADR-0021,
+// phone-gate.ts): otherwise 403 `PHONE_VERIFICATION_REQUIRED`, before the procedure reads anything.
 //
 // The id token travels in `X-Legajo-Auth: Bearer <idToken>`: CloudFront signs the origin request
 // (OAC) and replaces `Authorization`. `firmId` and `role` come from the token (or the broker row),
@@ -46,6 +51,7 @@ import { routeFacts } from "../signup/edge";
 import { type ContextDeps, defaultDeps } from "./deps";
 import { reasonOf, toTrpcError } from "./errors";
 import { refreshGuestActivity } from "./guest-activity";
+import { assertPhoneCleared } from "./phone-gate";
 
 /** What the request itself says, trusted only behind the origin check of handler.ts. */
 export interface RequestFacts {
@@ -300,6 +306,9 @@ export async function enterFirm(ctx: Context, path: string, getRawInput: () => P
     throw error;
   }
 
+  // The session's second factor comes before anything the procedure could read (ADR-0021).
+  await assertPhoneCleared({ deps: ctx.deps, log }, principal, path);
+
   const audited: AuditedContext = { principal, deps: ctx.deps, log, correlationId: ctx.correlationId };
   const ownership = createFirmOwnership(ctx.deps.connector);
   // Every id the input names is checked before the procedure reads anything (FL-082); an input past
@@ -351,6 +360,7 @@ export interface AccountContext extends Context {
 export const accountProcedure = baseProcedure.use(async ({ ctx, next, path, getRawInput }) => {
   const guest = ctx.claims !== null ? guestFromClaims(ctx.claims) : ctx.principal === null ? undefined : guestOfPrincipal(ctx.principal);
   if (guest !== undefined) {
+    await assertPhoneCleared(ctx, guest, path);
     const guestContext: AccountContext = { ...ctx, sub: guest.sub };
     return next({ ctx: guestContext });
   }
@@ -366,10 +376,11 @@ export interface GuestContext extends Context {
 }
 
 /** A verified GUEST token, with or without a firm: what `account.session`, `ensureWorld`, `world` and `usage` accept. */
-export const guestBootstrapProcedure = baseProcedure.use(({ ctx, next, path }) => {
+export const guestBootstrapProcedure = baseProcedure.use(async ({ ctx, next, path }) => {
   if (ctx.claims === null) return refuse(ctx.log, path, ctx.authFailure ?? new AuthError(AUTH_REASON.TOKEN_MISSING, "missing bearer token"));
   const guest = guestFromClaims(ctx.claims);
   if (guest === undefined) return refuse(ctx.log, path, new AuthError(AUTH_REASON.ROLE_NOT_ALLOWED, "this procedure is for guest accounts"));
+  await assertPhoneCleared(ctx, guest, path);
   const guestContext: GuestContext = { ...ctx, guest };
   return next({ ctx: guestContext });
 });

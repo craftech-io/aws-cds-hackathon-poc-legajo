@@ -7,7 +7,7 @@ import { memoryStores } from "../connector/testing";
 import { leadEmailHash } from "../lib/crypto";
 import { LEADS_TABLE } from "../leads/lead";
 import { type TestAccess, edgeHeaders, testAccessDeps } from "../signup/testing";
-import { TEST_PASSWORD, drainDispatch, validForm } from "../signup/testing-flows";
+import { TEST_PASSWORD, draftOf, drainDispatch, validForm } from "../signup/testing-flows";
 import { type Bff, bffFor, call, trpcEvent } from "../signup/testing-http";
 
 const EMAIL = "ana.gomez@despachos-del-sur.com.ar";
@@ -27,10 +27,12 @@ const start = (input: unknown, viewer?: string) => call(bff, trpcEvent("POST", "
 const confirm = (signupId: string, code: string) => call(bff, trpcEvent("POST", "/api/signup.confirm", { input: { signupId, code, password: TEST_PASSWORD } }));
 const signupIdOf = (data: unknown) => (data as { signupId: string }).signupId;
 const leadOf = (email: string) => access.leads.get(leadEmailHash(access.keys.leadEmail, email));
+/** Until the phone is verified the lead is a draft (ADR-0021): what the sign-up recorded is there. */
+const recordedOf = async (email: string) => (await leadOf(email)) ?? (await draftOf(access, email));
 const codeOf = async (signupId: string) => access.cognito.lastCode((await access.signups.get(signupId, now))?.accountUsername ?? "") ?? "";
 
 describe("[FL-101] sign-up with a new email, end to end", () => {
-  it("form → start → the code → confirm → the lead; no call to Cognito on the answer's path", async () => {
+  it("form → start → the code → confirm → the lead's draft (no lead before the phone); no call to Cognito on the answer's path", async () => {
     const form = await call(bff, trpcEvent("GET", "/api/signup.form", { input: { lang: "es" } }));
     expect(form.status).toBe(200);
     expect((form.data as { formToken: string }).formToken).toMatch(/^\d+\.es\./);
@@ -40,7 +42,8 @@ describe("[FL-101] sign-up with a new email, end to end", () => {
     await drainDispatch(access);
     const signupId = signupIdOf(started.data);
     expect(await confirm(signupId, await codeOf(signupId))).toMatchObject({ status: 200, data: { status: "CONFIRMED" } });
-    expect(await leadOf(EMAIL)).toMatchObject({ email: EMAIL, sourcePoc: "legajo-listo" });
+    expect(await leadOf(EMAIL)).toBeUndefined();
+    expect(await draftOf(access, EMAIL)).toMatchObject({ email: EMAIL, phone: "+5491155550101" });
     expect(stores.client.dump(LEADS_TABLE).some((row) => JSON.stringify(row).includes(TEST_PASSWORD))).toBe(false);
   });
 
@@ -133,7 +136,7 @@ describe("[FL-119] consents", () => {
       const signupId = signupIdOf((await start(validForm(access, { email, lang: "en", consents: { terms: true, contact } }))).data);
       await drainDispatch(access);
       await confirm(signupId, await codeOf(signupId));
-      expect((await leadOf(email))?.consents).toEqual({
+      expect((await recordedOf(email))?.consents).toEqual({
         terms: { accepted: true, at: now.toISOString(), version: access.legalVersions.terms, privacyVersion: access.legalVersions.privacy, lang: "en" },
         contact: { accepted: contact, at: now.toISOString(), version: access.legalVersions.contact, lang: "en" },
       });
@@ -152,7 +155,7 @@ describe("[FL-130] origin of the visit", () => {
     const signupId = signupIdOf((await start(validForm(access, { email: EMAIL, utm: { source: "qa", campaign: "sc26", content: "<b>" }, referrer: "https://news.example-fict.com/a?b=c" }))).data);
     await drainDispatch(access);
     await confirm(signupId, await codeOf(signupId));
-    expect(await leadOf(EMAIL)).toMatchObject({ utm: { source: "qa", campaign: "sc26" }, referrer: "https://news.example-fict.com" });
+    expect(await recordedOf(EMAIL)).toMatchObject({ utm: { source: "qa", campaign: "sc26" }, referrer: "https://news.example-fict.com" });
     const own = signupIdOf((await start(validForm(access, { email: "d@despachos-del-sur.com.ar", referrer: "https://legajo.demo.craftech.io/" }))).data);
     expect((await access.signups.get(own, now))?.referrer).toBeUndefined();
   });

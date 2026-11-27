@@ -131,6 +131,8 @@ export interface TestContextDepsOptions {
   readonly lines?: string[];
   readonly health?: readonly HealthCheck[];
   readonly whatsappMode?: ChannelMode;
+  /** The second factor of the session (ADR-0021); every session passed it unless a test says otherwise. */
+  readonly phoneGate?: (sub: string, sessionId: string) => Promise<boolean>;
 }
 
 /** Signs nothing: the link names the key, so a test can assert which object it points at. */
@@ -150,6 +152,7 @@ export function testContextDeps(options: TestContextDepsOptions): ContextDeps {
     documents: testDocumentUrls,
     whatsappMode: () => options.whatsappMode ?? "simulated",
     health: options.health ?? [],
+    phoneGate: options.phoneGate ?? (() => Promise.resolve(true)),
     wallClock: now,
     loggerFor: (correlationId) => createLogger({ correlationId, level: "debug", now, sink: (line) => void options.lines?.push(line) }),
   };

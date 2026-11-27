@@ -23,6 +23,7 @@ function fakeDeps(existing: Record<string, string> = {}, roles: Record<string, C
     addToGroup: async (username, group) => void calls.push(`group ${username} ${group}`),
     brokerRole: async (firmId, brokerId) => roles[`${firmId}/${brokerId}`] ?? "BROKER",
     bindBroker: async (firmId, brokerId, sub) => void calls.push(`bind ${firmId}/${brokerId} ${sub}`),
+    markAutomation: async (sub) => void calls.push(`automation ${sub}`),
     guestTestPassword: () => "Guest-Test-Password-1!",
     saveCredential: (username, firmId) => void saved.push([username, firmId]),
     report: () => undefined,
@@ -77,6 +78,9 @@ describe("console:invite", () => {
     await runInvite(planInvite({ stage: "poc", guestTest: true }), test.deps);
     expect(test.passwords["guest-test"]).toBe("Guest-Test-Password-1!");
     expect(test.saved).toEqual([]);
+    // Only the scenario runner's account gets the automation mark of ADR-0021; a guest-NN passes the SMS code.
+    expect(test.calls).toContain("automation sub-guest-test");
+    expect(kept.calls.some((call) => call.startsWith("automation"))).toBe(false);
   });
 
   it("invites a broker by email with the role of its row and binds the row to the new sub", async () => {

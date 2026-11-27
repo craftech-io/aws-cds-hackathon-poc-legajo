@@ -32,7 +32,7 @@ export const RETENTION_HOUR_UTC = 6;
 /** A notice younger than this may still be on its way from `finalizeSignup`. */
 export const NOTICE_RETRY_GRACE_MS = 10 * 60_000;
 
-export type SweepDeps = Pick<AccessDeps, "client" | "signups" | "leads" | "cognito" | "invoker" | "keys" | "now" | "newUlid">;
+export type SweepDeps = Pick<AccessDeps, "client" | "signups" | "leads" | "phones" | "cognito" | "invoker" | "keys" | "now" | "newUlid">;
 
 export interface SweepReport {
   readonly unconfirmedDeleted: number;

@@ -12,6 +12,7 @@ import { awsClientConfig } from "../lib/clients";
 import { readLinked } from "../lib/resource";
 import { subkey } from "../lib/secrets";
 import { createLeadStore } from "../leads/store";
+import { createPhoneStore } from "../phone-verification/store";
 import { INBOUND_MAIL_SIM_LINK } from "../sim-mail/config";
 import { createSignupCognito } from "../signup/cognito";
 import { lambdaAsyncInvoker } from "../signup/invoke";
@@ -68,6 +69,7 @@ export function stageSignupActionDeps(): () => SignupActionDeps {
       mail: s3AccountMail(),
       client,
       leads: createLeadStore(client),
+      phones: createPhoneStore(client),
       signups: createSignupStore(client),
       cognito: createSignupCognito(authConfig()),
       invoker: lambdaAsyncInvoker(),

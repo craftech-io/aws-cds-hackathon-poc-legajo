@@ -14,6 +14,8 @@ import { GUEST_GROUP } from "./cognito";
 import type { AccessDeps, SignupKeys } from "./deps";
 import type { EdgeGuard } from "./edge";
 import type { AsyncInvoker, AsyncTarget } from "./invoke";
+import { createPhoneStore } from "../phone-verification/store";
+import { type MemorySmsSender, memorySmsSender } from "../phone-verification/sms";
 import { createSignupStore } from "./store";
 import { verifyTicket } from "./ticket";
 
@@ -36,6 +38,8 @@ export function testSignupKeys(master: string = TEST_MASTER_KEY): SignupKeys {
     leadEmail: deriveSubkey(master, "lead-email"),
     rate: deriveSubkey(master, "rate"),
     form: deriveSubkey(master, "form"),
+    accountPhone: deriveSubkey(master, "account-phone"),
+    phoneCode: deriveSubkey(master, "phone-code"),
   };
 }
 
@@ -203,6 +207,7 @@ export function fakeMx(noMail: readonly string[] = [], unknown: readonly string[
 export interface TestAccess extends AccessDeps {
   readonly cognito: FakeCognito;
   readonly invoker: AsyncInvoker & { readonly invoked: RecordedInvoke[] };
+  readonly sms: MemorySmsSender;
   /** Milliseconds `sleep` was asked for, in order (padded answers). */
   readonly slept: number[];
 }
@@ -213,10 +218,14 @@ export function testAccessDeps(stores: MemoryStores, options: { readonly now?: (
   const keys = testSignupKeys();
   const slept: number[] = [];
   let ulids = 0;
+  let phoneCodes = 0;
   return {
     client: stores.client,
     signups: createSignupStore(stores.client),
     leads: createLeadStore(stores.client),
+    phones: createPhoneStore(stores.client),
+    sms: memorySmsSender(),
+    newPhoneCode: () => String(100_000 + ((++phoneCodes * 7_919) % 900_000)),
     cognito: fakeCognito({ keys, now }),
     invoker: recordingInvoker(),
     keys,

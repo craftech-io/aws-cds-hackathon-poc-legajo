@@ -13,7 +13,7 @@ export const SIGNUP_PATH = "/signup";
 export const SIGN_IN_PATH = "/login";
 
 /** Every place a "Hablemos" button lives, which travels as `utm_content`. */
-export const CONTACT_PLACEMENTS = ["header", "closing", "footer", "welcome-failed", "platform", "faq", "welcome-capacity"] as const;
+export const CONTACT_PLACEMENTS = ["header", "closing", "footer", "welcome-failed", "platform", "faq", "welcome-capacity", "phone"] as const;
 export type ContactPlacement = (typeof CONTACT_PLACEMENTS)[number];
 
 const CONTACT_UTM = { utm_source: "legajo-listo", utm_medium: "demo", utm_campaign: "poc-landing" } as const;

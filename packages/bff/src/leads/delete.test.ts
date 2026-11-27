@@ -13,6 +13,7 @@ import { RUNTIME_TABLE } from "../signup/counters";
 import { type TestAccess, testAccessDeps } from "../signup/testing";
 import { startSignup } from "../signup/testing-flows";
 import { signupConfirm } from "../signup/service";
+import { passPhoneCode, phoneAccount } from "../phone-verification/testing";
 import { accountWorldKey, leaseAccountWorld, markAccountWorld } from "../worlds/guest-slots";
 import { deleteLead } from "./delete";
 import { LEADS_TABLE, tombKey } from "./lead";
@@ -29,6 +30,7 @@ beforeEach(async () => {
   const { signupId } = await startSignup(access, { email: EMAIL });
   const username = (await access.signups.get(signupId, NOW))?.accountUsername ?? "";
   await signupConfirm(access, { signupId, code: access.cognito.lastCode(username) ?? "", password: "Quince-Caballos-7" }, { ipHash: "ip-a", log });
+  await passPhoneCode(access, phoneAccount({ username, sub: access.cognito.users.get(username)?.sub ?? "", email: EMAIL }));
   await markMailStatus({ client: stores.client, leadEmailKey: access.keys.leadEmail, log, now: () => NOW }, { kind: "BOUNCE", recipients: [EMAIL] });
 });
 
@@ -51,6 +53,9 @@ describe("[FL-118] deleting a lead on request", () => {
     expect(tomb).toMatchObject({ leadId, reason: "REQUEST", deletedAt: NOW.toISOString() });
     expect(JSON.stringify(tomb)).not.toContain("despachos-del-sur");
     expect(JSON.stringify(stores.client.dump(LEADS_TABLE))).not.toContain(EMAIL);
+    // The phone items of the account and the index of its number go too (ADR-0021).
+    expect(stores.client.dump(LEADS_TABLE).filter((row) => row.PK.startsWith("PHONE") || row.PK.startsWith("DRAFT#"))).toEqual([]);
+    expect(JSON.stringify(stores.client.dump(LEADS_TABLE))).not.toContain("5491155550101");
   });
 
   it("asks WorldJanitor to destroy a leased world (GUEST_DESTROY) and deletes the account's lease", async () => {

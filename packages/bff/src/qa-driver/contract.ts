@@ -55,6 +55,7 @@ export const QA_ACTIONS = [
   "signup.readCode",
   "lead.inspect",
   "lead.purge",
+  "account.markAutomation",
 ] as const;
 export const QaActionName = z.enum(QA_ACTIONS);
 export type QaActionName = z.infer<typeof QaActionName>;

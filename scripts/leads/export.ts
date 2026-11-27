@@ -1,7 +1,8 @@
 // `npm run leads:export -- --out <file.csv> [--contactable] [--since AAAA-MM-DD]` (ADR-0015 §6, FL-116):
 // the leads as CSV for Craftech's sales follow-up, inside `sst shell --stage poc`. Only `LEAD` items
 // (never a pending sign-up or a tombstone), never the QA mailboxes of `sim.legajo.demo.craftech.io`;
-// `emailStatus` from `Runtime/MAILSTATUS#<emailHash>` (`OK` when there is none). The file goes only
+// `emailStatus` from `Runtime/MAILSTATUS#<emailHash>` (`OK` when there is none); the mobile verified by
+// SMS (ADR-0021) with its date. The file goes only
 // outside the repository, with mode 0600, every cell that starts with = + - @ neutralized against
 // formula injection; the terminal shows only how many rows were written.
 import { chmodSync, writeFileSync } from "node:fs";
@@ -16,6 +17,8 @@ export const EXPORT_COLUMNS = [
   "name",
   "company",
   "jobTitle",
+  "phone",
+  "phoneVerifiedAt",
   "language",
   "sourcePoc",
   "contactConsent",
@@ -71,6 +74,8 @@ export function exportRow(lead: Lead, emailStatus: EmailStatus): string[] {
     lead.name,
     lead.company,
     lead.jobTitle,
+    lead.phone,
+    lead.phoneVerifiedAt,
     lead.language,
     lead.sourcePoc,
     contact.accepted ? "true" : "false",

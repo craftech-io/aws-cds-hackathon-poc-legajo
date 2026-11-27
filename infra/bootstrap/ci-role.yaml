@@ -187,6 +187,10 @@ Resources:
               - logs:CreateLogGroup
               - logs:DescribeLogStreams
             Resource: !Sub "arn:${AWS::Partition}:logs:${Region}:${AWS::AccountId}:log-group:/aws/bedrock-agentcore/runtimes/*"
+          - Sid: SmsToPhoneNumbersOnly
+            Effect: Allow
+            Action: sns:Publish
+            NotResource: !Sub "arn:${AWS::Partition}:sns:*:*:*"
           - Sid: SesSendAsThisApp
             Effect: Allow
             Action:

@@ -8,6 +8,7 @@ import { type Page, expect, test } from "@playwright/test";
 import { findNeutralHits } from "../../../scripts/lint/neutral-words.ts";
 import { copy as consoleCopy } from "../src/copy/console.ts";
 import { AUTH_COPY, type AuthCopy } from "../src/views/auth/copy.ts";
+import { PHONE_COPY } from "../src/views/phone/copy.ts";
 import {
   ageSignup,
   createVerifiedGuest,
@@ -15,12 +16,14 @@ import {
   inLang,
   invocations,
   lastEmail,
+  lastSms,
   leadOf,
   noticesFor,
   revokedCount,
   routeCognitoToServer,
   specLang,
   testMailbox,
+  testPhone,
   testViewerIp,
   useViewerIp,
 } from "../../../tests/ui-server/auth/browser-helpers.ts";
@@ -74,6 +77,7 @@ interface SignupFields {
 
 async function fillSignup(page: Page, fields: SignupFields): Promise<void> {
   await page.getByLabel(t.signup.email).fill(fields.email);
+  await page.getByLabel(t.signup.phone).fill(testPhone(fields.email));
   await page.getByLabel(t.signup.password, { exact: true }).fill(fields.password ?? PASSWORD);
   if (fields.name) await page.getByLabel(t.signup.name).fill(fields.name);
   if (fields.terms ?? true) await page.locator("#signup-terms").check();
@@ -101,10 +105,23 @@ async function signIn(page: Page, login: string, password = PASSWORD): Promise<v
   await page.getByRole("button", { name: t.login.submit }).click();
 }
 
+/** `/verify-phone` of a first sign-in (ADR-0021): the form's number prefilled, the code from the in-memory sender. */
+async function passPhone(page: Page, request: Parameters<typeof lastSms>[0], email: string): Promise<void> {
+  const p = PHONE_COPY[lang];
+  await expect(page).toHaveURL(/\/verify-phone/);
+  await expect(page.getByRole("heading", { level: 1, name: p.enrolTitle })).toBeVisible();
+  await expect(page.getByLabel(p.phone)).toHaveValue(testPhone(email));
+  await expectNeutral(page);
+  await page.getByRole("button", { name: p.send }).click();
+  const code = await lastSms(request, UI_SERVER_URL, testPhone(email));
+  await page.getByLabel(p.code).fill(code ?? "");
+  await page.getByRole("button", { name: p.verify }).click();
+}
+
 test.describe("[FL-101] alta pública con email nuevo", () => {
   // The first sign-in prepares the visitor's own world from the seed's `guest` template (the real world
   // factory, run in process by the UI server) and opens the console on it.
-  test("[FL-101] [FL-105] [FL-120] sign-up → code → sign-in → /welcome prepares the world and opens the console", async ({ page, request }, info) => {
+  test("[FL-101] [FL-105] [FL-120] [FL-134] sign-up → code → sign-in → SMS code → /welcome prepares the world and opens the console", async ({ page, request }, info) => {
     const email = testMailbox(info, "a");
     await signUp(page, { email, name: "Ana Prueba" });
     await expect(page.getByText(t.verify.existingHintLink)).toBeVisible();
@@ -117,11 +134,14 @@ test.describe("[FL-101] alta pública con email nuevo", () => {
     await expectAccessPage(page, t.login.title);
     await expect(page.getByText(t.login.notices.welcome)).toBeVisible();
     await expect(page.getByLabel(t.login.login)).toHaveValue(email);
-    await expect.poll(() => invocations(request, UI_SERVER_URL)).toContain("LeadNotice");
-    await expect.poll(() => noticesFor(request, UI_SERVER_URL, email)).toBe(1);
+    // No lead and no notice before the SMS code (ADR-0021).
+    expect(await noticesFor(request, UI_SERVER_URL, email)).toBe(0);
 
     await page.getByLabel(t.login.password, { exact: true }).fill(PASSWORD);
     await page.getByRole("button", { name: t.login.submit }).click();
+    await passPhone(page, request, email);
+    await expect.poll(() => invocations(request, UI_SERVER_URL)).toContain("LeadNotice");
+    await expect.poll(() => noticesFor(request, UI_SERVER_URL, email)).toBe(1);
     await expect(page).toHaveURL(/\/welcome/);
     await expectAccessPage(page, t.welcome.title);
     await expect(page.getByText(t.welcome.ttl(GUEST_WORLD_IDLE_HOURS, GUEST_WORLD_MAX_AGE_HOURS))).toBeVisible();

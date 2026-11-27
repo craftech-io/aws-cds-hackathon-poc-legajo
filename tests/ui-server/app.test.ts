@@ -114,6 +114,8 @@ describe("local UI server", () => {
   it("[FL-105] builds a signed-up guest's world from the seed's guest template, and the next sign-in opens it", async () => {
     app.worlds.control.createDelayMs = 0;
     const guest = await app.access.pool.addConfirmed({ username: "usr-01j9zq0000000000000000aa01", email: "qa-signup-uiapp-w1@sim.legajo.demo.craftech.io", password: PASSWORD, groups: ["GUEST"] });
+    // An automation account of this server (ADR-0021 §8): the SMS code has its own test below.
+    await app.access.deps.phones.markAutomation(guest.sub, "SCENARIO_RUNNER", new Date());
     const world = await worldOf(await signIn(guest.username));
     expect(world).toMatchObject({ state: "READY", firmId: expect.stringMatching(/^firm-guest-(3[1-9]|[4-8]\d|90)$/) });
     expect(app.stores.client.dump("Firms").filter((row) => row.cognitoSub === guest.sub)).toMatchObject([{ role: "GUEST", name: "Invitado", firmId: world.firmId }]);
@@ -129,6 +131,13 @@ describe("local UI server", () => {
     const other = await app.access.pool.addConfirmed({ username: "usr-01j9zq0000000000000000aa02", email: "qa-signup-uiapp-w2@sim.legajo.demo.craftech.io", password: PASSWORD, groups: ["GUEST"] });
     app.worlds.control.fullFor.add(other.sub);
     const otherHeaders = { "x-legajo-auth": `Bearer ${await signIn(other.username)}`, "content-type": "application/json" };
+    // A visitor's session reaches nothing before the SMS code (ADR-0021); the in-memory sender keeps it.
+    const refused = (await (await fetch(`${origin}/api/account.ensureWorld`, { method: "POST", headers: otherHeaders, body: "{}" })).json()) as { error: { data: { reason: string } } };
+    expect(refused.error.data.reason).toBe("PHONE_VERIFICATION_REQUIRED");
+    await fetch(`${origin}/api/account.sendPhoneCode`, { method: "POST", headers: otherHeaders, body: JSON.stringify({ phone: "+5491155550177" }) });
+    const sms = (await (await fetch(`${origin}/__test/sms?to=%2B5491155550177`)).json()) as { code: string };
+    const cleared = (await (await fetch(`${origin}/api/account.verifyPhoneCode`, { method: "POST", headers: otherHeaders, body: JSON.stringify({ code: sms.code }) })).json()) as { result: { data: unknown } };
+    expect(cleared.result.data).toEqual({ status: "CLEARED" });
     const full = (await (await fetch(`${origin}/api/account.ensureWorld`, { method: "POST", headers: otherHeaders, body: "{}" })).json()) as { result: { data: unknown } };
     expect(full.result.data).toEqual({ state: "CAPACITY" });
     expect(await app.worlds.expire(guest.sub)).toBe(true);

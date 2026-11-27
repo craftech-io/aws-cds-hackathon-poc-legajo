@@ -32,7 +32,7 @@ export const WORLDLESS_ACTIONS: ReadonlySet<QaActionName> = new Set<QaActionName
  * SC-26's actions of the public sign-up (docs/test-plan.md §4.1): no world and no firm id in their
  * input; their own fence is the `qa-signup-<runId>-<key>` mailbox they build (signup-fence.ts).
  */
-export const SIGNUP_ACTIONS: ReadonlySet<QaActionName> = new Set<QaActionName>(["signup.readCode", "lead.inspect", "lead.purge"]);
+export const SIGNUP_ACTIONS: ReadonlySet<QaActionName> = new Set<QaActionName>(["signup.readCode", "lead.inspect", "lead.purge", "account.markAutomation"]);
 
 /**
  * Console routers the driver may call (docs/tool-catalog.md); account, tour and activity are the user's

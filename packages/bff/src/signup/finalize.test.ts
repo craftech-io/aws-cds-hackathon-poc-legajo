@@ -1,13 +1,15 @@
-// finalizeSignup (ADR-0015 §1, §1.3 and §1.4): the only place a lead is born, only with the proof that
-// the mailbox's owner used the code; the GUEST group only on a user without groups; one notice per new
-// lead; idempotent; blind to the capacity of guest worlds.
+// finalizeSignup (ADR-0015 §1, §1.3 and §1.4, ADR-0021): only with the proof that the mailbox's owner
+// used the code; a new email keeps its lead as a draft until the account verifies its phone by SMS, where
+// the lead is born and noticed once; an existing lead merges; the GUEST group only on a user without
+// groups; idempotent; blind to the capacity of guest worlds.
 import { beforeEach, describe, expect, it } from "vitest";
 import { GUEST_SLOTS } from "@legajo/shared/guest-limits";
 import type { MemoryStores } from "../connector/index";
 import { memoryStores } from "../connector/testing";
 import { leadEmailHash } from "../lib/crypto";
 import { createLogger } from "../lib/log";
-import { LEADS_TABLE, signupKey } from "../leads/lead";
+import { LEADS_TABLE, draftKey, signupKey } from "../leads/lead";
+import { passPhoneCode, phoneAccount } from "../phone-verification/testing";
 import { leasePublicSlot } from "../worlds/guest-slots";
 import { RUNTIME_TABLE } from "./counters";
 import { finalizeSignup } from "./finalize";
@@ -33,11 +35,25 @@ const codeOf = async (signupId: string) => access.cognito.lastCode((await access
 const notices = () => access.invoker.invoked.filter((call) => call.target === "LeadNotice");
 
 describe("[FL-101] a new email confirmed with its code", () => {
-  it("writes the lead, adds GUEST to a user without groups, queues one notice and deletes the sign-up", async () => {
+  it("keeps the lead as a draft, adds GUEST to a user without groups and deletes the sign-up: no lead and no notice before the phone", async () => {
+    const { signupId } = await startSignup(access, { email: EMAIL, name: "Ana Gómez (ficticia)" });
+    const username = (await access.signups.get(signupId, now))?.username ?? "";
+    expect(await confirm(signupId, await codeOf(signupId))).toEqual({ status: "CONFIRMED" });
+    expect(await access.leads.get(leadHash(EMAIL))).toBeUndefined();
+    expect(await access.leads.getDraft(username, now)).toMatchObject({ email: EMAIL, phone: "+5491155550101", name: "Ana Gómez (ficticia)" });
+    expect(await stores.client.get(LEADS_TABLE, draftKey(username))).toMatchObject({ expiresAt: Math.floor(now.getTime() / 1000) + 30 * 24 * 3600 });
+    expect(access.cognito.users.get(username)).toMatchObject({ status: "CONFIRMED", groups: ["GUEST"] });
+    expect(notices()).toEqual([]);
+    expect(await stores.client.get(LEADS_TABLE, signupKey(signupId))).toBeUndefined();
+  });
+
+  it("[FL-134] the verified phone writes the lead with its number and queues one notice; a later sign-in queues none", async () => {
     const { signupId } = await startSignup(access, { email: EMAIL, name: "Ana Gómez (ficticia)", utm: { source: "linkedin", campaign: "otoño 2026" }, referrer: "https://www.search.example-fict.com/q" });
     const username = (await access.signups.get(signupId, now))?.username ?? "";
     now = new Date(now.getTime() + 60_000);
     expect(await confirm(signupId, await codeOf(signupId))).toEqual({ status: "CONFIRMED" });
+    now = new Date(now.getTime() + 60_000);
+    expect(await passPhoneCode(access, phoneAccount({ username, email: EMAIL }))).toEqual({ status: "CLEARED" });
     const lead = await access.leads.get(leadHash(EMAIL));
     expect(lead).toMatchObject({
       email: EMAIL,
@@ -49,14 +65,18 @@ describe("[FL-101] a new email confirmed with its code", () => {
       signupAt: "2026-10-14T13:30:00.000Z",
       confirmedAt: "2026-10-14T13:31:00.000Z",
       cognitoUsername: username,
+      phone: "+5491155550101",
+      phoneVerifiedAt: "2026-10-14T13:32:00.000Z",
       noticeStatus: "PENDING",
       consents: { terms: { accepted: true, version: access.legalVersions.terms, privacyVersion: access.legalVersions.privacy, lang: "es" }, contact: { accepted: true, version: access.legalVersions.contact, lang: "es" } },
     });
     expect(lead).not.toHaveProperty("status");
     expect(lead).not.toHaveProperty("emailVerified");
-    expect(access.cognito.users.get(username)).toMatchObject({ status: "CONFIRMED", groups: ["GUEST"] });
     expect(notices()).toEqual([{ target: "LeadNotice", payload: { leadKey: leadHash(EMAIL) } }]);
-    expect(await stores.client.get(LEADS_TABLE, signupKey(signupId))).toBeUndefined();
+    expect(await access.leads.getDraft(username, now)).toBeUndefined();
+    now = new Date(now.getTime() + 3_600_000);
+    expect(await passPhoneCode(access, phoneAccount({ username, email: EMAIL, sessionId: "jti-2" }))).toEqual({ status: "CLEARED" });
+    expect(notices()).toHaveLength(1);
   });
 
   it("[FL-122] without the code, the sign-up's own user confirmed after its start is proof enough; one created before is not", async () => {
@@ -69,14 +89,14 @@ describe("[FL-101] a new email confirmed with its code", () => {
     expect(await finalizeSignup(access, signupId, log)).toBe("NO_PROOF");
     user.createdAt = new Date(now.getTime() + 1_000);
     expect(await finalizeSignup(access, signupId, log)).toBe("FINALIZED");
-    expect(await access.leads.get(leadHash(EMAIL))).toBeDefined();
+    expect(await access.leads.getDraft(username, now)).toBeDefined();
   });
 
-  it("is idempotent: a second run finds nothing to do and sends no second notice", async () => {
+  it("is idempotent: a second run finds nothing to do", async () => {
     const { signupId } = await startSignup(access, { email: EMAIL });
     await confirm(signupId, await codeOf(signupId));
     expect(await finalizeSignup(access, signupId, log)).toBe("GONE");
-    expect(notices()).toHaveLength(1);
+    expect(notices()).toHaveLength(0);
   });
 
   it("never adds GUEST to a user that already has a group", async () => {
@@ -132,12 +152,14 @@ describe("[FL-104] an email that already has a public guest account", () => {
 });
 
 describe("[FL-132] the lead does not depend on the capacity of guest worlds", () => {
-  it("with every public slot leased, the confirmed sign-up still writes its lead and leases nothing", async () => {
+  it("with every public slot leased, the confirmed sign-up still keeps its lead and leases nothing", async () => {
     for (let nn = GUEST_SLOTS.public.first; nn <= GUEST_SLOTS.public.last; nn += 1) await leasePublicSlot(stores.client, { sub: `sub-${nn}`, leaseId: `lease-${nn}`, now, random: () => 0 });
     const leases = () => stores.client.dump(RUNTIME_TABLE).filter((row) => row.PK.startsWith("GUESTWORLD#") || row.PK.startsWith("SLOT#")).map((row) => `${row.PK}:${String(row.version)}`);
     const before = leases();
     const { signupId } = await startSignup(access, { email: EMAIL });
+    const username = (await access.signups.get(signupId, now))?.username ?? "";
     expect(await confirm(signupId, await codeOf(signupId))).toEqual({ status: "CONFIRMED" });
+    expect(await passPhoneCode(access, phoneAccount({ username, email: EMAIL }))).toEqual({ status: "CLEARED" });
     expect(await access.leads.get(leadHash(EMAIL))).toBeDefined();
     expect(leases()).toEqual(before);
     expect(notices()).toHaveLength(1);

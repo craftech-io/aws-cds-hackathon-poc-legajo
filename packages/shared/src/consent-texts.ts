@@ -21,8 +21,20 @@ export type ConsentText = readonly ConsentRun[];
 
 export const SIGNUP_CONSENT_TEXTS: Readonly<Record<ConsentKind, Readonly<Record<Language, ConsentText>>>> = {
   terms: {
-    es: [{ text: "Acepto los " }, { text: "términos", link: "terms" }, { text: " y la " }, { text: "política de privacidad", link: "privacy" }, { text: "." }],
-    en: [{ text: "I accept the " }, { text: "terms", link: "terms" }, { text: " and the " }, { text: "privacy policy", link: "privacy" }, { text: "." }],
+    es: [
+      { text: "Acepto los " },
+      { text: "términos", link: "terms" },
+      { text: " y la " },
+      { text: "política de privacidad", link: "privacy" },
+      { text: ". Mi celular se usa para verificar la cuenta por SMS." },
+    ],
+    en: [
+      { text: "I accept the " },
+      { text: "terms", link: "terms" },
+      { text: " and the " },
+      { text: "privacy policy", link: "privacy" },
+      { text: ". My mobile number is used to verify the account by SMS." },
+    ],
   },
   contact: {
     es: [{ text: "Acepto que Craftech me contacte por esta solución." }],

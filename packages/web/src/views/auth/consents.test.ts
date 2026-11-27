@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { accessFailureOf } from "./signup-api";
 import { EMPTY_SIGNUP, type SignupForm, startInputOf, validateSignup } from "./signup-model";
 
-const FORM: SignupForm = { ...EMPTY_SIGNUP, email: "ana.prueba@sim.legajo.demo.craftech.io", password: "Clave-de-Prueba-2026!" };
+const FORM: SignupForm = { ...EMPTY_SIGNUP, email: "ana.prueba@sim.legajo.demo.craftech.io", phone: "+54 9 11 5555 0101", password: "Clave-de-Prueba-2026!" };
 const CONTEXT = { formToken: "form-token-0123456789abcdef", lang: "es", attribution: {} } as const;
 
 describe("[FL-119] consent variants of the sign-up", () => {

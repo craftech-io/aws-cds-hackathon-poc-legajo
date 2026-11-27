@@ -19,7 +19,7 @@ let sequence = 0;
 export function leadsWorld(): LeadsWorld {
   const stores = memoryStores();
   const access = testAccessDeps(stores, { now: () => NOW });
-  const deps: LeadScriptDeps = { client: stores.client, leads: access.leads, signups: access.signups, cognito: access.cognito, invoker: access.invoker, leadEmailKey: access.keys.leadEmail, now: () => NOW };
+  const deps: LeadScriptDeps = { client: stores.client, leads: access.leads, phones: access.phones, signups: access.signups, cognito: access.cognito, invoker: access.invoker, leadEmailKey: access.keys.leadEmail, now: () => NOW };
   return {
     access,
     deps,

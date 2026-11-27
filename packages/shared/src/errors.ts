@@ -18,6 +18,8 @@ export const ERROR_REASON = {
   QUOTA_EXCEEDED: "QUOTA_EXCEEDED",
   /** A guest's token names a world whose broker row is gone, inactive or leased again (ADR-0015 §4). */
   GUEST_WORLD_GONE: "GUEST_WORLD_GONE",
+  /** The sign-in session has not passed the SMS code yet: only the phone procedures answer (ADR-0021). */
+  PHONE_VERIFICATION_REQUIRED: "PHONE_VERIFICATION_REQUIRED",
 } as const;
 export type ErrorReason = (typeof ERROR_REASON)[keyof typeof ERROR_REASON];
 

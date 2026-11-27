@@ -67,11 +67,12 @@ describe("[FL-108] signing out", () => {
 });
 
 describe("[FL-105] where a sign-in lands", () => {
-  it("[FL-105] sends a guest without a firm to /welcome and everybody else where they were going", () => {
+  it("[FL-105] [FL-135] passes the SMS code first, then sends a guest without a firm to /welcome and everybody else where they were going", () => {
     expect(needsWorld({ isGuest: true })).toBe(true);
-    expect(destinationAfterSignIn({ isGuest: true }, "/app/audit")).toBe("/welcome");
-    expect(destinationAfterSignIn({ isGuest: true, firmId: "firm-guest-41" }, "/app/audit")).toBe("/app/audit");
-    expect(destinationAfterSignIn({ isGuest: false }, "/app/operations")).toBe("/app/operations");
+    // Every sign-in passes the SMS code of the session first (ADR-0021), then goes where it was going.
+    expect(destinationAfterSignIn({ isGuest: true }, "/app/audit")).toBe("/verify-phone?returnTo=%2Fwelcome");
+    expect(destinationAfterSignIn({ isGuest: true, firmId: "firm-guest-41" }, "/app/audit")).toBe("/verify-phone?returnTo=%2Fapp%2Faudit");
+    expect(destinationAfterSignIn({ isGuest: false }, "/app/operations")).toBe("/verify-phone?returnTo=%2Fapp%2Foperations");
   });
 
   it("[FL-106] tells the screens they were reached from an unverified sign-in", () => {

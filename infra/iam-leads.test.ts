@@ -57,7 +57,7 @@ describe("[FL-121] the lead data never leaves Leads", () => {
   it("[FL-121] gives write access to a lead item only to finalizeSignup (Bff), the sweep (WorldJanitor) and SC-26's cleanup (QaDriver)", () => {
     const writers = LEADS_ROLES.filter((fn) => LEADS_ACCESS[fn].actions.some((action) => (LEAD_WRITE_ACTIONS as readonly string[]).includes(action)));
     expect([...writers].sort()).toEqual(["Bff", "QaDriver", "WorldJanitor"]);
-    expect(leadsStatement("Bff", TABLE).conditions?.[0]?.values).toEqual(["EMAIL#*", "SIGNUP#*"]);
+    expect(leadsStatement("Bff", TABLE).conditions?.[0]?.values).toEqual(["EMAIL#*", "SIGNUP#*", "DRAFT#*", "PHONE#*", "PHONENUM#*"]);
     for (const fn of LEADS_ROLES) expect(LEADS_ACCESS[fn].actions, fn).not.toContain("dynamodb:*");
   });
 

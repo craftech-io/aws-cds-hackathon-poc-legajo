@@ -66,6 +66,8 @@ const mailOf = (ctx: ScenarioContext, key: string) => signupAddress(ctx.runId, k
 interface Inspected {
   exists: boolean;
   leads: number;
+  drafts: number;
+  automation: boolean;
   users: number;
   consents?: { terms: { accepted: boolean; version: string; lang: string; privacyVersion: string }; contact: { accepted: boolean; version: string } };
   language?: string;
@@ -173,20 +175,24 @@ export const sc26 = defineScenario({
     },
     {
       n: 5,
-      title: "the code confirms the account and the lead: consents with their versions, language, UTM, notice SENT",
-      flows: ["FL-101", "FL-115", "FL-119", "FL-130"],
+      title: "the code confirms the account and keeps its lead as a draft until the phone: consents with their versions, language, UTM, no notice; the account is marked as automation",
+      flows: ["FL-101", "FL-119", "FL-130", "FL-136"],
       async run(ctx) {
         const run = runOf(ctx);
         const page = pageOf(run.mobile, "mobile");
         await enterCode(page, copyOf("mobile-es"), ctx.state.code as string, run.password);
         await page.waitForURL(/\/login\?.*welcome=1/, { timeout: 60_000 });
         const lead = await inspect(ctx, "a");
-        ctx.check(lead.leads === 1 && lead.users === 1, "one lead and one user for the mailbox");
+        // ADR-0021: the lead is born with a verified mobile; without it there is only the draft and no notice.
+        ctx.check(lead.leads === 0 && lead.drafts === 1 && lead.users === 1, "no lead yet, one draft and one user for the mailbox");
         ctx.check(lead.consents?.terms.accepted === true && lead.consents.terms.version === LEGAL_VERSIONS.terms && lead.consents.terms.privacyVersion === LEGAL_VERSIONS.privacy && lead.consents.terms.lang === "es", "terms accepted with the versions in force, in es");
         ctx.check(lead.consents?.contact.accepted === true && lead.consents.contact.version === LEGAL_VERSIONS.contact, "contact accepted with its version");
         ctx.check(lead.language === "es" && lead.utm?.source === "qa" && lead.utm.campaign === "sc26", "language es and the UTM of the landing");
         ctx.check(lead.signupAt !== undefined && lead.confirmedAt !== undefined, "signupAt and confirmedAt");
-        await ctx.eventually("the lead's notice SENT", async () => (await inspect(ctx, "a")).noticeStatus === "SENT", 120);
+        ctx.check(lead.noticeStatus === undefined, "no notice to Craftech before the phone");
+        // No person reads this account's SMS: the server-side mark lets its sign-ins skip the code (ADR-0021 §8).
+        await ctx.qa("account.markAutomation", { key: "a" });
+        ctx.check((await inspect(ctx, "a")).automation, "the account carries the automation mark");
       },
     },
     {
@@ -196,7 +202,6 @@ export const sc26 = defineScenario({
       async run(ctx) {
         const run = runOf(ctx);
         const page = pageOf(run.mobile, "mobile");
-        const signedInAt = new Date().toISOString();
         await signInWith(page, copyOf("mobile-es"), mailOf(ctx, "a"), run.password);
         await page.waitForURL(/\/welcome/, { timeout: 60_000 });
         await page.waitForURL(/\/app\/operations/, { timeout: 90_000 });
@@ -204,7 +209,6 @@ export const sc26 = defineScenario({
         const lead = await inspect(ctx, "a");
         const slot = Number(/^firm-guest-(\d{2})$/.exec(lead.world?.firmId ?? "")?.[1]);
         ctx.check(slot >= 31 && slot <= 90, "a public slot between 31 and 90");
-        ctx.check(lead.lastLoginAt !== undefined && Date.parse(lead.lastLoginAt) >= Date.parse(signedInAt) - 1_000, "lastLoginAt at the sign-in");
         run.firmId = lead.world?.firmId ?? undefined;
         const tokens = await sessionTokens(page);
         run.idToken = tokens.idToken;
@@ -257,7 +261,7 @@ export const sc26 = defineScenario({
         await page.waitForURL(/\/(?:welcome|app\/)/, { timeout: 60_000 });
         run.password = second;
         const lead = await inspect(ctx, "a");
-        ctx.check(lead.leads === 1 && lead.users === 1 && (lead.optionalFields ?? []).includes("jobTitle"), "still one lead and one user, with step 8's optional field merged after the code");
+        ctx.check(lead.drafts === 1 && lead.users === 1 && (lead.optionalFields ?? []).includes("jobTitle"), "still one draft and one user, with step 8's optional field merged after the code");
       },
     },
     {

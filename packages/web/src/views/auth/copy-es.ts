@@ -28,12 +28,14 @@ export const AUTH_ES = {
     forgot: "Recuperar contraseña · Legajo listo",
     reset: "Nueva contraseña · Legajo listo",
     welcome: "Preparando tu mundo · Legajo listo",
+    phone: "Celular · Legajo listo",
   },
   signup: {
     title: "Probá Legajo listo",
     lead: "Creá tu cuenta y en un minuto tenés tu estudio de prueba, con la operación 4471 lista para recorrer.",
     email: "Email de trabajo",
     emailHint: "Te enviamos un código para verificarlo.",
+    phone: "Celular (con + y código de país)",
     password: "Contraseña",
     optionalGroup: "Contanos de vos (opcional)",
     name: "Nombre",
@@ -47,6 +49,7 @@ export const AUTH_ES = {
     honeypot: "No completes este campo",
     errors: {
       email: "Escribí un email válido.",
+      phone: "Escribí el celular con + y el código de país.",
       password: "La contraseña no cumple las reglas de abajo.",
       tooLong: (max: number) => `Usá como máximo ${max} caracteres.`,
       consentTerms: "Para crear la cuenta tenés que aceptar los términos y la política de privacidad.",

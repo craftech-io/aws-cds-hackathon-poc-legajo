@@ -1,11 +1,13 @@
 // The lead items of `Leads` (leads/lead.ts) over the connector's TableClient: the only module that
-// reads or writes `EMAIL#…/LEAD` and `DELETED#…`. `finalizeSignup` creates a lead (and is the only
-// caller of `saveVerifiedLead`), `account.session` moves `lastLoginAt`, `LeadNotice` records
+// reads or writes `EMAIL#…/LEAD`, `DRAFT#…/LEAD` and `DELETED#…`. `finalizeSignup` merges a new
+// sign-up into an existing lead or keeps a draft; the phone enrolment (phone-verification/enrol.ts)
+// turns the draft into the lead, `account.session` moves `lastLoginAt`, `LeadNotice` records
 // `noticeStatus`, the sweep and the operator's scripts list, withdraw and delete. Nothing here logs
 // or returns an email to a caller that does not already hold it.
 import { ConnectorError } from "@legajo/shared";
 import type { Item, TableClient } from "../connector/index";
-import { LEADS_TABLE, Lead, type LeadConsents, type NoticeStatus, SOURCE_POC, type Tombstone, leadKey, tombKey } from "./lead";
+import { LEAD_DRAFT_TTL_SECONDS } from "@legajo/shared/guest-limits";
+import { LEADS_TABLE, Lead, LeadDraft, type LeadConsents, type NoticeStatus, SOURCE_POC, type Tombstone, draftKey, leadKey, tombKey } from "./lead";
 
 /** What `finalizeSignup` knows about a verified sign-up. */
 export interface VerifiedLeadInput {
@@ -22,6 +24,9 @@ export interface VerifiedLeadInput {
   readonly signupAt: string;
   readonly confirmedAt: string;
   readonly cognitoUsername: string;
+  /** E.164 verified by the SMS code, and when (ADR-0021). */
+  readonly phone?: string;
+  readonly phoneVerifiedAt?: string;
 }
 
 export interface LeadStore {
@@ -33,6 +38,12 @@ export interface LeadStore {
    * it was new.
    */
   saveVerifiedLead(input: VerifiedLeadInput, now: Date): Promise<{ readonly lead: Lead; readonly created: boolean }>;
+  /** The lead of a finalized sign-up, kept until its account verifies the phone (TTL 30 days). */
+  saveDraft(draft: Omit<LeadDraft, "expiresAt">, now: Date): Promise<void>;
+  getDraft(username: string, now: Date): Promise<LeadDraft | undefined>;
+  deleteDraft(username: string): Promise<void>;
+  /** The verified phone of an existing lead (an account enrolled after its lead was born). */
+  setPhone(emailHash: string, phone: string, at: string, now: Date): Promise<void>;
   setNotice(emailHash: string, status: NoticeStatus, attempts: number, now: Date): Promise<void>;
   /** `lastLoginAt` = `at` only when it is later than the stored one. */
   touchLastLogin(emailHash: string, at: string, now: Date): Promise<boolean>;
@@ -84,6 +95,8 @@ export function createLeadStore(client: TableClient): LeadStore {
       signupAt: input.signupAt,
       confirmedAt: input.confirmedAt,
       cognitoUsername: input.cognitoUsername,
+      ...optional("phone", input.phone),
+      ...optional("phoneVerifiedAt", input.phoneVerifiedAt),
       noticeStatus: "PENDING",
       noticeAttempts: 0,
     };
@@ -108,6 +121,8 @@ export function createLeadStore(client: TableClient): LeadStore {
           cognitoUsername: input.cognitoUsername,
           ...(Object.keys(input.utm).length > 0 ? { utm: input.utm } : {}),
           ...optional("referrer", input.referrer),
+          ...optional("phone", input.phone),
+          ...optional("phoneVerifiedAt", input.phoneVerifiedAt),
         },
         append: { consentHistory: changes },
       },
@@ -129,6 +144,28 @@ export function createLeadStore(client: TableClient): LeadStore {
           if (!(error instanceof ConnectorError && error.code === "CONFLICT") || attempt >= MERGE_ATTEMPTS) throw error;
         }
       }
+    },
+
+    async saveDraft(draft, now) {
+      const item = { ...draftKey(draft.username), entity: "LeadDraft", createdAt: now.toISOString(), updatedAt: now.toISOString(), version: 1, ...draft, expiresAt: Math.floor(now.getTime() / 1000) + LEAD_DRAFT_TTL_SECONDS };
+      LeadDraft.parse(item);
+      await client.put(LEADS_TABLE, item);
+    },
+
+    async getDraft(username, now) {
+      const row = await client.get(LEADS_TABLE, draftKey(username));
+      if (row === undefined) return undefined;
+      const parsed = LeadDraft.safeParse(row);
+      if (!parsed.success) throw new ConnectorError("VALIDATION", "a lead draft does not match its schema", "Leads");
+      return parsed.data.expiresAt * 1000 > now.getTime() ? parsed.data : undefined;
+    },
+
+    async deleteDraft(username) {
+      await client.delete(LEADS_TABLE, draftKey(username));
+    },
+
+    async setPhone(emailHash, phone, at, now) {
+      await client.update(LEADS_TABLE, leadKey(emailHash), { set: { phone, phoneVerifiedAt: at } }, now.toISOString(), { condition: { ifExists: true } });
     },
 
     async setNotice(emailHash, status, attempts, now) {

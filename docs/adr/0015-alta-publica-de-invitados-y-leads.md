@@ -276,3 +276,8 @@ Los términos (`/legal/terms.html`) dicen: demo gratuita con datos sintéticos, 
 - Craftech queda como responsable de una base de datos personales: inscripción en el registro de la AAIP y casilla de privacidad a cargo del CTO (`docs/pending.md`).
 - Con el cupo de mundos lleno, un invitado recién confirmado ve `CAPACITY` en su primer ingreso (§1.4): la cuenta y el lead existen, Craftech ya recibió el aviso y el ingreso siguiente reintenta.
 - Si WAF o las cuotas resultan chicos, se cambian números en `packages/shared/src/guest-limits.ts` (fuente única de §3.2 y §4) sin tocar el diseño.
+
+## Adenda (2026-11-27): el lead nace con el celular verificado
+
+ADR-0021 cambia §1.4 y §6: una cuenta nueva no usa la demo ni es lead hasta verificar un celular con un código por SMS, y ese código se pide en cada ingreso. `finalizeSignup` deja el lead de un email nuevo como borrador (`Leads/DRAFT#<username>`) y el enrolamiento del celular lo convierte en el lead e invoca `LeadNotice` una sola vez. La lista cerrada de quién toca `Leads` no cambia; la sentencia del `Bff` suma `DRAFT#*`, `PHONE#*` y `PHONENUM#*`, y el `QaDriver` suma `account.markAutomation` sobre sus buzones.
+

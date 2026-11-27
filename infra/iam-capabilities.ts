@@ -40,7 +40,8 @@ export type CapabilityName =
   | "LEAD_NOTICE"
   | "MAIL_STATUS"
   | "GUEST_CLEANUP"
-  | "QA_SIGNUP";
+  | "QA_SIGNUP"
+  | "SEND_SMS";
 
 export interface Capability {
   readonly actions: readonly string[];
@@ -64,6 +65,11 @@ const WORLD_TABLES = {
 } as const satisfies Partial<Record<TableName, Access>>;
 
 export const CAPABILITIES: Readonly<Record<CapabilityName, Capability>> = {
+  // ---- The SMS code of every sign-in session (ADR-0021) ----
+  SEND_SMS: {
+    actions: ["sns:Publish"],
+    fence: "Resource * (SNS has no ARN for a phone number) with an explicit Deny of sns:Publish on arn:aws:sns:*:*:* (no topic); the boundary allows sns:Publish only with NotResource arn:aws:sns:*:*:* (infra/sms-spec.ts)",
+  },
   TIMERS: {
     actions: ["scheduler:CreateSchedule", "scheduler:UpdateSchedule", "scheduler:DeleteSchedule", "scheduler:GetSchedule", "iam:PassRole"],
     fence: "schedule/aws-cds-hackathon-poc-legajo-poc-schedules/*; PassRole only of the Scheduler invocation role, iam:PassedToService = scheduler.amazonaws.com",
@@ -243,11 +249,11 @@ export const LAMBDA_CAPABILITIES = {
     fence: "InvokeFunction only of SimMail",
   },
   Bff: {
-    capabilities: ["MOCK_PLATFORM", "WORLDS", "LEADS", "SIGNUP_ADMIN", "SIGNUP_DISPATCH", "LEAD_NOTICE"],
+    capabilities: ["MOCK_PLATFORM", "WORLDS", "LEADS", "SIGNUP_ADMIN", "SIGNUP_DISPATCH", "LEAD_NOTICE", "SEND_SMS"],
     tables: { Firms: "write", Parties: "write", Operations: "write", Conversations: "write", AuditLog: "write", Runtime: "write", LegajoMetrics: "write", Reference: "read" },
     buckets: { Documents: "read", Media: "write" },
     actions: ["sqs:SendMessage", "lambda:InvokeFunction"],
-    fence: "InvokeFunction only of InboundWhatsApp, SimMail (SIM_REPLY of a clock move), WorldJanitor, SignupDispatch and LeadNotice; no SES, no EUM Social, no Guardrails; Function URL AWS_IAM, only cloudfront.amazonaws.com with the distribution as SourceArn (OAC)",
+    fence: "InvokeFunction only of InboundWhatsApp, SimMail (SIM_REPLY of a clock move), WorldJanitor, SignupDispatch and LeadNotice; sns:Publish only to phone numbers (SEND_SMS, the SMS code of ADR-0021); no SES, no EUM Social, no Guardrails; Function URL AWS_IAM, only cloudfront.amazonaws.com with the distribution as SourceArn (OAC)",
   },
   SignupDispatch: {
     capabilities: [],

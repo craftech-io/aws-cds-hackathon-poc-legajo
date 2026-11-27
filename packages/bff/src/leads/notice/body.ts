@@ -1,5 +1,6 @@
 // The internal notice of a new lead to Craftech (ADR-0015 §6, docs/landing-spec.md §8.10): plain text
-// in Spanish with exactly what the ADR lists (email; name, company and job title if given; language;
+// in Spanish with exactly what the ADR lists (email; the mobile verified by SMS, ADR-0021; name, company
+// and job title if given; language;
 // whether contact was accepted, with its version; UTM and the referrer's host; sign-up time in
 // Buenos Aires) and nothing more. One subject, no variants.
 import type { Lead } from "../lead";
@@ -33,6 +34,7 @@ export function leadNoticeBody(lead: Lead): string {
     "Nuevo registro en la demo de Legajo listo.",
     "",
     `Email: ${lead.email}`,
+    ...(lead.phone === undefined ? [] : [`Celular verificado: ${lead.phone}`]),
     ...(lead.name === undefined ? [] : [`Nombre: ${lead.name}`]),
     ...(lead.company === undefined ? [] : [`Empresa: ${lead.company}`]),
     ...(lead.jobTitle === undefined ? [] : [`Cargo: ${lead.jobTitle}`]),

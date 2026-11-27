@@ -87,6 +87,7 @@ describe("principal", () => {
       isGuest: false,
       authTime: NOW,
       brokerId: "brk-qa-runner",
+      automation: true,
     });
     expect(qaPrincipal({ role: "ANALYST", now, authTime: new Date((NOW - 3600) * 1000) })).toMatchObject({ brokerId: "brk-qa-analyst", authTime: NOW - 3600 });
     expect(() => qaPrincipal({ role: "GUEST" as never, now })).toThrow();

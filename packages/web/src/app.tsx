@@ -2,7 +2,8 @@
 // access screens render for anyone and travel in this chunk; the console (`/app/*`) loads lazily
 // (console-routes.tsx), so a visitor of the landing never downloads it, except an idle-time prefetch
 // when a session is already open. A guest whose token names no firm yet has no live world: it waits
-// on `/welcome`. `/?signedOut=1` adds the sign-out notice above the landing.
+// on `/welcome`. Every sign-in passes the SMS code of `/verify-phone` (ADR-0021), whose screen loads in a
+// chunk of its own. `/?signedOut=1` adds the sign-out notice above the landing.
 import { Suspense, lazy, useEffect } from "react";
 import { FullScreenMessage } from "./components/FullScreenMessage";
 import { useSession } from "./context/SessionContext";
@@ -10,7 +11,7 @@ import { copy } from "./copy/console";
 import { inLang, setActiveLang } from "./lib/console-lang";
 import { initialConsoleLang } from "./lib/preferred-lang";
 import { Redirect, useRouter } from "./lib/router";
-import { CONSOLE_PREFIX, FORGOT_PATH, FORGOT_RESET_PATH, LANDING_PATH, LOGIN_PATH, SIGNUP_PATH, SIGNUP_VERIFY_PATH, WELCOME_PATH } from "./routes";
+import { CONSOLE_PREFIX, FORGOT_PATH, FORGOT_RESET_PATH, LANDING_PATH, LOGIN_PATH, PHONE_PATH, SIGNUP_PATH, SIGNUP_VERIFY_PATH, WELCOME_PATH } from "./routes";
 import { ForgotView, ResetView } from "./views/auth/ForgotView";
 import { LoginView } from "./views/auth/LoginView";
 import { needsWorld } from "./views/auth/session";
@@ -22,6 +23,8 @@ import { LandingView } from "./views/landing/LandingView";
 
 const loadConsole = () => import("./console-routes");
 const ConsoleRoutes = lazy(loadConsole);
+// The SMS code of the session (ADR-0021) travels with the console's chunk, never in the landing's.
+const PhoneView = lazy(() => loadConsole().then((module) => ({ default: module.PhoneView })));
 
 /** The console is not mounted yet, so its texts follow the language the visitor picked on the way in, else the browser's. */
 function ConsoleLoading() {
@@ -70,6 +73,12 @@ export function App() {
       return <ResetView />;
     case WELCOME_PATH:
       return <WelcomeView />;
+    case PHONE_PATH:
+      return (
+        <Suspense fallback={<ConsoleLoading />}>
+          <PhoneView />
+        </Suspense>
+      );
   }
   if (state.status === "loading") return <ConsoleLoading />;
   if (state.status !== "authenticated") return <Redirect to={`${LOGIN_PATH}?returnTo=${encodeURIComponent(path)}`} />;

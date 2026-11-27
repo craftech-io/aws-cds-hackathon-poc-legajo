@@ -47,8 +47,10 @@ export const FORGOT_PATH = "/forgot";
 export const FORGOT_RESET_PATH = "/forgot/reset";
 /** "Preparando tu mundo": a guest without a live world waits here (ADR-0015 §4). */
 export const WELCOME_PATH = "/welcome";
+/** The SMS code of every sign-in (ADR-0021): enrolment the first time, the verified number after. */
+export const PHONE_PATH = "/verify-phone";
 
-export const ACCESS_PATHS: readonly string[] = [SIGNUP_PATH, SIGNUP_VERIFY_PATH, LOGIN_PATH, FORGOT_PATH, FORGOT_RESET_PATH, WELCOME_PATH];
+export const ACCESS_PATHS: readonly string[] = [SIGNUP_PATH, SIGNUP_VERIFY_PATH, LOGIN_PATH, FORGOT_PATH, FORGOT_RESET_PATH, WELCOME_PATH, PHONE_PATH];
 
 /** Where a sign-out lands: the landing with its "Cerraste sesión" notice (FL-108). */
 export const SIGNED_OUT_PARAM = "signedOut";

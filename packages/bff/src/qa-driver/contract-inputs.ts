@@ -198,6 +198,8 @@ export const ACTION_INPUTS = {
     .strict(),
   "lead.inspect": z.object({ key: SignupKey }).strict(),
   "lead.purge": z.object({ key: SignupKey }).strict(),
+  /** The server-side mark of an automation account (ADR-0021 §8): its sign-ins never ask for the SMS code. */
+  "account.markAutomation": z.object({ key: SignupKey }).strict(),
 } as const satisfies Record<QaActionName, z.ZodType>;
 
 export type QaInput<A extends QaActionName> = z.input<(typeof ACTION_INPUTS)[A]>;
