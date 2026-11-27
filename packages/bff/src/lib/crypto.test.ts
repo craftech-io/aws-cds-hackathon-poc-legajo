@@ -36,7 +36,7 @@ describe("HKDF subkeys", () => {
 
   it("derives one stable 32-byte subkey per fixed label, all different and none equal to the master", () => {
     const subkeys = SUBKEY_PURPOSES.map((purpose) => hex(deriveSubkey(MASTER, purpose)));
-    expect(SUBKEY_PURPOSES).toEqual(["session", "phone-hash", "email-hash", "nonce", "sim-envelope", "thread", "runtime-session", "signup-ticket", "signup-seal", "lead-email", "rate", "form"]);
+    expect(SUBKEY_PURPOSES).toEqual(["session", "phone-hash", "email-hash", "nonce", "sim-envelope", "thread", "runtime-session", "signup-ticket", "signup-seal", "lead-email", "rate", "form", "cognito-caller"]);
     expect(new Set(subkeys).size).toBe(SUBKEY_PURPOSES.length);
     for (const subkey of subkeys) expect(subkey).toMatch(/^[0-9a-f]{64}$/);
     expect(subkeys).not.toContain(Buffer.from(MASTER).toString("hex"));

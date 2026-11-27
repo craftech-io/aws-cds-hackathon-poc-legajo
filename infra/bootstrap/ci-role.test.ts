@@ -284,8 +284,8 @@ describe("AWS WAF of the edge (ADR-0015 §3.3 and §9)", () => {
     for (const doc of ["docs/architecture.md", "docs/adr/0015-alta-publica-de-invitados-y-leads.md"]) expect(read(doc), doc).toContain("`arn:aws:wafv2:us-east-1:*:global/managedruleset/*`");
   });
 
-  it("associates the web ACL through the distribution, never with wafv2:AssociateWebACL", () => {
-    expect(template).not.toContain("wafv2:AssociateWebACL");
+  it("associates the edge web ACL through the distribution; wafv2:AssociateWebACL only for the user pool's", () => {
+    expect(template.replace(statement("CognitoWebAclOfThisApp"), "")).not.toContain("wafv2:AssociateWebACL");
     expect(template).not.toMatch(/wafv2:(Put|Delete)LoggingConfiguration|wafv2:CreateRuleGroup|wafv2:CreateIPSet/);
   });
 });
