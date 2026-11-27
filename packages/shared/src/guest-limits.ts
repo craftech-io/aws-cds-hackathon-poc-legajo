@@ -58,11 +58,8 @@ export const SIGNUP_RATE_LIMITS = {
   startPerEmail: [{ window: "DAY", limit: 3 }],
   /** New sign-ups per email domain → `SUPPRESSED`. */
   startPerDomain: [{ window: "HOUR", limit: 30 }],
-  /** New sign-ups in total → `CAPACITY`. */
-  startTotal: [
-    { window: "HOUR", limit: 100 },
-    { window: "DAY", limit: 300 },
-  ],
+  /** New sign-ups of the whole demo, among every visitor → `CAPACITY`. */
+  startTotal: [{ window: "DAY", limit: 40 }],
   /** `signup.confirm` per viewer IP → `RATE_LIMITED`. */
   confirmPerIp: [{ window: "HOUR", limit: 30 }],
 } as const satisfies Readonly<Record<string, readonly WindowedLimit[]>>;
