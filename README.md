@@ -123,6 +123,7 @@ account is kept and the console says the demo is full right now; try again later
 | Customs management platform | **Mock** of the dispatch statuses (`packages/platform-mock`). |
 | Clock | **Simulated per world**, paused by default; every timer is an EventBridge Scheduler schedule that the clock knows how to advance. |
 | Account emails (sign-up code, password recovery) | **Real**, sent by Amazon Cognito through Amazon SES. |
+| Mobile verification (SMS code at sign-up and at every sign-in) | **Real**, sent by Amazon SNS straight to the number; one number per account, and no access, world or lead before the code (`docs/adr/0021-celular-verificado-por-sms-en-cada-ingreso.md`). |
 | Impact figures on the landing page | **Goals and assumptions**, labelled as such; never production results. |
 
 ## Architecture
@@ -212,7 +213,8 @@ published product mentions the contest: it is presented as a product for a custo
   [How it uses AWS Communication Developer Services](#how-it-uses-aws-communication-developer-services)).
 
 - **Access for testing**: anyone can create an account at
-  `https://legajo.demo.craftech.io/signup`. Reserved guest accounts, with their own worlds and without the public limits on world capacity,
+  `https://legajo.demo.craftech.io/signup` with an email and a mobile number that receives SMS; every
+  sign-in asks for a code texted to that number. Reserved guest accounts, with their own worlds and without the public limits on world capacity,
   are listed only in the private testing instructions of the submission form.
 - **Pre-existing code**: the repository skeleton (SST and CI setup, the CI bootstrap template, lint
   scripts, the console shell and shared components, the own Cognito sign-in, the tRPC base, logging,

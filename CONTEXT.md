@@ -267,8 +267,20 @@ Firma HMAC de corta vida (120 s) que `SignupDispatch` agrega a su llamada a `Sig
 _Avoid_: token (a secas), captcha
 
 **Lead** (`Lead`, tabla `Leads`):
-Registro comercial de una persona que confirmó su alta con el código (nunca de un email sin verificar): email, datos opcionales, consentimientos, idioma, POC de origen, UTM y referrer, fecha de alta y último ingreso. Vive separado de los datos de la demo y sobrevive al TTL del mundo. La tabla la tocan solo el BFF (alta y último ingreso), `SignupDispatch` (solo altas pendientes; nunca escribe un lead), `WorldJanitor` (barrido y borrado), el aviso a Craftech, el `QaDriver` cercado a sus buzones de prueba y los scripts del operador (`leads:export`, `leads:optout`, `leads:delete`); nunca el agente, `ChannelEvents` ni los triggers de Cognito.
+Registro comercial de una persona que confirmó su alta con el código del email **y verificó su celular con el código del SMS** (ADR-0021; nunca de un email ni de un celular sin verificar): email, celular verificado, datos opcionales, consentimientos, idioma, POC de origen, UTM y referrer, fecha de alta y último ingreso. Vive separado de los datos de la demo y sobrevive al TTL del mundo. La tabla la tocan solo el BFF (alta y último ingreso), `SignupDispatch` (solo altas pendientes; nunca escribe un lead), `WorldJanitor` (barrido y borrado), el aviso a Craftech, el `QaDriver` cercado a sus buzones de prueba y los scripts del operador (`leads:export`, `leads:optout`, `leads:delete`); nunca el agente, `ChannelEvents` ni los triggers de Cognito.
 _Avoid_: cliente, prospecto (en código), contacto (es otra cosa)
+
+**Borrador de lead** (`LeadDraft`, `Leads/DRAFT#<username>`):
+Lo que un alta confirmada sabe de su lead mientras la cuenta no verificó el celular: los mismos datos más el número del formulario. El código del SMS lo convierte en el **Lead**; vence a los 30 días.
+_Avoid_: lead pendiente, prelead
+
+**Código del SMS** / **Segundo factor de la sesión** (`account.sendPhoneCode`, `account.verifyPhoneCode`):
+Seis dígitos que el BFF manda por SMS al celular de la cuenta en cada ingreso y que la sesión de ingreso (`origin_jti`) tiene que escribir antes de usar la demo. La primera vez es el **enrolamiento** (la persona carga o corrige el número); después va siempre al **celular verificado**, que la persona no puede cambiar. Sin él, todo responde `PHONE_VERIFICATION_REQUIRED`.
+_Avoid_: OTP (es el flujo de la llamada de verificación de WhatsApp), MFA (es el TOTP opcional del personal)
+
+**Cuenta de automatización** (`PHONE#<sub>/ACCOUNT.automation`):
+Una cuenta que ninguna persona usa y que no recibe SMS (`guest-test`, las cuentas `qa-signup-*` de `SC-26`), marcada una por una del lado del servidor para que sus sesiones no pidan el código. Nunca es lead.
+_Avoid_: cuenta exenta, cuenta interna
 
 **Consentimiento** (`consents.terms`, `consents.contact`):
 Aceptación explícita, separada y sin tildar por defecto, guardada con fecha y **versión del texto**: términos y privacidad (obligatorio para la cuenta) y "Acepto que Craftech me contacte por esta solución" (opcional, revocable sin perder la cuenta).
@@ -338,7 +350,7 @@ _Avoid_: precio, facturación
 - Un **Proveedor** tiene uno o más **Contactos de proveedor**, una zona horaria y un idioma.
 - Un **Turno** pertenece a una **Operación** y lo dispara un evento; los turnos de una operación son secuenciales.
 - Un **Escalamiento** pertenece a una **Operación**; **Tomar conversación** pone el control de la operación en el estudio.
-- Un **Invitado** tiene a lo sumo un **Mundo de invitado** vivo, que ocupa un **Cupo**; un invitado público tiene exactamente un **Lead** (uno por email) con dos **Consentimientos**; todo **Lead** tiene su cuenta, porque nace con la verificación del código.
+- Un **Invitado** tiene a lo sumo un **Mundo de invitado** vivo, que ocupa un **Cupo**; un invitado público tiene exactamente un **Lead** (uno por email) con dos **Consentimientos**; todo **Lead** tiene su cuenta, porque nace con la verificación de los dos códigos (email y SMS); una cuenta tiene a lo sumo un **Celular verificado** y un número verifica a lo sumo una cuenta.
 - Un **Lead** sobrevive al **TTL del mundo**; borrar un lead borra también su cuenta de Cognito y su mundo, si lo tiene.
 
 ## Example dialogue

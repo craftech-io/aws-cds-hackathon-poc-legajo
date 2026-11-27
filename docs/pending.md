@@ -103,3 +103,14 @@ Dueño: CTO; el operador ejecuta el punto 3 y acompaña el 6. Verificación: pun
 
 - **Aceptación A-01** (`docs/test-plan.md` §5.1): alta real desde un teléfono con una casilla `@craftech.io`, código por email, aviso de lead a `LeadNoticeTo` y fila en `npm run leads:export`. La hace el CTO: crear cuentas en el sitio desplegado no lo hace un agente.
 - **Suite completa de escenarios** (`scenarios.yml`, `--suite full`): última corrida 69 pasos en verde y 23 en rojo (run 37107352492). Abiertos: subida por link prefirmado con 403 de S3 (SC-07), recorrido guiado del invitado (SC-24/2), texto "Te quedan N intentos" (SC-26/4), auditoría del consentimiento (SC-16), actor inexistente en la auditoría (SC-20) y comportamiento del agente en avisos diferidos, escalamientos, respuestas, quejas y cambios de ETA (SC-02, 03, 06, 08, 11 a 15, 17, 19, 21, 22, 25).
+
+## P-10 · SMS del código de cada ingreso (ADR-0021, 2026-11-27)
+
+1. **Salir del sandbox de SMS de SNS** en la cuenta `craftech-demos` (pedido de acceso a producción en la consola de SNS, "Text messaging (SMS)"). Mientras siga en el sandbox solo llegan SMS a números verificados ahí, y toda otra persona ve `SEND_FAILED`. Dueño: CTO.
+2. **Tipo por omisión y tope de gasto**: `Transactional` y US$50 por mes (`docs/architecture.md` §17 ítem 12). Dueño: operador.
+3. **Remitente registrado por país** (opcional): sin él, AWS no entrega en algunos países (Estados Unidos e India, entre otros) y la pantalla ofrece el contacto de Craftech. Registrar un número de origen o un sender ID es un trámite del CTO con costo propio; se decide por demanda.
+4. **Bootstrap**: aplicar `infra/bootstrap/ci-role.yaml` (sentencia `SmsToPhoneNumbersOnly` del boundary) antes del deploy que trae el código (`docs/architecture.md` §15 paso 2). Dueño: operador.
+5. **Marcar `guest-test`**: `npm run console:invite -- --stage poc --guest-test` después de ese deploy (§17 ítem 13). Dueño: operador.
+
+Verificación: `aws --profile craftech-demos sns get-sms-sandbox-account-status` → `IsInSandbox false`; `aws --profile craftech-demos sns get-sms-attributes`; un ingreso real del CTO con su celular que recibe el código y, con un alta nueva, el aviso de lead con el celular verificado.
+

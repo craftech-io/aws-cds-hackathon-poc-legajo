@@ -1207,7 +1207,7 @@ envía (nunca por validación: los errores se muestran al enviar y al salir de c
 | `signup.name` | Nombre | Name |
 | `signup.company` | Empresa | Company |
 | `signup.jobTitle` | Cargo | Job title |
-| `signup.consentTerms` (de `consent-texts.ts`, con enlaces a `/legal/terms.html` y `/legal/privacy.html`) | Acepto los términos y la política de privacidad. | I accept the terms and the privacy policy. |
+| `signup.consentTerms` (de `consent-texts.ts`, con enlaces a `/legal/terms.html` y `/legal/privacy.html`) | Acepto los términos y la política de privacidad. Mi celular se usa para verificar la cuenta por SMS. | I accept the terms and the privacy policy. My mobile number is used to verify the account by SMS. |
 | `signup.consentContact` (de `consent-texts.ts`) | Acepto que Craftech me contacte por esta solución. | I agree that Craftech may contact me about this solution. |
 | `signup.consentContactHint` | Opcional. Podés retirarlo cuando quieras. | Optional. You can withdraw it at any time. |
 | `signup.submit` | Crear cuenta | Create account |
