@@ -86,6 +86,7 @@ export async function signupStart(deps: AccessDeps, input: SignupStartRequest, c
       username: `usr-${deps.newUlid().toLowerCase()}`,
       email: input.email,
       emailHash: leadEmailHash(deps.keys.leadEmail, input.email),
+      phone: input.phone,
       ...(input.name === undefined ? {} : { name: input.name }),
       ...(input.company === undefined ? {} : { company: input.company }),
       ...(input.jobTitle === undefined ? {} : { jobTitle: input.jobTitle }),

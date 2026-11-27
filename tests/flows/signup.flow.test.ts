@@ -24,7 +24,7 @@ const leadOf = async (access: ReturnType<typeof createPublicEdge>["access"], ema
 const usersOf = (access: ReturnType<typeof createPublicEdge>["access"], email: string) => [...access.cognito.users.values()].filter((user) => user.email === email);
 
 describe("public sign-up flows", () => {
-  it("[FL-101] a new email signs up end to end: start → SignupDispatch → code → confirm → GUEST group, verified lead with its consents and the notice to Craftech", async () => {
+  it("[FL-101] [FL-134] a new email signs up end to end: start → SignupDispatch → code → confirm → GUEST group → the SMS code → verified lead with its consents and the notice to Craftech", async () => {
     const { flow, edge: api } = await edge();
 
     const started = await api.startSignup(EMAIL);
@@ -38,6 +38,10 @@ describe("public sign-up flows", () => {
     expect(statusOf(confirmed)).toBe("CONFIRMED");
     const [user] = usersOf(api.access, EMAIL);
     expect(user).toMatchObject({ status: "CONFIRMED", groups: ["GUEST"] });
+    // The lead is born with the verified mobile, not with the email (ADR-0021).
+    expect(await leadOf(api.access, EMAIL)).toBeUndefined();
+    expect(flow.aws.sesMessages.filter((sent) => sent.input.Destination?.ToAddresses?.includes(LOCAL_NOTICE_TO))).toHaveLength(0);
+    expect(statusOf(await api.passPhone(EMAIL))).toBe("CLEARED");
     const lead = await leadOf(api.access, EMAIL);
     expect(lead).toMatchObject({ email: EMAIL, language: "es", consents: { terms: { accepted: true, version: api.access.legalVersions.terms }, contact: { accepted: true } }, noticeStatus: "SENT" });
     expect(lead?.confirmedAt).toBeDefined();
@@ -67,6 +71,7 @@ describe("public sign-up flows", () => {
     const again = await api.startSignup(EMAIL, { viewer: "198.51.100.20:40001" });
     expect(again.signupId).not.toBe(started.signupId);
     expect(statusOf(await api.confirm(again.signupId, EMAIL))).toBe("CONFIRMED");
+    expect(statusOf(await api.passPhone(EMAIL))).toBe("CLEARED");
     expect(await leadOf(api.access, EMAIL)).toBeDefined();
   });
 

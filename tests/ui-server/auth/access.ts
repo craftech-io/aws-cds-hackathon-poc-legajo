@@ -1,6 +1,7 @@
 // The sign-up side of the local UI server (docs/test-plan.md §3, "Superficies públicas"): the real
 // `signup.*` services over the in-memory `Runtime` and `Leads`, `SignupDispatch` run in process right
-// after the BFF answers (as Lambda's asynchronous invocation would), `LeadNotice` recorded, and the user
+// after the BFF answers (as Lambda's asynchronous invocation would), `LeadNotice` recorded, the SMS code
+// of every sign-in (ADR-0021) over an in-memory sender that never sends, and the user
 // pool with the real triggers (triggers.ts). Keys are random per server process. The MX lookup answers
 // for any domain, so a spec can sign up with a fictitious address; the reserved and own domains are still
 // refused by the real checks. Nothing here ships in a Lambda.
@@ -12,6 +13,9 @@ import type { MemoryStores } from "@legajo/bff/connector/index";
 import { randomBase32, ulid } from "@legajo/bff/lib/crypto";
 import { createLogger } from "@legajo/bff/lib/log";
 import { createLeadStore } from "@legajo/bff/leads/store";
+import { newPhoneCode } from "@legajo/bff/phone-verification/service";
+import { type MemorySmsSender, memorySmsSender } from "@legajo/bff/phone-verification/sms";
+import { createPhoneStore } from "@legajo/bff/phone-verification/store";
 import type { AccessDeps, SignupKeys } from "@legajo/bff/signup/deps";
 import { runDispatch } from "@legajo/bff/signup/dispatch";
 import type { AsyncInvoker, AsyncTarget } from "@legajo/bff/signup/invoke";
@@ -34,12 +38,14 @@ export interface LocalAccess {
   readonly invocations: RecordedInvocation[];
   /** What the fake SES took from `LeadNotice`: never mailed. */
   readonly notices: EmailSendRequest[];
+  /** Every SMS code of ADR-0021, in memory: never sent (`/__test/sms` reads the last one to a number). */
+  readonly sms: MemorySmsSender;
   /** Resolves when every dispatch queued so far has run. */
   settled(): Promise<void>;
 }
 
 function keys(): SignupKeys {
-  return { ticket: randomBytes(32), seal: randomBytes(32), leadEmail: randomBytes(32), rate: randomBytes(32), form: randomBytes(32) };
+  return { ticket: randomBytes(32), seal: randomBytes(32), leadEmail: randomBytes(32), rate: randomBytes(32), form: randomBytes(32), accountPhone: randomBytes(32), phoneCode: randomBytes(32) };
 }
 
 export function createLocalAccess(stores: MemoryStores, poolId: string, appOrigin: string, now: () => Date): LocalAccess {
@@ -70,10 +76,14 @@ export function createLocalAccess(stores: MemoryStores, poolId: string, appOrigi
     },
   };
 
+  const sms = memorySmsSender();
   const deps: AccessDeps = {
     client: stores.client,
     signups: createSignupStore(stores.client),
     leads: createLeadStore(stores.client),
+    phones: createPhoneStore(stores.client),
+    sms,
+    newPhoneCode,
     cognito: pool.admin,
     invoker,
     keys: signupKeys,
@@ -91,6 +101,7 @@ export function createLocalAccess(stores: MemoryStores, poolId: string, appOrigi
     pool,
     invocations,
     notices,
+    sms,
     async settled() {
       await Promise.all(queue);
     },

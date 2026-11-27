@@ -1,6 +1,6 @@
 // Routes of the local UI server that exist only here, never in a Lambda (docs/test-plan.md §2): the
 // browser's Cognito API the specs route the real endpoint to (`/__cognito`), the last email the pool
-// "sent" to an address (its code, never a real mailbox), the switches of the guest worlds (the
+// "sent" to an address (its code, never a real mailbox), the last SMS code to a number, the switches of the guest worlds (the
 // public slots full, a world destroyed by its lifetime) and the readings of a guest's world that no
 // worker produces here (dossier-fixtures.ts). They answer JSON and listen on 127.0.0.1 only.
 import { randomUUID } from "node:crypto";
@@ -34,7 +34,7 @@ function json(response: ServerResponse, status: number, body: unknown): void {
 
 const WorldSwitches = z.object({ email: z.string().min(3), full: z.boolean() }).strict();
 const ByEmail = z.object({ email: z.string().min(3) }).strict();
-const NewGuest = z.object({ email: z.string().min(3), password: z.string().min(1) }).strict();
+const NewGuest = z.object({ email: z.string().min(3), password: z.string().min(1), automation: z.boolean().default(true) }).strict();
 const SignupAge = z.object({ email: z.string().min(3), seconds: z.number().int().min(1).max(3_600) }).strict();
 
 /** `iso` moved `seconds` into the past. */
@@ -61,6 +61,12 @@ export async function handleTestRoute(request: IncomingMessage, response: Server
     json(response, email ? 200 : 404, email ? { kind: email.kind, code: email.code, subject: email.subject } : { error: "no email" });
     return true;
   }
+  if (route === "sms" && request.method === "GET") {
+    // The last SMS code to a number (ADR-0021): the in-memory sender never sends one.
+    const code = deps.access.sms.lastCode(url.searchParams.get("to") ?? "");
+    json(response, code ? 200 : 404, code ? { code } : { error: "no sms" });
+    return true;
+  }
   if (route === "notices" && request.method === "GET") {
     await deps.access.settled();
     const email = (url.searchParams.get("email") ?? "").toLowerCase();
@@ -74,8 +80,12 @@ export async function handleTestRoute(request: IncomingMessage, response: Server
   }
   if (route === "lead" && request.method === "GET") {
     await deps.access.settled();
-    const lead = await deps.access.deps.leads.get(leadEmailHash(deps.access.deps.keys.leadEmail, url.searchParams.get("email") ?? ""));
-    json(response, lead ? 200 : 404, lead ? { contact: lead.consents.contact.accepted, language: lead.language } : { error: "no lead" });
+    const emailHash = leadEmailHash(deps.access.deps.keys.leadEmail, url.searchParams.get("email") ?? "");
+    const lead = await deps.access.deps.leads.get(emailHash);
+    // Before the SMS code the lead is still the sign-up's draft (ADR-0021): the same consents, and `draft`.
+    const [draft] = lead === undefined ? await deps.access.deps.client.scan(LEADS_TABLE, { filter: { equals: { entity: "LeadDraft", emailHash } } }) : [];
+    const consents = (lead ?? draft) as { consents?: { contact?: { accepted?: boolean } }; language?: string } | undefined;
+    json(response, consents ? 200 : 404, consents ? { contact: consents.consents?.contact?.accepted, language: consents.language, draft: lead === undefined } : { error: "no lead" });
     return true;
   }
   if (route === "shared-limits/forget" && request.method === "POST") {
@@ -90,6 +100,8 @@ export async function handleTestRoute(request: IncomingMessage, response: Server
     await forgetWindowed(client, RATE_BASES.startDomain(domain), ["HOUR"], now());
     await forgetWindowed(client, MAIL_BASES.domain(domain), ["HOUR"], now());
     await forgetWindowed(client, MAIL_BASES.total, ["DAY"], now());
+    // The demo-wide SMS cap of ADR-0021 (150 a day) is shared by every spec of the run too.
+    await forgetWindowed(client, "RL#SMS#TOTAL", ["DAY"], now());
     json(response, 200, { forgotten: true });
     return true;
   }
@@ -112,8 +124,11 @@ export async function handleTestRoute(request: IncomingMessage, response: Server
   if (route === "users" && request.method === "POST") {
     // A public guest that already verified its email (the sign-up itself is auth.spec.ts's), for the
     // specs of the welcome mechanics: its first sign-in gets a world like any visitor's (guest-world.ts).
-    const { email, password } = await jsonBody(request, NewGuest);
+    const { email, password, automation } = await jsonBody(request, NewGuest);
     const user = await deps.access.pool.addConfirmed({ username: `usr-${randomUUID().replaceAll("-", "").slice(0, 26)}`, email, password, groups: ["GUEST"] });
+    // A fixture of the server, not a visitor: marked as automation (ADR-0021 §8), so the welcome specs
+    // test the welcome; the SMS code itself is auth.spec.ts's and phone.spec.ts's (`automation: false`).
+    if (automation) await deps.access.deps.phones.markAutomation(user.sub, "SCENARIO_RUNNER", deps.access.deps.now());
     json(response, 201, { username: user.username });
     return true;
   }

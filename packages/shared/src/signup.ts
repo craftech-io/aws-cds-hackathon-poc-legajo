@@ -9,6 +9,7 @@ import { Language } from "./enums";
 import { LimitWindow, QuotaExceededKind, QuotaKind, REFERRER_MAX_CHARS, SIGNUP_OPTIONAL_MAX_CHARS, UTM_VALUE_MAX_CHARS } from "./guest-limits";
 import { LegalVersions } from "./legal-versions";
 import { Password } from "./password-policy";
+import { AccountPhone } from "./phone-number";
 
 /** RFC 5321 caps an address at 254 characters; trimmed and lower-cased before anything else. */
 export const SIGNUP_EMAIL_MAX_CHARS = 254;
@@ -62,6 +63,8 @@ export const SignupStartInput = z
     formToken: FormToken,
     email: SignupEmail,
     password: Password,
+    /** Mobile number in E.164, any country: the SMS code goes to it after the email (ADR-0021). */
+    phone: AccountPhone,
     name: OptionalText,
     company: OptionalText,
     jobTitle: OptionalText,

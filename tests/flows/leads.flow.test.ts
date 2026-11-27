@@ -25,7 +25,7 @@ const silent = () => undefined;
 
 function scriptDeps(api: PublicEdge): LeadScriptDeps {
   const { access } = api;
-  return { client: access.client, leads: access.leads, signups: access.signups, cognito: access.cognito, invoker: access.invoker, leadEmailKey: access.keys.leadEmail, now: access.now };
+  return { client: access.client, leads: access.leads, phones: access.phones, signups: access.signups, cognito: access.cognito, invoker: access.invoker, leadEmailKey: access.keys.leadEmail, now: access.now };
 }
 
 const leadOf = (api: PublicEdge, email: string) => api.access.leads.get(leadEmailHash(api.access.keys.leadEmail, email));
@@ -129,6 +129,8 @@ describe("lead flows", () => {
     await api.access.invoker.invoke("WorldJanitor", { kind: "GUEST_SWEEP" });
     await api.settle();
 
+    expect(await leadOf(api, EMAIL)).toBeUndefined();
+    expect((await api.passPhone(EMAIL)).data).toEqual({ status: "CLEARED" });
     const finished = await leadOf(api, EMAIL);
     expect(finished?.confirmedAt).toBeDefined();
     expect([...api.access.cognito.users.values()].find((candidate) => candidate.email === EMAIL)?.groups).toEqual(["GUEST"]);

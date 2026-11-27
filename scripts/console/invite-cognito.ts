@@ -11,7 +11,8 @@ import {
   UserNotFoundException,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { authConfig } from "@legajo/bff/auth/config";
-import { connector } from "@legajo/bff/connector/index";
+import { connector, tableClient } from "@legajo/bff/connector/index";
+import { createPhoneStore } from "@legajo/bff/phone-verification/store";
 import { awsClientConfig } from "@legajo/bff/lib/clients";
 import { GUEST_TEST_PASSWORD_ENV, type InviteDeps } from "./invite";
 
@@ -30,6 +31,10 @@ export function cognitoInviteDeps(options: Pick<InviteDeps, "saveCredential">): 
   const UserPoolId = pool.userPoolId;
 
   return {
+    async markAutomation(sub) {
+      await createPhoneStore(tableClient()).markAutomation(sub, "SCENARIO_RUNNER", new Date());
+    },
+
     async findUser(username) {
       try {
         const user = await client.send(new AdminGetUserCommand({ UserPoolId, Username: username }));

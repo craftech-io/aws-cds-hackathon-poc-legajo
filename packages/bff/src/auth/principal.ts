@@ -28,6 +28,11 @@ export interface Principal {
   readonly originJti?: string;
   /** A guest's `custom:worldLease`: the lease of the world its broker row was written for (ADR-0015 §4). */
   readonly worldLease?: string;
+  /**
+   * Built on the server for an automation that no person drives and that cannot receive an SMS (the
+   * `QaDriver`'s console actions): it never passes the phone code (ADR-0021). Never read from a token.
+   */
+  readonly automation?: true;
 }
 
 // `ConsoleRole` is declared in precedence order, BROKER first.
@@ -256,5 +261,6 @@ export function qaPrincipal(input: QaPrincipalInput): Principal {
     isGuest: false,
     authTime: Math.floor(authTime.getTime() / 1000),
     brokerId: QA_PRINCIPAL.brokerIds[role],
+    automation: true,
   };
 }

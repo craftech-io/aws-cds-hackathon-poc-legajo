@@ -23,6 +23,7 @@ const form = (overrides: Record<string, unknown> = {}) => ({
   formToken: "f".repeat(40),
   email: " Ana.Gomez@Example-Fict.com.ar ",
   password: PASSWORD,
+  phone: "+54 9 11 5555-0102",
   consents: { terms: true, contact: false },
   consentVersions: VERSIONS,
   lang: "es",

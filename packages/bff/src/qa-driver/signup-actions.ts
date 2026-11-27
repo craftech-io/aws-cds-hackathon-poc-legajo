@@ -9,6 +9,9 @@
 //                    title, email or user name): consents, language, UTM, dates, mail status, notice
 //                    status, the branch of its latest sign-up, the leased world and the counts by hash
 //   lead.purge       the same module as `npm run leads:delete` (leads/delete.ts)
+//   account.markAutomation  the server-side mark of an automation account on the mailbox's user
+//                    (ADR-0021 §8): SC-26's sign-ins pass without an SMS no one could read; such an
+//                    account never enrols a phone, so it never becomes a lead (only its draft exists)
 //
 // The word check reads the closed list of ADR-0014 from its single source (scripts/lint/neutral-words.ts).
 import { ToolError } from "@legajo/shared";
@@ -20,6 +23,7 @@ import type { TableClient } from "../connector/index";
 import { type SecretKey, leadEmailHash } from "../lib/crypto";
 import { type LeadDeleteDeps, deleteLead } from "../leads/delete";
 import type { LeadStore } from "../leads/store";
+import type { PhoneStore } from "../phone-verification/store";
 import { detectLanguage } from "../services/language";
 import type { SignupCognito } from "../signup/cognito";
 import type { SignupStore } from "../signup/store";
@@ -40,7 +44,8 @@ export interface SignupActionDeps {
   readonly mail: AccountMailReader;
   /** `Runtime` (`MAILSTATUS#`, `GUESTWORLD#`) and `Leads`, through the connector's client. */
   readonly client: TableClient;
-  readonly leads: Pick<LeadStore, "get" | "delete" | "putTombstone">;
+  readonly leads: Pick<LeadStore, "get" | "delete" | "putTombstone" | "getDraft" | "deleteDraft">;
+  readonly phones: Pick<PhoneStore, "forgetAccount" | "markAutomation" | "getAccount">;
   readonly signups: Pick<SignupStore, "listPending" | "delete">;
   readonly cognito: Pick<SignupCognito, "findByEmail" | "deleteUser">;
   readonly invoker: LeadDeleteDeps["invoker"];
@@ -116,24 +121,30 @@ async function inspectLead(deps: SignupActionDeps, input: QaParsedInput<"lead.in
   const latest = pending.filter((signup) => signup.emailHash === emailHash).sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0];
   const leases = await Promise.all(users.flatMap((user) => (user.sub === undefined ? [] : [readAccountWorld(deps.client, user.sub)])));
   const lease = leases.find((candidate) => candidate?.firmId !== undefined);
+  // Before the phone is verified the sign-up's lead is a draft (ADR-0021): the same facts, from it.
+  const drafts = (await Promise.all(users.map((user) => deps.leads.getDraft(user.username, ctx.now())))).flatMap((draft) => (draft === undefined ? [] : [draft]));
+  const phones = await Promise.all(users.flatMap((user) => (user.sub === undefined ? [] : [deps.phones.getAccount(user.sub)])));
+  const source = lead ?? drafts[0];
   return {
     exists: lead !== undefined,
     leads: lead === undefined ? 0 : 1,
+    drafts: drafts.length,
     users: users.length,
-    ...(lead === undefined
+    phoneVerified: phones.some((phone) => phone?.verifiedAt !== undefined),
+    automation: phones.some((phone) => phone?.automation !== undefined),
+    ...(source === undefined
       ? {}
       : {
-          consents: { terms: { ...consentOf(lead.consents.terms), privacyVersion: lead.consents.terms.privacyVersion }, contact: consentOf(lead.consents.contact) },
-          language: lead.language,
-          utm: lead.utm,
-          ...(lead.referrer === undefined ? {} : { referrer: lead.referrer }),
-          signupAt: lead.signupAt,
-          confirmedAt: lead.confirmedAt,
-          ...(lead.lastLoginAt === undefined ? {} : { lastLoginAt: lead.lastLoginAt }),
-          noticeStatus: lead.noticeStatus,
-          /** Which optional fields the lead holds, never their values. */
-          optionalFields: (["name", "company", "jobTitle"] as const).filter((field) => lead[field] !== undefined),
+          consents: { terms: { ...consentOf(source.consents.terms), privacyVersion: source.consents.terms.privacyVersion }, contact: consentOf(source.consents.contact) },
+          language: source.language,
+          utm: source.utm,
+          ...(source.referrer === undefined ? {} : { referrer: source.referrer }),
+          signupAt: source.signupAt,
+          confirmedAt: source.confirmedAt,
+          /** Which optional fields the lead (or its draft) holds, never their values. */
+          optionalFields: (["name", "company", "jobTitle"] as const).filter((field) => source[field] !== undefined),
         }),
+    ...(lead === undefined ? {} : { noticeStatus: lead.noticeStatus, ...(lead.lastLoginAt === undefined ? {} : { lastLoginAt: lead.lastLoginAt }) }),
     emailStatus: mailStatus?.status ?? null,
     branch: latest?.branch ?? null,
     pendingVerified: latest?.verifiedAt !== undefined,
@@ -145,14 +156,23 @@ async function purgeLead(deps: SignupActionDeps, input: QaParsedInput<"lead.purg
   const mailbox = signupMailbox(ctx.idempotencyKey, input.key);
   assertSignupMailbox(mailbox, ctx.idempotencyKey);
   const deletion = await deleteLead({ ...deps, now: ctx.now }, mailbox, "REQUEST");
-  return { purged: deletion.leadId !== undefined, users: deletion.users, worldsDestroyed: deletion.worldsDestroyed };
+  return { purged: deletion.leadId !== undefined || deletion.users > 0, users: deletion.users, worldsDestroyed: deletion.worldsDestroyed };
 }
 
-/** The three actions over their ports (built on first use: a run without SC-26 never reaches them). */
+async function markAutomation(deps: SignupActionDeps, input: QaParsedInput<"account.markAutomation">, ctx: ActionContext) {
+  const mailbox = signupMailbox(ctx.idempotencyKey, input.key);
+  assertSignupMailbox(mailbox, ctx.idempotencyKey);
+  const users = (await deps.cognito.findByEmail(mailbox)).filter((user) => user.sub !== undefined);
+  for (const user of users) await deps.phones.markAutomation(user.sub ?? "", "QA_SIGNUP", ctx.now());
+  return { marked: users.length };
+}
+
+/** The four actions over their ports (built on first use: a run without SC-26 never reaches them). */
 export function signupActions(deps: () => SignupActionDeps) {
   return {
     "signup.readCode": (input: QaParsedInput<"signup.readCode">, ctx: ActionContext) => readCode(deps(), input, ctx),
     "lead.inspect": (input: QaParsedInput<"lead.inspect">, ctx: ActionContext) => inspectLead(deps(), input, ctx),
     "lead.purge": (input: QaParsedInput<"lead.purge">, ctx: ActionContext) => purgeLead(deps(), input, ctx),
+    "account.markAutomation": (input: QaParsedInput<"account.markAutomation">, ctx: ActionContext) => markAutomation(deps(), input, ctx),
   };
 }

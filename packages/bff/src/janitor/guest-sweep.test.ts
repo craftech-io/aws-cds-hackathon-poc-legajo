@@ -10,7 +10,7 @@ import { leadEmailHash } from "../lib/crypto";
 import { createLogger } from "../lib/log";
 import { LEADS_TABLE, tombKey } from "../leads/lead";
 import { type TestAccess, testAccessDeps } from "../signup/testing";
-import { startSignup } from "../signup/testing-flows";
+import { draftOf, startSignup } from "../signup/testing-flows";
 import { createWorld } from "../worlds/factory";
 import { slotKey } from "../worlds/guest-slots";
 import { worldsHarness } from "../worlds/testing";
@@ -51,7 +51,7 @@ describe("[FL-122] the hourly sweep of sign-ups and leads", () => {
     }
     hours(1);
     expect((await sweepSignupsAndLeads(access, log)).finalized).toBe(1);
-    expect(await leadOf(EMAIL)).toBeDefined();
+    expect(await draftOf(access, EMAIL)).toBeDefined();
     expect(access.cognito.users.get(username)?.groups).toEqual(["GUEST"]);
   });
 

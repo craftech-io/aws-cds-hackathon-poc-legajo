@@ -26,6 +26,7 @@ import { readUsage } from "../worlds/guest-quotas";
 import { isPublicGuestFirm, readSlot, worldStateOf } from "../worlds/guest-slots";
 import { liveAccountWorld } from "../worlds/guest-worlds";
 import { markGuestActivity } from "./guest-activity";
+import { assertPhoneCleared } from "./phone-gate";
 import { type Context, type FirmContext, accountProcedure, enterFirm, guestBootstrapProcedure, isGuestWorldGone, publicProcedure, router } from "./trpc";
 
 /**
@@ -133,6 +134,7 @@ export const accountRouter = router({
         if (guest === undefined || !isGuestWorldGone(error)) throw error;
       }
     }
+    await assertPhoneCleared(ctx, guest, path);
     await recordLogin(ctx, guest);
     return bootstrapSession(ctx, guest);
   }),

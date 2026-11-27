@@ -5,6 +5,7 @@
 // broker bound to the capture's synthetic guest, and its clock paused at the moment's simulated time.
 import { readFileSync } from "node:fs";
 import type { MemoryStores } from "@legajo/bff/connector/index";
+import { createPhoneStore } from "@legajo/bff/phone-verification/store";
 import { GUEST_TEMPLATE_CLOCK, GUEST_TEMPLATE_FIRM, START_AT_SIM } from "../../../scripts/seed/lib/constants";
 import { WorldTemplateFile } from "../../../scripts/seed/lib/files";
 import type { SeedItem } from "../../../scripts/seed/lib/items";
@@ -41,8 +42,12 @@ export function instantiateGuestWorld(template: WorldTemplateFile): Promise<Gues
 
 const LOADED_TABLES = ["Firms", "Parties", "Operations", "Conversations", "AuditLog", "LegajoMetrics"] as const;
 
-/** Loads `tables` into the stores and creates the world's clock, paused at `pausedSimNow`. */
+/**
+ * Loads `tables` into the stores and creates the world's clock, paused at `pausedSimNow`. The capture's
+ * synthetic guest is an automation account (ADR-0021 §8): its sessions never wait for an SMS code.
+ */
 export async function loadGuestWorld(stores: MemoryStores, tables: GuestTables, pausedSimNow: string): Promise<void> {
+  await createPhoneStore(stores.client).markAutomation(CAPTURE_GUEST.sub, "SCENARIO_RUNNER", new Date(Date.parse(START_AT_SIM)));
   for (const table of LOADED_TABLES) {
     const items = tables[table];
     if (items.length > 0) await stores.seed.loadItems(table, items as never);

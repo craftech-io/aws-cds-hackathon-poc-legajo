@@ -16,7 +16,9 @@ export type SecretKey = string | Uint8Array;
  * The public sign-up adds five (ADR-0015 §9): `signup-ticket` (the ticket `AuthPreSignUp` checks),
  * `signup-seal` (the password in transit to `SignupDispatch`), `lead-email` (`Leads/EMAIL#` and
  * `Runtime/MAILSTATUS#`), `rate` (IP and domain of the rate-limit counters) and `form` (`formShownAt`);
- * `cognito-caller` marks the Cognito calls of `SignupDispatch` for the user pool's web ACL.
+ * `cognito-caller` marks the Cognito calls of `SignupDispatch` for the user pool's web ACL. The SMS code
+ * of every sign-in (ADR-0021) adds two: `account-phone` (the index of a verified number, one account
+ * each) and `phone-code` (the only form a code is stored in).
  */
 export const SUBKEY_PURPOSES = [
   "session",
@@ -32,6 +34,8 @@ export const SUBKEY_PURPOSES = [
   "rate",
   "form",
   "cognito-caller",
+  "account-phone",
+  "phone-code",
 ] as const;
 export type SubkeyPurpose = (typeof SUBKEY_PURPOSES)[number];
 

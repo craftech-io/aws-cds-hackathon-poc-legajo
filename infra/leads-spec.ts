@@ -29,11 +29,13 @@ export interface LeadsAccess {
 }
 
 export const LEADS_ACCESS: Readonly<Record<LeadsRole, LeadsAccess>> = {
-  // signup.* writes and reads SIGNUP#; finalizeSignup writes the lead (conditional) and deletes
-  // SIGNUP#; account.session raises lastLoginAt. Never DELETED#.
+  // signup.* writes and reads SIGNUP#; finalizeSignup merges a lead (conditional) or keeps its DRAFT#
+  // and deletes SIGNUP#; the SMS code of every sign-in (ADR-0021) reads and writes PHONE#<sub> and the
+  // index PHONENUM#, and the enrolment turns the DRAFT# into the lead; account.session raises
+  // lastLoginAt. Never DELETED#.
   Bff: {
     actions: ["dynamodb:ConditionCheckItem", "dynamodb:DeleteItem", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query", "dynamodb:UpdateItem"],
-    leadingKeys: ["EMAIL#*", "SIGNUP#*"],
+    leadingKeys: ["EMAIL#*", "SIGNUP#*", "DRAFT#*", "PHONE#*", "PHONENUM#*"],
   },
   // Only its own SIGNUP# (dispatchSeq, branch, REMOVE passwordSealed); never writes a lead (§1.4).
   SignupDispatch: { actions: ["dynamodb:DeleteItem", "dynamodb:GetItem", "dynamodb:UpdateItem"], leadingKeys: ["SIGNUP#*"] },

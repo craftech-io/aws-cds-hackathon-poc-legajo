@@ -50,9 +50,13 @@ export async function signupFromLanding(page: Page, query: string): Promise<URL>
   return new URL(page.url());
 }
 
+/** The form's mobile of SC-26: fictitious (555 range); its accounts are automation accounts and never get an SMS (ADR-0021 §8). */
+export const SC26_PHONE = "+15555550100";
+
 export interface SignupFields {
   readonly email: string;
   readonly password: string;
+  readonly phone?: string;
   readonly name?: string;
   readonly company?: string;
   readonly jobTitle?: string;
@@ -64,6 +68,7 @@ export async function submitSignup(page: Page, t: AuthCopy, fields: SignupFields
   await expect(page.locator("#signup-contact")).not.toBeChecked();
   await page.waitForTimeout(HUMAN_PAUSE_MS);
   await page.getByLabel(t.signup.email).fill(fields.email);
+  await page.getByLabel(t.signup.phone).fill(fields.phone ?? SC26_PHONE);
   await page.getByLabel(t.signup.password, { exact: true }).fill(fields.password);
   if (fields.name !== undefined) await page.getByLabel(t.signup.name).fill(fields.name);
   if (fields.company !== undefined) await page.getByLabel(t.signup.company).fill(fields.company);

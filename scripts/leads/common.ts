@@ -8,6 +8,7 @@ import { authConfig } from "../../packages/bff/src/auth/config";
 import { type TableClient, tableClient } from "../../packages/bff/src/connector/index";
 import { subkey } from "../../packages/bff/src/lib/secrets";
 import { type LeadStore, createLeadStore } from "../../packages/bff/src/leads/store";
+import { type PhoneStore, createPhoneStore } from "../../packages/bff/src/phone-verification/store";
 import { type SignupCognito, createSignupCognito } from "../../packages/bff/src/signup/cognito";
 import { type AsyncInvoker, lambdaAsyncInvoker } from "../../packages/bff/src/signup/invoke";
 import { type SignupStore, createSignupStore } from "../../packages/bff/src/signup/store";
@@ -18,6 +19,8 @@ export const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 export interface LeadScriptDeps {
   readonly client: TableClient;
   readonly leads: LeadStore;
+  /** The account's phone items (ADR-0021): `leads:delete` removes them with the account. */
+  readonly phones: PhoneStore;
   readonly signups: SignupStore;
   readonly cognito: SignupCognito;
   readonly invoker: AsyncInvoker;
@@ -31,6 +34,7 @@ export function stageDeps(): LeadScriptDeps {
   return {
     client,
     leads: createLeadStore(client),
+    phones: createPhoneStore(client),
     signups: createSignupStore(client),
     cognito: createSignupCognito(authConfig()),
     invoker: lambdaAsyncInvoker(),

@@ -14,6 +14,7 @@ import { healthReport } from "./health";
 import { mailboxRouter } from "./mailbox";
 import { metricsRouter } from "./metrics";
 import { operationsRouter } from "./operations";
+import { phoneProcedures } from "./phone";
 import { registryRouter } from "./registry";
 import { signupRouter } from "./signup";
 import { simulatorRouter } from "./simulator";
@@ -23,8 +24,11 @@ import { type Context, createCallerFactory, mergeRouters, publicProcedure, route
 export const appRouter = router({
   /** No principal, no data: the function answers, and so do the mocks it calls with its role. */
   health: publicProcedure.query(({ ctx }) => healthReport(ctx.deps.health, ctx.log)),
-  /** `session` and `usage` (account.ts), `ensureWorld` and `world` of a guest's world (guest-world.ts, WP-31). */
-  account: mergeRouters(accountRouter, router(guestWorldProcedures)),
+  /**
+   * `session` and `usage` (account.ts), `ensureWorld` and `world` of a guest's world (guest-world.ts, WP-31),
+   * and the SMS code of the session (phone.ts, ADR-0021).
+   */
+  account: mergeRouters(accountRouter, router(guestWorldProcedures), router(phoneProcedures)),
   activity: activityRouter,
   audit: auditRouter,
   clock: clockRouter,

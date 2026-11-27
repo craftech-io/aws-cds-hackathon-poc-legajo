@@ -85,8 +85,8 @@ export async function ageSignup(request: APIRequestContext, serverUrl: string, e
  * A public guest that already verified its email, without a world. Its world, once asked for, is built
  * like any visitor's: the seed's `guest` template through the real world factory (tests/ui-server/auth/guest-world.ts).
  */
-export async function createVerifiedGuest(request: APIRequestContext, serverUrl: string, email: string, password: string): Promise<void> {
-  const answer = await request.post(`${serverUrl}${TEST_PREFIX}users`, { data: { email, password } });
+export async function createVerifiedGuest(request: APIRequestContext, serverUrl: string, email: string, password: string, options: { readonly automation?: boolean } = {}): Promise<void> {
+  const answer = await request.post(`${serverUrl}${TEST_PREFIX}users`, { data: { email, password, automation: options.automation ?? true } });
   if (!answer.ok()) throw new Error(`could not create the test guest (${answer.status()})`);
 }
 
@@ -117,4 +117,21 @@ export async function invocations(request: APIRequestContext, serverUrl: string)
 
 export async function revokedCount(request: APIRequestContext, serverUrl: string): Promise<number> {
   return ((await (await request.get(`${serverUrl}${TEST_PREFIX}revoked`)).json()) as { count: number }).count;
+}
+
+/** The last SMS code the in-memory sender kept for `to` (ADR-0021); `undefined` if none came. */
+export async function lastSms(request: APIRequestContext, serverUrl: string, to: string, attempts = 20): Promise<string | undefined> {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const answer = await request.get(`${serverUrl}${TEST_PREFIX}sms?to=${encodeURIComponent(to)}`);
+    if (answer.ok()) return ((await answer.json()) as { code: string }).code;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+  return undefined;
+}
+
+/** A fictitious mobile of the mailbox's own (one number per account, as the BFF requires). */
+export function testPhone(mailbox: string): string {
+  let hash = 0;
+  for (const char of mailbox) hash = (hash * 31 + char.charCodeAt(0)) % 10_000_000;
+  return `+549115${String(hash).padStart(7, "0")}`;
 }

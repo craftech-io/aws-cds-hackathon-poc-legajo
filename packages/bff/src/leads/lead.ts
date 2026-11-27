@@ -1,7 +1,10 @@
 // Items of the `Leads` table (ADR-0015 §2 and §6), separate from every table of the demo:
 //
 //   SIGNUP#<signupId> / PENDING   a sign-up until it is verified and finalized (DynamoDB TTL 24 h)
-//   EMAIL#<emailHash> / LEAD      a lead: always a verified email with a GUEST account (§1.4)
+//   DRAFT#<username>  / LEAD      what a finalized sign-up knows of its lead, until the account
+//                                 verifies its phone (ADR-0021; DynamoDB TTL 30 days)
+//   EMAIL#<emailHash> / LEAD      a lead: always a verified email and a verified phone with a GUEST
+//                                 account (§1.4, ADR-0021)
 //   DELETED#<leadId>  / TOMB      that a lead was deleted, when and why, with no personal data
 //
 // `emailHash` is HMAC(K_lead-email, normalized email), the same key as `Runtime/MAILSTATUS#`.
@@ -63,6 +66,9 @@ export const Lead = z.object({
   signupAt: Instant,
   confirmedAt: Instant,
   lastLoginAt: Instant.optional(),
+  /** E.164, verified by the SMS code (ADR-0021); absent on leads born before the phone was asked for. */
+  phone: z.string().max(16).optional(),
+  phoneVerifiedAt: Instant.optional(),
   cognitoUsername: z.string().min(1).max(128),
   noticeStatus: NoticeStatus,
   noticeAttempts: z.number().int().min(0).default(0),
@@ -77,6 +83,8 @@ export const PendingSignup = z.object({
   username: z.string().regex(/^usr-[0-9a-z]{26}$/),
   email: z.string().min(3).max(254),
   emailHash: EmailHash,
+  /** E.164 of the form, verified only later by the SMS code (ADR-0021); absent on a sign-up started before the form asked for it. */
+  phone: z.string().max(16).optional(),
   name: Text80.optional(),
   company: Text80.optional(),
   jobTitle: Text80.optional(),
@@ -109,6 +117,26 @@ export const PendingSignup = z.object({
 });
 export type PendingSignup = z.output<typeof PendingSignup>;
 
+/** The lead a finalized sign-up will become once its account verifies the phone (ADR-0021). */
+export const LeadDraft = z.object({
+  username: z.string().min(1).max(128),
+  email: z.string().min(3).max(254),
+  emailHash: EmailHash,
+  /** The number of the form, to prefill the phone screen. */
+  phone: z.string().max(16).optional(),
+  name: Text80.optional(),
+  company: Text80.optional(),
+  jobTitle: Text80.optional(),
+  consents: LeadConsents,
+  language: Language,
+  utm: Utm.default({}),
+  referrer: z.string().max(200).optional(),
+  signupAt: Instant,
+  confirmedAt: Instant,
+  expiresAt: z.number().int(),
+});
+export type LeadDraft = z.output<typeof LeadDraft>;
+
 export const Tombstone = z.object({ leadId: LeadId, deletedAt: Instant, reason: z.enum(["REQUEST", "RETENTION"]) });
 export type Tombstone = z.infer<typeof Tombstone>;
 
@@ -118,6 +146,10 @@ export function signupKey(signupId: string): Key {
 
 export function leadKey(emailHash: string): Key {
   return { PK: `EMAIL#${emailHash}`, SK: "LEAD" };
+}
+
+export function draftKey(username: string): Key {
+  return { PK: `DRAFT#${username}`, SK: "LEAD" };
 }
 
 export function tombKey(leadId: string): Key {

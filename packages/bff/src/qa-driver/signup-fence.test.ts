@@ -8,6 +8,7 @@ import type { MemoryStores } from "../connector/index";
 import { memoryStores } from "../connector/testing";
 import { leadEmailHash } from "../lib/crypto";
 import { createLogger } from "../lib/log";
+import { isSessionCleared } from "../phone-verification/service";
 import { signupConfirm } from "../signup/service";
 import { type TestAccess, testAccessDeps } from "../signup/testing";
 import { startSignup } from "../signup/testing-flows";
@@ -106,7 +107,8 @@ describe("SC-26's actions over the stores of the sign-up", () => {
 
   it("[FL-115] inspects the lead with no personal data: consents, language, UTM, dates, counts and which optional fields exist", async () => {
     const inspected = await signupActions(() => deps(mailbox([])))["lead.inspect"]({ key: "a" }, context());
-    expect(inspected).toMatchObject({ exists: true, leads: 1, users: 1, language: "es", utm: { source: "qa", campaign: "sc26" }, consents: { terms: { accepted: true }, contact: { accepted: true } }, optionalFields: ["name", "company"] });
+    // Before the phone the lead is a draft (ADR-0021): the same facts, with no lead and no notice yet.
+    expect(inspected).toMatchObject({ exists: false, leads: 0, drafts: 1, users: 1, phoneVerified: false, automation: false, language: "es", utm: { source: "qa", campaign: "sc26" }, consents: { terms: { accepted: true }, contact: { accepted: true } }, optionalFields: ["name", "company"] });
     const text = JSON.stringify(inspected);
     for (const personal of [MAILBOX, "Ana", "Despachos", "usr-"]) expect(text, personal).not.toContain(personal);
     expect(await signupActions(() => deps(mailbox([])))["lead.inspect"]({ key: "b" }, context())).toMatchObject({ exists: false, leads: 0, users: 0 });
@@ -117,9 +119,26 @@ describe("SC-26's actions over the stores of the sign-up", () => {
     await startSignup(access, { email: other });
     const purged = await signupActions(() => deps(mailbox([])))["lead.purge"]({ key: "a" }, context("812-1/sc26/13/m1"));
     expect(purged).toMatchObject({ purged: true, users: 1 });
+    expect(await signupActions(() => deps(mailbox([])))["lead.inspect"]({ key: "a" }, context())).toMatchObject({ drafts: 0, users: 0 });
     expect(await access.leads.get(leadEmailHash(access.keys.leadEmail, MAILBOX))).toBeUndefined();
     expect(await access.cognito.findByEmail(MAILBOX)).toEqual([]);
     expect(await access.cognito.findByEmail(other)).toHaveLength(1);
     expect(await signupActions(() => deps(mailbox([])))["lead.purge"]({ key: "a" }, context("812-1/sc26/999/m1"))).toMatchObject({ purged: false, users: 0 });
+  });
+});
+
+describe("[FL-136] account.markAutomation", () => {
+  it("marks only the run's own mailbox's user, server side; its sessions pass without an SMS and it never becomes a lead", async () => {
+    const stores = memoryStores();
+    const access = testAccessDeps(stores, { now: () => NOW });
+    const { signupId } = await startSignup(access, { email: MAILBOX });
+    const username = (await access.signups.get(signupId, NOW))?.accountUsername ?? "";
+    await signupConfirm(access, { signupId, code: access.cognito.lastCode(username) ?? "", password: "Quince-Caballos-7" }, { ipHash: "ip-a", log });
+    const deps = (): SignupActionDeps => ({ ...access, mail: mailbox([]), leadEmailKey: access.keys.leadEmail });
+    expect(await signupActions(deps)["account.markAutomation"]({ key: "a" }, context())).toEqual({ marked: 1 });
+    const sub = access.cognito.users.get(username)?.sub ?? "";
+    expect(await isSessionCleared(access, sub, "any-session")).toBe(true);
+    expect(await signupActions(deps)["lead.inspect"]({ key: "a" }, context())).toMatchObject({ automation: true, leads: 0, drafts: 1 });
+    expect(await signupActions(deps)["account.markAutomation"]({ key: "b" }, context())).toEqual({ marked: 0 });
   });
 });

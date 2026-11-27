@@ -37,9 +37,9 @@ interface Registered {
  * and appends an entry here; an existing entry is never edited.
  */
 const REGISTERED: Readonly<Record<TextId, Registered>> = {
-  "privacy-page": { governedBy: "privacy", history: [{ version: "2026-10-02", sha256: "82e50eec0159ffb936a95565e86a68004b5a55d56dd993202e535d22cc108a25" }, { version: "2026-10-04", sha256: "fd539d9257e40519b209b98819202c3fd717d32df81f802a43f471b8c3fbc4b6" }] },
-  "terms-page": { governedBy: "terms", history: [{ version: "2026-10-02", sha256: "c02dc92d10cb55232c660f9f8d155afbf7da854159a713fead435666d0e096f6" }] },
-  "consent-terms": { governedBy: "terms", history: [{ version: "2026-10-02", sha256: "f96deb2e3af4fdd451ce543fd401d36c1f30618b74ec33650c914d0f756454d3" }] },
+  "privacy-page": { governedBy: "privacy", history: [{ version: "2026-10-02", sha256: "82e50eec0159ffb936a95565e86a68004b5a55d56dd993202e535d22cc108a25" }, { version: "2026-10-04", sha256: "fd539d9257e40519b209b98819202c3fd717d32df81f802a43f471b8c3fbc4b6" }, { version: "2026-11-27", sha256: "4ace133f5cadedb4d44973b30e8b440f5b6a1c72151bfd7db0ba90ba90891d5d" }] },
+  "terms-page": { governedBy: "terms", history: [{ version: "2026-10-02", sha256: "c02dc92d10cb55232c660f9f8d155afbf7da854159a713fead435666d0e096f6" }, { version: "2026-11-27", sha256: "3e279ff2812a3076e7c5149b48959d998514551f8f29834bcb7098a1cae3fe81" }] },
+  "consent-terms": { governedBy: "terms", history: [{ version: "2026-10-02", sha256: "f96deb2e3af4fdd451ce543fd401d36c1f30618b74ec33650c914d0f756454d3" }, { version: "2026-11-27", sha256: "d697d232c5892fb355b70769236a180aeb59013c7e7c2f20112f9d6325162c50" }] },
   "consent-contact": { governedBy: "contact", history: [{ version: "2026-10-02", sha256: "6b6b7602fcfbe42dfc839cf74d9ecc12a27e064c4f208d20bd70e8ef455f1eec" }] },
 };
 
@@ -318,7 +318,7 @@ describe("[FL-119] consent texts of the sign-up form", () => {
         expect(consentPlainText(kind, lang), `${kind} ${lang}`).toMatch(/\.$/);
       }
     }
-    expect(consentPlainText("terms", "es")).toBe("Acepto los términos y la política de privacidad.");
+    expect(consentPlainText("terms", "es")).toBe("Acepto los términos y la política de privacidad. Mi celular se usa para verificar la cuenta por SMS.");
     expect(consentPlainText("contact", "en")).toBe("I agree that Craftech may contact me about this solution.");
   });
 

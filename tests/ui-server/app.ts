@@ -25,6 +25,7 @@ import { appRouter } from "@legajo/bff/routers/index";
 import { bindConsoleServices } from "@legajo/bff/routers/console-services";
 import { GUEST_FIRM, SUBS, seedConsoleWorld } from "@legajo/bff/routers/testing";
 import { createContextFactory } from "@legajo/bff/routers/trpc";
+import { isSessionCleared } from "@legajo/bff/phone-verification/service";
 import type { Context as LambdaContext } from "aws-lambda";
 import type { Jwks } from "aws-jwt-verify/jwk";
 import { type LocalAccess, createLocalAccess } from "./auth/access";
@@ -71,7 +72,7 @@ const CONTENT_SHA256_HEADER = "x-amz-content-sha256";
 const E2E_VIEWER_HEADER = "x-e2e-viewer-ip";
 const IPV4 = /^(?:\d{1,3}\.){3}\d{1,3}$/;
 
-function contextDeps(verifier: ContextDeps["verifier"], options: UiAppOptions, stores: MemoryStores, now: () => Date): ContextDeps {
+function contextDeps(verifier: ContextDeps["verifier"], options: UiAppOptions, stores: MemoryStores, now: () => Date, phoneGate: ContextDeps["phoneGate"]): ContextDeps {
   return {
     verifier,
     brokers: createBrokerDirectory(brokerLookupOf(stores.connector.firms), now),
@@ -80,6 +81,7 @@ function contextDeps(verifier: ContextDeps["verifier"], options: UiAppOptions, s
     documents: { sign: (key) => Promise.resolve(`${options.origin}/s3/${LOCAL_BUCKETS.documents}/${key}`) },
     whatsappMode: () => "simulated",
     health: [],
+    phoneGate,
     wallClock: now,
     loggerFor: (correlationId) => createLogger({ correlationId, level: "warn", bindings: { service: "ui-server" } }),
   };
@@ -141,7 +143,11 @@ export async function createUiApp(options: UiAppOptions): Promise<UiApp> {
   const cognito = new BrowserCognito(access.pool, issuer, realPreToken(stores, options.pool.userPoolId), now);
   const accessDeps = withGuestWorlds(access.deps, worlds);
   const local = createLocalConsoleServices(stores, now, s3PdfPresigner({ bucket: LOCAL_BUCKETS.media, client: emulatorClient(options.origin), origin: options.origin }));
-  const consoleDeps = bindConsoleServices(contextDeps(verifier, options, stores, now), local.services);
+  // The real second factor of ADR-0021 over the same stores; the personas the specs plant are automation
+  // accounts of this server (marked server side), every visitor who signs up passes the SMS code.
+  for (const sub of Object.values(SUBS)) await access.deps.phones.markAutomation(sub, "SCENARIO_RUNNER", now());
+  const phoneGate = (sub: string, sessionId: string) => isSessionCleared(access.deps, sub, sessionId);
+  const consoleDeps = bindConsoleServices(contextDeps(verifier, options, stores, now, phoneGate), local.services);
   const originKey = randomBytes(32).toString("base64");
   const edge = { originVerifyKey: () => originKey };
   const bff = createHandler(

@@ -4,7 +4,8 @@
 //   1 the account's world: a leased one is destroyed by `WorldJanitor` (`GUEST_DESTROY {firmId,
 //     reason, sub}`, with every S3 object of the world; it releases the slot by `SLOT#GUEST#<nn>`),
 //     and the account's lease `GUESTWORLD#<sub>` and preferences `ACCOUNT#<sub>` are deleted here either way
-//   2 every Cognito user of the email (`AdminDeleteUser`)
+//   2 every Cognito user of the email (`AdminDeleteUser`), with its lead draft and its phone items
+//     (`DRAFT#`, `PHONE#<sub>`, the index `PHONENUM#` of its number; ADR-0021)
 //   3 the lead, the pending sign-ups of the email, `MAILSTATUS#` and the counters of its mailbox
 //   4 `DELETED#<leadId>` with when and why, without any personal data
 //
@@ -20,11 +21,13 @@ import type { AsyncInvoker } from "../signup/invoke";
 import { forgetEmailCounters } from "../signup/rate-limits";
 import type { SignupStore } from "../signup/store";
 import { accountWorldKey, readAccountWorld } from "../worlds/guest-slots";
+import type { PhoneStore } from "../phone-verification/store";
 import type { LeadStore } from "./store";
 
 export interface LeadDeleteDeps {
   readonly client: TableClient;
-  readonly leads: Pick<LeadStore, "get" | "delete" | "putTombstone">;
+  readonly leads: Pick<LeadStore, "get" | "delete" | "putTombstone" | "deleteDraft">;
+  readonly phones: Pick<PhoneStore, "forgetAccount">;
   readonly signups: Pick<SignupStore, "listPending" | "delete">;
   readonly cognito: Pick<SignupCognito, "findByEmail" | "deleteUser">;
   readonly invoker: AsyncInvoker;
@@ -57,7 +60,9 @@ export async function deleteLead(deps: LeadDeleteDeps, email: string, reason: "R
       }
       if (lease !== undefined) await deps.client.delete(RUNTIME_TABLE, accountWorldKey(user.sub));
       await deps.client.delete(RUNTIME_TABLE, accountPreferencesKey(user.sub));
+      await deps.phones.forgetAccount(user.sub);
     }
+    await deps.leads.deleteDraft(user.username);
     await deps.cognito.deleteUser(user.username);
   }
   for (const signup of await deps.signups.listPending(now)) if (signup.emailHash === emailHash) await deps.signups.delete(signup.signupId);

@@ -13,7 +13,9 @@
 // appended to `guest-credentials.local.json` (git-ignored, mode 0600) for the operator to hand over
 // through a private channel. A broker or analyst gets Cognito's invitation email with a temporary
 // password, the group of its broker row, and the row is bound to the new user's `sub` (the seed keeps
-// that binding across reloads).
+// that binding across reloads). `guest-test` is the scenario runner's account, which no person uses and
+// no phone receives: the script puts on it the server-side automation mark that lets its sign-ins skip
+// the SMS code (ADR-0021 §8, `Leads/PHONE#<sub>`); every other account passes the code at each sign-in.
 import { createHash, randomInt } from "node:crypto";
 import { chmodSync, existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -30,7 +32,7 @@ export const PASSWORD_LENGTH = 20;
 const CLASSES = ["ABCDEFGHJKLMNPQRSTUVWXYZ", "abcdefghijkmnopqrstuvwxyz", "23456789", "!#%+-=?@^_"] as const;
 
 export type InvitePlan =
-  | { readonly kind: "GUEST"; readonly username: string; readonly firmId: string; readonly password: "GENERATE" | "FROM_ENV"; readonly resetPassword: boolean }
+  | { readonly kind: "GUEST"; readonly username: string; readonly firmId: string; readonly password: "GENERATE" | "FROM_ENV"; readonly resetPassword: boolean; readonly automation?: true }
   | { readonly kind: "BROKER"; readonly username: string; readonly email: string; readonly firmId: string; readonly brokerId: string };
 
 export interface InviteArgs {
@@ -69,7 +71,7 @@ export function planInvite(args: InviteArgs): InvitePlan {
   const guest = args.guest !== undefined || args.guestTest === true;
   const broker = args.email !== undefined || args.firm !== undefined || args.broker !== undefined;
   if (guest === broker || (args.guest !== undefined && args.guestTest === true)) throw new RangeError("choose one of --guest <n>, --guest-test, or --email with --firm and --broker");
-  if (args.guestTest) return { kind: "GUEST", username: "guest-test", firmId: "firm-guest-test", password: "FROM_ENV", resetPassword: args.resetPassword === true };
+  if (args.guestTest) return { kind: "GUEST", username: "guest-test", firmId: "firm-guest-test", password: "FROM_ENV", resetPassword: args.resetPassword === true, automation: true };
   if (args.guest !== undefined) {
     const number = Number(args.guest);
     // Only the reserved slots: a public slot (31–90) may be leased to a visitor's world (ADR-0015 §4).
@@ -107,6 +109,8 @@ export interface InviteDeps {
   addToGroup(username: string, group: ConsoleRole): Promise<void>;
   brokerRole(firmId: string, brokerId: string): Promise<ConsoleRole>;
   bindBroker(firmId: string, brokerId: string, sub: string): Promise<void>;
+  /** The server-side mark of an automation account: its sign-ins never ask for the SMS code (ADR-0021 §8). */
+  markAutomation(sub: string): Promise<void>;
   guestTestPassword(): string | undefined;
   /** Keeps a generated password for the operator; never printed. */
   saveCredential(username: string, firmId: string, password: string): void;
@@ -132,7 +136,7 @@ export async function runInvite(plan: InvitePlan, deps: InviteDeps): Promise<voi
   }
   const existing = await deps.findUser(plan.username);
   assertSameFirm(existing, plan.username, plan.firmId);
-  if (existing === undefined) await deps.createUser({ username: plan.username, firmId: plan.firmId });
+  const { sub } = existing ?? (await deps.createUser({ username: plan.username, firmId: plan.firmId }));
   if (existing === undefined || plan.resetPassword) {
     const password = plan.password === "FROM_ENV" ? deps.guestTestPassword() : generatePassword();
     if (!password) throw new RangeError(`${GUEST_TEST_PASSWORD_ENV} is required for guest-test`);
@@ -141,6 +145,7 @@ export async function runInvite(plan: InvitePlan, deps: InviteDeps): Promise<voi
   }
   await deps.disableMfa(plan.username);
   await deps.addToGroup(plan.username, "GUEST");
+  if (plan.automation === true) await deps.markAutomation(sub);
   const passwordNote = existing !== undefined && !plan.resetPassword ? "password unchanged" : plan.password === "GENERATE" ? `password in ${CREDENTIALS_FILE}` : "password from the environment";
   deps.report(`${existing ? "kept" : "created"} ${plan.username} (GUEST of ${plan.firmId}; ${passwordNote})`);
 }

@@ -4,7 +4,8 @@
 // Lambdas the BFF hands work to, run in process when the test settles: `SignupDispatch`, `LeadNotice`
 // (the single SES client with the `LEAD_NOTICE` profile, recorded by the SES fake) and `WorldJanitor`
 // (the real world factory over the seed's `guest` template). Id tokens carry what the real `AuthPreToken`
-// decides from the broker rows of the world; nothing of the edge is reimplemented here.
+// decides from the broker rows of the world; nothing of the edge is reimplemented here. A sign-up enrols
+// its mobile with the SMS code (ADR-0021) over the in-memory sender: that is where its lead is born.
 import { decidePreToken, guestRowsOf } from "@legajo/bff/auth-triggers/pre-token";
 import { brokerLookupOf } from "@legajo/bff/auth/staff";
 import { createEmailClient } from "@legajo/bff/channels/email/outbound";
@@ -14,6 +15,7 @@ import type { AsyncTarget } from "@legajo/bff/signup/invoke";
 import { runDispatch } from "@legajo/bff/signup/dispatch";
 import { type RecordedInvoke, type TestAccess, edgeHeaders, fakeCognito, testAccessDeps, testSignupKeys } from "@legajo/bff/signup/testing";
 import { TEST_PASSWORD } from "@legajo/bff/signup/testing-flows";
+import { sha256Hex } from "@legajo/bff/lib/crypto";
 import { type Bff, type CallResult, bffFor, call, trpcEvent } from "@legajo/bff/signup/testing-http";
 import { SESv2Client } from "@aws-sdk/client-sesv2";
 import { LOCAL_STAGE } from "./stage/context";
@@ -31,6 +33,15 @@ export interface SignupOptions {
   /** `ip:port` of the viewer CloudFront reports. */
   readonly viewer?: string;
   readonly password?: string;
+  /** The form's mobile; one of its own per email unless a test names one. */
+  readonly phone?: string;
+  /** `false`: stop after the email's code, before the SMS code of ADR-0021 (no lead yet). */
+  readonly enrolPhone?: boolean;
+}
+
+/** A fictitious mobile of the email's own: one number per account, as the BFF requires. */
+export function phoneOf(email: string): string {
+  return `+549115${String(Number.parseInt(sha256Hex(email).slice(0, 8), 16) % 10_000_000).padStart(7, "0")}`;
 }
 
 export interface SignedUp {
@@ -58,7 +69,9 @@ export interface PublicEdge {
   codeOf(email: string): string | undefined;
   /** `signup.confirm` with the code mailed to `email`, then the work it handed on. */
   confirm(signupId: string, email: string, code?: string, password?: string): Promise<CallResult>;
-  /** Sign-up and confirmation of a new visitor; answers its Cognito user. */
+  /** The SMS code of the email's session (ADR-0021): sent to the form's number and typed back. */
+  passPhone(email: string): Promise<CallResult>;
+  /** Sign-up, confirmation and the SMS code of a new visitor; answers its Cognito user. */
   signUp(email: string, options?: SignupOptions): Promise<{ readonly signupId: string; readonly username: string; readonly sub: string }>;
   /** An id token of the user with the claims the real `AuthPreToken` decides now. */
   tokenOf(email: string, authTime?: Date): Promise<string>;
@@ -83,6 +96,13 @@ export function createPublicEdge(world: FlowWorld): PublicEdge {
           throw new Error("Leads is not reachable (the test cuts the sign-up here)");
         }
         return leads.saveVerifiedLead(input, at);
+      },
+      async saveDraft(draft, at) {
+        if (edge.failLeadWrites > 0) {
+          edge.failLeadWrites -= 1;
+          throw new Error("Leads is not reachable (the test cuts the sign-up here)");
+        }
+        return leads.saveDraft(draft, at);
       },
     },
     invoker: {
@@ -130,6 +150,7 @@ export function createPublicEdge(world: FlowWorld): PublicEdge {
           formToken,
           email,
           password: options.password ?? TEST_PASSWORD,
+          phone: options.phone ?? phoneOf(email),
           consents: { terms: true, contact: options.contact ?? true },
           consentVersions: { ...access.legalVersions },
           lang: options.lang ?? "es",
@@ -156,7 +177,20 @@ export function createPublicEdge(world: FlowWorld): PublicEdge {
       if ((confirmed.data as { status?: string } | undefined)?.status !== "CONFIRMED") throw new Error(`the sign-up was not confirmed: ${JSON.stringify(confirmed)}`);
       const user = [...access.cognito.users.values()].find((candidate) => candidate.email === email);
       if (user === undefined) throw new Error("the Cognito double has no user for that email");
+      if (options.enrolPhone !== false) {
+        const passed = await edge.passPhone(email);
+        if ((passed.data as { status?: string } | undefined)?.status !== "CLEARED") throw new Error(`the phone was not verified: ${JSON.stringify(passed)}`);
+      }
       return { signupId: started.signupId, username: user.username, sub: user.sub };
+    },
+    async passPhone(email) {
+      const token = await edge.tokenOf(email);
+      const sent = await edge.api("POST", "account.sendPhoneCode", {}, { token });
+      if ((sent.data as { status?: string } | undefined)?.status !== "CODE_SENT") return sent;
+      const to = access.sms.sent.at(-1)?.to ?? "";
+      const answer = await edge.api("POST", "account.verifyPhoneCode", { code: access.sms.lastCode(to) ?? "" }, { token });
+      await edge.settle();
+      return answer;
     },
     async tokenOf(email, authTime = now()) {
       const user = [...access.cognito.users.values()].find((candidate) => candidate.email === email);

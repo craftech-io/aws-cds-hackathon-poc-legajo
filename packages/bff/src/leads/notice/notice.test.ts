@@ -54,6 +54,8 @@ beforeEach(async () => {
       signupAt: "2026-10-14T13:00:00.000Z",
       confirmedAt: "2026-10-14T13:05:00.000Z",
       cognitoUsername: "usr-01j9zq00000000000000000001",
+      phone: "+5491155550101",
+      phoneVerifiedAt: "2026-10-14T13:06:00.000Z",
     },
     NOW,
   );
@@ -77,6 +79,7 @@ describe("[FL-115] the notice of a new lead", () => {
     const text = sent[0]?.profile === "LEAD_NOTICE" ? sent[0].text : "";
     expect(text).toBe(leadNoticeBody((await leads.get(HASH)) ?? (undefined as never)));
     expect(text).toContain(`Email: ${EMAIL}`);
+    expect(text).toContain("Celular verificado: +5491155550101");
     expect(text).toContain("Empresa: Despachos del Sur (ficticia)");
     expect(text).not.toContain("Cargo:");
     expect(text).toContain("Idioma: en");

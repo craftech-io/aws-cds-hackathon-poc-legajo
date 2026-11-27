@@ -76,6 +76,34 @@ export const ACCOUNT_EMAIL_LIMITS = {
 } as const satisfies Readonly<Record<string, readonly WindowedLimit[]>>;
 export type AccountEmailLimit = keyof typeof ACCOUNT_EMAIL_LIMITS;
 
+// ---- Phone verification by SMS (ADR-0021) ----------------------------------------------------------
+
+/** One SMS code: six digits, ten minutes, five tries; a new one no sooner than a minute after the last. */
+export const PHONE_CODE = {
+  digits: 6,
+  ttlSeconds: 10 * 60,
+  maxAttempts: 5,
+  resendWaitSeconds: 60,
+} as const;
+
+/**
+ * A sign-in session that passed the code stays cleared this long: the refresh token's life (12 h,
+ * infra/auth-spec.ts), the longest a Cognito sign-in can last without typing the password again.
+ */
+export const PHONE_SESSION_TTL_SECONDS = 12 * 60 * 60;
+
+/** The sign-up's lead data waits this long for the phone to be verified; past it the account still enrols, without a lead. */
+export const LEAD_DRAFT_TTL_SECONDS = 30 * 24 * 60 * 60;
+
+/** SMS sent per account (enrolment and sign-ins together), per number, per viewer IP and in total, `Runtime/RL#SMS#…`. */
+export const SMS_LIMITS = {
+  perAccount: [{ window: "DAY", limit: 6 }],
+  perNumber: [{ window: "DAY", limit: 3 }],
+  perIp: [{ window: "DAY", limit: 5 }],
+  total: [{ window: "DAY", limit: 150 }],
+} as const satisfies Readonly<Record<string, readonly WindowedLimit[]>>;
+export type SmsLimit = keyof typeof SMS_LIMITS;
+
 /** Reputation breaker of the account's SES (ADR-0015 §3.2): opened by `ChannelEvents`, closed only by the operator. */
 export const MAIL_BREAKER = {
   /** Hourly buckets summed: the last 24 hours. */

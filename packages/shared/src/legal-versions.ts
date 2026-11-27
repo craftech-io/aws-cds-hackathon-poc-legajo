@@ -20,8 +20,8 @@ export const LegalVersions = z
 export type LegalVersions = z.infer<typeof LegalVersions>;
 
 export const LEGAL_VERSIONS: LegalVersions = Object.freeze({
-  terms: "2026-10-02",
-  privacy: "2026-10-04",
+  terms: "2026-11-27",
+  privacy: "2026-11-27",
   contact: "2026-10-02",
 });
 
